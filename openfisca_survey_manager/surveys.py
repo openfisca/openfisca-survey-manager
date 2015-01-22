@@ -37,7 +37,7 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 from pandas.lib import infer_dtype
-
+from sas7bdat import SAS7BDAT
 #import pandas.rpy.common as com     #need to import it just for people using Rdata files
 #import rpy2.rpy_classic as rpy
 #
@@ -89,26 +89,39 @@ class Survey(object):
         with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
-    def fill_hdf(self, table = None, data_frame = None):
+    def fill_hdf(self, data_frame = None, table = None, variables = None):
         assert table is not None, u"The mandatory keyword argument 'table' is not provided"
         assert data_frame is not None, u"The mandatory keyword argument 'dataframe' is not provided"
         if table not in self.tables:
             self.tables[table] = {}
 
-        log.info("Inserting table {} in HDF file {}".format(
-            table,
-            self.hdf5_file_path,
-            )
-        )
+        log.info("Inserting table {} in HDF file {}".format(table, self.hdf5_file_path))
         store_path = table
+
+        if variables is not None:
+            variables_stored = list(set(variables).intersection(set(data_frame.columns)))
+            log.info('variables stored: {}'.format(variables_stored))
+            if set(variables_stored) != set(variables):
+                log.info(
+                    'variables wanted by the user that were not available: {}'.format(
+                        list(set(variables) - set(variables_stored))
+                        )
+                    )
+            stored_data_frame = data_frame[variables_stored].copy()  # remove this copy ?
+        else:
+            stored_data_frame = data_frame
+
         try:
             data_frame.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         except TypeError:
-            types = data_frame.apply(lambda x: infer_dtype(x.values))
-            log.info("The following types are converted to strings \n {}".format(types[types=='unicode']))
-            for column in types[types=='unicode'].index:
-                data_frame[column] = data_frame[column].astype(str)
+            # stored_dataframe = stored_dataframe.convert_objects()
+            types = stored_data_frame.apply(lambda x: infer_dtype(x.values))
+            log.info("The following types are converted to strings \n {}".format(types[types == 'unicode']))
+            for column in types[types == 'unicode'].index:
+                stored_data_frame[column] = stored_data_frame[column].astype(str)
+
             data_frame.to_hdf(self.hdf5_file_path, store_path)
+        gc.collect()
 
     def fill_hdf_from_Rdata(self, table):
         import pandas.rpy.common as com
@@ -124,27 +137,12 @@ class Survey(object):
         if not os.path.isfile(Rdata_file):
             raise Exception("file_path do not exists")
         rpy.r.load(Rdata_file)
-        stored_dataframe = com.load_data(Rdata_table)
-        store_path = table
-
-        log.info("Inserting {} in HDF file {} at point {}".format(
-            Rdata_table,
-            self.hdf5_file_path,
-            table,
-            )
-        )
-        if variables is not None:
-            log.info('variables asked by the user: {}'.format(variables))
-            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
-            log.info('variables stored: {}'.format(variables_stored))
-            stored_dataframe = stored_dataframe[variables_stored].copy()
-
-        stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-        gc.collect()
+        data_frame = com.load_data(Rdata_table)
+        self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
 
     def fill_hdf_from_sas(self, table):
         start_table_time = datetime.datetime.now()
-        from sas7bdat import read_sas
+
         assert table in self.tables, "Table {} is not a filed table".format(table)
         sas_file = self.tables[table]["sas_file"]
 
@@ -153,23 +151,17 @@ class Survey(object):
         else:
             variables = None
         if not os.path.isfile(sas_file):
-            raise Exception("file_path do  not exists")
-        log.info("    {} : Inserting sas_file {} in HDF file {} at point {}".format(
-            datetime.datetime.now().isoformat(' ').split('.')[0],
-            sas_file,
-            self.hdf5_file_path,
-            table,
+            raise Exception("file path {} do not exists".format(sas_file))
+        log.info(
+            "    {} : Inserting sas_file {} in HDF file {} at point {}".format(
+                datetime.datetime.now().isoformat(' ').split('.')[0],
+                sas_file,
+                self.hdf5_file_path,
+                table,
+                )
             )
-        )
-        stored_dataframe = read_sas(sas_file)
-        store_path = table
-        if variables is not None:
-            log.info('variables asked by the user: {}'.format(variables))
-            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
-            log.info('variables stored: {}'.format(variables_stored))
-            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-        else:
-            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        data_frame = SAS7BDAT(sas_file).to_data_frame()
+        self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
         gc.collect()
         log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))
 
@@ -221,6 +213,7 @@ class Survey(object):
             table,
             )
         )
+        print stata_file
         stored_dataframe = read_stata(stata_file)
         store_path = table
         if variables is not None:
