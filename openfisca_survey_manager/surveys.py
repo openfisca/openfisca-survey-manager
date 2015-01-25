@@ -37,12 +37,16 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 from pandas.lib import infer_dtype
-from sas7bdat import SAS7BDAT
-#import pandas.rpy.common as com     #need to import it just for people using Rdata files
-#import rpy2.rpy_classic as rpy
+
+from openfisca_survey_manager.read_sas import read_sas
+from openfisca_survey_manager.read_spss import read_spss
+
+
+# import pandas.rpy.common as com     # need to import it just for people using Rdata files
+# import rpy2.rpy_classic as rpy
 #
 #
-#rpy.set_default_mode(rpy.NO_CONVERSION)
+# rpy.set_default_mode(rpy.NO_CONVERSION)
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_data_location)
@@ -130,26 +134,22 @@ class Survey(object):
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
-        if 'variables' in self.tables:
-            variables = self.tables[table]['variables']
-        else:
-            variables = None
+        variables = self.tables[table].get('variables')
+
         if not os.path.isfile(Rdata_file):
             raise Exception("file_path do not exists")
         rpy.r.load(Rdata_file)
         data_frame = com.load_data(Rdata_table)
         self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
 
-    def fill_hdf_from_sas(self, table):
+    def fill_hdf_from_sas(self, table, **kwargs):
         start_table_time = datetime.datetime.now()
 
-        assert table in self.tables, "Table {} is not a filed table".format(table)
+        assert table in self.tables, "Table {} is not a present".format(table)
         sas_file = self.tables[table]["sas_file"]
+        clean = kwargs.get("clean")
+        variables = self.tables[table].get('variables')
 
-        if 'variables' in self.tables:
-            variables = self.tables[table]['variables']
-        else:
-            variables = None
         if not os.path.isfile(sas_file):
             raise Exception("file path {} do not exists".format(sas_file))
         log.info(
@@ -160,19 +160,16 @@ class Survey(object):
                 table,
                 )
             )
-        data_frame = SAS7BDAT(sas_file).to_data_frame()
+        data_frame = read_sas(sas_file, clean = clean)
         self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
         gc.collect()
         log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))
 
     def fill_hdf_from_spss(self, table):
-        from read_spss import read_spss
         assert table in self.tables, "Table {} is not a filed table".format(table)
         spss_file = self.tables[table]["spss_file"]  # .sav file name
-        try:
-            variables = self.tables[table]['variables']
-        except:
-            variables = None
+        variables = self.tables[table].get('variables')
+
         if not os.path.isfile(spss_file):
             raise Exception("file_path {} do not exists".format(spss_file))
         log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
@@ -200,10 +197,8 @@ class Survey(object):
         from pandas import read_stata
         assert table in self.tables, "Table {} is not a filed table".format(table)
         stata_file = self.tables[table]["stata_file"]
-        try:
-            variables = self.tables[table]['variables']
-        except:
-            variables = None
+        variables = self.tables[table].get('variables')
+
         if not os.path.isfile(stata_file):
             raise Exception("file_path {} do not exists".format(stata_file))
         log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
@@ -317,7 +312,7 @@ class Survey(object):
 
     def insert_table(self, name = None, **kwargs):
         """
-        Insert a table in the Survey
+        Insert a table in the Survey object
         """
         if name not in self.tables:
             self.tables[name] = dict()
@@ -366,37 +361,34 @@ class SurveyCollection(object):
         with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
-    def fill_hdf_from_Rdata(self, surveys_name = None):
+    def fill_hdf(self, source_format = None, surveys_name = None):
+        assert source_format in ["Rdata", "sas", "spss" "stata"], \
+            "Data source format {} is unknown".format(source_format)
         if surveys_name is None:
             surveys_name = self.surveys.values()
         for survey_name in surveys_name:
             survey = self.surveys[survey_name]
             for table in survey.tables:
-                survey.fill_hdf_from_Rdata(table)
+                if source_format == "Rdata":
+                    survey.fill_hdf_from_Rdata(table)
+                if source_format == "sas":
+                    survey.fill_hdf_from_sas(table)
+                if source_format == "spss":
+                    survey.fill_hdf_from_spss(table)
+                if source_format == "stata":
+                    survey.fill_hdf_from_stata(table)
+
+    def fill_hdf_from_Rdata(self, surveys_name = None):
+        self.fill_hdf(source_format = "Rdata", surveys_name = None)
 
     def fill_hdf_from_sas(self, surveys_name = None):
-        if surveys_name is None:
-            surveys_name = self.surveys.values()
-        for survey_name in surveys_name:
-            survey = self.surveys[survey_name]
-            for table in survey.tables:
-                survey.fill_hdf_from_sas(table)
+        self.fill_hdf(source_format = "sas", surveys_name = surveys_name)
 
     def fill_hdf_from_spss(self, surveys_name = None):
-        if surveys_name is None:
-            surveys_name = self.surveys.values()
-        for survey_name in surveys_name:
-            survey = self.surveys[survey_name]
-            for table in survey.tables:
-                survey.fill_hdf_from_spss(table)
+        self.fill_hdf(source_format = "spss", surveys_name = surveys_name)
 
     def fill_hdf_from_stata(self, surveys_name = None):
-        if surveys_name is None:
-            surveys_name = self.surveys.values()
-        for survey_name in surveys_name:
-            survey = self.surveys[survey_name]
-            for table in survey.tables:
-                survey.fill_hdf_from_stata(table)
+        self.fill_hdf(source_format = "stata", surveys_name = surveys_name)
 
     @classmethod
     def load(cls, file_path = None, collection = None, config_files_directory = None):

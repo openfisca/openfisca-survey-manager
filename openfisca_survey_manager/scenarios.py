@@ -67,6 +67,9 @@ class AbstractSurveyScenario(object):
             holder.array = inflator * holder.array
 
     def new_simulation(self, debug = False, debug_all = False, trace = False):
+
+        assert self.init_from_data_frame is not None
+        assert self.tax_benefit_system is not None
         input_data_frame = self.input_data_frame
         simulation = simulations.Simulation(
             debug = debug,
@@ -89,6 +92,7 @@ class AbstractSurveyScenario(object):
                 "Variable {} is not present in input dataframe".format(id_variable)
 
         column_by_name = self.tax_benefit_system.column_by_name
+
         for column_name in input_data_frame:
             if column_name not in column_by_name:
                 log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
