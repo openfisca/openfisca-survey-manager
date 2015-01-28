@@ -362,7 +362,7 @@ class SurveyCollection(object):
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
     def fill_hdf(self, source_format = None, surveys_name = None):
-        assert source_format in ["Rdata", "sas", "spss" "stata"], \
+        assert source_format in ["Rdata", "sas", "spss", "stata"], \
             "Data source format {} is unknown".format(source_format)
         if surveys_name is None:
             surveys_name = self.surveys.values()
