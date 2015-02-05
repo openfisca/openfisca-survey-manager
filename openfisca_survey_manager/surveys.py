@@ -37,6 +37,10 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 from pandas.lib import infer_dtype
+import pandas.rpy.common as com
+import rpy2.rpy_classic as rpy
+import yaml
+
 
 from openfisca_survey_manager.read_sas import read_sas
 from openfisca_survey_manager.read_spss import read_spss
@@ -65,6 +69,7 @@ class Survey(object):
     name = None
     tables = None
     tables_index = dict()
+    informations = dict()
 
     def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
         assert name is not None, "A survey should have a name"
@@ -78,6 +83,13 @@ class Survey(object):
             self.hdf5_file_path = hdf5_file_path
 
         self.informations = kwargs
+
+    def __repr__(self):
+        header = """{} : survey data {}
+Contains the following tables : \n""".format(self.name, self.label)
+        tables = yaml.safe_dump(self.tables.keys(), default_flow_style = False)
+        informations = yaml.safe_dump(self.informations, default_flow_style = False)
+        return header + tables + informations
 
     @classmethod
     def create_from_json(cls, survey_json):
@@ -128,8 +140,6 @@ class Survey(object):
         gc.collect()
 
     def fill_hdf_from_Rdata(self, table):
-        import pandas.rpy.common as com
-        import rpy2.rpy_classic as rpy
         rpy.set_default_mode(rpy.NO_CONVERSION)
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
@@ -208,7 +218,7 @@ class Survey(object):
             table,
             )
         )
-        print stata_file
+        log.info("Reading from {}".format(stata_file))
         stored_dataframe = read_stata(stata_file)
         store_path = table
         if variables is not None:
@@ -297,7 +307,7 @@ class Survey(object):
             for column_name in df:
                 if ident_re.match(column_name) is not None:
                     df.rename(columns = {column_name: "ident"}, inplace = True)
-                    print("{} column have been replaced by ident".format(column_name))
+                    log.info("{} column have been replaced by ident".format(column_name))
                     break
 
         if variables is None:
@@ -334,6 +344,7 @@ class Survey(object):
         self_json['label'] = self.label
         self_json['name'] = self.name
         self_json['tables'] = collections.OrderedDict(sorted(self.tables.iteritems()))
+        self_json['informations'] = collections.OrderedDict(sorted(self.informations.iteritems()))
         return self_json
 
 
@@ -351,12 +362,18 @@ class SurveyCollection(object):
         if name is not None:
             self.name = name
 
+    def __repr__(self):
+        header = """{}
+Survey collection of {}
+Contains the following surveys :
+""".format(self.name, self.label)
+        surveys = ["       {} : {} \n".format(survey.name, survey.label) for _, survey in self.surveys.iteritems()]
+        return header + "".join(surveys)
+
     def dump(self, file_path = None, collection = None, config_files_directory = None):
         if file_path is None:
-            if collection is None:
-                file_path = self.config.get("collections", "default_collection")
-            else:
-                file_path = self.config.get("collections", collection)
+            assert collection is not None
+            file_path = self.config.get("collections", collection)
 
         with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
@@ -392,22 +409,21 @@ class SurveyCollection(object):
 
     @classmethod
     def load(cls, file_path = None, collection = None, config_files_directory = None):
+
+        if config_files_directory is None:
+            config_files_directory = default_config_files_directory
         if file_path is None:
+            assert collection is not None
             self = cls()
             self.set_config_files_directory(config_files_directory = config_files_directory)
-            if collection is None:
-                file_path = self.config.get("collections", "default_collection")
-            else:
-                file_path = self.config.get("collections", collection)
+            file_path = self.config.get("collections", collection)
             with open(file_path, 'r') as _file:
-                print _file
                 self_json = json.load(_file)
                 self.name = self_json.get('name')
                 self.label = self_json.get('label')
-        else:
-            with open(file_path, 'r') as _file:
-                self_json = json.load(_file)
-                self = cls(name=self_json.get('name'), label=self_json.get('label'))
+        with open(file_path, 'r') as _file:
+            self_json = json.load(_file)
+            self = cls(name=self_json.get('name'), label=self_json.get('label'))
 
         surveys = self_json.get('surveys')
         for survey_name, survey_json in surveys.iteritems():
