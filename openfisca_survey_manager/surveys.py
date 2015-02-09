@@ -37,8 +37,11 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 from pandas.lib import infer_dtype
-import pandas.rpy.common as com
-import rpy2.rpy_classic as rpy
+try:
+    import pandas.rpy.common as com
+    import rpy2.rpy_classic as rpy
+except:
+    pass
 import yaml
 
 
