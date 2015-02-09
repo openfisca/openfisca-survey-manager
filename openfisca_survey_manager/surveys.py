@@ -26,24 +26,12 @@
 
 import codecs
 import collections
-import datetime
-import gc
 import json
-import os
-import pkg_resources
 import re
 
-from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
-from pandas.lib import infer_dtype
-import pandas.rpy.common as com
-import rpy2.rpy_classic as rpy
 import yaml
-
-
-from openfisca_survey_manager.read_sas import read_sas
-from openfisca_survey_manager.read_spss import read_spss
 
 
 # import pandas.rpy.common as com     # need to import it just for people using Rdata files
@@ -52,8 +40,6 @@ from openfisca_survey_manager.read_spss import read_spss
 #
 # rpy.set_default_mode(rpy.NO_CONVERSION)
 
-openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_data_location)
 ident_re = re.compile(u"(?i)ident\d{2,4}$")
 
 
@@ -96,7 +82,8 @@ Contains the following tables : \n""".format(self.name, self.label)
         self = cls(
             name = survey_json.get('name'),
             label = survey_json.get('label'),
-            hdf5_file_path = survey_json.get('hdf5_file_path')
+            hdf5_file_path = survey_json.get('hdf5_file_path'),
+            **survey_json.get('informations')
             )
         self.tables = survey_json.get('tables')
         return self
@@ -104,134 +91,6 @@ Contains the following tables : \n""".format(self.name, self.label)
     def dump(self, file_path):
         with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
-
-    def fill_hdf(self, data_frame = None, table = None, variables = None):
-        assert table is not None, u"The mandatory keyword argument 'table' is not provided"
-        assert data_frame is not None, u"The mandatory keyword argument 'dataframe' is not provided"
-        if table not in self.tables:
-            self.tables[table] = {}
-
-        log.info("Inserting table {} in HDF file {}".format(table, self.hdf5_file_path))
-        store_path = table
-
-        if variables is not None:
-            variables_stored = list(set(variables).intersection(set(data_frame.columns)))
-            log.info('variables stored: {}'.format(variables_stored))
-            if set(variables_stored) != set(variables):
-                log.info(
-                    'variables wanted by the user that were not available: {}'.format(
-                        list(set(variables) - set(variables_stored))
-                        )
-                    )
-            stored_data_frame = data_frame[variables_stored].copy()  # remove this copy ?
-        else:
-            stored_data_frame = data_frame
-
-        try:
-            data_frame.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-        except TypeError:
-            # stored_dataframe = stored_dataframe.convert_objects()
-            types = stored_data_frame.apply(lambda x: infer_dtype(x.values))
-            log.info("The following types are converted to strings \n {}".format(types[types == 'unicode']))
-            for column in types[types == 'unicode'].index:
-                stored_data_frame[column] = stored_data_frame[column].astype(str)
-
-            data_frame.to_hdf(self.hdf5_file_path, store_path)
-        gc.collect()
-
-    def fill_hdf_from_Rdata(self, table):
-        rpy.set_default_mode(rpy.NO_CONVERSION)
-        assert table in self.tables, "Table {} is not a filed table".format(table)
-        Rdata_table = self.tables[table]["Rdata_table"]
-        Rdata_file = self.tables[table]["Rdata_file"]
-        variables = self.tables[table].get('variables')
-
-        if not os.path.isfile(Rdata_file):
-            raise Exception("file_path do not exists")
-        rpy.r.load(Rdata_file)
-        data_frame = com.load_data(Rdata_table)
-        self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
-
-    def fill_hdf_from_sas(self, table, **kwargs):
-        start_table_time = datetime.datetime.now()
-
-        assert table in self.tables, "Table {} is not a present".format(table)
-        sas_file = self.tables[table]["sas_file"]
-        clean = kwargs.get("clean")
-        variables = self.tables[table].get('variables')
-
-        if not os.path.isfile(sas_file):
-            raise Exception("file path {} do not exists".format(sas_file))
-        log.info(
-            "    {} : Inserting sas_file {} in HDF file {} at point {}".format(
-                datetime.datetime.now().isoformat(' ').split('.')[0],
-                sas_file,
-                self.hdf5_file_path,
-                table,
-                )
-            )
-        data_frame = read_sas(sas_file, clean = clean)
-        self.fill_hdf(data_frame = data_frame, table = table, variables = variables)
-        gc.collect()
-        log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))
-
-    def fill_hdf_from_spss(self, table):
-        assert table in self.tables, "Table {} is not a filed table".format(table)
-        spss_file = self.tables[table]["spss_file"]  # .sav file name
-        variables = self.tables[table].get('variables')
-
-        if not os.path.isfile(spss_file):
-            raise Exception("file_path {} do not exists".format(spss_file))
-        log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
-            table,
-            spss_file,
-            self.hdf5_file_path,
-            table,
-            )
-        )
-        stored_dataframe = read_spss(spss_file)
-        store_path = table
-        if variables is not None:
-            log.info('variables asked by the user: {}'.format(variables))
-            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
-            log.info('variables stored: {}'.format(variables_stored))
-            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-        else:
-            try:
-                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-            except:
-                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, append = False)
-        gc.collect()
-
-    def fill_hdf_from_stata(self, table):
-        from pandas import read_stata
-        assert table in self.tables, "Table {} is not a filed table".format(table)
-        stata_file = self.tables[table]["stata_file"]
-        variables = self.tables[table].get('variables')
-
-        if not os.path.isfile(stata_file):
-            raise Exception("file_path {} do not exists".format(stata_file))
-        log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
-            table,
-            stata_file,
-            self.hdf5_file_path,
-            table,
-            )
-        )
-        log.info("Reading from {}".format(stata_file))
-        stored_dataframe = read_stata(stata_file)
-        store_path = table
-        if variables is not None:
-            log.info('variables asked by the user: {}'.format(variables))
-            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
-            log.info('variables stored: {}'.format(variables_stored))
-            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-        else:
-            try:
-                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
-            except:
-                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, append = False)
-        gc.collect()
 
     def find_tables(self, variable = None, tables = None):
         container_tables = []
@@ -346,107 +205,3 @@ Contains the following tables : \n""".format(self.name, self.label)
         self_json['tables'] = collections.OrderedDict(sorted(self.tables.iteritems()))
         self_json['informations'] = collections.OrderedDict(sorted(self.informations.iteritems()))
         return self_json
-
-
-class SurveyCollection(object):
-    """
-    A collection of Surveys
-    """
-    label = None
-    name = None
-    surveys = dict()
-
-    def __init__(self, name = None, label = None):
-        if label is not None:
-            self.label = label
-        if name is not None:
-            self.name = name
-
-    def __repr__(self):
-        header = """{}
-Survey collection of {}
-Contains the following surveys :
-""".format(self.name, self.label)
-        surveys = ["       {} : {} \n".format(survey.name, survey.label) for _, survey in self.surveys.iteritems()]
-        return header + "".join(surveys)
-
-    def dump(self, file_path = None, collection = None, config_files_directory = None):
-        if file_path is None:
-            assert collection is not None
-            file_path = self.config.get("collections", collection)
-
-        with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
-            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
-
-    def fill_hdf(self, source_format = None, surveys_name = None):
-        assert source_format in ["Rdata", "sas", "spss", "stata"], \
-            "Data source format {} is unknown".format(source_format)
-        if surveys_name is None:
-            surveys_name = self.surveys.values()
-        for survey_name in surveys_name:
-            survey = self.surveys[survey_name]
-            for table in survey.tables:
-                if source_format == "Rdata":
-                    survey.fill_hdf_from_Rdata(table)
-                if source_format == "sas":
-                    survey.fill_hdf_from_sas(table)
-                if source_format == "spss":
-                    survey.fill_hdf_from_spss(table)
-                if source_format == "stata":
-                    survey.fill_hdf_from_stata(table)
-
-    def fill_hdf_from_Rdata(self, surveys_name = None):
-        self.fill_hdf(source_format = "Rdata", surveys_name = None)
-
-    def fill_hdf_from_sas(self, surveys_name = None):
-        self.fill_hdf(source_format = "sas", surveys_name = surveys_name)
-
-    def fill_hdf_from_spss(self, surveys_name = None):
-        self.fill_hdf(source_format = "spss", surveys_name = surveys_name)
-
-    def fill_hdf_from_stata(self, surveys_name = None):
-        self.fill_hdf(source_format = "stata", surveys_name = surveys_name)
-
-    @classmethod
-    def load(cls, file_path = None, collection = None, config_files_directory = None):
-
-        if config_files_directory is None:
-            config_files_directory = default_config_files_directory
-        if file_path is None:
-            assert collection is not None
-            self = cls()
-            self.set_config_files_directory(config_files_directory = config_files_directory)
-            file_path = self.config.get("collections", collection)
-            with open(file_path, 'r') as _file:
-                self_json = json.load(_file)
-                self.name = self_json.get('name')
-                self.label = self_json.get('label')
-        with open(file_path, 'r') as _file:
-            self_json = json.load(_file)
-            self = cls(name=self_json.get('name'), label=self_json.get('label'))
-
-        surveys = self_json.get('surveys')
-        for survey_name, survey_json in surveys.iteritems():
-            survey = Survey(name=survey_name)
-            self.surveys[survey_name] = survey.create_from_json(survey_json)
-        return self
-
-    def to_json(self):
-        self_json = collections.OrderedDict((
-            ))
-        self_json['name'] = self.name
-        self_json['surveys'] = collections.OrderedDict((
-            ))
-        for name, survey in self.surveys.iteritems():
-            self_json['surveys'][name] = survey.to_json()
-        return self_json
-
-    def set_config_files_directory(self, config_files_directory = None):
-        if config_files_directory is None:
-            config_files_directory = default_config_files_directory
-
-        parser = SafeConfigParser()
-        config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
-        config_ini = os.path.join(config_files_directory, 'config.ini')
-        parser.read([config_ini, config_local_ini])
-        self.config = parser
