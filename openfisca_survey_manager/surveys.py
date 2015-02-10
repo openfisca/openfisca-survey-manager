@@ -46,8 +46,10 @@ import yaml
 
 
 from openfisca_survey_manager.read_sas import read_sas
-from openfisca_survey_manager.read_spss import read_spss
-
+try:
+    from openfisca_survey_manager.read_spss import read_spss
+except:
+    pass
 
 # import pandas.rpy.common as com     # need to import it just for people using Rdata files
 # import rpy2.rpy_classic as rpy
