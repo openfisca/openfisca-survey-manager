@@ -60,7 +60,7 @@ class Survey(object):
     def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
         assert name is not None, "A survey should have a name"
         self.name = name
-        self.tables = dict()  # TODO: rework to better organize this dict
+        self.tables = list()  # TODO: rework to better organize this dict
 
         if label is not None:
             self.label = label
@@ -73,7 +73,9 @@ class Survey(object):
     def __repr__(self):
         header = """{} : survey data {}
 Contains the following tables : \n""".format(self.name, self.label)
-        tables = yaml.safe_dump(self.tables.keys(), default_flow_style = False)
+        tables = yaml.safe_dump(
+            [table.name for table in self.tables],
+            default_flow_style = False)
         informations = yaml.safe_dump(self.informations, default_flow_style = False)
         return header + tables + informations
 
@@ -83,7 +85,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             name = survey_json.get('name'),
             label = survey_json.get('label'),
             hdf5_file_path = survey_json.get('hdf5_file_path'),
-            **survey_json.get('informations')
+            **survey_json.get('informations', dict())
             )
         self.tables = survey_json.get('tables')
         return self

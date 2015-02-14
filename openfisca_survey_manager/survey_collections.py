@@ -37,6 +37,13 @@ from .tables import Table
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_data_location)
 
+source_format_by_extension = dict(
+    sas7bdat = "sas",
+    dta = 'stata',
+    Rdata = 'Rdata',  # TODO: badly named
+    spss = 'sav'
+    )
+
 
 class SurveyCollection(object):
     """
@@ -72,16 +79,19 @@ Contains the following surveys :
         if source_format is not None:
             assert source_format in ["Rdata", "sas", "spss", "stata"], \
                 "Data source format {} is unknown".format(source_format)
+
         if surveys is None:
             surveys = self.surveys
+
         for survey in surveys:
             for source_format in ['stata', 'sas', 'spss', 'Rdata']:
                 files = "{}_files".format(source_format)
                 for data_file in survey.informations.get(files, []):
-                    TODO
-                    name = data_file.rstrip('.sas7bdat')
+                    name, extension = os.path.splitext(data_file)[0]
+
+
                     table = Table(name = name, survey = survey, label = name)
-                    print table.name
+                    table.fill_hdf_from_sas
                     print table.informations
 
             return
@@ -95,6 +105,10 @@ Contains the following surveys :
                     survey.fill_hdf_from_spss(table)
                 if source_format == "stata":
                     survey.fill_hdf_from_stata(table)
+
+    def get_survey(self, survey_name):
+        return [survey for survey in self.surveys if survey.name == survey_name].pop()
+
 
     @classmethod
     def load(cls, file_path = None, collection = None, config_files_directory = None):

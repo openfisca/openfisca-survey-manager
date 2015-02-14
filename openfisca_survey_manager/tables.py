@@ -28,7 +28,10 @@ import gc
 import logging
 
 import pandas
-# import rpy
+try:
+    import rpy
+except:
+    pass
 
 from . import read_sas
 from . import read_spss
@@ -83,6 +86,17 @@ class Table(object):
                 data_frame[column] = data_frame[column].astype(str)
             data_frame.to_hdf(hdf5_file_path, store_path)
         gc.collect()
+
+    def fill_hdf(self):
+        source_format = self.source_format
+        if source_format == "Rdata":
+            self.fill_hdf_from_Rdata()
+        if source_format == "sas":
+            self.fill_hdf_from_sas()
+        if source_format == "spss":
+            self.fill_hdf_from_spss()
+        if source_format == "stata":
+            self.fill_hdf_from_stata()
 
     def fill_hdf_from_Rdata(self):
         rpy.set_default_mode(rpy.NO_CONVERSION)
