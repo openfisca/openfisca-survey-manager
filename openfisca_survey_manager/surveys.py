@@ -39,22 +39,22 @@ from pandas import HDFStore
 from pandas.lib import infer_dtype
 try:
     import pandas.rpy.common as com
+except ImportError:
+    com = None
+try:
     import rpy2.rpy_classic as rpy
-except:
-    pass
+except ImportError:
+    rpy = None
 import yaml
 
 
 from openfisca_survey_manager.read_sas import read_sas
 try:
     from openfisca_survey_manager.read_spss import read_spss
-except:
-    pass
+except ImportError:
+    read_spss = None
 
-# import pandas.rpy.common as com     # need to import it just for people using Rdata files
-# import rpy2.rpy_classic as rpy
-#
-#
+
 # rpy.set_default_mode(rpy.NO_CONVERSION)
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
