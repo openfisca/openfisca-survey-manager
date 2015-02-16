@@ -32,8 +32,8 @@ from ConfigParser import SafeConfigParser
 
 import click
 
-
-from openfisca_survey_manager.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
 
 @click.group()
@@ -154,7 +154,7 @@ def create_from(ctx, directory_path, collection = None, survey = None,):
         stata_files = stata_files,
         )
 
-    print survey_collection.surveys[survey].informations
+    print survey_collection.surveys
     print collection_json_path
 
     survey_collection.dump(
@@ -181,10 +181,11 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
     overwrite = True
     label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
 
-    if survey_name in survey_collection.surveys.keys():
-        click.echo('The following information is available for survey {}'.format(survey_name))
-        click.echo(survey_collection.surveys[survey_name])
-        overwrite = click.prompt('Overwrite previous survey {} informations ?'.format(survey_name), default = False)
+    for test_survey in survey_collection.surveys:
+        if test_survey.anme == survey_name:
+            click.echo('The following information is available for survey {}'.format(survey_name))
+            click.echo(survey_collection.surveys[survey_name])
+            overwrite = click.prompt('Overwrite previous survey {} informations ?'.format(survey_name), default = False)
 
     if click.confirm('Are all the files part of the same survey ?', default = True):
         if overwrite:
@@ -201,8 +202,10 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
                 "sas_files": sas_files,
                 "stata_files": stata_files,
                 })
-
-        survey_collection.surveys.update({survey_name: survey})
+        survey_collection.surveys = [
+            kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+            ]
+        survey_collection.surveys.append(survey)
 
 
 if __name__ == '__main__':

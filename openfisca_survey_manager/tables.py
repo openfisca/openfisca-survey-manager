@@ -35,7 +35,6 @@ except:
 
 from . import read_sas
 from . import read_spss
-from .surveys import Survey
 
 
 log = logging.getLogger(__name__)
@@ -52,7 +51,10 @@ class Table(object):
     variables = list()
 
     def __init__(self, survey = None, name = None, label = None, variables = None, **kwargs):
+        from .surveys import Survey
         assert isinstance(survey, Survey)
+        self.survey = survey
+        self.survey.tables.append(self)
         assert name is not None, "A table should have a name"
         self.name = name
         if label is not None:
@@ -66,6 +68,7 @@ class Table(object):
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
         variables = self.variables
+        print "Inserting table {} in HDF file {}".format(table.name, hdf5_file_path)
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
         store_path = table.name
 
@@ -87,16 +90,16 @@ class Table(object):
             data_frame.to_hdf(hdf5_file_path, store_path)
         gc.collect()
 
-    def fill_hdf(self):
+    def fill_hdf(self, **kwargs):
         source_format = self.source_format
         if source_format == "Rdata":
-            self.fill_hdf_from_Rdata()
+            self.fill_hdf_from_Rdata(**kwargs)
         if source_format == "sas":
-            self.fill_hdf_from_sas()
+            self.fill_hdf_from_sas(**kwargs)
         if source_format == "spss":
-            self.fill_hdf_from_spss()
+            self.fill_hdf_from_spss(**kwargs)
         if source_format == "stata":
-            self.fill_hdf_from_stata()
+            self.fill_hdf_from_stata(**kwargs)
 
     def fill_hdf_from_Rdata(self):
         rpy.set_default_mode(rpy.NO_CONVERSION)
@@ -109,10 +112,11 @@ class Table(object):
 
     def fill_hdf_from_sas(self, **kwargs):
         start_table_time = datetime.datetime.now()
-        sas_file = self.informations["sas_file"]
+        sas_file = kwargs["data_file"]
+        self.data_file = sas_file
         clean = kwargs.get("clean")
         self._check_and_log(sas_file)
-        data_frame = read_sas(sas_file, clean = clean)
+        data_frame = read_sas.read_sas(sas_file, clean = clean)
         self._save(data_frame = data_frame)
         gc.collect()
         log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))

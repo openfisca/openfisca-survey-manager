@@ -24,9 +24,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import codecs
 import collections
-import json
+import os
 import re
 
 import logging
@@ -40,10 +39,22 @@ import yaml
 #
 # rpy.set_default_mode(rpy.NO_CONVERSION)
 
+
+from .tables import Table
+
+
 ident_re = re.compile(u"(?i)ident\d{2,4}$")
 
 
 log = logging.getLogger(__name__)
+
+
+source_format_by_extension = dict(
+    sas7bdat = "sas",
+    dta = 'stata',
+    Rdata = 'Rdata',  # TODO: badly named
+    spss = 'sav'
+    )
 
 
 class Survey(object):
@@ -51,13 +62,15 @@ class Survey(object):
     An object to describe survey data
     """
     hdf5_file_path = None
+    informations = dict()
     label = None
     name = None
-    tables = None
+    tables = []
     tables_index = dict()
-    informations = dict()
+    survey_collection = None
 
-    def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
+    def __init__(self, name = None, label = None, hdf5_file_path = None,
+                 survey_collection = None, **kwargs):
         assert name is not None, "A survey should have a name"
         self.name = name
         self.tables = list()  # TODO: rework to better organize this dict
@@ -67,6 +80,9 @@ class Survey(object):
 
         if hdf5_file_path is not None:
             self.hdf5_file_path = hdf5_file_path
+
+        if survey_collection is not None:
+            self.survey_collection = survey_collection
 
         self.informations = kwargs
 
@@ -81,18 +97,32 @@ Contains the following tables : \n""".format(self.name, self.label)
 
     @classmethod
     def create_from_json(cls, survey_json):
+        print survey_json
         self = cls(
             name = survey_json.get('name'),
             label = survey_json.get('label'),
             hdf5_file_path = survey_json.get('hdf5_file_path'),
             **survey_json.get('informations', dict())
             )
+        print survey_json.get('tables')
         self.tables = survey_json.get('tables')
         return self
 
-    def dump(self, file_path):
-        with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
-            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
+    def fill_hdf(self, source_format):
+        if source_format is None:
+            source_formats = ['stata', 'sas', 'spss', 'Rdata']
+        else:
+            source_formats = [source_format]
+        for source_format in source_formats:
+            files = "{}_files".format(source_format)
+            for data_file in self.informations.get(files, []):
+                name, extension = os.path.splitext(data_file)
+                if self.hdf5_file_path is None:
+                    directory_path = self.survey_collection.config.get("data", "output_directory")
+                    self.hdf5_file_path = os.path.join(directory_path, self.name + '.h5')
+                table = Table(name = name, survey = self, label = name)
+                table.source_format = source_format_by_extension[extension[1:]]
+                table.fill_hdf(data_file = data_file, clean = True)
 
     def find_tables(self, variable = None, tables = None):
         container_tables = []
@@ -190,20 +220,12 @@ Contains the following tables : \n""".format(self.name, self.label)
         for key, val in kwargs.iteritems():
             self.tables[name][key] = val
 
-    @classmethod
-    def load(cls, file_path):
-        with open(file_path, 'r') as _file:
-            self_json = json.load(_file)
-        log.info("Getting survey information for {}".format(self_json.get('name')))
-        self = cls.create_from_json(self_json)
-        return self
-
     def to_json(self):
         self_json = collections.OrderedDict((
             ))
         self_json['hdf5_file_path'] = self.hdf5_file_path
         self_json['label'] = self.label
         self_json['name'] = self.name
-        self_json['tables'] = collections.OrderedDict(sorted(self.tables.iteritems()))
+        self_json['tables'] = sorted(self.tables)
         self_json['informations'] = collections.OrderedDict(sorted(self.informations.iteritems()))
         return self_json
