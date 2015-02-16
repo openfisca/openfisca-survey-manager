@@ -22,19 +22,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import codecs
 import collections
 import json
-import pkg_resources
-
-from ConfigParser import SafeConfigParser
 
 
 from .surveys import Survey
-
-openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_data_location)
+from .config import default_config_files_directory, get_config
 
 
 class SurveyCollection(object):
@@ -93,8 +87,8 @@ Contains the following surveys :
         if json_file_path is None:
             assert collection is not None
             self = cls()
-            self.set_config_files_directory(config_files_directory = config_files_directory)
-            json_file_path = self.config.get("collections", collection)
+            config = get_config(config_files_directory = config_files_directory)
+            json_file_path = config.get("collections", collection)
 
         with open(json_file_path, 'r') as _file:
                 self_json = json.load(_file)
@@ -117,13 +111,3 @@ Contains the following surveys :
         for survey in self.surveys:
             self_json['surveys'][survey.name] = survey.to_json()
         return self_json
-
-    def set_config_files_directory(self, config_files_directory = None):
-        if config_files_directory is None:
-            config_files_directory = default_config_files_directory
-
-        parser = SafeConfigParser()
-        config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
-        config_ini = os.path.join(config_files_directory, 'config.ini')
-        parser.read([config_ini, config_local_ini])
-        self.config = parser

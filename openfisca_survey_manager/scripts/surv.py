@@ -146,16 +146,12 @@ def create_from(ctx, directory_path, collection = None, survey = None,):
     if not survey:
         survey = click.prompt('Enter a name for the survey in collection {}'.format(survey_collection.name))
 
-    print survey
     add_survey_to_collection(
         survey_name = survey,
         survey_collection = survey_collection,
         sas_files = sas_files,
         stata_files = stata_files,
         )
-
-    print survey_collection.surveys
-    print collection_json_path
 
     survey_collection.dump(
         file_path = collection_json_path,
@@ -196,7 +192,9 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
                 stata_files = stata_files,
                 )
         else:
-            survey = survey_collection.surveys[survey_name]
+            survey = [
+                kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+                ].pop()
             survey.label = label
             survey.informations.update({
                 "sas_files": sas_files,

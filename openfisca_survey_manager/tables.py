@@ -22,6 +22,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import collections
 import os
 import datetime
 import gc
@@ -50,11 +51,8 @@ class Table(object):
     survey = None
     variables = list()
 
-    def __init__(self, survey = None, name = None, label = None, variables = None, **kwargs):
-        from .surveys import Survey
-        assert isinstance(survey, Survey)
-        self.survey = survey
-        self.survey.tables.append(self)
+    def __init__(self, survey = None, name = None, label = None, source_format = source_format, variables = None,
+                 **kwargs):
         assert name is not None, "A table should have a name"
         self.name = name
         if label is not None:
@@ -63,12 +61,21 @@ class Table(object):
             self.variables = variables
         self.informations = kwargs
 
+        from .surveys import Survey
+        assert isinstance(survey, Survey)
+        self.survey = survey
+        if not survey.tables:
+            survey.tables = collections.OrderedDict()
+        survey.tables[name] = collections.OrderedDict(
+            source_format = source_format,
+            variables = variables
+            )
+
     def _save(self, data_frame = None):
         assert data_frame is not None
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
-        variables = self.variables
-        print "Inserting table {} in HDF file {}".format(table.name, hdf5_file_path)
+        variables = table.variables
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
         store_path = table.name
 
