@@ -98,10 +98,12 @@ class AbstractSurveyScenario(object):
         for column_name in input_data_frame:
             if column_name in id_variables + role_variables:
                 continue
-            if column_by_name[column_name].formula_class is not None:
-                log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
-                input_data_frame = input_data_frame.drop(column_name, axis = 1)
-                # , inplace = True)  # TODO: effet de bords ?
+#            if column_by_name[column_name].formula_class is not None:
+#                print('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
+#
+#                log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
+#                input_data_frame = input_data_frame.drop(column_name, axis = 1)
+#                # , inplace = True)  # TODO: effet de bords ?
 
         for entity in simulation.entity_by_key_singular.values():
             if entity.is_persons_entity:
