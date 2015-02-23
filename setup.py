@@ -59,7 +59,7 @@ setup(
         'pandas',
         ],
     message_extractors = {
-        'openfisca_france_data': [
+        'openfisca_survey_manager': [
             ('**.py', 'python', None),
             ],
         },
