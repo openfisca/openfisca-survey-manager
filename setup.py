@@ -57,6 +57,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
         'pandas',
+	'tables',
         ],
     message_extractors = {
         'openfisca_survey_manager': [
