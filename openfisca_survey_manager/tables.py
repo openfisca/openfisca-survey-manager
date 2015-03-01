@@ -30,12 +30,20 @@ import logging
 
 import pandas
 try:
-    import rpy
-except:
-    pass
+    import pandas.rpy.common as com
+except ImportError:
+    com = None
+try:
+    import rpy2.rpy_classic as rpy
+except ImportError:
+    rpy = None
 
-from . import read_sas
-from . import read_spss
+
+from openfisca_survey_manager.read_sas import read_sas
+try:
+    from openfisca_survey_manager.read_spss import read_spss
+except ImportError:
+    read_spss = None
 
 
 log = logging.getLogger(__name__)

@@ -40,11 +40,7 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def init_from_data_frame(
-            self,
-            input_data_frame = None,
-            tax_benefit_system = None,
-            year = None):
+    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
 
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
@@ -98,8 +94,11 @@ class AbstractSurveyScenario(object):
                 # waiting for the new pandas version to hit Travis repo
                 input_data_frame = input_data_frame.drop(column_name, axis = 1)
                 # , inplace = True)  # TODO: effet de bords ?
+
         for column_name in input_data_frame:
-            if column_by_name[column_name].formula_class is not None:
+            if column_name in id_variables + role_variables:
+                continue
+            if column_by_name[column_name].formula_class.function is not None:
                 log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
                 input_data_frame = input_data_frame.drop(column_name, axis = 1)
                 # , inplace = True)  # TODO: effet de bords ?

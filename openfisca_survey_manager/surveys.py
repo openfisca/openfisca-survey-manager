@@ -29,22 +29,16 @@ import os
 import re
 
 import logging
-from pandas import HDFStore
 import yaml
 
 
-# import pandas.rpy.common as com     # need to import it just for people using Rdata files
-# import rpy2.rpy_classic as rpy
-#
-#
-# rpy.set_default_mode(rpy.NO_CONVERSION)
+from pandas import HDFStore
 
 from .config import get_config
 from .tables import Table
 
 
 ident_re = re.compile(u"(?i)ident\d{2,4}$")
-
 
 log = logging.getLogger(__name__)
 
