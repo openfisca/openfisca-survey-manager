@@ -58,6 +58,7 @@ setup(
     install_requires = [
         'numpy',
         'pandas',
+        'PyYAML',
         'tables',  # Needed by pandas.HDFStore
         ],
     message_extractors = {
