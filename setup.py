@@ -57,7 +57,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
         'pandas',
-	'tables',
+        'tables',  # Needed by pandas.HDFStore
         ],
     message_extractors = {
         'openfisca_survey_manager': [
