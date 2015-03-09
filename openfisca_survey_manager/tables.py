@@ -39,7 +39,8 @@ except ImportError:
     rpy = None
 
 
-from openfisca_survey_manager.read_sas import read_sas
+from openfisca_survey_manager import read_sas
+
 try:
     from openfisca_survey_manager.read_spss import read_spss
 except ImportError:

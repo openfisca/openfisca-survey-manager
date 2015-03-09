@@ -35,7 +35,7 @@ import click
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
-
+import yaml
 import pkg_resources
 
 survey_manager_path = pkg_resources.get_distribution('openfisca-survey-manager').location
@@ -102,7 +102,6 @@ def show(ctx, collection_name, survey_name = None, tables_names = None):
 
         if tables_names:
             for table_name in tables_names:
-                import yaml
                 click.echo(yaml.safe_dump(
                     {"table {}".format(table_name): survey.tables[table_name]},
                     default_flow_style = False,
@@ -112,64 +111,78 @@ def show(ctx, collection_name, survey_name = None, tables_names = None):
 @surv.command()
 @click.pass_context
 @click.argument('directory_path', type = click.Path(exists = True))
-@click.argument('collection', type = click.STRING, required = False)
-@click.argument('survey', type = click.STRING, required = False)
-def create_from(ctx, directory_path, collection = None, survey = None,):
+@click.argument('collection_name', type = click.STRING, required = False)
+@click.argument('survey_name', type = click.STRING, required = False)
+def create_from(ctx, directory_path, collection_name = None, survey_name = None,):
 
     parser = SafeConfigParser()
     parser.read(ctx.obj['CONFIG_FILE'])
 
-    collections = [option for option in parser._sections['collections'].keys()]
-    collections.remove('__name__')
+    collection_names = [option for option in parser._sections['collections'].keys()]
+    collection_names.remove('__name__')
     collections_directory = parser.get('collections', 'collections_directory')
-    collections.remove('collections_directory')
+    collection_names.remove('collections_directory')
 
-    stata_files = []
-    sas_files = []
-
-    for root, subdirs, files in os.walk(directory_path):
-        for file_name in files:
-            file_path = os.path.join(root, file_name)
-            if os.path.basename(file_name).endswith(".dta"):
-                click.echo("Found stata file {}".format(file_path))
-                stata_files.append(file_path)
-            if os.path.basename(file_name).endswith(".sas7bdat"):
-                click.echo("Found sas file {}".format(file_path))
-                sas_files.append(file_path)
+    dict_data_file_by_format = create_dict_data_file_by_format(directory_path)
+    sas_files = dict_data_file_by_format['sas']
+    stata_files = dict_data_file_by_format['stata']
 
     click.confirm(u"Create a new survey using this information ?", abort = False)
-    collection_json_path = os.path.join(collections_directory, collection + ".json") if collection else None
+    collection_json_path = os.path.join(collections_directory, collection_name + ".json") if collection_name else None
 
-    if collection not in collections:
-        if collection is None:
+    if collection_name not in collection_names:
+        if collection_name is None:
             click.confirm(u"Create a new collection ?", abort = False)
-            collection = click.prompt("Name of the new collection")
-            collection_json_path = os.path.join(collections_directory, collection + ".json")
-        click.confirm(u"Create a the new collection {} ?".format(collection), abort = False)
+            collection_name = click.prompt("Name of the new collection")
+            collection_json_path = os.path.join(collections_directory, collection_name + ".json")
+        click.confirm(u"Create a the new collection {} ?".format(collection_name), abort = False)
 
         if os.path.isfile(collection_json_path):
             click.confirm(u"Erase existing {} collection file ?".format(collection_json_path), abort = False)
             os.remove(collection_json_path)
-        survey_collection = create_collection(collection)
+        survey_collection = create_collection(collection_name)
+        print "ici2", survey_collection
 
     else:
         survey_collection = SurveyCollection.load(collection_json_path)
+        print "ici2", collection_json_path
 
-    if not survey:
-        survey = click.prompt('Enter a name for the survey in collection {}'.format(survey_collection.name))
+    if not survey_name:
+        survey_name = click.prompt('Enter a name for the survey in collection {}'.format(survey_collection.name))
 
     add_survey_to_collection(
-        survey_name = survey,
+        survey_name = survey_name,
         survey_collection = survey_collection,
         sas_files = sas_files,
         stata_files = stata_files,
         )
-
     survey_collection.dump(
         file_path = collection_json_path,
         )
 
-    parser.set("collections", collection, collection_json_path)
+    parser.set("collections", collection_name, collection_json_path)
+    #TODO: data_file_by_format['sas']
+    formats = [stata_files, sas_files]
+    format_extensions = ['stata', 'sas']
+    for format_files, format_extension in zip(formats, format_extensions):
+        if format_files != []:
+            to_print = yaml.safe_dump(format_files, default_flow_style = False)
+            click.echo("Here are the {} files: \n {}".format(format_extension, to_print))
+            if click.prompt('Do you want to fill the hdf from the sas files {} ?'.format(survey_name), default = False):
+                survey_collection.fill_hdf(source_format = format_extension)
+        else:
+            click.echo("There are no {} files".format(format_extension))
+
+
+#    if sas_files != []:
+#        to_print_sas = yaml.safe_dump(sas_files, default_flow_style = False)
+#        click.echo("Here are the sas files: \n {}".format(to_print_sas))
+#        if click.prompt('Do you want to fill the hdf from the sas files {} ?'.format(survey_name), default = False):
+#            survey_collection.fill_hdf(source_format = 'sas')
+
+    survey_collection.dump(
+        file_path = collection_json_path,
+        )
 
     cfgfile = open(ctx.obj['CONFIG_FILE'], 'w')
     parser.write(cfgfile)
@@ -182,6 +195,27 @@ def create_collection(collection_name):
     label = click.prompt('Enter a description for collection {}'.format(name), default = name)
     survey_collection = SurveyCollection(name = name, label = label)
     return survey_collection
+
+
+def create_dict_data_file_by_format(directory_path= None):
+    '''
+    give :
+    - the list of stata files from directory_path
+    - the list of sas files from directory_path
+    '''
+    stata_files = []
+    sas_files = []
+
+    for root, subdirs, files in os.walk(directory_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            if os.path.basename(file_name).endswith(".dta"):
+                click.echo("Found stata file {}".format(file_path))
+                stata_files.append(file_path)
+            if os.path.basename(file_name).endswith(".sas7bdat"):
+                click.echo("Found sas file {}".format(file_path))
+                sas_files.append(file_path)
+    return {'stata': stata_files, 'sas': sas_files}
 
 
 def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
@@ -216,6 +250,10 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
             ]
         survey_collection.surveys.append(survey)
+
+def fill_survey(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
+    assert survey_collection is not None
+    overwrite = True
 
 
 if __name__ == '__main__':
