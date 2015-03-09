@@ -53,7 +53,7 @@ class SurveyCollection(object):
 Survey collection of {}
 Contains the following surveys :
 """.format(self.name, self.label)
-        surveys = ["       {} : {} \n".format(survey.name, survey.label) for _, survey in self.surveys]
+        surveys = ["       {} : {} \n".format(survey.name, survey.label) for survey in self.surveys]
         return header + "".join(surveys)
 
     def dump(self, file_path = None, collection = None, config_files_directory = None):
@@ -86,10 +86,10 @@ Contains the following surveys :
             config_files_directory = default_config_files_directory
         if json_file_path is None:
             assert collection is not None
-            self = cls()
             config = get_config(config_files_directory = config_files_directory)
             json_file_path = config.get("collections", collection)
 
+        self = cls()
         with open(json_file_path, 'r') as _file:
                 self_json = json.load(_file)
                 self.json_file_path = json_file_path

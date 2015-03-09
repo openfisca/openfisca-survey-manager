@@ -36,14 +36,24 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
 
+import pkg_resources
+
+survey_manager_path = pkg_resources.get_distribution('openfisca-survey-manager').location
+
+
 @click.group()
 @click.version_option()
-@click.option('--config-file',
-              type = click.Path(),
-              default = os.path.abspath(
-                  "/home/benjello/openfisca/openfisca-survey-manager/config_local.ini"
-                  ),
-              help = "configuration file.")  # TODO show default
+@click.option(
+    '--config-file',
+    type = click.Path(),
+    default = os.path.join(
+        survey_manager_path,
+        'config_local.ini',
+        ),
+    help = "configuration file."
+    )  # TODO use default_config as the rest of the package
+
+
 @click.pass_context
 def surv(ctx, config_file):
     ctx.obj['CONFIG_FILE'] = config_file
@@ -71,28 +81,30 @@ def list_collections(ctx):
 
 @surv.command()
 @click.pass_context
-@click.argument("collection", type = click.STRING)
-@click.argument("survey", type = click.STRING, required = False)
-@click.argument("tables", type = click.STRING, nargs = -1, required = False)
-def show(ctx, collection, survey = None, tables = None):
+@click.argument("collection_name", type = click.STRING)
+@click.argument("survey_name", type = click.STRING, required = False)
+@click.argument("tables_names", type = click.STRING, nargs = -1, required = False)
+def show(ctx, collection_name, survey_name = None, tables_names = None):
     parser = SafeConfigParser()
     parser.read(ctx.obj['CONFIG_FILE'])
-    file_path = os.path.abspath(parser.get("collections", collection))
-    survey_collection = SurveyCollection.load(file_path = file_path)
+    json_file_path = os.path.abspath(parser.get("collections", collection_name))
+    survey_collection = SurveyCollection.load(json_file_path = json_file_path)
     click.echo(survey_collection)
-    if survey is not None:
-        survey = survey_collection.surveys.get(survey)
+    if survey_name is not None:
+        survey = [
+            kept_survey for kept_survey in survey_collection.surveys if kept_survey.name == survey_name
+            ][0]
         if survey is not None:
             click.echo(survey)
         else:
             click.echo("{} is not an element of collection {} surveys ({})".format(
-                survey, collection, str(survey_collection.surveys.keys()).strip('[]')))
+                survey_name, collection_name, str(survey_collection.surveys.keys()).strip('[]')))
 
-        if tables:
-            for table in tables:
+        if tables_names:
+            for table_name in tables_names:
                 import yaml
                 click.echo(yaml.safe_dump(
-                    {"table {}".format(table): survey.tables[table]},
+                    {"table {}".format(table_name): survey.tables[table_name]},
                     default_flow_style = False,
                     ))
 
