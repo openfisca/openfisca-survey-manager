@@ -74,15 +74,3 @@ def read_sas(sas_file_path, clean = False):
                 data_frame[column_name] = data_frame[column_name].astype("int")
 
     return data_frame
-
-
-if __name__ == '__main__':
-
-    import logging
-    import sys
-
-    log = logging.getLogger(__name__)
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    file_exemple_location = u"/home/benjello/data/INSEE/budget_des_familles/2011/sas/menage.sas7bdat"
-
-    df = read_sas(file_exemple_location, clean = True)

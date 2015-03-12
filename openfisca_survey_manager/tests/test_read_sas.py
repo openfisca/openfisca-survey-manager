@@ -24,49 +24,18 @@
 
 
 import os
-import gc
+import pkg_resources
 
-from sas7bdat import SAS7BDAT
-
-
-def test(table = "depindiv"):
-    try:
-        data_directory = "/home/benjello/data/INSEE/"
-        sas_file_path = os.path.join(
-            data_directory,
-            'budget_des_familles',
-            '2011',
-            'sas',
-            table + '.sas7bdat',
-            )
-    except:
-        pass
-    return SAS7BDAT(sas_file_path).to_data_frame()
+from openfisca_survey_manager.read_sas import read_sas
 
 
-if __name__ == '__main__':
-
-    tables = [
-#        "a04",
-#        "abocom",
-#        "assu",
-#        "autvehic",
-#        "automobile",
-#        "bienscult",
-#        "biensdur",
-#        "c05",
-#        "carnets",
-#        "compl_sante",
-        "depindiv",  # test
-#        "depmen",    # test
-##        "enfanthorsdom",
-##        "garage",
-##        "individu",
-#        "menage",   # test
-#        "revind_dom",  # test
-#        "revmen_dom",  # test
-        ]
-    for table in tables:
-        print table
-        df = test(table)
-        gc.collect()
+def test():
+    sas_file_path = os.path.join(
+        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        'openfisca_survey_manager',
+        'tests',
+        'data_files',
+        'help.sas7bdat',
+        )
+    read_sas(sas_file_path, clean = False)
+    read_sas(sas_file_path, clean = True)
