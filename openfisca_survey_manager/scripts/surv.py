@@ -224,9 +224,12 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
     label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
 
     for test_survey in survey_collection.surveys:
-        if test_survey.anme == survey_name:
+        if test_survey.name == survey_name:
             click.echo('The following information is available for survey {}'.format(survey_name))
-            click.echo(survey_collection.surveys[survey_name])
+            survey = [
+                kept_survey for kept_survey in survey_collection.surveys if kept_survey.name == survey_name
+                ].pop()
+            click.echo(survey)
             overwrite = click.prompt('Overwrite previous survey {} informations ?'.format(survey_name), default = False)
 
     if click.confirm('Are all the files part of the same survey ?', default = True):
