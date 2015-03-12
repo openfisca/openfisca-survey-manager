@@ -121,7 +121,7 @@ Contains the following tables : \n""".format(self.name, self.label)
                     source_format = source_format,
                     survey = survey, )
                 table.source_format = source_format_by_extension[extension[1:]]
-                # table.fill_hdf(data_file = data_file, clean = True)
+                table.fill_hdf(data_file = data_file, clean = True)
 
     def find_tables(self, variable = None, tables = None):
         container_tables = []
@@ -184,10 +184,11 @@ Contains the following tables : \n""".format(self.name, self.label)
              A DataFrame containing the variables
         """
         store = HDFStore(self.hdf5_file_path)
-        try:
-            df = store[table]
-        except KeyError:
-            df = store[self.tables[table]["Rdata_table"]]
+        df = store[table]
+#        try:
+#            df = store[table]
+#        except KeyError:
+#            df = store[self.tables[table]["Rdata_table"]]
 
         if lowercase is True:
             columns = dict((column_name, column_name.lower()) for column_name in df)

@@ -60,7 +60,8 @@ Contains the following surveys :
         if file_path is None:
             if self.json_file_path is None:
                 assert collection is not None
-                self.json_file_path = self.config.get("collections", collection)
+                config = get_config()
+                self.json_file_path = config.get("collections", collection)
         else:
             self.json_file_path = file_path
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
