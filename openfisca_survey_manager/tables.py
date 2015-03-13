@@ -58,7 +58,7 @@ class Table(object):
     name = None
     source_format = None
     survey = None
-    variables = list()
+    variables = None
 
     def __init__(self, survey = None, name = None, label = None, source_format = source_format, variables = None,
                  **kwargs):
@@ -87,8 +87,7 @@ class Table(object):
         variables = table.variables
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
         store_path = table.name
-
-        if variables is not None:
+        if variables:
             stored_variables = list(set(variables).intersection(set(data_frame.columns)))
             log.info('The folloging variables are stored: {}'.format(stored_variables))
             if set(stored_variables) != set(variables):

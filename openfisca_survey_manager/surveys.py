@@ -100,7 +100,10 @@ Contains the following tables : \n""".format(self.name, self.label)
         self.tables = survey_json.get('tables')
         return self
 
-    def fill_hdf(self, source_format):
+    def dump(self):
+        NotImplementedError  # TODO:
+
+    def fill_hdf(self, source_format = None):
         survey = self
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
