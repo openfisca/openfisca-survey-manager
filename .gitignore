@@ -68,3 +68,5 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+openfisca_survey_manager/tests/data_files/fake.hdf5

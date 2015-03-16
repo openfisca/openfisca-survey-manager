@@ -209,41 +209,52 @@ def create_data_file_by_format(directory_path= None):
     return {'stata': stata_files, 'sas': sas_files}
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [], question = False):
     assert survey_collection is not None
     overwrite = True
-    label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
+
+    if question:
+        label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
+    else:
+        label = survey_name
 
     for test_survey in survey_collection.surveys:
         if test_survey.name == survey_name:
-            click.echo('The following information is available for survey {}'.format(survey_name))
+            if question:
+                click.echo('The following information is available for survey {}'.format(survey_name))
             survey = [
                 kept_survey for kept_survey in survey_collection.surveys if kept_survey.name == survey_name
                 ].pop()
-            click.echo(survey)
-            overwrite = click.confirm('Overwrite previous survey {} informations ?'.format(survey_name))
-
-    if click.confirm('Are all the files part of the same survey ?', default = True):
-        if overwrite:
-            survey = Survey(
-                name = survey_name,
-                label = label,
-                sas_files = sas_files,
-                stata_files = stata_files,
-                )
-        else:
-            survey = [
+            if question:
+                click.echo(survey)
+                overwrite = click.confirm('Overwrite previous survey {} informations ?'.format(survey_name), default = True)
+            else:
+                overwrite = True
+    if question:
+        same_survey = click.confirm('Are all the files part of the same survey ?', default = True)
+    else:
+        same_survey = True
+    if same_survey:
+            if overwrite:
+                survey = Survey(
+                    name = survey_name,
+                    label = label,
+                    sas_files = sas_files,
+                    stata_files = stata_files,
+                    )
+            else:
+                survey = [
+                    kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+                    ].pop()
+                survey.label = label
+                survey.informations.update({
+                    "sas_files": sas_files,
+                    "stata_files": stata_files,
+                    })
+            survey_collection.surveys = [
                 kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
-                ].pop()
-            survey.label = label
-            survey.informations.update({
-                "sas_files": sas_files,
-                "stata_files": stata_files,
-                })
-        survey_collection.surveys = [
-            kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
-            ]
-        survey_collection.surveys.append(survey)
+                ]
+            survey_collection.surveys.append(survey)
 
 
 if __name__ == '__main__':
