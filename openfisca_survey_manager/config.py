@@ -30,12 +30,21 @@ openfisca_france_data_location = pkg_resources.get_distribution('openfisca-franc
 default_config_files_directory = os.path.join(openfisca_france_data_location)
 
 
-def get_config(config_files_directory = None):
-    if config_files_directory is None:
-        config_files_directory = default_config_files_directory
-
+def get_config(config_files_directory = default_config_files_directory):
     parser = SafeConfigParser()
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
     parser.read([config_ini, config_local_ini])
     return parser
+
+
+def save_config(config = None, config_files_directory = default_config_files_directory):
+    assert isinstance(config, SafeConfigParser)
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    if os.path.exists(config_local_ini):
+        config_file = open(config_local_ini, 'w')
+    else:
+        config_file = open(config_ini, 'w')
+    config.write(config_file)
+    config_file.close()

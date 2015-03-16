@@ -143,8 +143,9 @@ class Table(object):
         self._save(data_frame = data_frame)
         gc.collect()
 
-    def fill_hdf_from_stata(self, table):
-        stata_file = self.informations["stata_file"]
+    def fill_hdf_from_stata(self, **kwargs):
+        stata_file = kwargs["data_file"]
+        self.data_file = stata_file
         self._check_and_log(stata_file)
         log.info("Reading from {}".format(stata_file))
         data_frame = pandas.read_stata(stata_file)

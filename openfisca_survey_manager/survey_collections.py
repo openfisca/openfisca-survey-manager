@@ -28,14 +28,14 @@ import json
 
 
 from .surveys import Survey
-from .config import default_config_files_directory, get_config
+from .config import default_config_files_directory, get_config, save_config
 
 
 class SurveyCollection(object):
     """
     A collection of Surveys
     """
-    json_file_path = None,
+    json_file_path = None
     label = None
     name = None
     surveys = list()
@@ -56,14 +56,17 @@ Contains the following surveys :
         surveys = ["       {} : {} \n".format(survey.name, survey.label) for survey in self.surveys]
         return header + "".join(surveys)
 
-    def dump(self, file_path = None, collection = None, config_files_directory = None):
-        if file_path is None:
-            if self.json_file_path is None:
-                assert collection is not None
-                config = get_config()
-                self.json_file_path = config.get("collections", collection)
+    def dump(self, json_file_path = None, config_files_directory = default_config_files_directory):
+
+        config = get_config(config_files_directory = config_files_directory)
+
+        if json_file_path is None:
+            assert self.json_file_path is not None, 'A json_file_path shoud be provided'
         else:
-            self.json_file_path = file_path
+            self.json_file_path = json_file_path
+            config.set("collections", self.name, self.json_file_path)
+            save_config(config = config)
+
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 

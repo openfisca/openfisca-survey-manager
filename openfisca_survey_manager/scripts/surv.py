@@ -159,10 +159,9 @@ def create_from(ctx, directory_path, collection_name = None, survey_name = None)
         stata_files = stata_files,
         )
     survey_collection.dump(
-        file_path = collection_json_path,
+        json_file_path = collection_json_path,
         )
 
-    parser.set("collections", collection_name, collection_json_path)
     for format_extension, data_files in data_file_by_format.iteritems():
         if data_files != []:
             to_print = yaml.safe_dump(data_files, default_flow_style = False)
@@ -173,9 +172,7 @@ def create_from(ctx, directory_path, collection_name = None, survey_name = None)
         else:
             click.echo("There are no {} files".format(format_extension))
 
-    survey_collection.dump(
-        file_path = collection_json_path,
-        )
+    survey_collection.dump()
 
     config_file = open(ctx.obj['CONFIG_FILE'], 'w')
     parser.write(config_file)
