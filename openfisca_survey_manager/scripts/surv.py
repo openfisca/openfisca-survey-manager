@@ -169,7 +169,7 @@ def create_from(ctx, directory_path, collection_name = None, survey_name = None)
             click.echo("Here are the {} files: \n {}".format(format_extension, to_print))
             if click.confirm('Do you want to fill the {} HDF5 file using the {} files ?'.format(
                     survey_name, format_extension, default = False)):
-                survey_collection.fill_hdf(source_format = format_extension)
+                survey_collection.fill_hdf(source_format = format_extension, overwrite = True)
         else:
             click.echo("There are no {} files".format(format_extension))
 

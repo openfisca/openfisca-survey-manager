@@ -60,7 +60,7 @@ class Table(object):
     survey = None
     variables = None
 
-    def __init__(self, survey = None, name = None, label = None, source_format = source_format, variables = None,
+    def __init__(self, survey = None, name = None, label = None, source_format = None, variables = None,
                  **kwargs):
         assert name is not None, "A table should have a name"
         self.name = name
@@ -69,6 +69,9 @@ class Table(object):
         if variables is not None:
             self.variables = variables
         self.informations = kwargs
+
+        if source_format is not None:
+            self.source_format = source_format
 
         from .surveys import Survey
         assert isinstance(survey, Survey)
@@ -80,10 +83,22 @@ class Table(object):
             variables = variables
             )
 
+    def _check_and_log(self, data_file_path):
+        if not os.path.isfile(data_file_path):
+            raise Exception("file_path {} do not exists".format(data_file_path))
+        log.info("Inserting table {} from file {} in HDF file {} at point {}".format(
+            self.name,
+            data_file_path,
+            self.survey.hdf5_file_path,
+            self.name,
+            )
+        )
+
     def _save(self, data_frame = None):
         assert data_frame is not None
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
+
         variables = table.variables
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
         store_path = table.name
@@ -107,58 +122,24 @@ class Table(object):
 
     def fill_hdf(self, **kwargs):
         source_format = self.source_format
-        if source_format == "Rdata":
-            self.fill_hdf_from_Rdata(**kwargs)
-        if source_format == "sas":
-            self.fill_hdf_from_sas(**kwargs)
-        if source_format == "spss":
-            self.fill_hdf_from_spss(**kwargs)
-        if source_format == "stata":
-            self.fill_hdf_from_stata(**kwargs)
 
-    def fill_hdf_from_Rdata(self):
-        rpy.set_default_mode(rpy.NO_CONVERSION)
-        Rdata_table = self.informations["Rdata_table"]
-        Rdata_file = self.informations["Rdata_file"]
-        self._check_and_log(Rdata_file)
-        rpy.r.load(Rdata_file)
-        data_frame = pandas.rpy.common.load_data(Rdata_table)
-        self._save(data_frame = data_frame)
-
-    def fill_hdf_from_sas(self, **kwargs):
-        start_table_time = datetime.datetime.now()
-        sas_file = kwargs["data_file"]
-        self.data_file = sas_file
-        clean = kwargs.get("clean")
-        self._check_and_log(sas_file)
-        data_frame = read_sas.read_sas(sas_file, clean = clean)
-        self._save(data_frame = data_frame)
-        gc.collect()
-        log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))
-
-    def fill_hdf_from_spss(self):
-        spss_file = self.informations["spss_file"]  # .sav file name
-        self._check_and_log(spss_file)
-        data_frame = read_spss(spss_file)
-        self._save(data_frame = data_frame)
-        gc.collect()
-
-    def fill_hdf_from_stata(self, **kwargs):
-        stata_file = kwargs["data_file"]
-        self.data_file = stata_file
-        self._check_and_log(stata_file)
-        log.info("Reading from {}".format(stata_file))
-        data_frame = pandas.read_stata(stata_file)
-        self._save(data_frame = data_frame)
-        gc.collect()
-
-    def _check_and_log(self, data_file_path):
-        if not os.path.isfile(data_file_path):
-            raise Exception("file_path {} do not exists".format(data_file_path))
-        log.info("Inserting table {} from file {} in HDF file {} at point {}".format(
-            self.name,
-            data_file_path,
-            self.survey.hdf5_file_path,
-            self.name,
+        reader_by_source_format = dict(
+            Rdata = pandas.rpy.common.load_data,
+            sas = read_sas.read_sas,
+            spss = read_spss,
+            stata = pandas.read_stata,
             )
-        )
+        start_table_time = datetime.datetime.now()
+        reader = reader_by_source_format[source_format]
+        data_file = kwargs.pop("data_file")
+        overwrite = kwargs.pop('overwrite')
+        if not overwrite:
+            store = pandas.HDFStore(self.survey.hdf5_file_path)
+            if self.name in store:
+                log.info('Exiting without overwriting {} in '.format(self.name, self.survey.hdf5_file_path))
+        else:
+            self._check_and_log(data_file)
+            data_frame = reader(data_file, **kwargs)
+            gc.collect()
+            self._save(data_frame = data_frame)
+            log.info("{} have been processed in {}".format(data_file, datetime.datetime.now() - start_table_time))

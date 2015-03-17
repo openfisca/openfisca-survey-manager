@@ -100,31 +100,41 @@ Contains the following tables : \n""".format(self.name, self.label)
         return self
 
     def dump(self):
-        NotImplementedError  # TODO:
-
-    def fill_hdf(self, source_format = None):
         assert self.survey_collection is not None
+        self.survey_collection.dump()
+
+    def fill_hdf(self, source_format = None, tables = None, overwrite = True):
+        assert self.survey_collection is not None
+        assert isinstance(overwrite, bool) or isinstance(overwrite, list)
         survey = self
+        if survey.hdf5_file_path is None:
+            config = survey.survey_collection.config
+            directory_path = config.get("data", "output_directory")
+            survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
         else:
             source_formats = [source_format]
+
         for source_format in source_formats:
             files = "{}_files".format(source_format)
             for data_file in survey.informations.get(files, []):
                 path_name, extension = os.path.splitext(data_file)
-                if survey.hdf5_file_path is None:
-                    config = self.survey_collection.config
-                    directory_path = config.get("data", "output_directory")
-                    survey.hdf5_file_path = os.path.join(directory_path, self.name + '.h5')
                 name = os.path.basename(path_name)
-                table = Table(
-                    label = name,
-                    name = name,
-                    source_format = source_format,
-                    survey = survey, )
-                table.source_format = source_format_by_extension[extension[1:]]
-                table.fill_hdf(data_file = data_file, clean = True)
+                if tables is None or name in tables:
+                    table = Table(
+                        label = name,
+                        name = name,
+                        source_format = source_format_by_extension[extension[1:]],
+                        survey = survey,
+                        )
+                    print 'table fill : ', overwrite if isinstance(overwrite, bool) else table.name in overwrite
+                    table.fill_hdf(
+                        data_file = data_file,
+                        clean = True,
+                        overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
+                        )
+        self.dump()
 
     def find_tables(self, variable = None, tables = None):
         container_tables = []
@@ -188,10 +198,6 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         store = HDFStore(self.hdf5_file_path)
         df = store[table]
-#        try:
-#            df = store[table]
-#        except KeyError:
-#            df = store[self.tables[table]["Rdata_table"]]
 
         if lowercase is True:
             columns = dict((column_name, column_name.lower()) for column_name in df)
