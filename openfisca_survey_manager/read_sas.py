@@ -39,13 +39,13 @@ def read_sas(sas_file_path, clean = False):
     data_frame = SAS7BDAT(sas_file_path).to_data_frame()
     if clean:
         try:
-            clean(data_frame)
+            clean_data_frame(data_frame)
         except AttributeError:
             pass
     return data_frame
 
 
-def clean(data_frame):
+def clean_data_frame(data_frame):
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
     log.info(
         "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
