@@ -32,14 +32,19 @@ from openfisca_survey_manager.surveys import Survey
 
 def test_survey():
     name = 'fake'
-    survey_collection = SurveyCollection(name = name)
-
     data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
         )
+
+    survey_collection = SurveyCollection(
+        name = name,
+        config_files_directory = data_dir,
+        json_file_path = os.path.join(data_dir, 'fake.json')
+        )
+
     saved_fake_survey_hdf5_file_path = os.path.join(data_dir, 'fake.hdf5')
     saved_fake_survey_file_path = os.path.join(data_dir, 'help.sas7bdat')
     survey = Survey(

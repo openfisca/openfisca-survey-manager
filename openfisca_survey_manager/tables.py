@@ -112,6 +112,7 @@ class Table(object):
             data_frame = data_frame[stored_variables].copy()
         try:
             data_frame.to_hdf(hdf5_file_path, store_path, format = 'table', append = False)
+            gc.collect()
         except TypeError:
             types = data_frame.apply(lambda x: pandas.lib.infer_dtype(x.values))
             log.info("The following types are converted to strings \n {}".format(types[types == 'unicode']))
