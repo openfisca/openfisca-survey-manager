@@ -28,19 +28,23 @@ import json
 
 
 from .surveys import Survey
-from .config import default_config_files_directory, get_config, save_config
+from .config import Config
 
 
 class SurveyCollection(object):
     """
     A collection of Surveys
     """
+    config = None
     json_file_path = None
     label = None
     name = None
     surveys = list()
 
-    def __init__(self, label = None, name = None, json_file_path = None):
+    def __init__(self, config_files_directory = None, label = None, name = None, json_file_path = None):
+        if config_files_directory is not None:
+            self.config = Config(config_files_directory = config_files_directory)
+
         if label is not None:
             self.label = label
         if name is not None:
@@ -56,16 +60,20 @@ Contains the following surveys :
         surveys = ["       {} : {} \n".format(survey.name, survey.label) for survey in self.surveys]
         return header + "".join(surveys)
 
-    def dump(self, json_file_path = None, config_files_directory = default_config_files_directory):
-
-        config = get_config(config_files_directory = config_files_directory)
+    def dump(self, config_files_directory = None, json_file_path = None):
+        if self.config is not None:
+            config = self.config
+        else:
+            assert config_files_directory is not None, \
+                'The config attribute is not set and no config_files_directory is not provided'
+            self.config = Config(config_files_directory = config_files_directory)
 
         if json_file_path is None:
             assert self.json_file_path is not None, 'A json_file_path shoud be provided'
         else:
             self.json_file_path = json_file_path
             config.set("collections", self.name, self.json_file_path)
-            save_config(config = config)
+            config.save()
 
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
@@ -85,15 +93,14 @@ Contains the following surveys :
 
     @classmethod
     def load(cls, json_file_path = None, collection = None, config_files_directory = None):
-
-        if config_files_directory is None:
-            config_files_directory = default_config_files_directory
+        assert config_files_directory is not None
         if json_file_path is None:
             assert collection is not None
-            config = get_config(config_files_directory = config_files_directory)
+            config = Config(config_files_directory = config_files_directory)
             json_file_path = config.get("collections", collection)
 
         self = cls()
+        self.config = config
         with open(json_file_path, 'r') as _file:
                 self_json = json.load(_file)
                 self.json_file_path = json_file_path

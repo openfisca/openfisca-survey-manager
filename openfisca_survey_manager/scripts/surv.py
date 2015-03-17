@@ -137,7 +137,8 @@ def create_from(ctx, directory_path, collection_name = None, survey_name = None)
             collection_json_path = os.path.join(collections_directory, collection_name + ".json")
         click.confirm(u"Create a collection {} ?".format(collection_name), abort = False, default = True)
         if os.path.isfile(collection_json_path):
-            click.confirm(u"Erase existing {} collection file ?".format(collection_json_path), abort = False, default = True)
+            click.confirm(
+                u"Erase existing {} collection file ?".format(collection_json_path), abort = False, default = True)
             os.remove(collection_json_path)
         survey_collection = create_collection(collection_name)
 
@@ -187,7 +188,7 @@ def create_collection(collection_name):
     return survey_collection
 
 
-def create_data_file_by_format(directory_path= None):
+def create_data_file_by_format(directory_path = None):
     '''
     Browse subdirectories to extract stata and sas files
     '''
@@ -206,7 +207,8 @@ def create_data_file_by_format(directory_path= None):
     return {'stata': stata_files, 'sas': sas_files}
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [], question = False):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [],
+        question = False):
     assert survey_collection is not None
     overwrite = True
 
@@ -219,12 +221,11 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
         if test_survey.name == survey_name:
             if question:
                 click.echo('The following information is available for survey {}'.format(survey_name))
-            survey = [
-                kept_survey for kept_survey in survey_collection.surveys if kept_survey.name == survey_name
-                ].pop()
+            survey = survey_collection.get_survey(survey_name)
             if question:
                 click.echo(survey)
-                overwrite = click.confirm('Overwrite previous survey {} informations ?'.format(survey_name), default = True)
+                overwrite = click.confirm(
+                    'Overwrite previous survey {} informations ?'.format(survey_name), default = True)
             else:
                 overwrite = True
     if question:
@@ -238,11 +239,10 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
                     label = label,
                     sas_files = sas_files,
                     stata_files = stata_files,
+                    survey_collection = survey_collection,
                     )
             else:
-                survey = [
-                    kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
-                    ].pop()
+                survey = survey_collection.get(survey_name)
                 survey.label = label
                 survey.informations.update({
                     "sas_files": sas_files,

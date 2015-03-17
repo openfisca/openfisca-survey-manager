@@ -34,7 +34,6 @@ import yaml
 
 from pandas import HDFStore
 
-from .config import get_config
 from .tables import Table
 
 
@@ -104,6 +103,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         NotImplementedError  # TODO:
 
     def fill_hdf(self, source_format = None):
+        assert self.survey_collection is not None
         survey = self
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
@@ -114,7 +114,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             for data_file in survey.informations.get(files, []):
                 path_name, extension = os.path.splitext(data_file)
                 if survey.hdf5_file_path is None:
-                    config = get_config()
+                    config = self.survey_collection.config
                     directory_path = config.get("data", "output_directory")
                     survey.hdf5_file_path = os.path.join(directory_path, self.name + '.h5')
                 name = os.path.basename(path_name)
