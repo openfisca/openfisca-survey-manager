@@ -23,11 +23,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import pkg_resources
 import ConfigParser
-
-openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_data_location)
 
 
 class Config(ConfigParser.SafeConfigParser):
