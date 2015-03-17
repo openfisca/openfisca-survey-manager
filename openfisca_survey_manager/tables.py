@@ -124,7 +124,7 @@ class Table(object):
         source_format = self.source_format
 
         reader_by_source_format = dict(
-            Rdata = pandas.rpy.common.load_data,
+            # Rdata = pandas.rpy.common.load_data,
             sas = read_sas.read_sas,
             spss = read_spss,
             stata = pandas.read_stata,

@@ -197,7 +197,10 @@ Contains the following tables : \n""".format(self.name, self.label)
              A DataFrame containing the variables
         """
         store = HDFStore(self.hdf5_file_path)
-        df = store[table]
+        try:
+            df = store[table]
+        except KeyError:
+            log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
 
         if lowercase is True:
             columns = dict((column_name, column_name.lower()) for column_name in df)
