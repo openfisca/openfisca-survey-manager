@@ -128,7 +128,6 @@ Contains the following tables : \n""".format(self.name, self.label)
                         source_format = source_format_by_extension[extension[1:]],
                         survey = survey,
                         )
-                    print 'table fill : ', overwrite if isinstance(overwrite, bool) else table.name in overwrite
                     table.fill_hdf(
                         data_file = data_file,
                         clean = True,
