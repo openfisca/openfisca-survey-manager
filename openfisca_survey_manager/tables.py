@@ -117,7 +117,10 @@ class Table(object):
             types = data_frame.apply(lambda x: pandas.lib.infer_dtype(x.values))
             log.info("The following types are converted to strings \n {}".format(types[types == 'unicode']))
             for column in types[types == 'unicode'].index:
-                data_frame[column] = data_frame[column].astype(str)
+                try:
+                    data_frame[column] = data_frame[column].astype(str).copy()
+                except UnicodeEncodeError:
+                    continue
             data_frame.to_hdf(hdf5_file_path, store_path)
         gc.collect()
 
