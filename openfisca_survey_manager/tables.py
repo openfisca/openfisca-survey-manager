@@ -147,3 +147,6 @@ class Table(object):
             gc.collect()
             self._save(data_frame = data_frame)
             log.info("{} have been processed in {}".format(data_file, datetime.datetime.now() - start_table_time))
+
+    def save_data_frame(self, data_frame):
+        data_frame.to_hdf(self.survey.hdf5_file_path, self.name)

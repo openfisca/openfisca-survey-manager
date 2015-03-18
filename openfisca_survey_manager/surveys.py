@@ -29,10 +29,9 @@ import os
 import re
 
 import logging
+import pandas
 import yaml
 
-
-from pandas import HDFStore
 
 from .tables import Table
 
@@ -150,7 +149,7 @@ Contains the following tables : \n""".format(self.name, self.label)
 
     def get_columns(self, table = None):
         assert table is not None
-        store = HDFStore(self.hdf5_file_path)
+        store = pandas.HDFStore(self.hdf5_file_path)
         assert table in store
         log.info("Building columns index for table {}".format(table))
         return list(store[table].columns)
@@ -195,7 +194,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         df : DataFrame, default None
              A DataFrame containing the variables
         """
-        store = HDFStore(self.hdf5_file_path)
+        store = pandas.HDFStore(self.hdf5_file_path)
         try:
             df = store[table]
         except KeyError:
@@ -226,10 +225,22 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         Insert a table in the Survey object
         """
+
+        data_frame = kwargs.pop('data_frame', None)
+        if data_frame is not None:
+            assert isinstance(data_frame, pandas.DataFrame)
+
+        if data_frame is not None:
+            table = Table(label = name, name = name, survey = self)
+            assert table.survey.hdf5_file_path is not None
+            table.save_data_frame(data_frame)
+
         if name not in self.tables:
             self.tables[name] = dict()
         for key, val in kwargs.iteritems():
             self.tables[name][key] = val
+
+
 
     def to_json(self):
         self_json = collections.OrderedDict((
