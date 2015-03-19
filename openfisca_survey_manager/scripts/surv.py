@@ -32,18 +32,28 @@ from ConfigParser import SafeConfigParser
 
 import click
 
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
-from openfisca_survey_manager.surveys import Survey, SurveyCollection
+import yaml
+import pkg_resources
+
+survey_manager_path = pkg_resources.get_distribution('openfisca-survey-manager').location
 
 
 @click.group()
 @click.version_option()
-@click.option('--config-file',
-              type = click.Path(),
-              default = os.path.abspath(
-                  "/home/benjello/openfisca/openfisca-survey-manager/config_local.ini"
-                  ),
-              help = "configuration file.")  # TODO show default
+@click.option(
+    '--config-file',
+    type = click.Path(),
+    default = os.path.join(
+        survey_manager_path,
+        'config_local.ini',
+        ),
+    help = "configuration file."
+    )  # TODO use default_config as the rest of the package
+
+
 @click.pass_context
 def surv(ctx, config_file):
     ctx.obj['CONFIG_FILE'] = config_file
@@ -57,6 +67,7 @@ def surv(ctx, config_file):
 @click.pass_context
 def show_config(ctx):
     config_file = ctx.obj['CONFIG_FILE']
+    click.echo("coucou")
     with open(config_file, 'r') as file_input:
         click.echo(file_input.read())
 
@@ -71,28 +82,29 @@ def list_collections(ctx):
 
 @surv.command()
 @click.pass_context
-@click.argument("collection", type = click.STRING)
-@click.argument("survey", type = click.STRING, required = False)
-@click.argument("tables", type = click.STRING, nargs = -1, required = False)
-def show(ctx, collection, survey = None, tables = None):
+@click.argument("collection_name", type = click.STRING)
+@click.argument("survey_name", type = click.STRING, required = False)
+@click.argument("tables_names", type = click.STRING, nargs = -1, required = False)
+def show(ctx, collection_name, survey_name = None, tables_names = None):
     parser = SafeConfigParser()
     parser.read(ctx.obj['CONFIG_FILE'])
-    file_path = os.path.abspath(parser.get("collections", collection))
-    survey_collection = SurveyCollection.load(file_path = file_path)
+    json_file_path = os.path.abspath(parser.get("collections", collection_name))
+    survey_collection = SurveyCollection.load(json_file_path = json_file_path)
     click.echo(survey_collection)
-    if survey is not None:
-        survey = survey_collection.surveys.get(survey)
+    if survey_name is not None:
+        survey = [
+            kept_survey for kept_survey in survey_collection.surveys if kept_survey.name == survey_name
+            ][0]
         if survey is not None:
             click.echo(survey)
         else:
             click.echo("{} is not an element of collection {} surveys ({})".format(
-                survey, collection, str(survey_collection.surveys.keys()).strip('[]')))
+                survey_name, collection_name, str(survey_collection.surveys.keys()).strip('[]')))
 
-        if tables:
-            for table in tables:
-                import yaml
+        if tables_names:
+            for table_name in tables_names:
                 click.echo(yaml.safe_dump(
-                    {"table {}".format(table): survey.tables[table]},
+                    {"table {}".format(table_name): survey.tables[table_name]},
                     default_flow_style = False,
                     ))
 
@@ -100,18 +112,86 @@ def show(ctx, collection, survey = None, tables = None):
 @surv.command()
 @click.pass_context
 @click.argument('directory_path', type = click.Path(exists = True))
-@click.argument('collection', type = click.STRING, required = False)
-@click.argument('survey', type = click.STRING, required = False)
-def create_from(ctx, directory_path, collection = None, survey = None,):
+@click.argument('collection_name', type = click.STRING, required = False)
+@click.argument('survey_name', type = click.STRING, required = False)
+def create_from(ctx, directory_path, collection_name = None, survey_name = None):
 
     parser = SafeConfigParser()
     parser.read(ctx.obj['CONFIG_FILE'])
 
-    collections = [option for option in parser._sections['collections'].keys()]
-    collections.remove('__name__')
+    collection_names = [option for option in parser._sections['collections'].keys()]
+    collection_names.remove('__name__')
     collections_directory = parser.get('collections', 'collections_directory')
-    collections.remove('collections_directory')
+    collection_names.remove('collections_directory')
 
+    data_file_by_format = create_data_file_by_format(directory_path)
+    sas_files = data_file_by_format['sas']
+    stata_files = data_file_by_format['stata']
+
+    click.confirm(u"Create a new survey using this information ?", abort = False, default = True)
+
+    if collection_name not in collection_names:
+        if collection_name is None:
+            click.confirm(u"Create a new collection ?", abort = False, default = True)
+            collection_name = click.prompt("Name of the new collection")
+            collection_json_path = os.path.join(collections_directory, collection_name + ".json")
+        click.confirm(u"Create a collection {} ?".format(collection_name), abort = False, default = True)
+        if os.path.isfile(collection_json_path):
+            click.confirm(
+                u"Erase existing {} collection file ?".format(collection_json_path), abort = False, default = True)
+            os.remove(collection_json_path)
+        survey_collection = create_collection(collection_name)
+
+    else:
+        click.echo(u"The new survey is being add to the existing collection {} ".format(collection_name))
+        collection_json_path = os.path.join(collections_directory, collection_name + ".json")
+        survey_collection = SurveyCollection.load(collection_json_path)
+
+    if survey_name is not None:
+        click.echo(u"The survey {} is being add to the existing collection {} ".format(survey_name, collection_name))
+
+    if not survey_name:
+        survey_name = click.prompt('Enter a name for the survey in collection {}'.format(survey_collection.name))
+
+    add_survey_to_collection(
+        survey_name = survey_name,
+        survey_collection = survey_collection,
+        sas_files = sas_files,
+        stata_files = stata_files,
+        )
+    survey_collection.dump(
+        json_file_path = collection_json_path,
+        )
+
+    for format_extension, data_files in data_file_by_format.iteritems():
+        if data_files != []:
+            to_print = yaml.safe_dump(data_files, default_flow_style = False)
+            click.echo("Here are the {} files: \n {}".format(format_extension, to_print))
+            if click.confirm('Do you want to fill the {} HDF5 file using the {} files ?'.format(
+                    survey_name, format_extension, default = False)):
+                survey_collection.fill_hdf(source_format = format_extension, overwrite = True)
+        else:
+            click.echo("There are no {} files".format(format_extension))
+
+    survey_collection.dump()
+
+    config_file = open(ctx.obj['CONFIG_FILE'], 'w')
+    parser.write(config_file)
+    config_file.close()
+
+
+def create_collection(collection_name):
+    # Create the new collection
+    name = collection_name
+    label = click.prompt('Enter a description for collection {}'.format(name), default = name)
+    survey_collection = SurveyCollection(name = name, label = label)
+    return survey_collection
+
+
+def create_data_file_by_format(directory_path = None):
+    '''
+    Browse subdirectories to extract stata and sas files
+    '''
     stata_files = []
     sas_files = []
 
@@ -124,85 +204,54 @@ def create_from(ctx, directory_path, collection = None, survey = None,):
             if os.path.basename(file_name).endswith(".sas7bdat"):
                 click.echo("Found sas file {}".format(file_path))
                 sas_files.append(file_path)
-
-    click.confirm(u"Create a new survey using this information ?", abort = False)
-    collection_json_path = os.path.join(collections_directory, collection + ".json") if collection else None
-
-    if collection not in collections:
-        if collection is None:
-            click.confirm(u"Create a new collection ?", abort = False)
-            collection = click.prompt("Name of the new collection")
-            collection_json_path = os.path.join(collections_directory, collection + ".json")
-        click.confirm(u"Create a the new collection {} ?".format(collection), abort = False)
-
-        if os.path.isfile(collection_json_path):
-            click.confirm(u"Erase existing {} collection file ?".format(collection_json_path), abort = False)
-            os.remove(collection_json_path)
-        survey_collection = create_collection(collection)
-
-    else:
-        survey_collection = SurveyCollection.load(collection_json_path)
-
-    if not survey:
-        survey = click.prompt('Enter a name for the survey in collection {}'.format(survey_collection.name))
-
-    print survey
-    add_survey_to_collection(
-        survey_name = survey,
-        survey_collection = survey_collection,
-        sas_files = sas_files,
-        stata_files = stata_files,
-        )
-
-    print survey_collection.surveys[survey].informations
-    print collection_json_path
-
-    survey_collection.dump(
-        file_path = collection_json_path,
-        )
-
-    parser.set("collections", collection, collection_json_path)
-
-    cfgfile = open(ctx.obj['CONFIG_FILE'], 'w')
-    parser.write(cfgfile)
-    cfgfile.close()
+    return {'stata': stata_files, 'sas': sas_files}
 
 
-def create_collection(collection_name):
-    # Create the new collection
-    name = collection_name
-    label = click.prompt('Enter a description for collection {}'.format(name), default = name)
-    survey_collection = SurveyCollection(name = name, label = label)
-    return survey_collection
-
-
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [],
+        question = False):
     assert survey_collection is not None
     overwrite = True
-    label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
 
-    if survey_name in survey_collection.surveys.keys():
-        click.echo('The following information is available for survey {}'.format(survey_name))
-        click.echo(survey_collection.surveys[survey_name])
-        overwrite = click.prompt('Overwrite previous survey {} informations ?'.format(survey_name), default = False)
+    if question:
+        label = click.prompt('Enter a description for the survey {}'.format(survey_name), default = survey_name)
+    else:
+        label = survey_name
 
-    if click.confirm('Are all the files part of the same survey ?', default = True):
-        if overwrite:
-            survey = Survey(
-                name = survey_name,
-                label = label,
-                sas_files = sas_files,
-                stata_files = stata_files,
-                )
-        else:
-            survey = survey_collection.surveys[survey_name]
-            survey.label = label
-            survey.informations.update({
-                "sas_files": sas_files,
-                "stata_files": stata_files,
-                })
-
-        survey_collection.surveys.update({survey_name: survey})
+    for test_survey in survey_collection.surveys:
+        if test_survey.name == survey_name:
+            if question:
+                click.echo('The following information is available for survey {}'.format(survey_name))
+            survey = survey_collection.get_survey(survey_name)
+            if question:
+                click.echo(survey)
+                overwrite = click.confirm(
+                    'Overwrite previous survey {} informations ?'.format(survey_name), default = True)
+            else:
+                overwrite = True
+    if question:
+        same_survey = click.confirm('Are all the files part of the same survey ?', default = True)
+    else:
+        same_survey = True
+    if same_survey:
+            if overwrite:
+                survey = Survey(
+                    name = survey_name,
+                    label = label,
+                    sas_files = sas_files,
+                    stata_files = stata_files,
+                    survey_collection = survey_collection,
+                    )
+            else:
+                survey = survey_collection.get(survey_name)
+                survey.label = label
+                survey.informations.update({
+                    "sas_files": sas_files,
+                    "stata_files": stata_files,
+                    })
+            survey_collection.surveys = [
+                kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+                ]
+            survey_collection.surveys.append(survey)
 
 
 if __name__ == '__main__':

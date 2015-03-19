@@ -1,4 +1,8 @@
-# Ignore temporalrely h5 files
+# Ignore personal tests
+openfisca_survey_manager/tests/test_read_sas.py
+openfisca_survey_manager/tests/test_read_dbf.py
+
+# Ignore temporary h5 files
 *.h5
 
 # Spyder junk
@@ -64,3 +68,5 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+openfisca_survey_manager/tests/data_files/fake.hdf5

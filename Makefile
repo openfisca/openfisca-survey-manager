@@ -1,4 +1,4 @@
-IGNORE_OPT=--ignore-files='(test_read_sas.py|test_read_dbf.py)'
+IGNORE_OPT=--ignore-files='(test_read_dbf.py)'
 TESTS_DIR=openfisca_survey_manager/tests
 
 all: flake8 test

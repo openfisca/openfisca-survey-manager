@@ -22,20 +22,37 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import os
 import pkg_resources
 
-from openfisca_survey_manager.read_sas import read_sas
+
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.scripts.surv import add_survey_to_collection
 
 
-def test():
-    sas_file_path = os.path.join(
+def test_add_survey_to_collection():
+    name = 'fake'
+    survey_name = 'fake_survey'
+    survey_collection = SurveyCollection(name = name)
+
+    data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
-        'help.sas7bdat',
         )
-    read_sas(sas_file_path, clean = False)
-    read_sas(sas_file_path, clean = True)
+#    saved_fake_survey_hdf5_file_path = os.path.join(data_dir, 'fake.hdf5')
+    saved_fake_survey_file_path = os.path.join(data_dir, 'help.sas7bdat')
+    add_survey_to_collection(survey_name = survey_name,
+                             survey_collection = survey_collection,
+                             sas_files = [saved_fake_survey_file_path],
+                             stata_files = [],
+                             question = False)
+    ordered_dict = survey_collection.to_json()
+#    print ordered_dict
+    assert ordered_dict['surveys'].keys() == [survey_name]
+
+
+if __name__ == '__main__':
+    test_add_survey_to_collection()

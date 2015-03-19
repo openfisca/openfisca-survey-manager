@@ -22,20 +22,44 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import os
 import pkg_resources
 
-from openfisca_survey_manager.read_sas import read_sas
+
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
 
-def test():
-    sas_file_path = os.path.join(
+def test_survey():
+    name = 'fake'
+    data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
-        'help.sas7bdat',
         )
-    read_sas(sas_file_path, clean = False)
-    read_sas(sas_file_path, clean = True)
+
+    survey_collection = SurveyCollection(
+        name = name,
+        config_files_directory = data_dir,
+        json_file_path = os.path.join(data_dir, 'fake.json')
+        )
+
+    saved_fake_survey_hdf5_file_path = os.path.join(data_dir, 'fake.hdf5')
+    saved_fake_survey_file_path = os.path.join(data_dir, 'help.sas7bdat')
+    survey = Survey(
+        hdf5_file_path = saved_fake_survey_hdf5_file_path,
+        name = 'fake_survey',
+        sas_files = [saved_fake_survey_file_path],
+        survey_collection = survey_collection,
+        )
+    survey.insert_table(name = 'help')
+    survey.fill_hdf(source_format = 'sas')
+    print survey.tables
+#    survey.dump(saved_fake_survey_file_path)
+#    survey_bis = Survey.load(saved_fake_survey_file_path)
+#    assert survey.to_json() == survey_bis.to_json()
+
+
+if __name__ == '__main__':
+    test_survey()

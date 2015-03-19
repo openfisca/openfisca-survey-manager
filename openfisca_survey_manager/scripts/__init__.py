@@ -21,21 +21,3 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-import os
-import pkg_resources
-
-from openfisca_survey_manager.read_sas import read_sas
-
-
-def test():
-    sas_file_path = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
-        'openfisca_survey_manager',
-        'tests',
-        'data_files',
-        'help.sas7bdat',
-        )
-    read_sas(sas_file_path, clean = False)
-    read_sas(sas_file_path, clean = True)

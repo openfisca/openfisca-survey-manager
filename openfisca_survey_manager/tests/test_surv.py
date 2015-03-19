@@ -22,20 +22,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import click
 import os
 import pkg_resources
 
-from openfisca_survey_manager.read_sas import read_sas
+from click.testing import CliRunner
+
+from openfisca_survey_manager.scripts.surv import surv
+import subprocess
 
 
 def test():
-    sas_file_path = os.path.join(
+    directory_path = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
-        'help.sas7bdat',
+        # 'help.sas7bdat',
         )
-    read_sas(sas_file_path, clean = False)
-    read_sas(sas_file_path, clean = True)
+
+    runner = CliRunner()
+    result = runner.invoke(surv, ["show_config", ""])
+    print result
+    print result.output
+
+
+if __name__ == '__main__':
+    test()
