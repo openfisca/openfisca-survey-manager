@@ -51,6 +51,12 @@ class SurveyCollection(object):
             self.name = name
         if json_file_path is not None:
             self.json_file_path = json_file_path
+            self.config.set("collections", self.name, self.json_file_path)
+            self.config.save()
+        elif self.config is not None:
+            if self.config.has_option("collections", self.name):
+                self.json_file_path = self.config.get("collections", self.name)
+
 
     def __repr__(self):
         header = """{}
