@@ -137,6 +137,7 @@ class Table(object):
         reader = reader_by_source_format[source_format]
         data_file = kwargs.pop("data_file")
         overwrite = kwargs.pop('overwrite')
+        clean = kwargs.pop("clean")
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
