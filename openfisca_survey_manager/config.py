@@ -43,7 +43,7 @@ class Config(ConfigParser.SafeConfigParser):
 
     def save(self):
         assert self.config_local_ini or self.config_ini, "configuration file paths are not defined"
-        if os.path.exists(self.config_local_ini):
+        if self.config_local_ini and os.path.exists(self.config_local_ini):
             config_file = open(self.config_local_ini, 'w')
         else:
             config_file = open(self.config_ini, 'w')
