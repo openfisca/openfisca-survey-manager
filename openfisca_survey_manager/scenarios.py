@@ -46,7 +46,6 @@ class AbstractSurveyScenario(object):
 
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
-        print "used_as_input_variables:", used_as_input_variables
         if used_as_input_variables is None:
             self.used_as_input_variables = []
         else:
