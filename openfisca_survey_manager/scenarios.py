@@ -37,13 +37,21 @@ class AbstractSurveyScenario(object):
     legislation_json = None
     simulation = None
     tax_benefit_system = None
+    used_as_input_variables = None
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
+    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, used_as_input_variables = None,
+            year = None):
 
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
+        print "used_as_input_variables:", used_as_input_variables
+        if used_as_input_variables is None:
+            self.used_as_input_variables = []
+        else:
+            assert isinstance(used_as_input_variables, list)
+            self.used_as_input_variables = used_as_input_variables
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
         assert year is not None
@@ -99,6 +107,11 @@ class AbstractSurveyScenario(object):
             if column_name in id_variables + role_variables:
                 continue
             if column_by_name[column_name].formula_class.function is not None:
+                if column_name in self.used_as_input_variables:
+                    log.info(
+                        'Column "{}" not dropped because present in used_as_input_variabels'.format(column_name))
+                    continue
+
                 log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
                 input_data_frame = input_data_frame.drop(column_name, axis = 1)
                 # , inplace = True)  # TODO: effet de bords ?
@@ -109,15 +122,18 @@ class AbstractSurveyScenario(object):
             else:
                 entity.count = entity.step_size = (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
                 entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
-#       TODO: Create a validation/conversion step
-#       TODO: introduce an assert when loading in place of astype
-        for column_name, column_series in input_data_frame.iteritems():
+        for column_name, column_serie in input_data_frame.iteritems():
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
+            if column_serie.values.dtype != holder.column.dtype:
+                log.info(
+                    'Converting {} from dtype {} to {}'.format(
+                        column_name, column_serie.values.dtype, holder.column.dtype)
+                    )
             if entity.is_persons_entity:
-                array = column_series.values.astype(holder.column.dtype)
+                    array = column_serie.values.astype(holder.column.dtype)
             else:
-                array = column_series.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
+                array = column_serie.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
                     holder.column.dtype)
             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                 column_name,

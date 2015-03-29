@@ -240,8 +240,6 @@ Contains the following tables : \n""".format(self.name, self.label)
         for key, val in kwargs.iteritems():
             self.tables[name][key] = val
 
-
-
     def to_json(self):
         self_json = collections.OrderedDict((
             ))
