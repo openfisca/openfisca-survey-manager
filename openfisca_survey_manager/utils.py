@@ -25,7 +25,45 @@
 
 import os
 
+import logging
 from pandas import DataFrame, concat
+
+
+log = logging.getLogger(__name__)
+
+
+def clean_data_frame(data_frame):
+    object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
+    log.info(
+        "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
+        )
+    for column_name in object_column_names:
+        if data_frame[column_name].isnull().all():  # drop empty columns
+            data_frame.drop(column_name, axis = 1, inplace = True)
+            continue
+
+        values = list(data_frame[column_name].value_counts().keys())
+        empty_string_present = "" in values
+        if empty_string_present:
+            values.remove("")
+        all_digits = all([value.isdigit() for value in values])
+        no_zero = all([value != 0 for value in values])
+        if all_digits and no_zero:
+            log.info(
+                "Replacing empty string with zero for variable {}".format(column_name)
+                )
+            data_frame.replace(
+                to_replace = {
+                    column_name: {"": 0},
+                    },
+                inplace = True,
+                )
+            log.info(
+                "Converting string variable {} to integer".format(column_name)
+                )
+            data_frame[column_name] = data_frame[column_name].astype("int")
+
+    return data_frame
 
 
 def dump_simulation_results_data_frame(survey_scenario, collection = None):

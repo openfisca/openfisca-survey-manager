@@ -39,7 +39,7 @@ except ImportError:
     rpy = None
 
 
-from openfisca_survey_manager import read_sas
+from openfisca_survey_manager import read_sas, utils
 
 try:
     from openfisca_survey_manager.read_spss import read_spss
@@ -146,6 +146,8 @@ class Table(object):
             self._check_and_log(data_file)
             data_frame = reader(data_file, **kwargs)
             gc.collect()
+            if clean:
+                data_frame = utils.clean_data_frame(data_frame)
             self._save(data_frame = data_frame)
             log.info("{} have been processed in {}".format(data_file, datetime.datetime.now() - start_table_time))
 
