@@ -141,4 +141,6 @@ class AbstractSurveyScenario(object):
             holder.array = np.array(array, dtype = holder.column.dtype)
 
         self.simulation = simulation
+        if 'initialize_weights' in dir(self):
+            self.initialize_weights()
         return simulation
