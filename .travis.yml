@@ -5,7 +5,7 @@ virtualenv:
 before_install:
   - sudo add-apt-repository ppa:pythonxy/pythonxy-devel -y  # For Pandas
   - sudo apt-get update -qq
-  - sudo apt-get install -qq python-numpy python-pandas python-tables python-yaml
+  - sudo apt-get install -qq python-numpy python-pandas/0.14.0~ppa16~revno-6650~ubuntu13.10.1 python-tables python-yaml
 install:
   - pip install flake8  # Not yet available in Debian stable
   - pip install sas7bdat
