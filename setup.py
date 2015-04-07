@@ -56,7 +56,7 @@ setup(
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
-	'click',
+        'click',
         'numpy',
         'pandas',
         'PyYAML',
