@@ -73,10 +73,11 @@ class AbstractSurveyScenario(object):
         assert self.init_from_data_frame is not None
         assert self.tax_benefit_system is not None
         input_data_frame = self.input_data_frame
+        period = periods.period(self.year)
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
-            period = periods.period(self.year),
+            period = period,
             tax_benefit_system = self.tax_benefit_system,
             trace = trace,
             )
@@ -130,7 +131,7 @@ class AbstractSurveyScenario(object):
                         column_name, column_serie.values.dtype, holder.column.dtype)
                     )
             if entity.is_persons_entity:
-                    array = column_serie.values.astype(holder.column.dtype)
+                array = column_serie.values.astype(holder.column.dtype)
             else:
                 array = column_serie.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
                     holder.column.dtype)
@@ -138,7 +139,7 @@ class AbstractSurveyScenario(object):
                 column_name,
                 array.size,
                 entity.count)
-            holder.array = np.array(array, dtype = holder.column.dtype)
+            holder.set_input(period, np.array(array, dtype = holder.column.dtype))
 
         self.simulation = simulation
         if 'initialize_weights' in dir(self):
