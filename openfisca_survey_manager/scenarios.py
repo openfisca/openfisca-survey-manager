@@ -24,9 +24,10 @@
 
 import logging
 import numpy as np
-
+import pandas
 
 from openfisca_core import periods, simulations
+from .surveys import Survey
 
 log = logging.getLogger(__name__)
 
@@ -144,8 +145,76 @@ class AbstractSurveyScenario(object):
         self.simulation = simulation
         if 'initialize_weights' in dir(self):
             self.initialize_weights()
-
         if 'custom_initialize' in dir(self):
             self.custom_initialize()
-
         return simulation
+
+
+#    def new_simulation_bis(self, debug = False, debug_all = False, trace = False):
+#        assert self.init_from_data_frame is not None
+#        assert self.tax_benefit_system is not None
+#        input_data_frame_by_entity_key_plural = self.input_data_frame_by_entity_key_plural
+#        period = periods.period(self.year)
+#        simulation = simulations.Simulation(
+#            debug = debug,
+#            debug_all = debug_all,
+#            period = period,
+#            tax_benefit_system = self.tax_benefit_system,
+#            trace = trace,
+#            )
+#
+#        id_variables = [
+#            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+#            if not entity.is_persons_entity]
+#
+#        role_variables = [
+#            entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+#            if not entity.is_persons_entity]
+#
+#   TODO: finish for multiple data_frame
+
+
+    def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, roles = False):
+        assert variables is not None or indices or roles
+        variables = list(
+            set(variables).union(set(self.index_variables(indices = indices, roles = roles)))
+            )
+        tax_benefit_system = self.tax_benefit_system
+        simulation = self.simulation
+        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
+        if missing_variables:
+            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
+        columns_to_fetch = [
+            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
+            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
+            ]
+        openfisca_data_frame_by_entity_key_plural = dict()
+        for entity_key_plural in tax_benefit_system.entity_class_by_key_plural.keys():
+            column_names = [
+                column.name for column in columns_to_fetch
+                if column.entity_key_plural == entity_key_plural
+                ]
+            openfisca_data_frame_by_entity_key_plural[entity_key_plural] = pandas.DataFrame(
+                dict([(column_name, simulation.calculate_add(column_name)) for column_name in column_names])
+                )
+        return openfisca_data_frame_by_entity_key_plural
+
+    def dump_data_frame_by_entity_key_plural(self, variables = None, survey_collection = None, survey_name = None):
+        assert survey_collection is not None
+        assert survey_name is not None
+        assert variables is not None
+        openfisca_data_frame_by_entity_key_plural = self.create_data_frame_by_entity_key_plural(variables = variables)
+        for entity_key_plural, data_frame in openfisca_data_frame_by_entity_key_plural.iteritems():
+            survey = Survey(name = survey_name)
+            survey.insert_table(name = entity_key_plural, data_frame = data_frame)
+            survey_collection.surveys.append(survey)
+            survey_collection.dump(collection = "openfisca")
+
+    def index_variables(self, indices = True, roles = True):
+        variables = list()
+        for entity in self.tax_benefit_system.entity_class_by_key_plural.values():
+            if indices:
+                variables.append(entity.index_for_person_variable_name)
+            if roles:
+                variables.append(entity.role_for_person_variable_name)
+        return variables
