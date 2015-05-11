@@ -70,7 +70,16 @@ class AbstractSurveyScenario(object):
             holder = simulation.get_or_new_holder(column_name)
             holder.array = inflator * holder.array
 
-    def new_simulation(self, debug = False, debug_all = False, trace = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
+        assert isinstance(reference, (bool, int)), \
+            'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
+        tax_benefit_system = self.tax_benefit_system
+        if reference:
+            while True:
+                reference_tax_benefit_system = tax_benefit_system.reference
+                if reference_tax_benefit_system is None:
+                    break
+                tax_benefit_system = reference_tax_benefit_system
         assert self.init_from_data_frame is not None
         assert self.tax_benefit_system is not None
         input_data_frame = self.input_data_frame
