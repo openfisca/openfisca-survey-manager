@@ -204,7 +204,7 @@ class AbstractSurveyScenario(object):
                 if column.entity_key_plural == entity_key_plural
                 ]
             openfisca_data_frame_by_entity_key_plural[entity_key_plural] = pandas.DataFrame(
-                dict([(column_name, simulation.calculate_add(column_name)) for column_name in column_names])
+                dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
                 )
         return openfisca_data_frame_by_entity_key_plural
 
