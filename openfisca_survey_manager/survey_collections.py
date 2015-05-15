@@ -27,8 +27,13 @@ import collections
 import json
 
 
+import logging
+
 from .surveys import Survey
 from .config import Config
+
+
+log = logging.getLogger(__name__)
 
 
 class SurveyCollection(object):
@@ -56,6 +61,7 @@ class SurveyCollection(object):
         elif self.config is not None:
             if self.config.has_option("collections", self.name):
                 self.json_file_path = self.config.get("collections", self.name)
+
 
 
     def __repr__(self):

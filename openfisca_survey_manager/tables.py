@@ -78,6 +78,7 @@ class Table(object):
         self.survey = survey
         if not survey.tables:
             survey.tables = collections.OrderedDict()
+
         survey.tables[name] = collections.OrderedDict(
             source_format = source_format,
             variables = variables
@@ -96,6 +97,7 @@ class Table(object):
 
     def _save(self, data_frame = None):
         assert data_frame is not None
+
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
 

@@ -75,6 +75,8 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
             sas_files = data_file_by_format[source_format],
             )
         collections_directory = survey_collection.config.get('collections', 'collections_directory')
+        assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
+Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
         collection_json_path = os.path.join(collections_directory, "{}.json".format(collection_name))
         survey_collection.dump(json_file_path = collection_json_path)
         surveys = [survey for survey in survey_collection.surveys if survey.name.endswith(str(survey_suffix))]
