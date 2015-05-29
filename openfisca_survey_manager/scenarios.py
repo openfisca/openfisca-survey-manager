@@ -125,6 +125,7 @@ class AbstractSurveyScenario(object):
                     log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
                     input_data_frame = input_data_frame.drop(column_name, axis = 1)
                     # , inplace = True)  # TODO: effet de bords ?
+            return input_data_frame
 
         assert self.input_data_frame is not None or self.input_data_frames_by_entity_key_plural is not None
         input_data_frame = self.input_data_frame
@@ -136,7 +137,7 @@ class AbstractSurveyScenario(object):
                 assert id_variable in input_data_frame.columns, \
                     "Variable {} is not present in input dataframe".format(id_variable)
 
-            filter_input_variables(input_data_frame)
+            input_data_frame = filter_input_variables(input_data_frame)
 
             for entity in simulation.entity_by_key_singular.values():
                 if entity.is_persons_entity:
