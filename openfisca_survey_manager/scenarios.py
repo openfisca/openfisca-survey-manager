@@ -34,6 +34,7 @@ log = logging.getLogger(__name__)
 class AbstractSurveyScenario(object):
     inflators = None
     input_data_frame = None
+    input_data_frames_by_entity_key_plural = None
     legislation_json = None
     simulation = None
     tax_benefit_system = None
@@ -41,11 +42,16 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, used_as_input_variables = None,
-            year = None):
+    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
+        tax_benefit_system = None, used_as_input_variables = None, year = None):
 
-        assert input_data_frame is not None
-        self.input_data_frame = input_data_frame
+        assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
+
+        if input_data_frame is not None:
+            self.input_data_frame = input_data_frame
+        elif input_data_frames_by_entity_key_plural is not None:
+            self.input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural
+
         if used_as_input_variables is None:
             self.used_as_input_variables = []
         else:
@@ -72,6 +78,7 @@ class AbstractSurveyScenario(object):
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
+        assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
         if reference:
             while True:
@@ -79,14 +86,11 @@ class AbstractSurveyScenario(object):
                 if reference_tax_benefit_system is None:
                     break
                 tax_benefit_system = reference_tax_benefit_system
-        assert self.init_from_data_frame is not None
-        assert self.tax_benefit_system is not None
-        input_data_frame = self.input_data_frame
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
             period = periods.period(self.year),
-            tax_benefit_system = self.tax_benefit_system,
+            tax_benefit_system = tax_benefit_system,
             trace = trace,
             )
 
@@ -98,56 +102,88 @@ class AbstractSurveyScenario(object):
             entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
             if not entity.is_persons_entity]
 
-        for id_variable in id_variables + role_variables:
-            assert id_variable in self.input_data_frame.columns, \
-                "Variable {} is not present in input dataframe".format(id_variable)
-
         column_by_name = self.tax_benefit_system.column_by_name
 
-        for column_name in input_data_frame:
-            if column_name not in column_by_name:
-                log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
-                # waiting for the new pandas version to hit Travis repo
-                input_data_frame = input_data_frame.drop(column_name, axis = 1)
-                # , inplace = True)  # TODO: effet de bords ?
+        def filter_input_variables(input_data_frame):
+            for column_name in input_data_frame:
+                if column_name not in column_by_name:
+                    log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
+                    # waiting for the new pandas version to hit Travis repo
+                    input_data_frame = input_data_frame.drop(column_name, axis = 1)
+                    # , inplace = True)  # TODO: effet de bords ?
 
-        for column_name in input_data_frame:
-            if column_name in id_variables + role_variables:
-                continue
-            if column_by_name[column_name].formula_class.function is not None:
-                if column_name in self.used_as_input_variables:
-                    log.info(
-                        'Column "{}" not dropped because present in used_as_input_variabels'.format(column_name))
+            for column_name in input_data_frame:
+                if column_name in id_variables + role_variables:
                     continue
+                if column_by_name[column_name].formula_class.function is not None:
+                    if column_name in self.used_as_input_variables:
+                        log.info(
+                            'Column "{}" not dropped because present in used_as_input_variabels'.format(column_name))
+                        continue
 
-                log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
-                input_data_frame = input_data_frame.drop(column_name, axis = 1)
-                # , inplace = True)  # TODO: effet de bords ?
+                    log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
+                    input_data_frame = input_data_frame.drop(column_name, axis = 1)
+                    # , inplace = True)  # TODO: effet de bords ?
 
-        for entity in simulation.entity_by_key_singular.values():
-            if entity.is_persons_entity:
-                entity.count = entity.step_size = len(input_data_frame)
-            else:
-                entity.count = entity.step_size = (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
-                entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
-        for column_name, column_serie in input_data_frame.iteritems():
-            holder = simulation.get_or_new_holder(column_name)
-            entity = holder.entity
-            if column_serie.values.dtype != holder.column.dtype:
-                log.info(
-                    'Converting {} from dtype {} to {}'.format(
-                        column_name, column_serie.values.dtype, holder.column.dtype)
-                    )
-            if entity.is_persons_entity:
-                    array = column_serie.values.astype(holder.column.dtype)
-            else:
-                array = column_serie.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
-                    holder.column.dtype)
-            assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                column_name,
-                array.size,
-                entity.count)
-            holder.array = np.array(array, dtype = holder.column.dtype)
+        assert self.input_data_frame is not None or self.input_data_frames_by_entity_key_plural is not None
+        input_data_frame = self.input_data_frame
+        input_data_frames_by_entity_key_plural = self.input_data_frames_by_entity_key_plural
+
+        # Case 1: fill simulation with a unique input_data_frame containing all entity variables
+        if input_data_frame is not None:
+            for id_variable in id_variables + role_variables:
+                assert id_variable in input_data_frame.columns, \
+                    "Variable {} is not present in input dataframe".format(id_variable)
+
+            filter_input_variables(input_data_frame)
+
+            for entity in simulation.entity_by_key_singular.values():
+                if entity.is_persons_entity:
+                    entity.count = entity.step_size = len(input_data_frame)
+                else:
+                    entity.count = entity.step_size = (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
+                    entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
+
+            for column_name, column_serie in input_data_frame.iteritems():
+                holder = simulation.get_or_new_holder(column_name)
+                entity = holder.entity
+                if column_serie.values.dtype != holder.column.dtype:
+                    log.info(
+                        'Converting {} from dtype {} to {}'.format(
+                            column_name, column_serie.values.dtype, holder.column.dtype)
+                        )
+                if entity.is_persons_entity:
+                        array = column_serie.values.astype(holder.column.dtype)
+                else:
+                    array = column_serie.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
+                        holder.column.dtype)
+                assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
+                    column_name,
+                    array.size,
+                    entity.count)
+                holder.array = np.array(array, dtype = holder.column.dtype)
+
+        # Case 2: fill simulation with an input_data_frame by entity
+        elif input_data_frames_by_entity_key_plural is not None:
+            for entity in simulation.entity_by_key_singular.values():
+                input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
+                filter_input_variables(input_data_frame)
+
+        # Convert columns from df to array:
+                for column_name, column_serie in input_data_frame.iteritems():
+                    holder = simulation.get_or_new_holder(column_name)
+                    entity = holder.entity
+                    if column_serie.values.dtype != holder.column.dtype:
+                        log.info(
+                            'Converting {} from dtype {} to {}'.format(
+                                column_name, column_serie.values.dtype, holder.column.dtype)
+                            )
+                        array = column_serie.values.astype(holder.column.dtype)
+                    assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
+                        column_name,
+                        array.size,
+                        entity.count)
+                    holder.array = np.array(array, dtype = holder.column.dtype)
 
         self.simulation = simulation
         return simulation
