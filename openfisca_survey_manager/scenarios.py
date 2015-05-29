@@ -105,6 +105,7 @@ class AbstractSurveyScenario(object):
 
         column_by_name = self.tax_benefit_system.column_by_name
 
+        # Define a useful function to clean
         def filter_input_variables(input_data_frame):
             for column_name in input_data_frame:
                 if column_name not in column_by_name:
@@ -119,7 +120,7 @@ class AbstractSurveyScenario(object):
                 if column_by_name[column_name].formula_class.function is not None:
                     if column_name in self.used_as_input_variables:
                         log.info(
-                            'Column "{}" not dropped because present in used_as_input_variabels'.format(column_name))
+                            'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
                         continue
 
                     log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
@@ -143,7 +144,8 @@ class AbstractSurveyScenario(object):
                 if entity.is_persons_entity:
                     entity.count = entity.step_size = len(input_data_frame)
                 else:
-                    entity.count = entity.step_size = (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
+                    entity.count = entity.step_size = \
+                        (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
                     entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
 
             for column_name, column_serie in input_data_frame.iteritems():
@@ -157,8 +159,9 @@ class AbstractSurveyScenario(object):
                 if entity.is_persons_entity:
                         array = column_serie.values.astype(holder.column.dtype)
                 else:
-                    array = column_serie.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
-                        holder.column.dtype)
+                    array = column_serie.values[
+                        input_data_frame[entity.role_for_person_variable_name].values == 0
+                        ].astype(holder.column.dtype)
                 assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                     column_name,
                     array.size,
@@ -217,7 +220,6 @@ class AbstractSurveyScenario(object):
 #            if not entity.is_persons_entity]
 #
 #   TODO: finish for multiple data_frame
-
 
     def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, roles = False):
         assert variables is not None or indices or roles
