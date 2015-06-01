@@ -45,7 +45,6 @@ class AbstractSurveyScenario(object):
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
         tax_benefit_system = None, used_as_input_variables = None, year = None):
-
         assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
 
         if input_data_frame is not None:
@@ -103,9 +102,10 @@ class AbstractSurveyScenario(object):
             entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
             if not entity.is_persons_entity]
 
-        column_by_name = self.tax_benefit_system.column_by_name
+        column_by_name = tax_benefit_system.column_by_name
+        used_as_input_variables = self.used_as_input_variables
 
-        # Define a useful function to clean
+        # Define a useful function to clean
         def filter_input_variables(input_data_frame):
             for column_name in input_data_frame:
                 if column_name not in column_by_name:
@@ -118,7 +118,7 @@ class AbstractSurveyScenario(object):
                 if column_name in id_variables + role_variables:
                     continue
                 if column_by_name[column_name].formula_class.function is not None:
-                    if column_name in self.used_as_input_variables:
+                    if column_name in used_as_input_variables:
                         log.info(
                             'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
                         continue
@@ -170,11 +170,21 @@ class AbstractSurveyScenario(object):
 
         # Case 2: fill simulation with an input_data_frame by entity
         elif input_data_frames_by_entity_key_plural is not None:
-            for entity in simulation.entity_by_key_singular.values():
-                input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
-                filter_input_variables(input_data_frame)
 
-        # Convert columns from df to array:
+            for entity in simulation.entity_by_key_singular.values():
+                if entity.index_for_person_variable_name is not None:
+                    input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
+                else:
+                    input_data_frame = input_data_frames_by_entity_key_plural['individus']
+                input_data_frame = filter_input_variables(input_data_frame)
+
+                if entity.is_persons_entity:
+                    entity.count = entity.step_size = len(input_data_frame)
+                else:
+                    entity.count = entity.step_size = len(input_data_frame)
+                    entity.roles_count = input_data_frames_by_entity_key_plural['individus'][entity.role_for_person_variable_name].max() + 1
+
+                # Convert columns from df to array:
                 for column_name, column_serie in input_data_frame.iteritems():
                     holder = simulation.get_or_new_holder(column_name)
                     entity = holder.entity
@@ -183,7 +193,7 @@ class AbstractSurveyScenario(object):
                             'Converting {} from dtype {} to {}'.format(
                                 column_name, column_serie.values.dtype, holder.column.dtype)
                             )
-                        array = column_serie.values.astype(holder.column.dtype)
+                    array = column_serie.values.astype(holder.column.dtype)
                     assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                         column_name,
                         array.size,
@@ -196,30 +206,6 @@ class AbstractSurveyScenario(object):
         if 'custom_initialize' in dir(self):
             self.custom_initialize()
         return simulation
-
-
-#    def new_simulation_bis(self, debug = False, debug_all = False, trace = False):
-#        assert self.init_from_data_frame is not None
-#        assert self.tax_benefit_system is not None
-#        input_data_frame_by_entity_key_plural = self.input_data_frame_by_entity_key_plural
-#        period = periods.period(self.year)
-#        simulation = simulations.Simulation(
-#            debug = debug,
-#            debug_all = debug_all,
-#            period = period,
-#            tax_benefit_system = self.tax_benefit_system,
-#            trace = trace,
-#            )
-#
-#        id_variables = [
-#            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-#            if not entity.is_persons_entity]
-#
-#        role_variables = [
-#            entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-#            if not entity.is_persons_entity]
-#
-#   TODO: finish for multiple data_frame
 
     def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, roles = False):
         assert variables is not None or indices or roles
