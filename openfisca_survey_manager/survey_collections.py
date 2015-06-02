@@ -25,7 +25,7 @@
 import codecs
 import collections
 import json
-
+import os
 
 import logging
 
@@ -51,7 +51,7 @@ class SurveyCollection(object):
             self.config = Config(config_files_directory = config_files_directory)
 
         if label is not None:
-            self.label = label
+            self.label = label            
         if name is not None:
             self.name = name
         if json_file_path is not None:
@@ -61,7 +61,11 @@ class SurveyCollection(object):
         elif self.config is not None:
             if self.config.has_option("collections", self.name):
                 self.json_file_path = self.config.get("collections", self.name)
-
+            elif self.config.get("collections", 'collections_directory') is not None:
+                self.json_file_path = os.path.join(
+                    self.config.get("collections", 'collections_directory'),
+                    name + '.json',
+                    )
 
 
     def __repr__(self):
@@ -84,8 +88,9 @@ Contains the following surveys :
             assert self.json_file_path is not None, 'A json_file_path shoud be provided'
         else:
             self.json_file_path = json_file_path
-            config.set("collections", self.name, self.json_file_path)
-            config.save()
+
+        config.set("collections", self.name, self.json_file_path)                        
+        config.save()
 
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
