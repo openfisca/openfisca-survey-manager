@@ -193,6 +193,10 @@ class AbstractSurveyScenario(object):
                             'Converting {} from dtype {} to {}'.format(
                                 column_name, column_serie.values.dtype, holder.column.dtype)
                             )
+                    if np.issubdtype(column_serie.values.dtype, np.float):
+                        assert column_serie.notnull().all(), 'There are {} NaN values in variable {}'.format(
+                            column_serie.isnull().sum(), column_name)
+
                     array = column_serie.values.astype(holder.column.dtype)
                     assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                         column_name,
