@@ -64,16 +64,24 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
                 name = collection_name, config_files_directory = config_files_directory)
 
     for survey_suffix, data_directory_path in data_directory_path_by_survey_suffix.iteritems():
-        assert os.path.isdir(data_directory_path)
+        assert os.path.isdir(data_directory_path), '{} is not a valid directory path'.format(data_directory_path)
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
-        print data_file_by_format
         survey_name = '{}_{}'.format(collection_name, survey_suffix)
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = survey_collection,
-            sas_files = data_file_by_format[source_format],
+            sas_files = data_file_by_format.get('sas'),
+            stata_files = data_file_by_format.get('stata'),
             )
+
+        valid_source_format = [
+            _format for _format in data_file_by_format.keys()
+            if data_file_by_format.get((_format))
+            ]
+        log.info("Valid source formats are: ".format(valid_source_format))
+        source_format = valid_source_format[0]
+        log.info("Using the following format: ".format(valid_source_format))
         collections_directory = survey_collection.config.get('collections', 'collections_directory')
         assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
