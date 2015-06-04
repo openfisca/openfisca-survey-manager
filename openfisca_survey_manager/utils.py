@@ -65,7 +65,8 @@ def clean_data_frame(data_frame):
                 data_frame[column_name] = data_frame[column_name].astype("int")
             except OverflowError:
                 log.info(
-                    "OverflowError when converting string variable {} to integer. Leaving as is.".format(column_name)
+                    'OverflowError when converting {} to int. Keeping as {}'.format(
+                        column_name, data_frame[column_name].dtype)
                     )
     return data_frame
 
