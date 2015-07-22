@@ -30,12 +30,13 @@ import logging
 
 import pandas
 try:
-    import pandas.rpy.common as com
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
 except ImportError:
-    com = None
+    pandas2ri = None
 try:
     import rpy2.rpy_classic as rpy
-except ImportError:
+except ImportError, FutureWarning:
     rpy = None
 
 

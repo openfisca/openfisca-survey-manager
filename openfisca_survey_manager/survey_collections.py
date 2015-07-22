@@ -51,7 +51,7 @@ class SurveyCollection(object):
             self.config = Config(config_files_directory = config_files_directory)
 
         if label is not None:
-            self.label = label            
+            self.label = label
         if name is not None:
             self.name = name
         if json_file_path is not None:
@@ -89,7 +89,7 @@ Contains the following surveys :
         else:
             self.json_file_path = json_file_path
 
-        config.set("collections", self.name, self.json_file_path)                        
+        config.set("collections", self.name, self.json_file_path)
         config.save()
 
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
@@ -106,6 +106,9 @@ Contains the following surveys :
         self.dump()
 
     def get_survey(self, survey_name):
+        avaliable_surveys_names = [survey.name for survey in self.surveys]
+        assert survey_name in avaliable_surveys_names, '{} cannot be found in {}'.format(
+            survey_name, avaliable_surveys_names)
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
     @classmethod
