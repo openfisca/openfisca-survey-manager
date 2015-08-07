@@ -29,15 +29,15 @@ import gc
 import logging
 
 import pandas
-try:
-    from rpy2.robjects import pandas2ri
-    pandas2ri.activate()
-except ImportError:
-    pandas2ri = None
-try:
-    import rpy2.rpy_classic as rpy
-except ImportError, FutureWarning:
-    rpy = None
+#try:
+#    from rpy2.robjects import pandas2ri
+#    pandas2ri.activate()
+#except ImportError:
+#    pandas2ri = None
+#try:
+#    import rpy2.rpy_classic as rpy
+#except ImportError, FutureWarning:
+#    rpy = None
 
 
 from openfisca_survey_manager import read_sas, utils
