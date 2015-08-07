@@ -29,14 +29,15 @@ import gc
 import logging
 
 import pandas
-try:
-    import pandas.rpy.common as com
-except ImportError:
-    com = None
-try:
-    import rpy2.rpy_classic as rpy
-except ImportError:
-    rpy = None
+#try:
+#    from rpy2.robjects import pandas2ri
+#    pandas2ri.activate()
+#except ImportError:
+#    pandas2ri = None
+#try:
+#    import rpy2.rpy_classic as rpy
+#except ImportError, FutureWarning:
+#    rpy = None
 
 
 from openfisca_survey_manager import read_sas, utils
@@ -78,6 +79,7 @@ class Table(object):
         self.survey = survey
         if not survey.tables:
             survey.tables = collections.OrderedDict()
+
         survey.tables[name] = collections.OrderedDict(
             source_format = source_format,
             variables = variables
@@ -96,6 +98,7 @@ class Table(object):
 
     def _save(self, data_frame = None):
         assert data_frame is not None
+
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
 

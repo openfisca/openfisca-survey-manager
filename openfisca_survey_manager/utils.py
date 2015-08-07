@@ -61,8 +61,13 @@ def clean_data_frame(data_frame):
             log.info(
                 "Converting string variable {} to integer".format(column_name)
                 )
-            data_frame[column_name] = data_frame[column_name].astype("int")
-
+            try:
+                data_frame[column_name] = data_frame[column_name].astype("int")
+            except OverflowError:
+                log.info(
+                    'OverflowError when converting {} to int. Keeping as {}'.format(
+                        column_name, data_frame[column_name].dtype)
+                    )
     return data_frame
 
 

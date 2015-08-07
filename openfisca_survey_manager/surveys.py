@@ -109,6 +109,8 @@ Contains the following tables : \n""".format(self.name, self.label)
         if survey.hdf5_file_path is None:
             config = survey.survey_collection.config
             directory_path = config.get("data", "output_directory")
+            assert os.path.isdir(directory_path), """{} who should be the HDF5 data directory does not exist.
+Fix the option output_directory in the collections section of your config file.""".format(directory_path)
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
@@ -134,9 +136,11 @@ Contains the following tables : \n""".format(self.name, self.label)
                         )
         self.dump()
 
-    def find_tables(self, variable = None, tables = None):
+    def find_tables(self, variable = None, tables = None, rename_ident = True):
         container_tables = []
+
         assert variable is not None
+
         if tables is None:
             tables = self.tables
         tables_index = self.tables_index
@@ -147,12 +151,22 @@ Contains the following tables : \n""".format(self.name, self.label)
                 container_tables.append(table)
         return container_tables
 
-    def get_columns(self, table = None):
+    def get_columns(self, table = None, rename_ident = True):
         assert table is not None
         store = pandas.HDFStore(self.hdf5_file_path)
-        assert table in store
-        log.info("Building columns index for table {}".format(table))
-        return list(store[table].columns)
+        if table in store:
+            log.info("Building columns index for table {}".format(table))
+            data_frame = store[table]
+            if rename_ident is True:
+                for column_name in data_frame:
+                    if ident_re.match(column_name) is not None:
+                        data_frame.rename(columns = {column_name: "ident"}, inplace = True)
+                        log.info("{} column have been replaced by ident".format(column_name))
+                        break
+            return list(data_frame.columns)
+        else:
+            print 'table {} was not found in {}'.format(table, store.filename)
+            return list()
 
     def get_value(self, variable = None, table = None):
         """

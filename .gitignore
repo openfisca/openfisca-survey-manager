@@ -2,6 +2,9 @@
 openfisca_survey_manager/tests/test_read_sas.py
 openfisca_survey_manager/tests/test_read_dbf.py
 
+# Ignore config file for raw data
+raw_data.ini
+
 # Ignore temporary h5 files
 *.h5
 
