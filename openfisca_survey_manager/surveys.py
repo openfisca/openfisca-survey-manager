@@ -208,6 +208,7 @@ Fix the option output_directory in the collections section of your config file."
         df : DataFrame, default None
              A DataFrame containing the variables
         """
+        assert self.hdf5_file_path is not None
         store = pandas.HDFStore(self.hdf5_file_path)
         try:
             df = store[table]
