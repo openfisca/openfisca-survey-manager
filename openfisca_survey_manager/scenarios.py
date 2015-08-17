@@ -33,12 +33,13 @@ log = logging.getLogger(__name__)
 
 
 class AbstractSurveyScenario(object):
-    inflators = None
+    inflator_by_variable = None  # factor used to inflate variable total
     input_data_frame = None
     input_data_frames_by_entity_key_plural = None
     legislation_json = None
     simulation = None
     tax_benefit_system = None
+    target_by_variable = None  # variable total target to inflate to
     used_as_input_variables = None
     year = None
     weight_column_name_by_entity_key_plural = dict()
@@ -63,16 +64,28 @@ class AbstractSurveyScenario(object):
         self.year = year
         return self
 
-    def inflate(self, inflators = None):
-        if inflators is not None:
-            self.inflators = inflators
-        assert self.inflators is not None
+    def inflate(self, inflator_by_variable = dict(), target_by_variable = dict()):
+        assert inflator_by_variable or target_by_variable
         assert self.simulation is not None
         simulation = self.simulation
+        self.inflator_by_variable = inflator_by_variable
+        self.target_by_variable = target_by_variable
         tax_benefit_system = self.tax_benefit_system
-        for column_name, inflator in inflators:
+        for column_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
             assert column_name in tax_benefit_system.column_by_name
             holder = simulation.get_or_new_holder(column_name)
+
+            if column_name in target_by_variable:
+                log.info('Computing inflator for {} to reach the target {}'.format(
+                    column_name, target_by_variable[column_name]))
+
+                inflator = inflator_by_variable[column_name] = \
+                    target_by_variable[column_name] / compute_aggregate(self, variable = column_name)
+                continue
+            else:
+                log.info('Using inflator {} for {}.  The target {}'.format(
+                    inflator_by_variable[column_name]), column_name, compute_aggregate(self, variable = column_name))
+                inflator = inflator_by_variable[column_name]
             holder.array = inflator * holder.array
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
@@ -105,7 +118,7 @@ class AbstractSurveyScenario(object):
         column_by_name = tax_benefit_system.column_by_name
         used_as_input_variables = self.used_as_input_variables
 
-        # Define a useful function to clean
+        # Define a useful function to clean the data_frame
         def filter_input_variables(input_data_frame):
             for column_name in input_data_frame:
                 if column_name not in column_by_name:
@@ -255,3 +268,21 @@ class AbstractSurveyScenario(object):
             if roles:
                 variables.append(entity.role_for_person_variable_name)
         return variables
+
+
+# Helper
+
+def compute_aggregate(survey_scenario = None, variable = None, period = None):
+    assert survey_scenario is not None
+    assert variable is not None
+    assert survey_scenario.simulation is not None
+    assert variable in survey_scenario.tax_benefit_system.column_by_name
+    assert survey_scenario.weight_column_name_by_entity_key_plural
+    simulation = survey_scenario.simulation
+    tax_benefit_system = survey_scenario.tax_benefit_system
+    weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
+    entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
+    weight = weight_column_name_by_entity_key_plural[entity_key_plural]
+    return (
+        simulation.calculate_add(variable, period = period) * simulation.calculate_add(weight, period = period)
+        ).sum()
