@@ -45,7 +45,7 @@ class AbstractSurveyScenario(object):
     weight_column_name_by_entity_key_plural = dict()
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-        tax_benefit_system = None, used_as_input_variables = None, year = None):
+            tax_benefit_system = None, used_as_input_variables = None, year = None):
         assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
 
         if input_data_frame is not None:
