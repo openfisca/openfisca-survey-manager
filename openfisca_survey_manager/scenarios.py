@@ -37,6 +37,7 @@ class AbstractSurveyScenario(object):
     input_data_frame = None
     input_data_frames_by_entity_key_plural = None
     legislation_json = None
+    reform = None
     simulation = None
     tax_benefit_system = None
     target_by_variable = None  # variable total target to inflate to
@@ -45,7 +46,7 @@ class AbstractSurveyScenario(object):
     weight_column_name_by_entity_key_plural = dict()
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            tax_benefit_system = None, used_as_input_variables = None, year = None):
+            reform = None, tax_benefit_system = None, used_as_input_variables = None, year = None):
         assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
 
         if input_data_frame is not None:
@@ -60,6 +61,7 @@ class AbstractSurveyScenario(object):
             self.used_as_input_variables = used_as_input_variables
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
+        self.reform = reform
         assert year is not None
         self.year = year
         return self
