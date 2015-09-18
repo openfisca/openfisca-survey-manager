@@ -23,11 +23,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
+from openfisca_core import periods, reforms, simulations
 import numpy as np
 import pandas
 
-from openfisca_core import periods, simulations
 from .surveys import Survey
+
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +39,6 @@ class AbstractSurveyScenario(object):
     input_data_frame = None
     input_data_frames_by_entity_key_plural = None
     legislation_json = None
-    reform = None
     simulation = None
     tax_benefit_system = None
     target_by_variable = None  # variable total target to inflate to
@@ -46,7 +47,7 @@ class AbstractSurveyScenario(object):
     weight_column_name_by_entity_key_plural = dict()
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            reform = None, tax_benefit_system = None, used_as_input_variables = None, year = None):
+            tax_benefit_system = None, used_as_input_variables = None, year = None):
         assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
 
         if input_data_frame is not None:
@@ -61,7 +62,6 @@ class AbstractSurveyScenario(object):
             self.used_as_input_variables = used_as_input_variables
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
-        self.reform = reform
         assert year is not None
         self.year = year
         return self
@@ -91,16 +91,18 @@ class AbstractSurveyScenario(object):
             holder.array = inflator * holder.array
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
-        assert isinstance(reference, (bool, int)), \
-            'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
+        assert isinstance(reference, (bool, reforms.AbstractReform))
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
+
         if reference:
             while True:
                 reference_tax_benefit_system = tax_benefit_system.reference
-                if reference_tax_benefit_system is None:
+                if isinstance(reference, bool) and reference_tax_benefit_system is None \
+                        or reference_tax_benefit_system == reference:
                     break
                 tax_benefit_system = reference_tax_benefit_system
+
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
