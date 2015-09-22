@@ -287,13 +287,17 @@ class AbstractSurveyScenario(object):
 
 # Helper
 
-def compute_aggregate(survey_scenario = None, variable = None, period = None):
+def compute_aggregate(survey_scenario = None, variable = None, period = None, reference = False):
     assert survey_scenario is not None
     assert variable is not None
-    assert survey_scenario.simulation is not None
-    assert variable in survey_scenario.tax_benefit_system.column_by_name
+    if reference:
+        simulation = survey_scenario.new_simulation(reference = True)
+    else:
+        simulation = survey_scenario.new_simulation()
+
+    assert variable in survey_scenario.tax_benefit_system.column_by_name, \
+        "{} is not a variables of the tax benefit system".format(variable)
     assert survey_scenario.weight_column_name_by_entity_key_plural
-    simulation = survey_scenario.simulation
     tax_benefit_system = survey_scenario.tax_benefit_system
     weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
     entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
