@@ -22,6 +22,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+
+from __future__ import division
+
+
 import logging
 
 from openfisca_core import periods, reforms, simulations
@@ -39,6 +43,7 @@ class AbstractSurveyScenario(object):
     input_data_frame = None
     input_data_frames_by_entity_key_plural = None
     legislation_json = None
+    reference_tax_benefit_system = None
     simulation = None
     tax_benefit_system = None
     target_by_variable = None  # variable total target to inflate to
@@ -47,7 +52,7 @@ class AbstractSurveyScenario(object):
     weight_column_name_by_entity_key_plural = dict()
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            tax_benefit_system = None, used_as_input_variables = None, year = None):
+            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None, year = None):
         assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
 
         if input_data_frame is not None:
@@ -62,8 +67,14 @@ class AbstractSurveyScenario(object):
             self.used_as_input_variables = used_as_input_variables
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
+        if reference_tax_benefit_system is not None:
+            self.reference_tax_benefit_system = reference_tax_benefit_system
         assert year is not None
         self.year = year
+
+        if 'initialize_weights' in dir(self):
+            self.initialize_weights()
+
         return self
 
     def inflate(self, inflator_by_variable = dict(), target_by_variable = dict()):
@@ -95,7 +106,9 @@ class AbstractSurveyScenario(object):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
 
-        if reference:
+        if self.reference_tax_benefit_system is not None and reference:
+            tax_benefit_system = self.reference_tax_benefit_system
+        elif reference:
             while True:
                 reference_tax_benefit_system = tax_benefit_system.reference
                 if isinstance(reference, bool) and reference_tax_benefit_system is None \
@@ -222,8 +235,6 @@ class AbstractSurveyScenario(object):
                     holder.array = np.array(array, dtype = holder.column.dtype)
 
         self.simulation = simulation
-        if 'initialize_weights' in dir(self):
-            self.initialize_weights()
         if 'custom_initialize' in dir(self):
             self.custom_initialize()
         return simulation
@@ -290,3 +301,53 @@ def compute_aggregate(survey_scenario = None, variable = None, period = None):
     return (
         simulation.calculate_add(variable, period = period) * simulation.calculate_add(weight, period = period)
         ).sum()
+
+
+def compute_pivot_table(aggfunc = 'mean', columns = None, index = None, period = None, reference = False,
+            survey_scenario = None, values = None):
+
+    assert aggfunc in ['count', 'mean', 'sum']
+
+    assert isinstance(values, (str, list))
+    if isinstance(values, str):
+        values = ['values']
+
+    assert len(values) == 1
+
+    assert survey_scenario is not None
+    tax_benefit_system = survey_scenario.tax_benefit_system
+
+    assert survey_scenario.weight_column_name_by_entity_key_plural
+    weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
+
+    if reference:
+        simulation = survey_scenario.new_simulation(reference = True)
+    else:
+        simulation = survey_scenario.new_simulation()
+
+    index_list = index if index is not None else []
+    columns_list = columns if columns is not None else []
+    variables = set(index_list + values + columns_list)
+    entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
+
+    # Select the entity of the variables taht will provide values
+    weight = weight_column_name_by_entity_key_plural[entity_key_plural]
+    variables.add(weight)
+
+    for variable in variables:
+        assert variable in survey_scenario.tax_benefit_system.column_by_name
+        assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
+
+    period = None
+    data_frame = pandas.DataFrame(dict(
+        (variable, simulation.calculate_add(variable, period = period)) for variable in variables
+        ))
+    data_frame[values[0]] = data_frame[values[0]] * data_frame[weight]
+    pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
+    pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
+    if aggfunc == 'mean':
+        return (pivot_sum / pivot_mass)
+    elif aggfunc == 'sum':
+        return pivot_sum
+    elif aggfunc == 'count':
+        return pivot_mass
