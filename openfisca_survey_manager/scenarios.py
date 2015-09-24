@@ -186,8 +186,17 @@ class AbstractSurveyScenario(object):
                         'Converting {} from dtype {} to {}'.format(
                             column_name, column_serie.values.dtype, holder.column.dtype)
                         )
+                if np.issubdtype(column_serie.values.dtype, np.float):
+                    if column_serie.isnull().any():
+                        log.info('There are {} NaN values fo {} non NaN values in variable {}'.format(
+                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
+                        input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
+                    assert input_data_frame[column_name].notnull().all(), \
+                        'There are {} NaN values fo {} non NaN values in variable {}'.format(
+                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
+
                 if entity.is_persons_entity:
-                        array = column_serie.values.astype(holder.column.dtype)
+                    array = column_serie.values.astype(holder.column.dtype)
                 else:
                     array = column_serie.values[
                         input_data_frame[entity.role_for_person_variable_name].values == 0
