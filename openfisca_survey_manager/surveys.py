@@ -215,7 +215,7 @@ Fix the option output_directory in the collections section of your config file."
         except KeyError:
             log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
 
-        if lowercase is True:
+        if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)
             df.rename(columns = columns, inplace = True)
 
