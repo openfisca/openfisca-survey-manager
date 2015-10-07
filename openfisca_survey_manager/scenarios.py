@@ -52,7 +52,7 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def compute_aggregate(self,  variable = None, filter_by = None, period = None, reference = False):
+    def compute_aggregate(self, variable = None, filter_by = None, period = None, reference = False):
         # TODO deal with filter_by maybe in openfisca_france_data ?
         survey_scenario = self
         assert variable is not None
@@ -120,12 +120,10 @@ class AbstractSurveyScenario(object):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
                 continue
-            print 'coucou'
             tax_benefit_system = self.tax_benefit_system
             for column_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
                 assert column_name in tax_benefit_system.column_by_name
                 holder = simulation.get_or_new_holder(column_name)
-                print column_name
                 if column_name in target_by_variable:
                     log.info('Computing inflator for {} to reach the target {}'.format(
                         column_name, target_by_variable[column_name]))
@@ -263,7 +261,8 @@ class AbstractSurveyScenario(object):
                     entity.count = entity.step_size = len(input_data_frame)
                 else:
                     entity.count = entity.step_size = len(input_data_frame)
-                    entity.roles_count = input_data_frames_by_entity_key_plural['individus'][entity.role_for_person_variable_name].max() + 1
+                    entity.roles_count = input_data_frames_by_entity_key_plural['individus'][
+                        entity.role_for_person_variable_name].max() + 1
 
                 # Convert columns from df to array:
                 for column_name, column_serie in input_data_frame.iteritems():
