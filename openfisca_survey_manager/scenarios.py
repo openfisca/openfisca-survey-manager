@@ -355,13 +355,13 @@ class AbstractSurveyScenario(object):
                         entity.count)
                     holder.array = np.array(array, dtype = holder.column.dtype)
 
-        if 'custom_initialize' in dir(self):
-            self.custom_initialize()
-
         if not reference:
             self.simulation = simulation
         else:
             self.reference_simulation = simulation
+
+        if 'custom_initialize' in dir(self):
+            self.custom_initialize()
 
         return simulation
 
