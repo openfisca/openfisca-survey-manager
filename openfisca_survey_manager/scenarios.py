@@ -52,20 +52,20 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def compute_aggregate(self, variable = None, filter_by = None, period = None, reference = False):
-        # TODO deal with filter_by maybe in openfisca_france_data ?
+    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
+        # TODO deal here with filter_by instead of openfisca_france_data ?
+        assert aggfunc in ['count', 'mean', 'sum']
+
         survey_scenario = self
         assert variable is not None
         if reference:
-            simulation = self.reference_simulation \
-                if self.reference_simulation is not None else self.new_simulation(reference = True)
+            simulation = self.reference_simulation or self.new_simulation(reference = True)
         else:
-            simulation = self.simulation if self.simulation is not None else self.new_simulation()
+            simulation = self.simulation or self.new_simulation()
 
-        # TODO; change tax_benefit_system if it is reform
+        # TODO: should we change tax_benefit_system if it is reform
         assert variable in self.tax_benefit_system.column_by_name, \
             "{} is not a variables of the tax benefit system".format(variable)
-        # TODO; check if it is a boolean
         if filter_by:
             assert filter_by in self.tax_benefit_system.column_by_name, \
                 "{} is not a variables of the tax benefit system".format(variable)
@@ -73,18 +73,22 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = survey_scenario.tax_benefit_system
         weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
         entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
-        weight = weight_column_name_by_entity_key_plural[entity_key_plural]
-        filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1
-        return (
-            simulation.calculate_add(variable, period = period) *
-            simulation.calculate_add(weight, period = period) *
-            filter_dummy
-            ).sum()
+        entity_weight = weight_column_name_by_entity_key_plural[entity_key_plural]
+        value = simulation.calculate_add(variable, period = period)
+        weight = simulation.calculate_add(entity_weight, period = period).astype(float)
+        filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
 
-    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, index = None, period = None,
-            reference = False, values = None):
-        survey_scenario = self
+        if aggfunc == 'sum':
+            return (value * weight * filter_dummy).sum()
+        elif aggfunc == 'mean':
+            return (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
+        elif aggfunc == 'count':
+            return (weight * filter_dummy).sum()
+
+    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
+            period = None, reference = False, values = None):
         assert aggfunc in ['count', 'mean', 'sum']
+        survey_scenario = self
 
         assert isinstance(values, (str, list))
         if isinstance(values, str):
@@ -95,8 +99,15 @@ class AbstractSurveyScenario(object):
         assert survey_scenario is not None
         tax_benefit_system = survey_scenario.tax_benefit_system
 
-        assert survey_scenario.weight_column_name_by_entity_key_plural
+        assert survey_scenario.weight_column_name_by_entity_key_plural is not None
         weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
+
+        if difference:
+            return (
+                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = False, values = values) -
+                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = True, values = values))
 
         if reference:
             simulation = survey_scenario.reference_simulation or survey_scenario.new_simulation(reference = True)
@@ -111,15 +122,21 @@ class AbstractSurveyScenario(object):
         # Select the entity weight corresponding to the variables that will provide values
         weight = weight_column_name_by_entity_key_plural[entity_key_plural]
         variables.add(weight)
+        if filter_by is not None:
+            variables.add(filter_by)
+        else:
+            filter_dummy = 1
 
         for variable in variables:
-            assert variable in survey_scenario.tax_benefit_system.column_by_name
+            assert variable in survey_scenario.tax_benefit_system.column_by_name, \
+                'The variable {} is not present in the tax-benefit-system'.format(variable)
             assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
 
         data_frame = pandas.DataFrame(dict(
             (variable, simulation.calculate_add(variable, period = period)) for variable in variables
             ))
-        data_frame[values[0]] = data_frame[values[0]] * data_frame[weight]
+        filter_dummy = data_frame.get(filter_by) or filter_dummy
+        data_frame[values[0]] = data_frame[values[0]] * data_frame[weight] * filter_dummy
         pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
         pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
         if aggfunc == 'mean':
