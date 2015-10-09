@@ -68,7 +68,7 @@ class AbstractSurveyScenario(object):
             "{} is not a variables of the tax benefit system".format(variable)
         if filter_by:
             assert filter_by in self.tax_benefit_system.column_by_name, \
-                "{} is not a variables of the tax benefit system".format(variable)
+                "{} is not a variables of the tax benefit system".format(filter_by)
         assert self.weight_column_name_by_entity_key_plural
         tax_benefit_system = survey_scenario.tax_benefit_system
         weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
