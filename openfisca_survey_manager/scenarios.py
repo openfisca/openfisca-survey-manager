@@ -125,7 +125,7 @@ class AbstractSurveyScenario(object):
         if filter_by is not None:
             variables.add(filter_by)
         else:
-            filter_dummy = 1
+            filter_dummy = 1.0
 
         for variable in variables:
             assert variable in survey_scenario.tax_benefit_system.column_by_name, \
@@ -135,7 +135,8 @@ class AbstractSurveyScenario(object):
         data_frame = pandas.DataFrame(dict(
             (variable, simulation.calculate_add(variable, period = period)) for variable in variables
             ))
-        filter_dummy = data_frame.get(filter_by) or filter_dummy
+        if filter_by in data_frame:
+            filter_dummy = data_frame.get(filter_by)
         data_frame[values[0]] = data_frame[values[0]] * data_frame[weight] * filter_dummy
         pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
         pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
@@ -154,7 +155,11 @@ class AbstractSurveyScenario(object):
         self.target_by_variable = target_by_variable
 
         assert self.simulation is not None
-        for simulation in [self.simulation, self.reference_simulation]:
+        for reference in [False, True]:
+            if reference is True:
+                simulation = self.reference_simulation
+            else:
+                simulation = self.simulation
             if simulation is None:
                 continue
             tax_benefit_system = self.tax_benefit_system
@@ -163,7 +168,8 @@ class AbstractSurveyScenario(object):
                 holder = simulation.get_or_new_holder(column_name)
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
-                        target_by_variable[column_name] / self.compute_aggregate(variable = column_name)
+                        target_by_variable[column_name] / self.compute_aggregate(
+                            variable = column_name, reference = reference)
                     print('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
