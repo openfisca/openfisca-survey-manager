@@ -141,13 +141,21 @@ class Table(object):
         data_file = kwargs.pop("data_file")
         overwrite = kwargs.pop('overwrite')
         clean = kwargs.pop("clean")
+
+        # if source_format == 'stata':
+        #     kwargs[]
+
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
                 log.info('Exiting without overwriting {} in '.format(self.name, self.survey.hdf5_file_path))
         else:
             self._check_and_log(data_file)
-            data_frame = reader(data_file, **kwargs)
+            try:
+                data_frame = reader(data_file, **kwargs)
+            except ValueError as e:
+                log.info('Error while reading {}'.format(data_file))
+                raise e
             gc.collect()
             if clean:
                 data_frame = utils.clean_data_frame(data_frame)

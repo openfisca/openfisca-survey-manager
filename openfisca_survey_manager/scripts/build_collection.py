@@ -79,9 +79,9 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
             _format for _format in data_file_by_format.keys()
             if data_file_by_format.get((_format))
             ]
-        log.info("Valid source formats are: ".format(valid_source_format))
+        log.info("Valid source formats are: {}".format(valid_source_format))
         source_format = valid_source_format[0]
-        log.info("Using the following format: ".format(valid_source_format))
+        log.info("Using the following format: {}".format(source_format))
         collections_directory = survey_collection.config.get('collections', 'collections_directory')
         assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
