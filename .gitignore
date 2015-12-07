@@ -1,3 +1,6 @@
+# ignore tags files
+.tags*
+
 # Ignore personal tests
 openfisca_survey_manager/tests/test_read_sas.py
 openfisca_survey_manager/tests/test_read_dbf.py
