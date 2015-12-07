@@ -144,7 +144,6 @@ class Table(object):
 
         # if source_format == 'stata':
         #     kwargs[]
-
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
@@ -152,15 +151,20 @@ class Table(object):
         else:
             self._check_and_log(data_file)
             try:
-                data_frame = reader(data_file, **kwargs)
+                try:
+                    data_frame = reader(data_file, **kwargs)
+                except ValueError as e:
+                    log.info('Error while reading {}'.format(data_file))
+                    raise e
+                gc.collect()
+                if clean:
+                    data_frame = utils.clean_data_frame(data_frame)
+                self._save(data_frame = data_frame)
+                log.info("File {} has been processed in {}".format(
+                    data_file, datetime.datetime.now() - start_table_time))
             except ValueError as e:
-                log.info('Error while reading {}'.format(data_file))
                 raise e
-            gc.collect()
-            if clean:
-                data_frame = utils.clean_data_frame(data_frame)
-            self._save(data_frame = data_frame)
-            log.info("{} have been processed in {}".format(data_file, datetime.datetime.now() - start_table_time))
+                log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
 
     def save_data_frame(self, data_frame):
         data_frame.to_hdf(self.survey.hdf5_file_path, self.name)
