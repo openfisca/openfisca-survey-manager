@@ -1,4 +1,4 @@
-# OpenFisca France
+# OpenFisca Survey Manager
 
 [![Build Status via Travis CI](https://travis-ci.org/openfisca/openfisca-survey-manager.svg?branch=travis)](https://travis-ci.org/openfisca/openfisca-survey-manager)
 
