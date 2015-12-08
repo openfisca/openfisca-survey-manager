@@ -14,7 +14,7 @@ It also provides a script that transforms SAS, stata, SPSS, CSV data files to HD
 
 To be able to use the survey manager you have to edit two configuration files.
 You have to edit a [raw_data_template.ini](raw_data_template.ini) to reference the location of your raw data (SAS, stata, SPSS, CSV files) and rename it to `raw_data.ini`. 
-You also have to edit [config.ini](config.ini) and potentially rename it to `config_local.ini` if you want to contribute back to this repo without commiting your configuration file.
+You also have to edit the mandatory fields of [config.ini](config.ini). You can potentially rename it to `config_local.ini` if you want to contribute back to this repo without commiting your configuration file.
 
 These configurations files will be used by the script (openfisca_survey_maneger/scripts/build_collection.py) to build the 
 HDF files.
