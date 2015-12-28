@@ -35,6 +35,8 @@ from .config import Config
 
 log = logging.getLogger(__name__)
 
+from . import default_config_files_directory
+
 
 class SurveyCollection(object):
     """
@@ -112,8 +114,8 @@ Contains the following surveys :
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
     @classmethod
-    def load(cls, json_file_path = None, collection = None, config_files_directory = None):
-        assert config_files_directory is not None
+    def load(cls, json_file_path = None, collection = None, config_files_directory = default_config_files_directory):
+        assert os.path.exists(config_files_directory)
         if json_file_path is None:
             assert collection is not None
             config = Config(config_files_directory = config_files_directory)
