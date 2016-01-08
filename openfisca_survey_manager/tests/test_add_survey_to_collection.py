@@ -28,7 +28,7 @@ import pkg_resources
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager.scripts.surv import add_survey_to_collection
+from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 
 
 def test_add_survey_to_collection():
@@ -47,8 +47,7 @@ def test_add_survey_to_collection():
     add_survey_to_collection(survey_name = survey_name,
                              survey_collection = survey_collection,
                              sas_files = [saved_fake_survey_file_path],
-                             stata_files = [],
-                             question = False)
+                             stata_files = [])
     ordered_dict = survey_collection.to_json()
 #    print ordered_dict
     assert ordered_dict['surveys'].keys() == [survey_name]
