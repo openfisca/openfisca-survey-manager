@@ -34,14 +34,63 @@ import logging
 import os
 import sys
 
-from openfisca_survey_manager.scripts.surv import add_survey_to_collection, create_data_file_by_format
+
 from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
 
 app_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 config_files_directory = app_dir
 log = logging.getLogger(app_name)
+
+
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
+    assert survey_collection is not None
+    overwrite = True
+    label = survey_name
+
+    for test_survey in survey_collection.surveys:
+        if test_survey.name == survey_name:
+            survey = survey_collection.get_survey(survey_name)
+    if overwrite:
+        survey = Survey(
+            name = survey_name,
+            label = label,
+            sas_files = sas_files,
+            stata_files = stata_files,
+            survey_collection = survey_collection,
+            )
+    else:
+        survey = survey_collection.get(survey_name)
+        survey.label = label
+        survey.informations.update({
+            "sas_files": sas_files,
+            "stata_files": stata_files,
+            })
+    survey_collection.surveys = [
+        kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+        ]
+    survey_collection.surveys.append(survey)
+
+
+def create_data_file_by_format(directory_path = None):
+    '''
+    Browse subdirectories to extract stata and sas files
+    '''
+    stata_files = []
+    sas_files = []
+
+    for root, subdirs, files in os.walk(directory_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            if os.path.basename(file_name).endswith(".dta"):
+                log.info("Found stata file {}".format(file_path))
+                stata_files.append(file_path)
+            if os.path.basename(file_name).endswith(".sas7bdat"):
+                log.info("Found sas file {}".format(file_path))
+                sas_files.append(file_path)
+    return {'stata': stata_files, 'sas': sas_files}
 
 
 def build_survey_collection(collection_name = None, replace_metadata = False, replace_data = False,

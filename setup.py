@@ -56,7 +56,6 @@ setup(
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
-        'click',
         'numpy',
         # Pandas version is for select_dtypes support.
         # See http://pandas-docs.github.io/pandas-docs-travis/release.html#pandas-0-14
