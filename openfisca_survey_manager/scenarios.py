@@ -170,11 +170,12 @@ class AbstractSurveyScenario(object):
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
                             variable = column_name, reference = reference)
-                    print('Using {} as inflator for {} to reach the target {} '.format(
+                    log.info('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
-                    print('Using inflator {} for {}.  The target is thus {}'.format(
-                        inflator_by_variable[column_name]), column_name, self.compute_aggregate(variable = column_name))
+                    assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
+                    log.info('Using inflator {} for {}.  The target is thus {}'.format(
+                        inflator_by_variable[column_name], column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name)))
                     inflator = inflator_by_variable[column_name]
 
                 holder.array = inflator * holder.array
