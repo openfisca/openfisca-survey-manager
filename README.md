@@ -10,7 +10,7 @@ This is the source code to a survey manager when openfisca is used with data.
 It provides an API to access HDF data. 
 It also provides a script that transforms SAS, stata, SPSS, CSV data files to HDF data files along with some meta-data so they can be used by the API. 
 
-## Usage
+## Usage
 
 To be able to use the survey manager you have to edit two configuration files.
 You have to edit a [raw_data_template.ini](raw_data_template.ini) to reference the location of your raw data (SAS, stata, SPSS, CSV files) and rename it to `raw_data.ini`. 
