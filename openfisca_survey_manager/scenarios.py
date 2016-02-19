@@ -272,8 +272,7 @@ class AbstractSurveyScenario(object):
                 if column_name not in column_by_name:
                     log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
                     # waiting for the new pandas version to hit Travis repo
-                    input_data_frame = input_data_frame.drop(column_name, axis = 1)
-                    # , inplace = True)  # TODO: effet de bords ?
+                    input_data_frame.drop(column_name, axis = 1, inplace = True)
 
             for column_name in input_data_frame:
                 if column_name in id_variables + role_variables:
@@ -323,8 +322,10 @@ class AbstractSurveyScenario(object):
                         )
                 if np.issubdtype(column_serie.values.dtype, np.float):
                     if column_serie.isnull().any():
-                        log.info('There are {} NaN values fo {} non NaN values in variable {}'.format(
+                        log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
                             column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
+                        log.info('We convert these NaN values of variable {} to {} its default value'.format(
+                            column_name, holder.column.default))
                         input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
                     assert input_data_frame[column_name].notnull().all(), \
                         'There are {} NaN values fo {} non NaN values in variable {}'.format(
