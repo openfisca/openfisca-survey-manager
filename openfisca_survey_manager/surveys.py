@@ -196,7 +196,7 @@ Fix the option output_directory in the collections section of your config file."
         Parameters
         ----------
         variables : list of strings, default None
-                  list of variables names, if None return the whole table
+                    list of variables names, if None return the whole table
         table : string, default None
                 name of the table hosting the variables
         lowercase : boolean, deflault True
@@ -215,7 +215,7 @@ Fix the option output_directory in the collections section of your config file."
             df = store[table]
         except KeyError:
             log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
-            raise()
+            raise
 
         if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)
