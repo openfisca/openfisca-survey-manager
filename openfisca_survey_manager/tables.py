@@ -30,14 +30,14 @@ import logging
 
 import pandas
 
-#try:
+# try:
 #    from rpy2.robjects import pandas2ri
 #    pandas2ri.activate()
-#except ImportError:
+# except ImportError:
 #    pandas2ri = None
-#try:
+# try:
 #    import rpy2.rpy_classic as rpy
-#except ImportError, FutureWarning:
+# except ImportError, FutureWarning:
 #    rpy = None
 
 
@@ -115,17 +115,17 @@ class Table(object):
                     ))
             data_frame = data_frame[stored_variables].copy()
         try:
-            data_frame.to_hdf(hdf5_file_path, store_path, format = 'table', append = False)
-            gc.collect()
-        except TypeError:
-            types = data_frame.apply(lambda x: pandas.lib.infer_dtype(x.values))
-            log.info("The following types are converted to strings \n {}".format(types[types == 'unicode']))
-            for column in types[types == 'unicode'].index:
+            data_frame.to_hdf(hdf5_file_path, store_path, append = False)
+        except (TypeError, NotImplementedError):
+            dtypes = data_frame.dtypes
+            converted_dtypes = dtypes.isin(['mixed', 'unicode', 'category'])
+            log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
+            for column in dtypes[converted_dtypes].index:
                 try:
                     data_frame[column] = data_frame[column].astype(str).copy()
                 except UnicodeEncodeError:
                     continue
-            data_frame.to_hdf(hdf5_file_path, store_path)
+            data_frame.to_hdf(hdf5_file_path, store_path, append = False)
         gc.collect()
 
     def fill_hdf(self, **kwargs):
