@@ -207,13 +207,19 @@ class AbstractSurveyScenario(object):
 
         return self
 
-    def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, roles = False):
+    def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, reference = False,
+            roles = False):
         assert variables is not None or indices or roles
         variables = list(
             set(variables).union(set(self.index_variables(indices = indices, roles = roles)))
             )
         tax_benefit_system = self.tax_benefit_system
-        simulation = self.simulation
+
+        if reference:
+            simulation = self.reference_simulation or self.new_simulation(reference = True)
+        else:
+            simulation = self.simulation or self.new_simulation()
+
         missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
         if missing_variables:
             log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))

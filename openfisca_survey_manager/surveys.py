@@ -211,9 +211,11 @@ Fix the option output_directory in the collections section of your config file."
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path)
         store = pandas.HDFStore(self.hdf5_file_path)
+
         try:
-            df = store[table]
+            df = store.select(table)
         except KeyError:
+            store.close()
             log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
             raise
 
