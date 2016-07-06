@@ -164,7 +164,8 @@ class AbstractSurveyScenario(object):
                 continue
             tax_benefit_system = self.tax_benefit_system
             for column_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
-                assert column_name in tax_benefit_system.column_by_name
+                assert column_name in tax_benefit_system.column_by_name, \
+                    "Variable {} is not a valid variable of the tax-benefit system".format(column_name)
                 holder = simulation.get_or_new_holder(column_name)
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
