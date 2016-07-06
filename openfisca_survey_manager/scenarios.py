@@ -74,7 +74,11 @@ class AbstractSurveyScenario(object):
         weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
         entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
         entity_weight = weight_column_name_by_entity_key_plural[entity_key_plural]
-        value = simulation.calculate_add(variable, period = period)
+        try:
+            value = simulation.calculate_add(variable, period = period)
+        except KeyError:
+            log.info("Variable {} not found. Assiging nan".format(variable))
+            value = np.nan
         weight = simulation.calculate_add(entity_weight, period = period).astype(float)
         filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
 
@@ -132,8 +136,15 @@ class AbstractSurveyScenario(object):
                 'The variable {} is not present in the tax-benefit-system'.format(variable)
             assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
 
+        def calculate_variable(var):
+            try:
+                return simulation.calculate_add(var, period = period)
+            except KeyError as e:
+                log.info("Variable {} not found. Assiging nan".format(variable))
+                return np.nan
+
         data_frame = pandas.DataFrame(dict(
-            (variable, simulation.calculate_add(variable, period = period)) for variable in variables
+            (variable, calculate_variable(variable)) for variable in variables
             ))
         if filter_by in data_frame:
             filter_dummy = data_frame.get(filter_by)
@@ -176,7 +187,9 @@ class AbstractSurveyScenario(object):
                 else:
                     assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
-                        inflator_by_variable[column_name], column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name)))
+                        inflator_by_variable[column_name],
+                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name))
+                        )
                     inflator = inflator_by_variable[column_name]
 
                 holder.array = inflator * holder.array
