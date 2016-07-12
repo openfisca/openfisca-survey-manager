@@ -253,7 +253,6 @@ class AbstractSurveyScenario(object):
         return openfisca_data_frame_by_entity_key_plural
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
-        assert isinstance(reference, (bool, reforms.AbstractReform))
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
 
