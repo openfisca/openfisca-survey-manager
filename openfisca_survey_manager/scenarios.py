@@ -63,22 +63,22 @@ class AbstractSurveyScenario(object):
         else:
             simulation = self.simulation or self.new_simulation()
 
-        # TODO: should we change tax_benefit_system if it is reform
-        assert variable in self.tax_benefit_system.column_by_name, \
-            "{} is not a variables of the tax benefit system".format(variable)
         if filter_by:
             assert filter_by in self.tax_benefit_system.column_by_name, \
                 "{} is not a variables of the tax benefit system".format(filter_by)
+
         assert self.weight_column_name_by_entity_key_plural
         tax_benefit_system = survey_scenario.tax_benefit_system
         weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
         entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
         entity_weight = weight_column_name_by_entity_key_plural[entity_key_plural]
-        try:
+
+        if variable in simulation.tax_benefit_system.column_by_name:
             value = simulation.calculate_add(variable, period = period)
-        except KeyError:
+        else:
             log.info("Variable {} not found. Assiging nan".format(variable))
             value = np.nan
+
         weight = simulation.calculate_add(entity_weight, period = period).astype(float)
         filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
 
@@ -132,14 +132,15 @@ class AbstractSurveyScenario(object):
             filter_dummy = 1.0
 
         for variable in variables:
-            assert variable in survey_scenario.tax_benefit_system.column_by_name, \
-                'The variable {} is not present in the tax-benefit-system'.format(variable)
+            # assert variable in survey_scenario.tax_benefit_system.column_by_name, \
+            #     'The variable {} is not present in the tax-benefit-system'.format(variable)
             assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
 
         def calculate_variable(var):
-            try:
+
+            if var in simulation.tax_benefit_system.column_by_name:
                 return simulation.calculate_add(var, period = period)
-            except KeyError as e:
+            else:
                 log.info("Variable {} not found. Assiging nan".format(variable))
                 return np.nan
 
