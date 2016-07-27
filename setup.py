@@ -57,11 +57,10 @@ setup(
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
         'numpy',
-        # Pandas version is for select_dtypes support.
-        # See http://pandas-docs.github.io/pandas-docs-travis/release.html#pandas-0-14
         'pandas >= 0.14',
         'PyYAML',
-        'tables',  # Needed by pandas.HDFStore
+        'tables',
+        'wquantiles >= 0.3',
         ],
     message_extractors = {
         'openfisca_survey_manager': [
