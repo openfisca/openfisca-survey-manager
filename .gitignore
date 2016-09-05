@@ -20,6 +20,7 @@ raw_data.ini
 
 # Ignore local config file
 *_local.ini
+config.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
