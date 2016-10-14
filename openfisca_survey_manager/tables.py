@@ -159,7 +159,7 @@ class Table(object):
                     raise e
                 gc.collect()
                 if clean:
-                    data_frame = utils.clean_data_frame(data_frame)
+                    utils.clean_data_frame(data_frame)
                 self._save(data_frame = data_frame)
                 log.info("File {} has been processed in {}".format(
                     data_file, datetime.datetime.now() - start_table_time))

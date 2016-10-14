@@ -46,7 +46,7 @@ def clean_data_frame(data_frame):
         empty_string_present = "" in values
         if empty_string_present:
             values.remove("")
-        all_digits = all([value.isdigit() for value in values])
+        all_digits = all([value.strip().isdigit() for value in values])
         no_zero = all([value != 0 for value in values])
         if all_digits and no_zero:
             log.info(
@@ -68,7 +68,6 @@ def clean_data_frame(data_frame):
                     'OverflowError when converting {} to int. Keeping as {}'.format(
                         column_name, data_frame[column_name].dtype)
                     )
-    return data_frame
 
 
 def dump_simulation_results_data_frame(survey_scenario, collection = None):
