@@ -9,13 +9,23 @@ import pandas as pd
 import pkg_resources
 
 
+from rpy2.robjects.packages import importr
+from rpy2.robjects import pandas2ri
+
+
 log = logging.getLogger(__name__)
 
 config_files_directory = os.path.join(
     pkg_resources.get_distribution('openfisca-survey-manager').location)
 
 
+
+
+
 def nnd_hotdeck_using_feather(receiver = None, donor = None, matching_variables = None, z_variables = None):
+    """
+    Not working
+    """
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 
@@ -45,12 +55,12 @@ donor <- read_feather({donor_path})
 summary(receiver)
 summary(donor)
 
-# variables
+# variables
 receiver = as.data.frame(receiver)
 donor = as.data.frame(donor)
 gc()
 match_vars = {match_vars}
-# don_class = c("sexe")
+# don_class = c("sexe")
 out.nnd <- NND.hotdeck(
   data.rec = receiver, data.don = donor, match.vars = match_vars
   )
@@ -74,22 +84,32 @@ summary(fused.nnd.m)
     print(r_script)
 
 
-def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = None, 
+def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = None,
         z_variables = None, donor_classes = None):
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 
-    from rpy2.robjects.packages import importr
-    from rpy2.robjects import pandas2ri
-
     pandas2ri.activate()
     StatMatch = importr("StatMatch")
 
-    out_NND = StatMatch.NND_hotdeck(
-        data_rec = receiver, data_don = donor,
-        match_vars = pd.Series(matching_variables),
-        don_class = pd.Series(donor_classes),
-        )
+    if isinstance(donor_classes, str):
+        assert donor_classes in receiver, 'Donor class not present in receiver'
+        assert donor_classes in donor, 'Donor class not present in donor'
+
+    if donor_classes:
+        out_NND = StatMatch.NND_hotdeck(
+            data_rec = receiver,
+            data_don = donor,
+            match_vars = pd.Series(matching_variables),
+            # don_class = pd.Series(donor_classes)
+            )
+    else:
+        out_NND = StatMatch.NND_hotdeck(
+            data_rec = receiver,
+            data_don = donor,
+            match_vars = pd.Series(matching_variables),
+            don_class = pd.Series(donor_classes)
+            )
 
     # create synthetic data.set, without the
     # duplication of the matching variables
