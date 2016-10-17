@@ -57,7 +57,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-survey-manager',
     install_requires = [
         'numpy',
-        'pandas >= 0.14',
+        'pandas >= 0.19',
         'PyYAML',
         'tables',
         'wquantiles >= 0.3',
