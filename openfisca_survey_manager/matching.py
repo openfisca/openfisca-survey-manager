@@ -3,14 +3,9 @@
 
 import logging
 import os
-
-import feather
-import pandas as pd
 import pkg_resources
 
-
-from rpy2.robjects.packages import importr
-from rpy2.robjects import pandas2ri
+import pandas as pd
 
 
 log = logging.getLogger(__name__)
@@ -19,13 +14,12 @@ config_files_directory = os.path.join(
     pkg_resources.get_distribution('openfisca-survey-manager').location)
 
 
-
-
-
 def nnd_hotdeck_using_feather(receiver = None, donor = None, matching_variables = None, z_variables = None):
     """
     Not working
     """
+    import feather
+
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 
@@ -86,6 +80,9 @@ summary(fused.nnd.m)
 
 def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = None,
         z_variables = None, donor_classes = None):
+    from rpy2.robjects.packages import importr
+    from rpy2.robjects import pandas2ri
+
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 

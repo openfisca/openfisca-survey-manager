@@ -2,15 +2,21 @@
 
 import pandas as pd
 
-
-from rpy2.robjects import r
-from rpy2.robjects.packages import importr
-
-from rpy2.robjects import pandas2ri
 from openfisca_survey_manager.matching import nnd_hotdeck_using_rpy2
+
+try:
+    import rpy2
+    from rpy2.robjects import r
+    from rpy2.robjects.packages import importr
+    from rpy2.robjects import pandas2ri
+except ImportError:
+    rpy2 = None
 
 
 def test_reproduction():
+    if rpy2 is None:
+        return
+
     # Reproducing examples from StatMatch documenation
     # https://cran.r-project.org/web/packages/StatMatch/StatMatch.pdf
 
@@ -87,6 +93,9 @@ def test_reproduction():
 
 
 def test_nnd_hotdeck_using_rpy2():
+    if rpy2 is None:
+        return
+
     r.data('iris')
 
     pandas2ri.activate()
@@ -121,7 +130,7 @@ def test_nnd_hotdeck_using_rpy2():
 
     # find the closest donors using NND hot deck;
     # distances are computed on "Sepal.Length" and "Sepal.Width"
- 
+
     x, y = nnd_hotdeck_using_rpy2(
         receiver = iris_rec,
         donor = iris_don,
