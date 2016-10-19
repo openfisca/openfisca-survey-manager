@@ -25,15 +25,11 @@
 
 import logging
 
-try:
-    from sas7bdat import SAS7BDAT
-except ImportError:
-    SAS7BDAT = None
 
 log = logging.getLogger(__name__)
 
 
 def read_sas(sas_file_path, clean = False):
-    assert SAS7BDAT is not None
+    from sas7bdat import SAS7BDAT
     data_frame = SAS7BDAT(sas_file_path).to_data_frame()
     return data_frame

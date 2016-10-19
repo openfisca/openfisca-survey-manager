@@ -28,8 +28,6 @@ from savReaderWriter import SavReader
 
 
 def read_spss(spss_file_path):
-    print spss_file_path
-
     with SavReader(spss_file_path, returnHeader=True) as reader:
         for record in reader:
             print record
