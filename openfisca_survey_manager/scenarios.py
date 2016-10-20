@@ -1,39 +1,17 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 from __future__ import division
-
 
 import logging
 
-from openfisca_core import periods, reforms, simulations
 import numpy as np
 import pandas
 
-from .surveys import Survey
+from openfisca_core import periods, simulations
+from openfisca_survey_manager.calibration import Calibration
 
+from .surveys import Survey
 
 log = logging.getLogger(__name__)
 
@@ -52,9 +30,42 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
+    def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
+        survey_scenario = self
+        survey_scenario.initialize_weights()
+        calibration = Calibration(survey_scenario)
+
+        if parameters is not None:
+            assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
+                "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
+            if parameters['method'] == 'logit':
+                assert parameters['invlo'] is not None
+                assert parameters['up'] is not None
+        else:
+            parameters = dict(method = 'logit', up = 3, invlo = 3)
+
+        calibration.parameters.update(parameters)
+
+        if total_population:
+            calibration.total_population = total_population
+
+        if target_margins_by_variable is not None:
+            calibration.set_target_margins(target_margins_by_variable)
+
+        calibration.calibrate()
+        calibration.set_calibrated_weights()
+        self.calibration = calibration
+
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
-        # TODO deal here with filter_by instead of openfisca_france_data ?
+        """
+        Compute aggregate
+        """
         assert aggfunc in ['count', 'mean', 'sum']
+
+        if filter_by is None:
+            tax_benefit_system = self.tax_benefit_system
+            entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
+            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
 
         survey_scenario = self
         assert variable is not None
@@ -92,6 +103,12 @@ class AbstractSurveyScenario(object):
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
             period = None, reference = False, values = None):
         assert aggfunc in ['count', 'mean', 'sum']
+
+        if filter_by is None:
+            tax_benefit_system = self.tax_benefit_system
+        entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
+        filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
+
         survey_scenario = self
 
         assert isinstance(values, (str, list))
