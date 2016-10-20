@@ -1,31 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 from __future__ import division
 
-from numpy import array, arange, argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
+from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
 from pandas import DataFrame
 
 
@@ -54,16 +32,16 @@ def gini(values, weights = None, bin_size = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame({'x': values, 'w':weights})
+    df = DataFrame({'x': values, 'w': weights})
     df = df.sort_index(by='x')
     x = df['x']
     w = df['w']
-    wx = w*x
+    wx = w * x
 
-    cdf = cumsum(wx)-0.5*wx
-    numerator = (w*cdf).sum()
-    denominator = ((wx).sum())*(w.sum())
-    gini = 1 - 2*(numerator/denominator)
+    cdf = cumsum(wx) - 0.5 * wx
+    numerator = (w * cdf).sum()
+    denominator = ((wx).sum()) * (w.sum())
+    gini = 1 - 2 * (numerator / denominator)
 
     return gini
 
@@ -98,12 +76,12 @@ def lorenz(values, weights = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame({'v': values, 'w':weights})
+    df = DataFrame({'v': values, 'w': weights})
     df = df.sort_index(by = 'v')
     x = cumsum(df['w'])
-    x = x/float(x[-1:])
-    y = cumsum(df['v']*df['w'])
-    y = y/float(y[-1:])
+    x = x / float(x[-1:])
+    y = cumsum(df['v'] * df['w'])
+    y = y / float(y[-1:])
 
     return x, y
 
@@ -125,7 +103,6 @@ def weighted_quantiles(data, labels, weights, return_quantiles = False):
         return ret + 1, quantiles
     else:
         return ret + 1
-
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
@@ -284,11 +261,11 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     '''
     if weights is None:
         weights = ones(len(values))
-    df = DataFrame({'v': values, 'a': ineq_axis, 'w':weights})
+    df = DataFrame({'v': values, 'a': ineq_axis, 'w': weights})
     df = df.sort_index(by = 'a')
     x = cumsum(df['w'])
-    x = x/float(x[-1:])
-    y = cumsum(df['v']*df['w'])
-    y = y/float(y[-1:])
+    x = x / float(x[-1:])
+    y = cumsum(df['v'] * df['w'])
+    y = y / float(y[-1:])
 
     return x, y
