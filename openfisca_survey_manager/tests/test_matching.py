@@ -51,13 +51,10 @@ def test_reproduction():
     # in common.
     # "Petal.Length" is available only in iris.rec
     # "Petal.Width" is available only in iris.don
-
     # find the closest donors using NND hot deck;
     # distances are computed on "Sepal.Length" and "Sepal.Width"
 
-
     StatMatch = importr("StatMatch")
-
 
     out_NND = StatMatch.NND_hotdeck(
         data_rec = iris_rec, data_don=iris_don,
@@ -67,7 +64,6 @@ def test_reproduction():
 
     # create synthetic data.set, without the
     # duplication of the matching variables
-
     fused_0 = pandas2ri.ri2py(
         StatMatch.create_fused(
             data_rec = iris_rec,
@@ -79,7 +75,6 @@ def test_reproduction():
 
     # create synthetic data.set, with the "duplication"
     # of the matching variables
-
     fused_1 = pandas2ri.ri2py(
         StatMatch.create_fused(
             data_rec = iris_rec,
@@ -90,6 +85,7 @@ def test_reproduction():
             match_vars = pd.Series(["Sepal.Length", "Sepal.Width"])
             )
         )
+    del fused_0, fused_1
 
 
 def test_nnd_hotdeck_using_rpy2():
@@ -138,6 +134,3 @@ def test_nnd_hotdeck_using_rpy2():
         z_variables = "Petal.Width",
         matching_variables = ["Sepal.Length", "Sepal.Width"]
         )
-    print 'OK'
-    print x
-    print y
