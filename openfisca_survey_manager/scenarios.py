@@ -308,21 +308,24 @@ class AbstractSurveyScenario(object):
             for column_name in input_data_frame:
                 if column_name not in column_by_name:
                     log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
-                    # waiting for the new pandas version to hit Travis repo
                     input_data_frame.drop(column_name, axis = 1, inplace = True)
 
             for column_name in input_data_frame:
                 if column_name in id_variables + role_variables:
                     continue
-                if column_by_name[column_name].formula_class.function is not None:
+                column = column_by_name[column_name]
+                function = getattr(column.formula_class, 'function', None)
+                if function is not None:
                     if column_name in used_as_input_variables:
                         log.info(
                             'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
                         continue
 
                     log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
-                    input_data_frame = input_data_frame.drop(column_name, axis = 1)
-                    # , inplace = True)  # TODO: effet de bords ?
+                    input_data_frame.drop(column_name, axis = 1, inplace = True)
+                    #
+                #
+            #
             return input_data_frame
 
         assert self.input_data_frame is not None or self.input_data_frames_by_entity_key_plural is not None
