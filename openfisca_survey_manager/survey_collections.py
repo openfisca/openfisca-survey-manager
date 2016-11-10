@@ -22,6 +22,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from . import default_config_files_directory
+
+
 import codecs
 import collections
 import json
@@ -34,8 +37,6 @@ from .config import Config
 
 
 log = logging.getLogger(__name__)
-
-from . import default_config_files_directory
 
 
 class SurveyCollection(object):
@@ -68,7 +69,6 @@ class SurveyCollection(object):
                     self.config.get("collections", 'collections_directory'),
                     name + '.json',
                     )
-
 
     def __repr__(self):
         header = """{}
