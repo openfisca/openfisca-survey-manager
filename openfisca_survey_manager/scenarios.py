@@ -115,7 +115,7 @@ class AbstractSurveyScenario(object):
         if isinstance(values, str):
             values = ['values']
 
-        assert len(values) == 1
+        # assert len(values) == 1
 
         assert survey_scenario is not None
         tax_benefit_system = survey_scenario.tax_benefit_system
@@ -149,9 +149,11 @@ class AbstractSurveyScenario(object):
             filter_dummy = 1.0
 
         for variable in variables:
-            # assert variable in survey_scenario.tax_benefit_system.column_by_name, \
-            #     'The variable {} is not present in the tax-benefit-system'.format(variable)
-            assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
+            assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural, \
+                'The variable {} is not present does not belong to entity {}'.format(
+                    variable,
+                    entity_key_plural,
+                    )
 
         def calculate_variable(var):
 
