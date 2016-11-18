@@ -15,7 +15,7 @@ It also provides a script that transforms SAS, stata, SPSS, CSV data files to HD
 To be able to use the survey manager you have to edit two configuration files.
 
 - Copy [raw_data_template.ini](raw_data_template.ini) to `raw_data.ini` and edit the latter to reference
-    the location of your raw data (SAS, stata, SPSS, CSV files).
+    the location of your raw data (SAS, stata, SPSS, CSV files). For paths in Windows, use `/` instead of `\` to separate folders. You do not need to put quotes, even when the path name contains spaces.
 
 - Copy [config_template.ini](config_template.ini) to `config.ini` and edit its mandatory fields.
 
