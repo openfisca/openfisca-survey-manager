@@ -348,7 +348,9 @@ class AbstractSurveyScenario(object):
                 else:
                     entity.count = entity.step_size = \
                         (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
-                    entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
+                    entity.roles_count = int(input_data_frame[entity.role_for_person_variable_name].max() + 1)
+                    assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
+                        entity.roles_count, entity.key_plural)
                     unique_ids_count = len(input_data_frame[entity.index_for_person_variable_name].unique())
                     assert entity.count == unique_ids_count, \
                         "There are {0} person of role 0 in {1} but {2} {1}".format(
@@ -401,6 +403,7 @@ class AbstractSurveyScenario(object):
                     entity.count = entity.step_size = len(input_data_frame)
                     entity.roles_count = input_data_frames_by_entity_key_plural['individus'][
                         entity.role_for_person_variable_name].max() + 1
+                    assert isinstance(entity.roles_count, int)
 
                 # Convert columns from df to array:
                 for column_name, column_serie in input_data_frame.iteritems():
