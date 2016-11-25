@@ -150,7 +150,7 @@ class AbstractSurveyScenario(object):
 
         for variable in variables:
             assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural, \
-                'The variable {} is not present does not belong to entity {}'.format(
+                'The variable {} is not present or does not belong to entity {}'.format(
                     variable,
                     entity_key_plural,
                     )
@@ -307,6 +307,7 @@ class AbstractSurveyScenario(object):
 
         # Define a useful function to clean the data_frame
         def filter_input_variables(input_data_frame):
+            log.info('Variable used_as_input_variables in  filter: \n {}'.format(used_as_input_variables))
             for column_name in input_data_frame:
                 if column_name not in column_by_name:
                     log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
@@ -328,6 +329,7 @@ class AbstractSurveyScenario(object):
                     #
                 #
             #
+            log.info('Keeping the following variables in the input_data_frame: \n {}'.format(input_data_frame.columns))
             return input_data_frame
 
         assert self.input_data_frame is not None or self.input_data_frames_by_entity_key_plural is not None
