@@ -5,4 +5,9 @@ install:
   - pip install flake8
   - pip install --editable .[sas]
 script: ./travis-run-tests.sh
-
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: ./travis-release-tag.sh
+    on:
+      branch: master
