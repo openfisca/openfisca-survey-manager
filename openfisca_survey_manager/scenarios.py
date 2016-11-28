@@ -369,11 +369,12 @@ class AbstractSurveyScenario(object):
                         "There are {0} person of role 0 in {1} but {2} {1}".format(
                             entity.count, entity.key, unique_ids_count)
 
+                    entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int')
+                    entity.members_role = input_data_frame[role_variable_by_entity_key[key]].astype('int')
+
             for column_name, column_serie in input_data_frame.iteritems():
-                if column_name in id_variable_by_entity_key.values():
-
-                if column_name in role_variable_by_entity_key.values():
-
+                if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
+                    continue
                 holder = simulation.get_or_new_holder(column_name)
                 entity = holder.entity
                 if column_serie.values.dtype != holder.column.dtype:
