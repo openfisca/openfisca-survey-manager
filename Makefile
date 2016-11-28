@@ -4,6 +4,7 @@ check-syntax-errors:
 	python -m compileall -q .
 
 clean-pyc:
+	rm -rf build dist
 	find . -name '*.pyc' -exec rm \{\} \;
 
 ctags:
