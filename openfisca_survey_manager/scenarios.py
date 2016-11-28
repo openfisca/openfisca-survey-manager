@@ -294,21 +294,32 @@ class AbstractSurveyScenario(object):
             trace = trace,
             )
 
+        id_variable_by_entity_key = dict(
+            famille = 'idfam',
+            foyer_fiscal = 'idfoy',
+            menage = 'idmen',
+            )
+        role_variable_by_entity_key = dict(
+            famille = 'quifam',
+            foyer_fiscal = 'quifoy',
+            menage = 'quimen',
+            )
         id_variables = [
-            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
-
+            id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+            if not entity.is_person]
         role_variables = [
-            entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
+            role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+            if not entity.is_person]
 
         column_by_name = tax_benefit_system.column_by_name
         used_as_input_variables = self.used_as_input_variables
 
         # Define a useful function to clean the data_frame
         def filter_input_variables(input_data_frame):
-            log.info('Variable used_as_input_variables in  filter: \n {}'.format(used_as_input_variables))
+            log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
             for column_name in input_data_frame:
+                if column_name in id_variables + role_variables:
+                    continue
                 if column_name not in column_by_name:
                     log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
                     input_data_frame.drop(column_name, axis = 1, inplace = True)
@@ -344,21 +355,25 @@ class AbstractSurveyScenario(object):
 
             input_data_frame = filter_input_variables(input_data_frame)
 
-            for entity in simulation.entity_by_key_singular.values():
-                if entity.is_persons_entity:
+            for key, entity in simulation.entities.iteritems():
+                if entity.is_person:
                     entity.count = entity.step_size = len(input_data_frame)
                 else:
                     entity.count = entity.step_size = \
-                        (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
-                    entity.roles_count = int(input_data_frame[entity.role_for_person_variable_name].max() + 1)
+                        (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
+                    entity.roles_count = int(input_data_frame[role_variable_by_entity_key[key]].max() + 1)
                     assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
-                        entity.roles_count, entity.key_plural)
-                    unique_ids_count = len(input_data_frame[entity.index_for_person_variable_name].unique())
+                        entity.roles_count, entity.key)
+                    unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
                     assert entity.count == unique_ids_count, \
                         "There are {0} person of role 0 in {1} but {2} {1}".format(
-                            entity.count, entity.key_plural, unique_ids_count)
+                            entity.count, entity.key, unique_ids_count)
 
             for column_name, column_serie in input_data_frame.iteritems():
+                if column_name in id_variable_by_entity_key.values():
+
+                if column_name in role_variable_by_entity_key.values():
+
                 holder = simulation.get_or_new_holder(column_name)
                 entity = holder.entity
                 if column_serie.values.dtype != holder.column.dtype:
@@ -377,11 +392,11 @@ class AbstractSurveyScenario(object):
                         'There are {} NaN values fo {} non NaN values in variable {}'.format(
                             column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
 
-                if entity.is_persons_entity:
+                if entity.is_person:
                     array = column_serie.values.astype(holder.column.dtype)
                 else:
                     array = column_serie.values[
-                        input_data_frame[entity.role_for_person_variable_name].values == 0
+                        input_data_frame[role_variable_by_entity_key[entity.key]].values == 0
                         ].astype(holder.column.dtype)
                 assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                     column_name,
@@ -392,7 +407,7 @@ class AbstractSurveyScenario(object):
         # Case 2: fill simulation with an input_data_frame by entity
         elif input_data_frames_by_entity_key_plural is not None:
 
-            for entity in simulation.entity_by_key_singular.values():
+            for entity in simulation.entities.values():
                 if entity.index_for_person_variable_name is not None:
                     input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
                 else:
