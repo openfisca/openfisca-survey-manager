@@ -244,9 +244,6 @@ class AbstractSurveyScenario(object):
     def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, reference = False,
             roles = False):
         assert variables is not None or indices or roles
-        variables = list(
-            set(variables).union(set(self.index_variables(indices = indices, roles = roles)))
-            )
         tax_benefit_system = self.tax_benefit_system
 
         if reference:
@@ -261,16 +258,18 @@ class AbstractSurveyScenario(object):
             self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
             if self.tax_benefit_system.column_by_name.get(variable_name) is not None
             ]
-        openfisca_data_frame_by_entity_key_plural = dict()
-        for entity_key_plural in tax_benefit_system.entity_class_by_key_plural.keys():
+        openfisca_data_frame_by_entity_key = dict()
+        for entity in tax_benefit_system.entities:
+            entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
-                if column.entity_key_plural == entity_key_plural
+                if column.entity == entity
                 ]
-            openfisca_data_frame_by_entity_key_plural[entity_key_plural] = pandas.DataFrame(
+            openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
                 dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
                 )
-        return openfisca_data_frame_by_entity_key_plural
+        # TODO add roles
+        return openfisca_data_frame_by_entity_key
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
         assert self.tax_benefit_system is not None
@@ -369,8 +368,8 @@ class AbstractSurveyScenario(object):
                         "There are {0} person of role 0 in {1} but {2} {1}".format(
                             entity.count, entity.key, unique_ids_count)
 
-                    entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int')
-                    entity.members_role = input_data_frame[role_variable_by_entity_key[key]].astype('int')
+                    entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
+                    entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
 
             for column_name, column_serie in input_data_frame.iteritems():
                 if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
@@ -464,11 +463,11 @@ class AbstractSurveyScenario(object):
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
 
-    def index_variables(self, indices = True, roles = True):
-        variables = list()
-        for entity in self.tax_benefit_system.entity_class_by_key_plural.values():
-            if indices:
-                variables.append(entity.index_for_person_variable_name)
-            if roles:
-                variables.append(entity.role_for_person_variable_name)
-        return variables
+    # def index_variables(self, indices = True, roles = True):
+    #     variables = list()
+    #     for entity in self.tax_benefit_system.entities.values():
+    #         if indices:
+    #             variables.append(entity.index_for_person_variable_name)
+    #         if roles:
+    #             variables.append(entity.role_for_person_variable_name)
+    #     return variables
