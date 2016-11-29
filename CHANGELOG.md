@@ -1,6 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+* Fix tagging
+
+
 ## 0.5
 
 * Create Changelog.md
-* Chexk version and changelog when pushing
+* Check version and changelog when pushing
