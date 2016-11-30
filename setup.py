@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.5.2',
+    version = '0.5.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -35,7 +35,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-survey-manager',
 
     entry_points = {
-        'console_scripts': ['build-collection=openfisca_survey_manager.build_collection:main'],
+        'console_scripts': ['build-collection=openfisca_survey_manager.scripts.build_collection:main'],
         },
     extras_require = {
         'calmar': [

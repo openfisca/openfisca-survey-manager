@@ -2,6 +2,10 @@
 
 ## 0.5.2
 
+* Fix path of entry point build-collection
+
+## 0.5.2
+
 * Add entry point build-collection
 
 
