@@ -10,16 +10,20 @@ import ConfigParser
 import datetime
 import logging
 import os
+import pkg_resources
+import shutil
 import sys
+from xdg import BaseDirectory
 
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
 
-app_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
+config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
+
+
 app_name = os.path.splitext(os.path.basename(__file__))[0]
-config_files_directory = app_dir
 log = logging.getLogger(app_name)
 
 
@@ -119,10 +123,41 @@ Fix the option collections_directory in the collections section of your config f
     return survey_collection
 
 
+def check_template_config_files():
+    raw_data_ini_path = os.path.join(config_files_directory, 'raw_data.ini')
+    config_ini_path = os.path.join(config_files_directory, 'config.ini')
+    raw_data_template_ini_path = os.path.join(config_files_directory, 'raw_data_template.ini')
+    config_template_ini_path = os.path.join(config_files_directory, 'config_template.ini')
+
+    if os.path.exists(config_files_directory):
+        config_files_do_not_exist = not(os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path))
+        templates_config_files_do_not_exist = not(
+            os.path.exists(raw_data_template_ini_path) and os.path.exists(config_template_ini_path))
+
+        if config_files_do_not_exist:
+            if templates_config_files_do_not_exist:
+                log.info("Creating configuration template files in {}".format(config_files_directory))
+                template_files = [
+                    'raw_data_template.ini', 'config_template.ini'
+                    ]
+                templates_config_files_directory = os.path.join(
+                    pkg_resources.get_distribution('openfisca-survey-manager').location)
+                for template_file in template_files:
+                    shutil.copy(
+                        os.path.join(templates_config_files_directory, template_file),
+                        os.path.join(config_files_directory, template_file),
+                        )
+            print("Rename and fill the template files in {}".format(config_files_directory))
+            return False
+    else:
+        os.makedirs(config_files_directory)
+        return check_template_config_files()
+
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('config', default = os.path.join(app_dir, 'raw_data.ini'),
-        help = "path of configuration file", nargs = '?')
     parser.add_argument('-c', '--collection', help = "name of collection to build or update", required = True)
     parser.add_argument('-d', '--replace-data', action = 'store_true', default = False,
         help = "erase existing survey data HDF5 file (instead of failing when HDF5 file already exists)")
@@ -132,9 +167,11 @@ def main():
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
+    if not check_template_config_files():
+        return
 
     config_parser = ConfigParser.SafeConfigParser()
-    config_parser.read(args.config)
+    config_parser.read(os.path.join(config_files_directory, 'raw_data.ini'))
     assert config_parser.has_section(args.collection), 'Unkwnown collection'
     data_directory_path_by_survey_suffix = dict(config_parser.items(args.collection))
     if args.survey is not None:
@@ -145,7 +182,6 @@ def main():
             }
 
     start_time = datetime.datetime.now()
-
     build_survey_collection(collection_name = args.collection,
         data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
         replace_metadata = args.replace_metadata, replace_data = args.replace_data, source_format = 'sas')
