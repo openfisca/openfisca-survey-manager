@@ -93,20 +93,29 @@ def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = N
         assert donor_classes in receiver, 'Donor class not present in receiver'
         assert donor_classes in donor, 'Donor class not present in donor'
 
-    if donor_classes:
-        out_NND = StatMatch.NND_hotdeck(
-            data_rec = receiver,
-            data_don = donor,
-            match_vars = pd.Series(matching_variables),
-            # don_class = pd.Series(donor_classes)
-            )
-    else:
-        out_NND = StatMatch.NND_hotdeck(
-            data_rec = receiver,
-            data_don = donor,
-            match_vars = pd.Series(matching_variables),
-            don_class = pd.Series(donor_classes)
-            )
+    try:
+        if donor_classes:
+            out_NND = StatMatch.NND_hotdeck(
+                data_rec = receiver,
+                data_don = donor,
+                match_vars = pd.Series(matching_variables),
+                don_class = pd.Series(donor_classes)
+                )
+        else:
+            out_NND = StatMatch.NND_hotdeck(
+                data_rec = receiver,
+                data_don = donor,
+                match_vars = pd.Series(matching_variables),
+                # don_class = pd.Series(donor_classes)
+                )
+    except Exception as e:
+        print(1)
+        print(receiver)
+        print(2)
+        print(donor)
+        print(3)
+        print(pd.Series(matching_variables))
+        print e
 
     # create synthetic data.set, without the
     # duplication of the matching variables

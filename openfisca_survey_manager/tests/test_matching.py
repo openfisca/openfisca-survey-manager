@@ -90,6 +90,7 @@ def test_reproduction():
 
 def test_nnd_hotdeck_using_rpy2():
     if rpy2 is None:
+        print('rpy2 is absent: skipping test')
         return
 
     r.data('iris')
