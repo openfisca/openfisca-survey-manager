@@ -28,7 +28,7 @@ class AbstractSurveyScenario(object):
     target_by_variable = None  # variable total target to inflate to
     used_as_input_variables = None
     year = None
-    weight_column_name_by_entity_key_plural = dict()
+    weight_column_name_by_entity = dict()
 
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self

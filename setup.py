@@ -56,6 +56,7 @@ setup(
         'PyYAML',
         'tables',
         'wquantiles >= 0.3',
+        'xdg',
         ],
     message_extractors = {
         'openfisca_survey_manager': [
