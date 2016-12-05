@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6
+
+* Adapation aux nouvelle syntaxe (elimination progressive des entity_key_plural)
+
 ## 0.5.2
 
 * Fix path of entry point build-collection
