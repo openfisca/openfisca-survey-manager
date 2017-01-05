@@ -28,7 +28,7 @@ class AbstractSurveyScenario(object):
     target_by_variable = None  # variable total target to inflate to
     used_as_input_variables = None
     year = None
-    weight_column_name_by_entity_key_plural = dict()
+    weight_column_name_by_entity = dict()
 
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self
@@ -64,8 +64,8 @@ class AbstractSurveyScenario(object):
 
         if filter_by is None:
             tax_benefit_system = self.tax_benefit_system
-            entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
-            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
+            entity_key = tax_benefit_system.column_by_name[variable].entity.key
+            filter_by = self.filtering_variable_by_entity.get(entity_key)
 
         survey_scenario = self
         assert variable is not None
@@ -78,11 +78,11 @@ class AbstractSurveyScenario(object):
             assert filter_by in self.tax_benefit_system.column_by_name, \
                 "{} is not a variables of the tax benefit system".format(filter_by)
 
-        assert self.weight_column_name_by_entity_key_plural
+        assert self.weight_column_name_by_entity
         tax_benefit_system = survey_scenario.tax_benefit_system
-        weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
-        entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
-        entity_weight = weight_column_name_by_entity_key_plural[entity_key_plural]
+        weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
+        entity_key = tax_benefit_system.column_by_name[variable].entity.key
+        entity_weight = weight_column_name_by_entity[entity_key]
 
         if variable in simulation.tax_benefit_system.column_by_name:
             value = simulation.calculate_add(variable, period = period)
@@ -106,8 +106,8 @@ class AbstractSurveyScenario(object):
 
         if filter_by is None:
             tax_benefit_system = self.tax_benefit_system
-        entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
-        filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
+        entity_key = tax_benefit_system.column_by_name[values[0]].entity.key
+        filter_by = self.filtering_variable_by_entity.get(entity_key)
 
         survey_scenario = self
 
@@ -120,8 +120,8 @@ class AbstractSurveyScenario(object):
         assert survey_scenario is not None
         tax_benefit_system = survey_scenario.tax_benefit_system
 
-        assert survey_scenario.weight_column_name_by_entity_key_plural is not None
-        weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
+        assert survey_scenario.weight_column_name_by_entity is not None
+        weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
 
         if difference:
             return (
@@ -138,10 +138,10 @@ class AbstractSurveyScenario(object):
         index_list = index if index is not None else []
         columns_list = columns if columns is not None else []
         variables = set(index_list + values + columns_list)
-        entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
+        entity_key = tax_benefit_system.column_by_name[values[0]].entity.key
 
         # Select the entity weight corresponding to the variables that will provide values
-        weight = weight_column_name_by_entity_key_plural[entity_key_plural]
+        weight = weight_column_name_by_entity[entity_key]
         variables.add(weight)
         if filter_by is not None:
             variables.add(filter_by)
@@ -149,10 +149,10 @@ class AbstractSurveyScenario(object):
             filter_dummy = 1.0
 
         for variable in variables:
-            assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural, \
+            assert tax_benefit_system.column_by_name[variable].entity.key == entity_key, \
                 'The variable {} is not present or does not belong to entity {}'.format(
                     variable,
-                    entity_key_plural,
+                    entity_key,
                     )
 
         def calculate_variable(var):
@@ -241,12 +241,9 @@ class AbstractSurveyScenario(object):
 
         return self
 
-    def create_data_frame_by_entity_key_plural(self, variables = None, indices = False, reference = False,
+    def create_data_frame_by_entity(self, variables = None, indices = False, reference = False,
             roles = False):
         assert variables is not None or indices or roles
-        variables = list(
-            set(variables).union(set(self.index_variables(indices = indices, roles = roles)))
-            )
         tax_benefit_system = self.tax_benefit_system
 
         if reference:
@@ -261,16 +258,18 @@ class AbstractSurveyScenario(object):
             self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
             if self.tax_benefit_system.column_by_name.get(variable_name) is not None
             ]
-        openfisca_data_frame_by_entity_key_plural = dict()
-        for entity_key_plural in tax_benefit_system.entity_class_by_key_plural.keys():
+        openfisca_data_frame_by_entity_key = dict()
+        for entity in tax_benefit_system.entities:
+            entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
-                if column.entity_key_plural == entity_key_plural
+                if column.entity == entity
                 ]
-            openfisca_data_frame_by_entity_key_plural[entity_key_plural] = pandas.DataFrame(
+            openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
                 dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
                 )
-        return openfisca_data_frame_by_entity_key_plural
+        # TODO add roles
+        return openfisca_data_frame_by_entity_key
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
         assert self.tax_benefit_system is not None
@@ -294,21 +293,32 @@ class AbstractSurveyScenario(object):
             trace = trace,
             )
 
+        id_variable_by_entity_key = dict(
+            famille = 'idfam',
+            foyer_fiscal = 'idfoy',
+            menage = 'idmen',
+            )
+        role_variable_by_entity_key = dict(
+            famille = 'quifam',
+            foyer_fiscal = 'quifoy',
+            menage = 'quimen',
+            )
         id_variables = [
-            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
-
+            id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+            if not entity.is_person]
         role_variables = [
-            entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
+            role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+            if not entity.is_person]
 
         column_by_name = tax_benefit_system.column_by_name
         used_as_input_variables = self.used_as_input_variables
 
         # Define a useful function to clean the data_frame
         def filter_input_variables(input_data_frame):
-            log.info('Variable used_as_input_variables in  filter: \n {}'.format(used_as_input_variables))
+            log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
             for column_name in input_data_frame:
+                if column_name in id_variables + role_variables:
+                    continue
                 if column_name not in column_by_name:
                     log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
                     input_data_frame.drop(column_name, axis = 1, inplace = True)
@@ -344,21 +354,26 @@ class AbstractSurveyScenario(object):
 
             input_data_frame = filter_input_variables(input_data_frame)
 
-            for entity in simulation.entity_by_key_singular.values():
-                if entity.is_persons_entity:
+            for key, entity in simulation.entities.iteritems():
+                if entity.is_person:
                     entity.count = entity.step_size = len(input_data_frame)
                 else:
                     entity.count = entity.step_size = \
-                        (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
-                    entity.roles_count = int(input_data_frame[entity.role_for_person_variable_name].max() + 1)
+                        (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
+                    entity.roles_count = int(input_data_frame[role_variable_by_entity_key[key]].max() + 1)
                     assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
-                        entity.roles_count, entity.key_plural)
-                    unique_ids_count = len(input_data_frame[entity.index_for_person_variable_name].unique())
+                        entity.roles_count, entity.key)
+                    unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
                     assert entity.count == unique_ids_count, \
                         "There are {0} person of role 0 in {1} but {2} {1}".format(
-                            entity.count, entity.key_plural, unique_ids_count)
+                            entity.count, entity.key, unique_ids_count)
+
+                    entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
+                    entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
 
             for column_name, column_serie in input_data_frame.iteritems():
+                if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
+                    continue
                 holder = simulation.get_or_new_holder(column_name)
                 entity = holder.entity
                 if column_serie.values.dtype != holder.column.dtype:
@@ -377,11 +392,11 @@ class AbstractSurveyScenario(object):
                         'There are {} NaN values fo {} non NaN values in variable {}'.format(
                             column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
 
-                if entity.is_persons_entity:
+                if entity.is_person:
                     array = column_serie.values.astype(holder.column.dtype)
                 else:
                     array = column_serie.values[
-                        input_data_frame[entity.role_for_person_variable_name].values == 0
+                        input_data_frame[role_variable_by_entity_key[entity.key]].values == 0
                         ].astype(holder.column.dtype)
                 assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                     column_name,
@@ -392,7 +407,7 @@ class AbstractSurveyScenario(object):
         # Case 2: fill simulation with an input_data_frame by entity
         elif input_data_frames_by_entity_key_plural is not None:
 
-            for entity in simulation.entity_by_key_singular.values():
+            for entity in simulation.entities.values():
                 if entity.index_for_person_variable_name is not None:
                     input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
                 else:
@@ -437,22 +452,22 @@ class AbstractSurveyScenario(object):
 
         return simulation
 
-    def dump_data_frame_by_entity_key_plural(self, variables = None, survey_collection = None, survey_name = None):
+    def dump_data_frame_by_entity(self, variables = None, survey_collection = None, survey_name = None):
         assert survey_collection is not None
         assert survey_name is not None
         assert variables is not None
-        openfisca_data_frame_by_entity_key_plural = self.create_data_frame_by_entity_key_plural(variables = variables)
-        for entity_key_plural, data_frame in openfisca_data_frame_by_entity_key_plural.iteritems():
+        openfisca_data_frame_by_entity = self.create_data_frame_by_entity(variables = variables)
+        for entity_key, data_frame in openfisca_data_frame_by_entity.iteritems():
             survey = Survey(name = survey_name)
-            survey.insert_table(name = entity_key_plural, data_frame = data_frame)
+            survey.insert_table(name = entity_key, data_frame = data_frame)
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
 
-    def index_variables(self, indices = True, roles = True):
-        variables = list()
-        for entity in self.tax_benefit_system.entity_class_by_key_plural.values():
-            if indices:
-                variables.append(entity.index_for_person_variable_name)
-            if roles:
-                variables.append(entity.role_for_person_variable_name)
-        return variables
+    # def index_variables(self, indices = True, roles = True):
+    #     variables = list()
+    #     for entity in self.tax_benefit_system.entities.values():
+    #         if indices:
+    #             variables.append(entity.index_for_person_variable_name)
+    #         if roles:
+    #             variables.append(entity.role_for_person_variable_name)
+    #     return variables

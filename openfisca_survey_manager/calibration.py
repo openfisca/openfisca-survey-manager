@@ -56,7 +56,7 @@ class Calibration(object):
             survey_scenario.simulation = survey_scenario.new_simulation()
         self.filter_by = filter_by = survey_scenario.simulation.calculate_add(self.filter_by_name)
         # TODO: shoud not be france specific
-        self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity_key_plural['menages']
+        self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity['menage']
         self.initial_weight_name = weight_name + "_ini"
         self.initial_weight = initial_weight = survey_scenario.simulation.calculate_add(weight_name)
         self.initial_total_population = sum(initial_weight * filter_by)

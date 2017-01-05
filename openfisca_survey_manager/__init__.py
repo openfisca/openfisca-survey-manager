@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-import os
-import pkg_resources
+from xdg import BaseDirectory
 
 
-default_config_files_directory = os.path.join(
-    pkg_resources.get_distribution('openfisca-survey-manager').location)
+default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')

@@ -104,14 +104,13 @@ def get_data_frame(columns_name, survey_scenario, load_first = False, collection
         entities = [simulation.tax_benefit_system.column_by_name[column_name].entity for column_name in columns_name]
         assert len(set(entities)) == 1
         # entity_symbol = entities[0]
-        for entity_key_plural in simulation.entity_by_key_plural:
-            if columns_name[0] in simulation.entity_by_key_plural[entity_key_plural].column_by_name:
-                entity = entity_key_plural
+        for entity_key, entity in simulation.entities.iteritems():
+            if columns_name[0] in entity.column_by_name:
                 break
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
         survey_name = "openfisca_data_{}".format(year)
         survey = openfisca_survey_collection.surveys[survey_name]
-        table = entity
+        table = entity_key
         data_frame = survey.get_values(variables = columns_name, table = table)
     else:
         data_frame = DataFrame(dict([(column_name, simulation.calculate(column_name)) for column_name in columns_name]))
