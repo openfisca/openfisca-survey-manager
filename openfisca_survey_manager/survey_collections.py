@@ -1,27 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 from . import default_config_files_directory
 
 
@@ -51,8 +30,11 @@ class SurveyCollection(object):
 
     def __init__(self, config_files_directory = None, label = None, name = None, json_file_path = None):
         if config_files_directory is not None:
-            self.config = Config(config_files_directory = config_files_directory)
+            pass
+        else:
+            config_files_directory = default_config_files_directory
 
+        self.config = Config(config_files_directory = config_files_directory)
         if label is not None:
             self.label = label
         if name is not None:
@@ -82,8 +64,10 @@ Contains the following surveys :
         if self.config is not None:
             config = self.config
         else:
-            assert config_files_directory is not None, \
-                'The config attribute is not set and no config_files_directory is not provided'
+            if config_files_directory is not None:
+                pass
+            else:
+                config_files_directory = default_config_files_directory
             self.config = Config(config_files_directory = config_files_directory)
 
         if json_file_path is None:
