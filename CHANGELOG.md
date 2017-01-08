@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.6
+## 0.6.1
 
-* Adapation aux nouvelle syntaxe (elimination progressive des entity_key_plural)
+* Fix `config_files_directory` default in utils
+
+## 0.6.
+
+* Adapat to new syntax (progressive elimination of `entity_key_plural`)
 
 ## 0.5.2
 
