@@ -29,9 +29,7 @@ class SurveyCollection(object):
     surveys = list()
 
     def __init__(self, config_files_directory = None, label = None, name = None, json_file_path = None):
-        if config_files_directory is not None:
-            pass
-        else:
+        if config_files_directory is None:
             config_files_directory = default_config_files_directory
 
         self.config = Config(config_files_directory = config_files_directory)
@@ -105,13 +103,17 @@ Contains the following surveys :
             config = Config(config_files_directory = config_files_directory)
             json_file_path = config.get("collections", collection)
 
-        self = cls()
+        with open(json_file_path, 'r') as _file:
+            self_json = json.load(_file)
+            name = self_json.get('name')
+
+        self = cls(name = name)
         self.config = config
         with open(json_file_path, 'r') as _file:
-                self_json = json.load(_file)
-                self.json_file_path = json_file_path
-                self.label = self_json.get('label')
-                self.name = self_json.get('name')
+            self_json = json.load(_file)
+            self.json_file_path = json_file_path
+            self.label = self_json.get('label')
+            self.name = self_json.get('name')
 
         surveys = self_json.get('surveys')
         for survey_name, survey_json in surveys.iteritems():
