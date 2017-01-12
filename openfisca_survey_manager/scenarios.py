@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 from __future__ import division
 
 import logging
@@ -16,10 +15,24 @@ from .surveys import Survey
 log = logging.getLogger(__name__)
 
 
+id_variable_by_entity_key = dict(
+    famille = 'idfam',
+    foyer_fiscal = 'idfoy',
+    menage = 'idmen',
+    )
+role_variable_by_entity_key = dict(
+    famille = 'quifam',
+    foyer_fiscal = 'quifoy',
+    menage = 'quimen',
+    )
+
+
 class AbstractSurveyScenario(object):
     inflator_by_variable = None  # factor used to inflate variable total
-    input_data_frame = None
-    input_data_frames_by_entity_key_plural = None
+    # input_data_frame = None
+    input_data_frame_by_period = None
+    input_data_frame_by_entity = None  # Buggy should be migrated on the model of input_data_frame_by_period
+    # input_data_frame_by_entity_by_period = None
     legislation_json = None
     reference_tax_benefit_system = None
     simulation = None
@@ -178,6 +191,36 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return pivot_mass
 
+    def create_data_frame_by_entity(self, variables = None, indices = False, reference = False,
+            roles = False):
+        assert variables is not None or indices or roles
+        tax_benefit_system = self.tax_benefit_system
+
+        if reference:
+            simulation = self.reference_simulation or self.new_simulation(reference = True)
+        else:
+            simulation = self.simulation or self.new_simulation()
+
+        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
+        if missing_variables:
+            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
+        columns_to_fetch = [
+            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
+            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
+            ]
+        openfisca_data_frame_by_entity_key = dict()
+        for entity in tax_benefit_system.entities:
+            entity_key = entity.key
+            column_names = [
+                column.name for column in columns_to_fetch
+                if column.entity == entity
+                ]
+            openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
+                dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
+                )
+        # TODO add roles
+        return openfisca_data_frame_by_entity_key
+
     def inflate(self, inflator_by_variable = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
@@ -214,15 +257,22 @@ class AbstractSurveyScenario(object):
 
                 holder.array = inflator * holder.array
 
-    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
-            year = None):
-        assert input_data_frame is not None or input_data_frames_by_entity_key_plural is not None
-
+    def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
+            input_data_frame_by_period = None, reference_tax_benefit_system = None, tax_benefit_system = None,
+            used_as_input_variables = None, year = None):
+        assert (
+            input_data_frame is not None or
+            input_data_frame_by_period is not None or
+            input_data_frame_by_entity is not None
+            )
+        assert not(input_data_frame is not None and input_data_frame_by_period is not None)
+        self.input_data_frame_by_period = dict()
         if input_data_frame is not None:
-            self.input_data_frame = input_data_frame
-        elif input_data_frames_by_entity_key_plural is not None:
-            self.input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural
+            self.input_data_frame_by_period[periods.period(year)] = input_data_frame
+        elif input_data_frame_by_period is not None:
+            self.input_data_frame_by_period = input_data_frame_by_period
+        elif input_data_frame_by_entity is not None:
+            self.input_data_frame_by_entity = input_data_frame_by_entity
 
         if used_as_input_variables is None:
             self.used_as_input_variables = []
@@ -238,38 +288,12 @@ class AbstractSurveyScenario(object):
 
         if 'initialize_weights' in dir(self):
             self.initialize_weights()
-
+        #
         return self
 
-    def create_data_frame_by_entity(self, variables = None, indices = False, reference = False,
-            roles = False):
-        assert variables is not None or indices or roles
-        tax_benefit_system = self.tax_benefit_system
-
-        if reference:
-            simulation = self.reference_simulation or self.new_simulation(reference = True)
-        else:
-            simulation = self.simulation or self.new_simulation()
-
-        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
-        if missing_variables:
-            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
-        columns_to_fetch = [
-            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
-            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
-            ]
-        openfisca_data_frame_by_entity_key = dict()
-        for entity in tax_benefit_system.entities:
-            entity_key = entity.key
-            column_names = [
-                column.name for column in columns_to_fetch
-                if column.entity == entity
-                ]
-            openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
-                dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
-                )
-        # TODO add roles
-        return openfisca_data_frame_by_entity_key
+    @property
+    def input_data_frame(self):
+        return self.input_data_frame_by_entity.get(period = periods.period(self.year))
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
         assert self.tax_benefit_system is not None
@@ -285,171 +309,48 @@ class AbstractSurveyScenario(object):
                     break
                 tax_benefit_system = reference_tax_benefit_system
 
+        period = periods.period(self.year)
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
-            period = periods.period(self.year),
+            period = period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,
             )
 
-        id_variable_by_entity_key = dict(
-            famille = 'idfam',
-            foyer_fiscal = 'idfoy',
-            menage = 'idmen',
-            )
-        role_variable_by_entity_key = dict(
-            famille = 'quifam',
-            foyer_fiscal = 'quifoy',
-            menage = 'quimen',
-            )
-        id_variables = [
-            id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
-        role_variables = [
-            role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
-
         column_by_name = tax_benefit_system.column_by_name
         used_as_input_variables = self.used_as_input_variables
 
-        # Define a useful function to clean the data_frame
-        def filter_input_variables(input_data_frame):
-            log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
-            for column_name in input_data_frame:
-                if column_name in id_variables + role_variables:
-                    continue
-                if column_name not in column_by_name:
-                    log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
-                    input_data_frame.drop(column_name, axis = 1, inplace = True)
-
-            for column_name in input_data_frame:
-                if column_name in id_variables + role_variables:
-                    continue
-                column = column_by_name[column_name]
-                function = getattr(column.formula_class, 'function', None)
-                if function is not None:
-                    if column_name in used_as_input_variables:
-                        log.info(
-                            'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
-                        continue
-
-                    log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
-                    input_data_frame.drop(column_name, axis = 1, inplace = True)
-                    #
-                #
-            #
-            log.info('Keeping the following variables in the input_data_frame: \n {}'.format(input_data_frame.columns))
-            return input_data_frame
-
-        assert self.input_data_frame is not None or self.input_data_frames_by_entity_key_plural is not None
-        input_data_frame = self.input_data_frame
-        input_data_frames_by_entity_key_plural = self.input_data_frames_by_entity_key_plural
+        assert self.input_data_frame_by_period is not None or self.input_data_frame_by_entity is not None
 
         # Case 1: fill simulation with a unique input_data_frame containing all entity variables
-        if input_data_frame is not None:
-            for id_variable in id_variables + role_variables:
-                assert id_variable in input_data_frame.columns, \
-                    "Variable {} is not present in input dataframe".format(id_variable)
-
-            input_data_frame = filter_input_variables(input_data_frame)
-
-            for key, entity in simulation.entities.iteritems():
-                if entity.is_person:
-                    entity.count = entity.step_size = len(input_data_frame)
-                else:
-                    entity.count = entity.step_size = \
-                        (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
-                    entity.roles_count = int(input_data_frame[role_variable_by_entity_key[key]].max() + 1)
-                    assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
-                        entity.roles_count, entity.key)
-                    unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
-                    assert entity.count == unique_ids_count, \
-                        "There are {0} person of role 0 in {1} but {2} {1}".format(
-                            entity.count, entity.key, unique_ids_count)
-
-                    entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
-                    entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
-
-            for column_name, column_serie in input_data_frame.iteritems():
-                if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
-                    continue
-                holder = simulation.get_or_new_holder(column_name)
-                entity = holder.entity
-                if column_serie.values.dtype != holder.column.dtype:
-                    log.info(
-                        'Converting {} from dtype {} to {}'.format(
-                            column_name, column_serie.values.dtype, holder.column.dtype)
-                        )
-                if np.issubdtype(column_serie.values.dtype, np.float):
-                    if column_serie.isnull().any():
-                        log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
-                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
-                        log.info('We convert these NaN values of variable {} to {} its default value'.format(
-                            column_name, holder.column.default))
-                        input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
-                    assert input_data_frame[column_name].notnull().all(), \
-                        'There are {} NaN values fo {} non NaN values in variable {}'.format(
-                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
-
-                if entity.is_person:
-                    array = column_serie.values.astype(holder.column.dtype)
-                else:
-                    array = column_serie.values[
-                        input_data_frame[role_variable_by_entity_key[entity.key]].values == 0
-                        ].astype(holder.column.dtype)
-                assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                    column_name,
-                    array.size,
-                    entity.count)
-                holder.array = np.array(array, dtype = holder.column.dtype)
+        if self.input_data_frame_by_period is not None:
+            for period, input_data_frame in self.input_data_frame_by_period.iteritems():
+                print period
+                assert period is not None
+                init_simulation_with_data_frame(
+                    column_by_name = column_by_name,
+                    input_data_frame = input_data_frame,
+                    period = period,
+                    simulation = simulation,
+                    used_as_input_variables = used_as_input_variables,
+                    )
 
         # Case 2: fill simulation with an input_data_frame by entity
-        elif input_data_frames_by_entity_key_plural is not None:
-
-            for entity in simulation.entities.values():
-                if entity.index_for_person_variable_name is not None:
-                    input_data_frame = input_data_frames_by_entity_key_plural[entity.index_for_person_variable_name]
-                else:
-                    input_data_frame = input_data_frames_by_entity_key_plural['individus']
-                input_data_frame = filter_input_variables(input_data_frame)
-
-                if entity.is_persons_entity:
-                    entity.count = entity.step_size = len(input_data_frame)
-                else:
-                    entity.count = entity.step_size = len(input_data_frame)
-                    entity.roles_count = input_data_frames_by_entity_key_plural['individus'][
-                        entity.role_for_person_variable_name].max() + 1
-                    assert isinstance(entity.roles_count, int)
-
-                # Convert columns from df to array:
-                for column_name, column_serie in input_data_frame.iteritems():
-                    holder = simulation.get_or_new_holder(column_name)
-                    entity = holder.entity
-                    if column_serie.values.dtype != holder.column.dtype:
-                        log.info(
-                            'Converting {} from dtype {} to {}'.format(
-                                column_name, column_serie.values.dtype, holder.column.dtype)
-                            )
-                    if np.issubdtype(column_serie.values.dtype, np.float):
-                        assert column_serie.notnull().all(), 'There are {} NaN values in variable {}'.format(
-                            column_serie.isnull().sum(), column_name)
-
-                    array = column_serie.values.astype(holder.column.dtype)
-                    assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                        column_name,
-                        array.size,
-                        entity.count)
-                    holder.array = np.array(array, dtype = holder.column.dtype)
-
+        elif self.input_data_frame_by_entity is not None:
+            init_simulation_with_data_frame_by_entity(
+                input_data_frame_by_entity = self.input_data_frame_by_entity,
+                simulation = simulation,
+                )
+        #
         if not reference:
             self.simulation = simulation
         else:
             self.reference_simulation = simulation
-
+        #
         if 'custom_initialize' in dir(self):
             self.custom_initialize()
-
+        #
         return simulation
 
     def dump_data_frame_by_entity(self, variables = None, survey_collection = None, survey_name = None):
@@ -471,3 +372,167 @@ class AbstractSurveyScenario(object):
     #         if roles:
     #             variables.append(entity.role_for_person_variable_name)
     #     return variables
+
+
+# Helpers
+
+def filter_input_variables(column_by_name = None, input_data_frame = None, simulation = None,
+        used_as_input_variables = None):
+    """
+    Clean the data_frame
+    """
+    assert column_by_name is not None
+    assert input_data_frame is not None
+    assert simulation is not None
+    assert used_as_input_variables is not None
+
+    id_variables = [
+        id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+        if not entity.is_person]
+    role_variables = [
+        role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+        if not entity.is_person]
+
+    log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
+    for column_name in input_data_frame:
+        if column_name in id_variables + role_variables:
+            continue
+        if column_name not in column_by_name:
+            log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
+            input_data_frame.drop(column_name, axis = 1, inplace = True)
+
+    for column_name in input_data_frame:
+        if column_name in id_variables + role_variables:
+            continue
+        column = column_by_name[column_name]
+        function = getattr(column.formula_class, 'function', None)
+        if function is not None:
+            if column_name in used_as_input_variables:
+                log.info(
+                    'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
+                continue
+
+            log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
+            input_data_frame.drop(column_name, axis = 1, inplace = True)
+            #
+        #
+    #
+    log.info('Keeping the following variables in the input_data_frame: \n {}'.format(input_data_frame.columns))
+    return input_data_frame
+
+
+def init_simulation_with_data_frame(column_by_name = None, input_data_frame = None, period = None,
+        simulation = None, used_as_input_variables = None):
+    assert column_by_name is not None
+    assert input_data_frame is not None
+    assert period is not None
+    assert simulation is not None
+    assert used_as_input_variables is not None
+
+    id_variables = [
+        id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+        if not entity.is_person]
+    role_variables = [
+        role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
+        if not entity.is_person]
+
+    for id_variable in id_variables + role_variables:
+        assert id_variable in input_data_frame.columns, \
+            "Variable {} is not present in input dataframe".format(id_variable)
+
+    input_data_frame = filter_input_variables(
+        column_by_name = column_by_name,
+        input_data_frame = input_data_frame,
+        simulation = simulation,
+        used_as_input_variables = used_as_input_variables
+        )
+
+    for key, entity in simulation.entities.iteritems():
+        if entity.is_person:
+            entity.count = entity.step_size = len(input_data_frame)
+        else:
+            entity.count = entity.step_size = \
+                (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
+            entity.roles_count = int(input_data_frame[role_variable_by_entity_key[key]].max() + 1)
+            assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
+                entity.roles_count, entity.key)
+            unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
+            assert entity.count == unique_ids_count, \
+                "There are {0} person of role 0 in {1} but {2} {1}".format(
+                    entity.count, entity.key, unique_ids_count)
+
+            entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
+            entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
+
+    for column_name, column_serie in input_data_frame.iteritems():
+        if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
+            continue
+        holder = simulation.get_or_new_holder(column_name)
+        entity = holder.entity
+        if column_serie.values.dtype != holder.column.dtype:
+            log.info(
+                'Converting {} from dtype {} to {}'.format(
+                    column_name, column_serie.values.dtype, holder.column.dtype)
+                )
+        if np.issubdtype(column_serie.values.dtype, np.float):
+            if column_serie.isnull().any():
+                log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
+                    column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
+                log.info('We convert these NaN values of variable {} to {} its default value'.format(
+                    column_name, holder.column.default))
+                input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
+            assert input_data_frame[column_name].notnull().all(), \
+                'There are {} NaN values fo {} non NaN values in variable {}'.format(
+                    column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
+
+        if entity.is_person:
+            array = column_serie.values.astype(holder.column.dtype)
+        else:
+            array = column_serie.values[
+                input_data_frame[role_variable_by_entity_key[entity.key]].values == 0
+                ].astype(holder.column.dtype)
+        assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
+            column_name,
+            array.size,
+            entity.count)
+
+        holder.set_input(period, np.array(array, dtype = holder.column.dtype))
+
+
+def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):
+    assert input_data_frame_by_entity is not None
+    assert simulation is not None
+    for entity in simulation.entities.values():
+        if entity.index_for_person_variable_name is not None:
+            input_data_frame = input_data_frame_by_entity[entity.index_for_person_variable_name]
+        else:
+            input_data_frame = input_data_frame_by_entity['individus']
+        input_data_frame = filter_input_variables(input_data_frame)
+
+        if entity.is_persons_entity:
+            entity.count = entity.step_size = len(input_data_frame)
+        else:
+            entity.count = entity.step_size = len(input_data_frame)
+            entity.roles_count = input_data_frame_by_entity['individus'][
+                entity.role_for_person_variable_name].max() + 1
+            assert isinstance(entity.roles_count, int)
+
+        # Convert columns from df to array:
+        for column_name, column_serie in input_data_frame.iteritems():
+            holder = simulation.get_or_new_holder(column_name)
+            entity = holder.entity
+            if column_serie.values.dtype != holder.column.dtype:
+                log.info(
+                    'Converting {} from dtype {} to {}'.format(
+                        column_name, column_serie.values.dtype, holder.column.dtype)
+                    )
+            if np.issubdtype(column_serie.values.dtype, np.float):
+                assert column_serie.notnull().all(), 'There are {} NaN values in variable {}'.format(
+                    column_serie.isnull().sum(), column_name)
+
+            array = column_serie.values.astype(holder.column.dtype)
+            assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
+                column_name,
+                array.size,
+                entity.count)
+            holder.array = np.array(array, dtype = holder.column.dtype)
