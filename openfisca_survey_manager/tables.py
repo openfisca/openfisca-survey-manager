@@ -84,8 +84,7 @@ class Table(object):
             data_file_path,
             self.survey.hdf5_file_path,
             self.name,
-            )
-        )
+            ))
 
     def _save(self, data_frame = None):
         assert data_frame is not None

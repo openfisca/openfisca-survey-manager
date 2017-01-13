@@ -90,9 +90,10 @@ Contains the following surveys :
         self.dump()
 
     def get_survey(self, survey_name):
-        avaliable_surveys_names = [survey.name for survey in self.surveys]
-        assert survey_name in avaliable_surveys_names, '{} cannot be found in {}'.format(
-            survey_name, avaliable_surveys_names)
+        available_surveys_names = [survey.name for survey in self.surveys]
+        assert survey_name in available_surveys_names, \
+            'Survey {} cannot be found for survey collection {}.\nAvailable surveys are :{}'.format(
+                survey_name, self.name, available_surveys_names)
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
     @classmethod
