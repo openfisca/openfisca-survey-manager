@@ -6,6 +6,7 @@ import logging
 
 import numpy as np
 import pandas
+import re
 
 from openfisca_core import periods, simulations
 from openfisca_survey_manager.calibration import Calibration
@@ -318,7 +319,6 @@ class AbstractSurveyScenario(object):
             trace = trace,
             )
 
-        column_by_name = tax_benefit_system.column_by_name
         used_as_input_variables = self.used_as_input_variables
 
         assert self.input_data_frame_by_period is not None or self.input_data_frame_by_entity is not None
@@ -326,15 +326,41 @@ class AbstractSurveyScenario(object):
         # Case 1: fill simulation with a unique input_data_frame containing all entity variables
         if self.input_data_frame_by_period is not None:
             for period, input_data_frame in self.input_data_frame_by_period.iteritems():
-                print period
                 assert period is not None
-                init_simulation_with_data_frame(
-                    column_by_name = column_by_name,
-                    input_data_frame = input_data_frame,
-                    period = period,
-                    simulation = simulation,
-                    used_as_input_variables = used_as_input_variables,
-                    )
+                period_str = str(period)
+                log.info('Initialasing simulation using data_frame for period {}'.format(period))
+                regex = re.compile("^(?:19|20)[0-9]{2,2}(?:\\-(0[0-9]|1[0-2]|Q[1-4])){0,1}$")
+                assert regex.findall(period_str) is not None, \
+                    "period: {} is not one of the accepted formats (yyyy, yyyy-mm, yyyy-Qq)".format(period)
+                period_type = regex.findall(period_str)
+                # Récupérer ensuite la première valeur dans matchArray et tester si 1.
+                # Elle existe ? Si non, on est dans le cas year. 2.
+                # Elle contient `Q` ? Si oui, on est dans le cas quarter. Si non, on est dans le cas month.
+                months = ['0{}'.format(i) for i in range(1, 10)] + ['10', '11', '12']
+                if period_type[0] == '' or period_type[0] in months:
+                    init_simulation_with_data_frame(
+                        input_data_frame = input_data_frame,
+                        period = period,
+                        simulation = simulation,
+                        tax_benefit_system = tax_benefit_system,
+                        used_as_input_variables = used_as_input_variables,
+                        )
+                else:
+                    year, quarter = period_str[:4], period_str[-1:]
+                    quarter_month_range = range(4 * (int(quarter) - 1) + 1, 4 * int(quarter))
+                    quarter_month_periods = [
+                        "{}-{}".format(year, month)
+                        if month >= 10 else "{}-0{}".format(year, month)
+                        for month in quarter_month_range
+                        ]
+                    for period_item in quarter_month_periods:
+                        init_simulation_with_data_frame(
+                            column_by_name = column_by_name,
+                            input_data_frame = input_data_frame,
+                            period = period_item,
+                            simulation = simulation,
+                            used_as_input_variables = used_as_input_variables,
+                            )
 
         # Case 2: fill simulation with an input_data_frame by entity
         elif self.input_data_frame_by_entity is not None:
@@ -406,6 +432,7 @@ def filter_input_variables(column_by_name = None, input_data_frame = None, simul
             continue
         column = column_by_name[column_name]
         function = getattr(column.formula_class, 'function', None)
+        # Keeping the calculated variables thata are initialized by the input data
         if function is not None:
             if column_name in used_as_input_variables:
                 log.info(
@@ -421,13 +448,15 @@ def filter_input_variables(column_by_name = None, input_data_frame = None, simul
     return input_data_frame
 
 
-def init_simulation_with_data_frame(column_by_name = None, input_data_frame = None, period = None,
-        simulation = None, used_as_input_variables = None):
-    assert column_by_name is not None
+def init_simulation_with_data_frame(input_data_frame = None, period = None, simulation = None,
+        tax_benefit_system = None, used_as_input_variables = None):
     assert input_data_frame is not None
     assert period is not None
     assert simulation is not None
+    assert tax_benefit_system is not None
     assert used_as_input_variables is not None
+
+    column_by_name = tax_benefit_system.column_by_name
 
     id_variables = [
         id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
@@ -497,6 +526,29 @@ def init_simulation_with_data_frame(column_by_name = None, input_data_frame = No
             entity.count)
 
         holder.set_input(period, np.array(array, dtype = holder.column.dtype))
+
+        # Neutralizing input variables not present in the input_data_frame
+        non_neutralizable = ['champm', 'wprm']
+        for column_name, column in tax_benefit_system.column_by_name.items():
+            function = getattr(column.formula_class, 'function', None)
+            if function is not None:
+                pass
+            elif column_name in used_as_input_variables:
+                pass
+            elif column_name in non_neutralizable:
+                pass
+            else:
+                try:
+                    log.info('Neutralizing input variable {} because not present in input dataframe'.format(
+                        column_name
+                        ))
+                    tax_benefit_system.neutralize_column(column_name)
+                except AssertionError as e:
+                    print '==='
+                    print e
+                    print 'Error when neutralizing: ', column_name
+                    print '==='
+                    pass
 
 
 def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):
