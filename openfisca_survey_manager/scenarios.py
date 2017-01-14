@@ -8,7 +8,7 @@ import numpy as np
 import pandas
 import re
 
-from openfisca_core import periods, simulations
+from openfisca_core import formulas, periods, simulations
 from openfisca_survey_manager.calibration import Calibration
 
 from .survey_collections import SurveyCollection
@@ -434,8 +434,11 @@ def filter_input_variables(column_by_name = None, input_data_frame = None, simul
         if column_name in id_variables + role_variables:
             continue
         column = column_by_name[column_name]
-        function = getattr(column.formula_class, 'function', None)
-        # Keeping the calculated variables thata are initialized by the input data
+        formula_class = column.formula_class
+        if not issubclass(formula_class, formulas.SimpleFormula):
+            continue
+        function = formula_class.function
+        # Keeping the calculated variables that are initialized by the input data
         if function is not None:
             if column_name in used_as_input_variables:
                 log.info(
@@ -533,25 +536,20 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
         # Neutralizing input variables not present in the input_data_frame
         non_neutralizable = ['champm', 'wprm']
         for column_name, column in tax_benefit_system.column_by_name.items():
-            function = getattr(column.formula_class, 'function', None)
+            formula_class = column.formula_class
+            if not issubclass(formula_class, formulas.SimpleFormula):
+                continue
+            function = formula_class.function
             if function is not None:
-                pass
-            elif column_name in used_as_input_variables:
-                pass
-            elif column_name in non_neutralizable:
-                pass
-            else:
-                try:
-                    log.info('Neutralizing input variable {} because not present in input dataframe'.format(
-                        column_name
-                        ))
-                    tax_benefit_system.neutralize_column(column_name)
-                except AssertionError as e:
-                    print '==='
-                    print e
-                    print 'Error when neutralizing: ', column_name
-                    print '==='
-                    pass
+                continue
+            if column_name in used_as_input_variables:
+                continue
+            if column_name in non_neutralizable:
+                continue
+            # log.info('Neutralizing input variable {} because not present in input dataframe'.format(
+            #     column_name
+            #     ))
+            tax_benefit_system.neutralize_column(column_name)
 
 
 def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):
