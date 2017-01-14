@@ -11,6 +11,7 @@ import re
 from openfisca_core import periods, simulations
 from openfisca_survey_manager.calibration import Calibration
 
+from .survey_collections import SurveyCollection
 from .surveys import Survey
 
 log = logging.getLogger(__name__)
@@ -31,8 +32,8 @@ role_variable_by_entity_key = dict(
 class AbstractSurveyScenario(object):
     inflator_by_variable = None  # factor used to inflate variable total
     # input_data_frame = None
-    input_data_frame_by_period = None
-    input_data_frame_by_entity = None  # Buggy should be migrated on the model of input_data_frame_by_period
+    input_data_table_by_period = None
+    input_data_frame_by_entity = None  # Buggy should be migrated on the model of input_data_table_by_period
     # input_data_frame_by_entity_by_period = None
     legislation_json = None
     reference_tax_benefit_system = None
@@ -259,19 +260,19 @@ class AbstractSurveyScenario(object):
                 holder.array = inflator * holder.array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
-            input_data_frame_by_period = None, reference_tax_benefit_system = None, tax_benefit_system = None,
+            input_data_table_by_period = None, reference_tax_benefit_system = None, tax_benefit_system = None,
             used_as_input_variables = None, year = None):
         assert (
             input_data_frame is not None or
-            input_data_frame_by_period is not None or
+            input_data_table_by_period is not None or
             input_data_frame_by_entity is not None
             )
-        assert not(input_data_frame is not None and input_data_frame_by_period is not None)
-        self.input_data_frame_by_period = dict()
+        assert not(input_data_frame is not None and input_data_table_by_period is not None)
+        self.input_data_table_by_period = dict()
         if input_data_frame is not None:
-            self.input_data_frame_by_period[periods.period(year)] = input_data_frame
-        elif input_data_frame_by_period is not None:
-            self.input_data_frame_by_period = input_data_frame_by_period
+            self.input_data_table_by_period[periods.period(year)] = 'input'
+        elif input_data_table_by_period is not None:
+            self.input_data_table_by_period = input_data_table_by_period
         elif input_data_frame_by_entity is not None:
             self.input_data_frame_by_entity = input_data_frame_by_entity
 
@@ -321,14 +322,17 @@ class AbstractSurveyScenario(object):
 
         used_as_input_variables = self.used_as_input_variables
 
-        assert self.input_data_frame_by_period is not None or self.input_data_frame_by_entity is not None
+        assert self.input_data_table_by_period is not None or self.input_data_frame_by_entity is not None
 
         # Case 1: fill simulation with a unique input_data_frame containing all entity variables
-        if self.input_data_frame_by_period is not None:
-            for period, input_data_frame in self.input_data_frame_by_period.iteritems():
+        if self.input_data_table_by_period is not None:
+            for period, table in self.input_data_table_by_period.iteritems():
                 assert period is not None
-                period_str = str(period)
                 log.info('Initialasing simulation using data_frame for period {}'.format(period))
+                # Reading the table
+                input_data_frame = self.load_table(table = table)
+                # Computing the relevant period(s) for init_simulation_with_data_frame
+                period_str = str(period)  # period might be Periods objects
                 regex = re.compile("^(?:19|20)[0-9]{2,2}(?:\\-(0[0-9]|1[0-2]|Q[1-4])){0,1}$")
                 assert regex.findall(period_str) is not None, \
                     "period: {} is not one of the accepted formats (yyyy, yyyy-mm, yyyy-Qq)".format(period)
@@ -390,14 +394,13 @@ class AbstractSurveyScenario(object):
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
 
-    # def index_variables(self, indices = True, roles = True):
-    #     variables = list()
-    #     for entity in self.tax_benefit_system.entities.values():
-    #         if indices:
-    #             variables.append(entity.index_for_person_variable_name)
-    #         if roles:
-    #             variables.append(entity.role_for_person_variable_name)
-    #     return variables
+    def load_table(self, variables = None, collection = None, survey = None,
+            table = None):
+        collection = collection or self.collection
+        survey_collection = SurveyCollection.load(collection = self.collection)
+        survey = survey or "{}_{}".format(self.input_data_survey_prefix, self.year)
+        survey_ = survey_collection.get_survey(survey)
+        return survey_.get_values(table = table, variables = variables)  # .reset_index(drop = True)
 
 
 # Helpers
@@ -588,3 +591,5 @@ def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None,
                 array.size,
                 entity.count)
             holder.array = np.array(array, dtype = holder.column.dtype)
+
+
