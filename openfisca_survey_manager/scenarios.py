@@ -534,7 +534,10 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
         holder.set_input(period, np.array(array, dtype = holder.column.dtype))
 
         # Neutralizing input variables not present in the input_data_frame
-        non_neutralizable = ['champm', 'wprm']
+        non_neutralizable = ['champm', 'wprm', 'statut_marital', 'idfam_original',
+            'idfoy_original', 'idmen_original', 'wprm_init', 'weight_famille', 'weight',
+            'wprm', 'weight_familles', 'weight_foyers', 'weight_individus'
+            ]
         for column_name, column in tax_benefit_system.column_by_name.items():
             formula_class = column.formula_class
             if not issubclass(formula_class, formulas.SimpleFormula):
@@ -546,6 +549,8 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
                 continue
             if column_name in non_neutralizable:
                 continue
+            # if column_name in self.weight_column_name_by_entity.values():
+            #     continue
             # log.info('Neutralizing input variable {} because not present in input dataframe'.format(
             #     column_name
             #     ))
