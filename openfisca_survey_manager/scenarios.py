@@ -223,6 +223,9 @@ class AbstractSurveyScenario(object):
         # TODO add roles
         return openfisca_data_frame_by_entity_key
 
+    def custom_input_data_frame(self, input_data_frame):
+        pass
+
     def inflate(self, inflator_by_variable = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
@@ -262,19 +265,24 @@ class AbstractSurveyScenario(object):
     def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
             input_data_table_by_period = None, reference_tax_benefit_system = None, tax_benefit_system = None,
             used_as_input_variables = None, year = None):
+
+        self.input_data_table_by_period = self.input_data_table_by_period or input_data_table_by_period
         assert (
             input_data_frame is not None or
-            input_data_table_by_period is not None or
+            self.input_data_table_by_period is not None or
             input_data_frame_by_entity is not None
             )
-        assert not(input_data_frame is not None and input_data_table_by_period is not None)
-        self.input_data_table_by_period = dict()
-        if input_data_frame is not None:
-            self.input_data_table_by_period[periods.period(year)] = 'input'
-        elif input_data_table_by_period is not None:
-            self.input_data_table_by_period = input_data_table_by_period
-        elif input_data_frame_by_entity is not None:
-            self.input_data_frame_by_entity = input_data_frame_by_entity
+        if self.input_data_table_by_period is None:
+            if input_data_frame is not None:
+                self.input_data_table_by_period = dict()
+                self.input_data_table_by_period[periods.period(year)] = 'input'
+            elif input_data_frame_by_entity is not None:
+                self.input_data_frame_by_entity = input_data_frame_by_entity
+                raise NotImplementedError
+            else:
+                raise
+
+        log.info("Using tables: {}".format(self.input_data_table_by_period))
 
         if used_as_input_variables is None:
             self.used_as_input_variables = []
@@ -331,17 +339,22 @@ class AbstractSurveyScenario(object):
                 log.info('Initialasing simulation using data_frame for period {}'.format(period))
                 # Reading the table
                 input_data_frame = self.load_table(table = table)
+                self.custom_input_data_frame(input_data_frame)
                 # Computing the relevant period(s) for init_simulation_with_data_frame
                 period_str = str(period)  # period might be Periods objects
                 regex = re.compile("^(?:19|20)[0-9]{2,2}(?:\\-(0[0-9]|1[0-2]|Q[1-4])){0,1}$")
                 assert regex.findall(period_str) is not None, \
                     "period: {} is not one of the accepted formats (yyyy, yyyy-mm, yyyy-Qq)".format(period)
+                print period
+                print period_str
                 period_type = regex.findall(period_str)
-                # Récupérer ensuite la première valeur dans matchArray et tester si 1.
-                # Elle existe ? Si non, on est dans le cas year. 2.
-                # Elle contient `Q` ? Si oui, on est dans le cas quarter. Si non, on est dans le cas month.
+                # Récupérer ensuite la première valeur dans matchArray et tester si
+                # 1. Elle existe ? Si non, on est dans le cas year.
+                # 2. Elle contient `Q` ? Si oui, on est dans le cas quarter. Si non, on est dans le cas month.
                 months = ['0{}'.format(i) for i in range(1, 10)] + ['10', '11', '12']
-                if period_type[0] == '' or period_type[0] in months:
+                print period_type
+                if not period_type or period_type[0] == '':  # 1. Cas year
+                    print 'year', period
                     init_simulation_with_data_frame(
                         input_data_frame = input_data_frame,
                         period = period,
@@ -350,19 +363,30 @@ class AbstractSurveyScenario(object):
                         used_as_input_variables = used_as_input_variables,
                         )
                 else:
-                    year, quarter = period_str[:4], period_str[-1:]
-                    quarter_month_range = range(4 * (int(quarter) - 1) + 1, 4 * int(quarter))
-                    quarter_month_periods = [
-                        "{}-{}".format(year, month)
-                        if month >= 10 else "{}-0{}".format(year, month)
-                        for month in quarter_month_range
-                        ]
-                    for period_item in quarter_month_periods:
+                    if 'Q' in period_type:  # 2. cas quarter
+                        print 'quarter', period
+                        year, quarter = period_str[:4], period_str[-1:]
+                        quarter_month_range = range(4 * (int(quarter) - 1) + 1, 4 * int(quarter))
+                        quarter_month_periods = [
+                            "{}-{}".format(year, month)
+                            if month >= 10 else "{}-0{}".format(year, month)
+                            for month in quarter_month_range
+                            ]
+                        for period_item in quarter_month_periods:
+                            init_simulation_with_data_frame(
+                                input_data_frame = input_data_frame,
+                                period = period_item,
+                                simulation = simulation,
+                                tax_benefit_system = tax_benefit_system,
+                                used_as_input_variables = used_as_input_variables,
+                                )
+                    else:
+                        print 'month', period
                         init_simulation_with_data_frame(
-                            column_by_name = column_by_name,
                             input_data_frame = input_data_frame,
-                            period = period_item,
+                            period = period,
                             simulation = simulation,
+                            tax_benefit_system = tax_benefit_system,
                             used_as_input_variables = used_as_input_variables,
                             )
 
@@ -464,6 +488,14 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
 
     column_by_name = tax_benefit_system.column_by_name
 
+    variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
+    if variables_mismatch:
+        log.info(
+            'The following variables used as input variables are not present in the input data frame: \n {}'.format(
+                variables_mismatch))
+        log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
+        log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
+
     id_variables = [
         id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
         if not entity.is_person]
@@ -533,7 +565,7 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
 
         holder.set_input(period, np.array(array, dtype = holder.column.dtype))
 
-        # Neutralizing input variables not present in the input_data_frame
+        # Neutralizing input variables not present in the input_data_frame: TODO move this in lower classes
         non_neutralizable = ['champm', 'wprm', 'statut_marital', 'idfam_original',
             'idfoy_original', 'idmen_original', 'wprm_init', 'weight_famille', 'weight',
             'wprm', 'weight_familles', 'weight_foyers', 'weight_individus'
