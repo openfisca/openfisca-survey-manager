@@ -30,20 +30,22 @@ role_variable_by_entity_key = dict(
 
 
 class AbstractSurveyScenario(object):
+    filtering_variable_by_entity = None
     inflator_by_variable = None  # factor used to inflate variable total
     # input_data_frame = None
-    input_data_table_by_period = None
-    input_data_frame_by_entity = None  # Buggy should be migrated on the model of input_data_table_by_period
+    # input_data_frame_by_entity = None  # Buggy should be migrated on the model of input_data_table_by_period
     # input_data_frame_by_entity_by_period = None
+    input_data_table_by_period = None
     legislation_json = None
+    non_neutralizable_variables = None
+    reference_simulation = None
     reference_tax_benefit_system = None
     simulation = None
-    reference_simulation = None
-    tax_benefit_system = None
     target_by_variable = None  # variable total target to inflate to
+    tax_benefit_system = None
     used_as_input_variables = None
+    weight_column_name_by_entity = None
     year = None
-    weight_column_name_by_entity = dict()
 
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self
@@ -397,6 +399,8 @@ class AbstractSurveyScenario(object):
                 simulation = simulation,
                 )
         #
+        self.neutralize_variables(tax_benefit_system)
+        #
         if not reference:
             self.simulation = simulation
         else:
@@ -425,6 +429,25 @@ class AbstractSurveyScenario(object):
         survey = survey or "{}_{}".format(self.input_data_survey_prefix, self.year)
         survey_ = survey_collection.get_survey(survey)
         return survey_.get_values(table = table, variables = variables)  # .reset_index(drop = True)
+
+    def neutralize_variables(self, tax_benefit_system):
+        """
+        Neutralizing input variables not present in the input_data_frame and keep some crucial variables
+        """
+        for column_name, column in tax_benefit_system.column_by_name.items():
+            formula_class = column.formula_class
+            if not issubclass(formula_class, formulas.SimpleFormula):
+                continue
+            function = formula_class.function
+            if function is not None:
+                continue
+            if column_name in self.used_as_input_variables:
+                continue
+            if column_name in self.non_neutralizable_variables:
+                continue
+            if column_name in self.weight_column_name_by_entity.values():
+                continue
+            tax_benefit_system.neutralize_column(column_name)
 
 
 # Helpers
@@ -564,29 +587,6 @@ def init_simulation_with_data_frame(input_data_frame = None, period = None, simu
             entity.count)
 
         holder.set_input(period, np.array(array, dtype = holder.column.dtype))
-
-        # Neutralizing input variables not present in the input_data_frame: TODO move this in lower classes
-        non_neutralizable = ['champm', 'wprm', 'statut_marital', 'idfam_original',
-            'idfoy_original', 'idmen_original', 'wprm_init', 'weight_famille', 'weight',
-            'wprm', 'weight_familles', 'weight_foyers', 'weight_individus'
-            ]
-        for column_name, column in tax_benefit_system.column_by_name.items():
-            formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
-                continue
-            function = formula_class.function
-            if function is not None:
-                continue
-            if column_name in used_as_input_variables:
-                continue
-            if column_name in non_neutralizable:
-                continue
-            # if column_name in self.weight_column_name_by_entity.values():
-            #     continue
-            # log.info('Neutralizing input variable {} because not present in input dataframe'.format(
-            #     column_name
-            #     ))
-            tax_benefit_system.neutralize_column(column_name)
 
 
 def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):
