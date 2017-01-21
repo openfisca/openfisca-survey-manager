@@ -438,6 +438,7 @@ class AbstractSurveyScenario(object):
                 continue
             if column_name in self.weight_column_name_by_entity.values():
                 continue
+
             tax_benefit_system.neutralize_column(column_name)
 
     def summarize_variable(self, variable = None, reference = False, weighted = False):
