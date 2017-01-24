@@ -441,7 +441,7 @@ class AbstractSurveyScenario(object):
 
             tax_benefit_system.neutralize_column(column_name)
 
-    def summarize_variable(self, variable = None, reference = False, weighted = False):
+    def summarize_variable(self, variable = None, reference = False, weighted = False, force_compute = False):
         if reference:
             simulation = self.reference_simulation
         else:
@@ -459,12 +459,12 @@ class AbstractSurveyScenario(object):
         infos_by_variable = get_memory_usage(simulation, variables = [variable])
 
         if not infos_by_variable:
-            compute = raw_input("{} is not computed yet. Compute ? (y/N)".format(variable))
-            if compute == 'y':
+            if force_compute:
                 simulation.calculate_add(variable)
                 self.summarize_variable(variable = variable, reference = reference, weighted = weighted)
                 return
             else:
+                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
                 return
         infos = infos_by_variable[variable]
         header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
