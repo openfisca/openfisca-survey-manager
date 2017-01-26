@@ -494,9 +494,9 @@ class AbstractSurveyScenario(object):
                 # if not period_type or period_type[0] == '':  # 1. year
                 if len(period_str) == 4:  # 1. year
                     log.info("Initialasing year {}".format(period_str))
-                    init_simulation_with_data_frame(
+                    self.init_simulation_with_data_frame(
                         input_data_frame = input_data_frame,
-                        period = period,
+                        period = periods.period(period_str),
                         simulation = simulation,
                         )
                 elif (len(period_str) == 7) and ('Q' in period_str):  # 2. quarter
@@ -518,7 +518,7 @@ class AbstractSurveyScenario(object):
                     log.info("Initialasing month {}".format(period_str))
                     self.init_simulation_with_data_frame(
                         input_data_frame = input_data_frame,
-                        period = period,
+                        period = period.periods(period_str),
                         simulation = simulation,
                         )
                 else:
