@@ -9,7 +9,7 @@ import pandas
 import re
 
 from openfisca_core import formulas, periods, simulations
-from openfisca_core.tools.memory import get_memory_usage
+from openfisca_core.tools.memory import get_memory_usage, print_memory_usage
 from openfisca_survey_manager.calibration import Calibration
 
 from .survey_collections import SurveyCollection
@@ -551,6 +551,13 @@ class AbstractSurveyScenario(object):
         survey = survey or "{}_{}".format(self.input_data_survey_prefix, self.year)
         survey_ = survey_collection.get_survey(survey)
         return survey_.get_values(table = table, variables = variables)  # .reset_index(drop = True)
+
+    def memory_usage(self, reference = False):
+        if reference:
+            simulation = self.reference_simulation
+        else:
+            simulation = self.simulation
+        print_memory_usage(simulation)
 
     def neutralize_variables(self, tax_benefit_system):
         """
