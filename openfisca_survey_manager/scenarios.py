@@ -448,7 +448,6 @@ class AbstractSurveyScenario(object):
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
-
         if self.reference_tax_benefit_system is not None and reference:
             tax_benefit_system = self.reference_tax_benefit_system
         elif reference:
@@ -460,6 +459,7 @@ class AbstractSurveyScenario(object):
                 tax_benefit_system = reference_tax_benefit_system
 
         period = periods.period(self.year)
+        self.neutralize_variables(tax_benefit_system)
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
@@ -531,16 +531,13 @@ class AbstractSurveyScenario(object):
                 input_data_frame_by_entity = self.input_data_frame_by_entity,
                 simulation = simulation,
                 )
-        #
-        self.neutralize_variables(tax_benefit_system)
-        #
         if not reference:
             self.simulation = simulation
         else:
             self.reference_simulation = simulation
         #
         if 'custom_initialize' in dir(self):
-            self.custom_initialize()
+            self.custom_initialize(simulation)
         #
         return simulation
 
