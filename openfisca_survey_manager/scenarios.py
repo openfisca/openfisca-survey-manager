@@ -486,19 +486,7 @@ class AbstractSurveyScenario(object):
         # Case 2: fill simulation with a unique input_data_frame containing all entity variables
         elif self.input_data_table_by_period is not None:
             for period, table in self.input_data_table_by_period.iteritems():
-                # Computing the relevant period(s) for init_simulation_with_data_frame
-                period_str = str(period)  # period might be Periods objects
-                months = ['0{}'.format(i) for i in range(1, 10)] + ['10', '11', '12']
-                # if not period_type or period_type[0] == '':  # 1. year
-                if len(period_str) == 4:  # 1. year
-                    period = periods.period(period_str)
-                elif (len(period_str) == 7) and ('Q' in period_str):  # 2. quarter
-                    year, quarter = period_str[:4], period_str[-1:]
-                    quarter_start_month = 3 * (int(quarter) - 1) + 1
-                    period = periods.period('month', '{}-{}'.format(year, quarter_start_month), 3)
-                elif (len(period_str) == 7) and period_str[-2:] in months:  # 3. month
-                    period = periods.period(period_str)
-
+                period = periods.period(period)
                 input_data_frame = self.load_table(table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
                 self.fill(input_data_frame, simulation, period)
