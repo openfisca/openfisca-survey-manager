@@ -9,7 +9,11 @@ import pandas
 import re
 
 from openfisca_core import formulas, periods, simulations
-from openfisca_core.tools.memory import get_memory_usage, print_memory_usage
+try:
+    from openfisca_core.tools.memory import get_memory_usage, print_memory_usage
+except ImportError:
+    get_memory_usage = None
+    print_memory_usage = None
 from openfisca_survey_manager.calibration import Calibration
 
 from .survey_collections import SurveyCollection
@@ -551,9 +555,9 @@ class AbstractSurveyScenario(object):
                 continue
             if column_name in self.used_as_input_variables:
                 continue
-            if column_name in self.non_neutralizable_variables:
+            if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
                 continue
-            if column_name in self.weight_column_name_by_entity.values():
+            if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
                 continue
 
             tax_benefit_system.neutralize_column(column_name)
