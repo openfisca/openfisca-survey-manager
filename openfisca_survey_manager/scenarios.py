@@ -6,7 +6,7 @@ import humanize
 import logging
 import numpy as np
 import pandas
-import re
+
 
 from openfisca_core import formulas, periods, simulations
 try:
@@ -71,13 +71,11 @@ class AbstractSurveyScenario(object):
         Compute aggregate
         """
         assert aggfunc in ['count', 'mean', 'sum']
-
-        if filter_by is None:
-            tax_benefit_system = self.tax_benefit_system
+        tax_benefit_system = self.tax_benefit_system
+        if filter_by is None and self.filtering_variable_by_entity is not None:
             entity_key = tax_benefit_system.column_by_name[variable].entity.key
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
-        survey_scenario = self
         assert variable is not None
         if reference:
             simulation = self.reference_simulation
@@ -90,11 +88,12 @@ class AbstractSurveyScenario(object):
             assert filter_by in self.tax_benefit_system.column_by_name, \
                 "{} is not a variables of the tax benefit system".format(filter_by)
 
-        assert self.weight_column_name_by_entity
-        tax_benefit_system = survey_scenario.tax_benefit_system
-        weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
-        entity_key = tax_benefit_system.column_by_name[variable].entity.key
-        entity_weight = weight_column_name_by_entity[entity_key]
+        if self.weight_column_name_by_entity:
+            weight_column_name_by_entity = self.weight_column_name_by_entity
+            entity_key = tax_benefit_system.column_by_name[variable].entity.key
+            entity_weight = weight_column_name_by_entity[entity_key]
+        else:
+            entity_weight = None
 
         if variable in simulation.tax_benefit_system.column_by_name:
             value = simulation.calculate_add(variable, period = period)
@@ -102,7 +101,10 @@ class AbstractSurveyScenario(object):
             log.info("Variable {} not found. Assiging nan".format(variable))
             value = np.nan
 
-        weight = simulation.calculate_add(entity_weight, period = period).astype(float)
+        weight = (
+            simulation.calculate_add(entity_weight, period = period).astype(float)
+            if entity_weight else 1.0
+            )
         filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
 
         if aggfunc == 'sum':
@@ -116,24 +118,16 @@ class AbstractSurveyScenario(object):
             period = None, reference = False, values = None):
         assert aggfunc in ['count', 'mean', 'sum']
 
-        if filter_by is None:
-            tax_benefit_system = self.tax_benefit_system
-        entity_key = tax_benefit_system.column_by_name[values[0]].entity.key
-        filter_by = self.filtering_variable_by_entity.get(entity_key)
-
-        survey_scenario = self
+        tax_benefit_system = self.tax_benefit_system
+        if filter_by is None and self.filtering_variable_by_entity is not None:
+            entity_key = tax_benefit_system.column_by_name[values[0]].entity.key
+            filter_by = self.filtering_variable_by_entity.get(entity_key)
 
         assert isinstance(values, (str, list))
         if isinstance(values, str):
             values = ['values']
 
         # assert len(values) == 1
-
-        assert survey_scenario is not None
-        tax_benefit_system = survey_scenario.tax_benefit_system
-
-        assert survey_scenario.weight_column_name_by_entity is not None
-        weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
 
         if difference:
             return (
@@ -143,9 +137,9 @@ class AbstractSurveyScenario(object):
                     period = period, reference = True, values = values))
 
         if reference:
-            simulation = survey_scenario.reference_simulation or survey_scenario.new_simulation(reference = True)
+            simulation = self.reference_simulation or self.new_simulation(reference = True)
         else:
-            simulation = survey_scenario.simulation or survey_scenario.new_simulation()
+            simulation = self.simulation or self.new_simulation()
 
         index_list = index if index is not None else []
         columns_list = columns if columns is not None else []
@@ -153,8 +147,12 @@ class AbstractSurveyScenario(object):
         entity_key = tax_benefit_system.column_by_name[values[0]].entity.key
 
         # Select the entity weight corresponding to the variables that will provide values
-        weight = weight_column_name_by_entity[entity_key]
-        variables.add(weight)
+        if self.weight_column_name_by_entity is not None:
+            weight = self.weight_column_name_by_entity[entity_key]
+            variables.add(weight)
+        else:
+            weight = None
+
         if filter_by is not None:
             variables.add(filter_by)
         else:
@@ -180,6 +178,10 @@ class AbstractSurveyScenario(object):
             ))
         if filter_by in data_frame:
             filter_dummy = data_frame.get(filter_by)
+        if weight is None:
+            weight = 'weight'
+            data_frame[weight] = 1.0
+
         data_frame[values[0]] = data_frame[values[0]] * data_frame[weight] * filter_dummy
         pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
         pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
@@ -372,7 +374,8 @@ class AbstractSurveyScenario(object):
         #
         return self
 
-    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, verbose = False):
+    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None,
+            verbose = False):
         """
         Initialize the simulation period with current input_data_frame
         """
@@ -382,8 +385,6 @@ class AbstractSurveyScenario(object):
         used_as_input_variables = self.used_as_input_variables
         id_variable_by_entity_key = self.id_variable_by_entity_key
         role_variable_by_entity_key = self.role_variable_by_entity_key
-        tax_benefit_system = simulation.tax_benefit_system
-        column_by_name = tax_benefit_system.column_by_name
 
         variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
         if variables_mismatch:
@@ -626,10 +627,8 @@ class AbstractSurveyScenario(object):
 
 # Helpers
 
-
-
-
-def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):  # TODO NOT WORKING RIGH NOW
+# TODO NOT WORKING RIGH NOW
+def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):
     assert input_data_frame_by_entity is not None
     assert simulation is not None
     for entity in simulation.entities.values():
