@@ -80,9 +80,11 @@ class AbstractSurveyScenario(object):
         survey_scenario = self
         assert variable is not None
         if reference:
-            simulation = self.reference_simulation or self.new_simulation(reference = True)
+            simulation = self.reference_simulation
         else:
-            simulation = self.simulation or self.new_simulation()
+            simulation = self.simulation
+
+        assert simulation is not None
 
         if filter_by:
             assert filter_by in self.tax_benefit_system.column_by_name, \
@@ -235,21 +237,7 @@ class AbstractSurveyScenario(object):
     def fill(self, input_data_frame, simulation, period):
         assert period is not None
         log.info('Initialasing simulation using data_frame for period {}'.format(period))
-        # Reading the table
-        # Computing the relevant period(s) for init_simulation_with_data_frame
-        period_str = str(period)  # period might be Periods objects
-        months = ['0{}'.format(i) for i in range(1, 10)] + ['10', '11', '12']
-        # if not period_type or period_type[0] == '':  # 1. year
-        if len(period_str) == 4:  # 1. year
-            period = periods.period(period_str)
-        elif (len(period_str) == 7) and ('Q' in period_str):  # 2. quarter
-            year, quarter = period_str[:4], period_str[-1:]
-            quarter_start_month = 3 * (int(quarter) - 1) + 1
-            period = periods.period('month', '{}-{}'.format(year, quarter_start_month), 3)
-        elif (len(period_str) == 7) and period_str[-2:] in months:  # 3. month
-            period = periods.period(period_str)
 
-        self.custom_input_data_frame(input_data_frame, period = period)
         log.info("Initialasing {}".format(period))
         if period.unit == 'year':  # 1. year
             self.init_simulation_with_data_frame(
@@ -384,7 +372,7 @@ class AbstractSurveyScenario(object):
         #
         return self
 
-    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None):
+    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, verbose = False):
         """
         Initialize the simulation period with current input_data_frame
         """
@@ -440,20 +428,21 @@ class AbstractSurveyScenario(object):
                 continue
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
-            if column_serie.values.dtype != holder.column.dtype:
+            if verbose and (column_serie.values.dtype != holder.column.dtype):
                 log.info(
                     'Converting {} from dtype {} to {}'.format(
                         column_name, column_serie.values.dtype, holder.column.dtype)
                     )
             if np.issubdtype(column_serie.values.dtype, np.float):
                 if column_serie.isnull().any():
-                    log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
-                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
-                    log.info('We convert these NaN values of variable {} to {} its default value'.format(
-                        column_name, holder.column.default))
+                    if verbose:
+                        log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
+                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
+                        log.info('We convert these NaN values of variable {} to {} its default value'.format(
+                            column_name, holder.column.default))
                     input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
                 assert input_data_frame[column_name].notnull().all(), \
-                    'There are {} NaN values fo {} non NaN values in variable {}'.format(
+                    'There are {} NaN values for {} non NaN values in variable {}'.format(
                         column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
 
             if entity.is_person:
@@ -463,9 +452,7 @@ class AbstractSurveyScenario(object):
                     input_data_frame[role_variable_by_entity_key[entity.key]].values == 0
                     ].astype(holder.column.dtype)
             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                column_name,
-                array.size,
-                entity.count)
+                column_name, array.size, entity.count)
 
             holder.set_input(period, np.array(array, dtype = holder.column.dtype))
 
@@ -495,27 +482,18 @@ class AbstractSurveyScenario(object):
             tax_benefit_system = tax_benefit_system,
             trace = trace,
             )
-
-        assert self.input_data_table_by_period is not None or self.input_data_frame_by_entity is not None
-
         # Case 1: fill simulation with a unique input_data_frame given by the attribute
         if self.input_data_frame is not None:
-            print 'new_simulation'
-            print self.input_data_frame.columns
-            self.fill(self.input_data_frame, simulation, period)
-
+            input_data_frame = self.input_data_frame.copy()
+            self.custom_input_data_frame(input_data_frame, period = period)
+            self.fill(input_data_frame, simulation, period)
         # Case 2: fill simulation with a unique input_data_frame containing all entity variables
         elif self.input_data_table_by_period is not None:
             for period, table in self.input_data_table_by_period.iteritems():
+                period = periods.period(period)
                 input_data_frame = self.load_table(table = table)
+                self.custom_input_data_frame(input_data_frame, period = period)
                 self.fill(input_data_frame, simulation, period)
-
-        # Case 3: fill simulation with an input_data_frame by entity
-        elif self.input_data_frame_by_entity is not None:
-            init_simulation_with_data_frame_by_entity(
-                input_data_frame_by_entity = self.input_data_frame_by_entity,
-                simulation = simulation,
-                )
         #
         if not reference:
             self.simulation = simulation
