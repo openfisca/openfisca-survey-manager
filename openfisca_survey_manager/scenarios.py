@@ -6,7 +6,6 @@ import humanize
 import logging
 import numpy as np
 import pandas
-import re
 
 from openfisca_core import formulas, periods, simulations
 from openfisca_core.tools.memory import get_memory_usage, print_memory_usage
@@ -26,6 +25,7 @@ class AbstractSurveyScenario(object):
     input_data_table_by_period = None
     legislation_json = None
     non_neutralizable_variables = None
+    cache_blacklist = None
     reference_simulation = None
     reference_tax_benefit_system = None
     role_variable_by_entity_key = None
@@ -139,9 +139,11 @@ class AbstractSurveyScenario(object):
                     period = period, reference = True, values = values))
 
         if reference:
-            simulation = survey_scenario.reference_simulation or survey_scenario.new_simulation(reference = True)
+            simulation = survey_scenario.reference_simulation
         else:
-            simulation = survey_scenario.simulation or survey_scenario.new_simulation()
+            simulation = survey_scenario.simulation
+
+        assert simulation is not None
 
         index_list = index if index is not None else []
         columns_list = columns if columns is not None else []
@@ -186,15 +188,17 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return pivot_mass
 
-    def create_data_frame_by_entity(self, variables = None, indices = False, reference = False,
+    def create_data_frame_by_entity(self, variables = None, indices = False, period = None, reference = False,
             roles = False):
         assert variables is not None or indices or roles
         tax_benefit_system = self.tax_benefit_system
 
         if reference:
-            simulation = self.reference_simulation or self.new_simulation(reference = True)
+            simulation = self.reference_simulation
         else:
-            simulation = self.simulation or self.new_simulation()
+            simulation = self.simulation
+
+        assert simulation is not None
 
         missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
         if missing_variables:
@@ -211,7 +215,7 @@ class AbstractSurveyScenario(object):
                 if column.entity == entity
                 ]
             openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
-                dict((column_name, simulation.calculate_add(column_name)) for column_name in column_names)
+                dict((column_name, simulation.calculate_add(column_name, period = period)) for column_name in column_names)
                 )
         # TODO add roles
         return openfisca_data_frame_by_entity_key
@@ -471,9 +475,13 @@ class AbstractSurveyScenario(object):
 
         period = periods.period(self.year)
         self.neutralize_variables(tax_benefit_system)
+        if self.cache_blacklist is not None:
+            opt_out_cache = True
+
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
+            opt_out_cache = opt_out_cache,
             period = period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,
@@ -545,8 +553,12 @@ class AbstractSurveyScenario(object):
         """
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
+        if self.cache_blacklist is not None:
+            self.tax_benefit_system.cache_blacklist = self.cache_blacklist
         if reference_tax_benefit_system is not None:
             self.reference_tax_benefit_system = reference_tax_benefit_system
+            if self.cache_blacklist is not None:
+                self.reference_tax_benefit_system.cache_blacklist = self.cache_blacklist
 
     def summarize_variable(self, variable = None, reference = False, weighted = False, force_compute = False):
         if reference:
@@ -621,8 +633,6 @@ class AbstractSurveyScenario(object):
 
 
 # Helpers
-
-
 
 
 def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None, simulation = None):  # TODO NOT WORKING RIGH NOW
