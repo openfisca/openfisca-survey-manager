@@ -489,13 +489,11 @@ class AbstractSurveyScenario(object):
 
         period = periods.period(self.year)
         self.neutralize_variables(tax_benefit_system)
-        if self.cache_blacklist is not None:
-            opt_out_cache = True
 
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
-            opt_out_cache = opt_out_cache,
+            opt_out_cache = True if self.cache_blacklist is not None else False,
             period = period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,

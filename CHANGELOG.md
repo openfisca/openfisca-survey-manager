@@ -2,6 +2,10 @@
 
 ## 0.8.1
 
+* Fix a bug when `output_cache` is unset
+
+## 0.8.1
+
 * Add automatic push to PyPi
 
 ## 0.8.0
