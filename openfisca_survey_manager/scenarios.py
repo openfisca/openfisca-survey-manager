@@ -52,7 +52,8 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_key_plural = dict()
 
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
+    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False,
+                          missing_variable_default_value = np.nan):
         # TODO deal here with filter_by instead of openfisca_france_data ?
         assert aggfunc in ['count', 'mean', 'sum']
 
@@ -76,8 +77,8 @@ class AbstractSurveyScenario(object):
         if variable in simulation.tax_benefit_system.column_by_name:
             value = simulation.calculate_add(variable, period = period)
         else:
-            log.info("Variable {} not found. Assiging nan".format(variable))
-            value = np.nan
+            log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
+            return missing_variable_default_value
 
         weight = simulation.calculate_add(entity_weight, period = period).astype(float)
         filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
@@ -89,8 +90,9 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return (weight * filter_dummy).sum()
 
-    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
-            period = None, reference = False, values = None):
+    def compute_pivot_table(
+            self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
+            period = None, reference = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
         survey_scenario = self
 
@@ -108,10 +110,16 @@ class AbstractSurveyScenario(object):
 
         if difference:
             return (
-                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = False, values = values) -
-                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = True, values = values))
+                self.compute_pivot_table(
+                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = False, values = values,
+                    missing_variable_default_value = missing_variable_default_value
+                    ) -
+                self.compute_pivot_table(
+                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = True, values = values,
+                    missing_variable_default_value = missing_variable_default_value)
+                )
 
         if reference:
             simulation = survey_scenario.reference_simulation or survey_scenario.new_simulation(reference = True)
@@ -137,12 +145,11 @@ class AbstractSurveyScenario(object):
             assert tax_benefit_system.column_by_name[variable].entity_key_plural == entity_key_plural
 
         def calculate_variable(var):
-
             if var in simulation.tax_benefit_system.column_by_name:
                 return simulation.calculate_add(var, period = period)
             else:
-                log.info("Variable {} not found. Assiging nan".format(variable))
-                return np.nan
+                log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
+                return missing_variable_default_value
 
         data_frame = pandas.DataFrame(dict(
             (variable, calculate_variable(variable)) for variable in variables
