@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.1
+## 0.8.2
 
 * Fix a bug when `output_cache` is unset
 
