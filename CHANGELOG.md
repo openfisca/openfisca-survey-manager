@@ -1,5 +1,10 @@
 # Changelog
-## 0.8
+
+## 0.8.1
+
+* Add automatic push to PyPi
+
+## 0.8.0
 
 * Improve `compute_aggregates` and `compute_pivot_table`
 
