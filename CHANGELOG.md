@@ -1,4 +1,7 @@
 # Changelog
+## 0.8
+
+* Improve `compute_aggregates` and `compute_pivot_table`
 
 ## 0.6.1
 
