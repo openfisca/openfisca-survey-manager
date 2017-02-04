@@ -67,10 +67,9 @@ class AbstractSurveyScenario(object):
         calibration.set_calibrated_weights()
         self.calibration = calibration
 
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
-        """
-        Compute aggregate
-        """
+    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False,
+                          missing_variable_default_value = np.nan):
+        # TODO deal here with filter_by instead of openfisca_france_data ?
         assert aggfunc in ['count', 'mean', 'sum']
         tax_benefit_system = self.tax_benefit_system
         if filter_by is None and self.filtering_variable_by_entity is not None:
@@ -99,8 +98,8 @@ class AbstractSurveyScenario(object):
         if variable in simulation.tax_benefit_system.column_by_name:
             value = simulation.calculate_add(variable, period = period)
         else:
-            log.info("Variable {} not found. Assiging nan".format(variable))
-            value = np.nan
+            log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
+            return missing_variable_default_value
 
         weight = (
             simulation.calculate_add(entity_weight, period = period).astype(float)
@@ -115,8 +114,9 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return (weight * filter_dummy).sum()
 
-    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
-            period = None, reference = False, values = None):
+    def compute_pivot_table(
+            self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
+            period = None, reference = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
 
         tax_benefit_system = self.tax_benefit_system
@@ -132,15 +132,21 @@ class AbstractSurveyScenario(object):
 
         if difference:
             return (
-                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = False, values = values) -
-                self.compute_pivot_table(aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = True, values = values))
+                self.compute_pivot_table(
+                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = False, values = values,
+                    missing_variable_default_value = missing_variable_default_value
+                    ) -
+                self.compute_pivot_table(
+                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
+                    period = period, reference = True, values = values,
+                    missing_variable_default_value = missing_variable_default_value)
+                )
 
         if reference:
-            simulation = survey_scenario.reference_simulation
+            simulation = self.reference_simulation
         else:
-            simulation = survey_scenario.simulation
+            simulation = self.simulation
 
         assert simulation is not None
 
@@ -169,12 +175,11 @@ class AbstractSurveyScenario(object):
                     )
 
         def calculate_variable(var):
-
             if var in simulation.tax_benefit_system.column_by_name:
                 return simulation.calculate_add(var, period = period)
             else:
-                log.info("Variable {} not found. Assiging nan".format(variable))
-                return np.nan
+                log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
+                return missing_variable_default_value
 
         data_frame = pandas.DataFrame(dict(
             (variable, calculate_variable(variable)) for variable in variables
@@ -222,7 +227,10 @@ class AbstractSurveyScenario(object):
                 if column.entity == entity
                 ]
             openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
-                dict((column_name, simulation.calculate_add(column_name, period = period)) for column_name in column_names)
+                dict(
+                    (column_name, simulation.calculate_add(column_name, period = period))
+                    for column_name in column_names
+                    )
                 )
         # TODO add roles
         return openfisca_data_frame_by_entity_key
