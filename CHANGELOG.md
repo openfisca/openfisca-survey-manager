@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.3
+
+* Add humanize to dependencies
+
 ## 0.8.2
 
 * Fix a bug when `output_cache` is unset
