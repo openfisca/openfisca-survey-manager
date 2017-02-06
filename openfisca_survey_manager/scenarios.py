@@ -10,10 +10,9 @@ import pandas
 
 from openfisca_core import formulas, periods, simulations
 try:
-    from openfisca_core.tools.memory import get_memory_usage, print_memory_usage
+    from openfisca_core.tools.memory import get_memory_usage
 except ImportError:
     get_memory_usage = None
-    print_memory_usage = None
 from openfisca_survey_manager.calibration import Calibration
 
 from .survey_collections import SurveyCollection
@@ -534,7 +533,24 @@ class AbstractSurveyScenario(object):
             simulation = self.reference_simulation
         else:
             simulation = self.simulation
-        print_memory_usage(simulation)
+
+        infos_by_variable = get_memory_usage(simulation)
+        infos_lines = list()
+        for variable, infos in infos_by_variable.iteritems():
+            hits = infos.get('hits', (None, None))
+            infos_lines.append((infos['nbytes'], variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits (missed = {})".format(
+                variable,
+                len(infos['periods']),
+                infos['ncells'],
+                infos['item_size'],
+                infos['dtype'],
+                humanize.naturalsize(infos['nbytes'], gnu = True),
+                hits[0],
+                hits[1],
+                )))
+        infos_lines.sort()
+        for _, _, line in infos_lines:
+            print(line.rjust(100))
 
     def neutralize_variables(self, tax_benefit_system):
         """
