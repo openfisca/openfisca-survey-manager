@@ -645,6 +645,10 @@ class AbstractSurveyScenario(object):
             elif holder._array_by_period is not None:
                 for period in sorted(holder._array_by_period.keys()):
                     array = holder._array_by_period[period]
+                    if array.shape == ():
+                        print("{}: always = {}".format(period, array))
+                        continue
+
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,
                         array.mean() if not weighted else np.average(array, weights = weights),
