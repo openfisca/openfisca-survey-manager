@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.4
+
+* Fix summarize variable when dealing with neutralized variables
+
 ## 0.8.3
 
 * Add humanize to dependencies
