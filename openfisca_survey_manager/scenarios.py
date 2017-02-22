@@ -5,7 +5,7 @@ from __future__ import division
 import humanize
 import logging
 import numpy as np
-import pandas
+import pandas as pd
 
 
 from openfisca_core import formulas, periods, simulations
@@ -180,7 +180,7 @@ class AbstractSurveyScenario(object):
                 log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
                 return missing_variable_default_value
 
-        data_frame = pandas.DataFrame(dict(
+        data_frame = pd.DataFrame(dict(
             (variable, calculate_variable(variable)) for variable in variables
             ))
         if filter_by in data_frame:
@@ -199,9 +199,8 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return pivot_mass
 
-    def create_data_frame_by_entity(self, variables = None, indices = False, period = None, reference = False,
-            roles = False):
-        assert variables is not None or indices or roles
+    def create_data_frame_by_entity(self, variables = None, index = True, period = None, reference = False):
+        assert variables is not None or index
         tax_benefit_system = self.tax_benefit_system
 
         if reference:
@@ -219,19 +218,31 @@ class AbstractSurveyScenario(object):
             if self.tax_benefit_system.column_by_name.get(variable_name) is not None
             ]
         openfisca_data_frame_by_entity_key = dict()
+        non_person_entities = list()
         for entity in tax_benefit_system.entities:
             entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
                 if column.entity == entity
                 ]
-            openfisca_data_frame_by_entity_key[entity_key] = pandas.DataFrame(
+            openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
                     (column_name, simulation.calculate_add(column_name, period = period))
                     for column_name in column_names
                     )
                 )
-        # TODO add roles
+            if entity.is_person:
+                person_entity = entity
+            else:
+                non_person_entities.append(entity)
+        if index:
+            for entity in non_person_entities:
+                openfisca_data_frame_by_entity_key[person_entity.key] = pd.DataFrame({
+                    "{}_{}".format(entity.key, 'id'): simulation.entities[entity.key].members_entity_id,
+                    "{}_{}".format(entity.key, 'role'): simulation.entities[entity.key].members_legacy_role,
+                    "{}_{}".format(entity.key, 'position'): simulation.entities[entity.key].members_position,
+
+                    })
         return openfisca_data_frame_by_entity_key
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
