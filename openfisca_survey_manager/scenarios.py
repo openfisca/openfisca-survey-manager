@@ -236,13 +236,18 @@ class AbstractSurveyScenario(object):
             else:
                 non_person_entities.append(entity)
         if index:
+            person_data_frame = openfisca_data_frame_by_entity_key[person_entity.key]
             for entity in non_person_entities:
-                openfisca_data_frame_by_entity_key[person_entity.key] = pd.DataFrame({
-                    "{}_{}".format(entity.key, 'id'): simulation.entities[entity.key].members_entity_id,
-                    "{}_{}".format(entity.key, 'role'): simulation.entities[entity.key].members_legacy_role,
-                    "{}_{}".format(entity.key, 'position'): simulation.entities[entity.key].members_position,
+                person_data_frame[
+                    "{}_{}".format(entity.key, 'id')
+                    ] = simulation.entities[entity.key].members_entity_id
+                person_data_frame[
+                    "{}_{}".format(entity.key, 'role')
+                    ] = simulation.entities[entity.key].members_legacy_role,
+                person_data_frame[
+                    "{}_{}".format(entity.key, 'position')
+                    ] = simulation.entities[entity.key].members_position,
 
-                    })
         return openfisca_data_frame_by_entity_key
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
