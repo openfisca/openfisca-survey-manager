@@ -113,7 +113,7 @@ class AbstractSurveyScenario(object):
         elif aggfunc == 'count':
             return (weight * filter_dummy).sum()
 
-    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
+    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, reference = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
@@ -179,7 +179,7 @@ class AbstractSurveyScenario(object):
                     )
 
         data_frame = self.create_data_frame_by_entity(
-            variables, period = period, reference = True, index = False)[entity_key]
+            variables, period = period, reference = reference, index = False)[entity_key]
 
         if filter_by in data_frame:
             filter_dummy = data_frame[filter_by]
