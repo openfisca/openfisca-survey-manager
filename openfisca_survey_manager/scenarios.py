@@ -180,7 +180,6 @@ class AbstractSurveyScenario(object):
 
         data_frame = self.create_data_frame_by_entity(
             variables, period = period, reference = True, index = False)[entity_key]
-        print data_frame.columns
 
         if filter_by in data_frame:
             filter_dummy = data_frame[filter_by]
@@ -194,7 +193,6 @@ class AbstractSurveyScenario(object):
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
-                print data_frame.columns
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
@@ -255,7 +253,9 @@ class AbstractSurveyScenario(object):
             else:
                 non_person_entities.append(entity)
         if index:
-            person_data_frame = openfisca_data_frame_by_entity_key[person_entity.key]
+            person_data_frame = openfisca_data_frame_by_entity_key.get(person_entity.key)
+            if person_data_frame is None:
+                person_data_frame = pd.DataFrame()
             for entity in non_person_entities:
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
