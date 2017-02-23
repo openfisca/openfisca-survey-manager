@@ -218,7 +218,7 @@ class AbstractSurveyScenario(object):
                 .fillna(missing_variable_default_value)
                 )
 
-    def create_data_frame_by_entity(self, variables = None, index = True, period = None, reference = False):
+    def create_data_frame_by_entity(self, variables = None, index = False, period = None, reference = False):
         assert variables is not None or index
         tax_benefit_system = self.tax_benefit_system
 
