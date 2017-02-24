@@ -117,6 +117,8 @@ class AbstractSurveyScenario(object):
             period = None, reference = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
+        assert difference != reference, "Can't have difference and reference both set to True"
+
         tax_benefit_system = self.tax_benefit_system
 
         if isinstance(columns, str):
@@ -145,19 +147,6 @@ class AbstractSurveyScenario(object):
         if filter_by is None and self.filtering_variable_by_entity is not None:
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
-        if difference:
-            return (
-                self.compute_pivot_table(
-                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = False, values = values,
-                    missing_variable_default_value = missing_variable_default_value
-                    ) -
-                self.compute_pivot_table(
-                    aggfunc = aggfunc, columns = columns, filter_by = filter_by, index = index,
-                    period = period, reference = True, values = values,
-                    missing_variable_default_value = missing_variable_default_value)
-                )
-
         variables = set(index + values + columns)
         # Select the entity weight corresponding to the variables that will provide values
         if self.weight_column_name_by_entity is not None:
@@ -178,11 +167,31 @@ class AbstractSurveyScenario(object):
                     entity_key,
                     )
 
-        data_frame = self.create_data_frame_by_entity(
-            variables, period = period, reference = reference, index = False)[entity_key]
-
+        if difference:
+            data_frame = (
+                self.create_data_frame_by_entity(
+                    values, period = period, reference = False, index = False)[entity_key] -
+                self.create_data_frame_by_entity(
+                    values, period = period, reference = True, index = False)[entity_key]
+                )
+            additionnal_variables = []
+            if filter_by is not None:
+                additionnal_variables.append(filter_by)
+            if weight is not None:
+                additionnal_variables.append(weight)
+            reference_variables = set(index + columns + additionnal_variables)
+            data_frame = pd.concat(
+                [
+                    self.create_data_frame_by_entity(
+                        variables = reference_variables, period = period, reference = True, index = False
+                        )[entity_key],
+                    data_frame,
+                    ],
+                axis = 1,
+                )
         if filter_by in data_frame:
             filter_dummy = data_frame[filter_by]
+
         if weight is None:
             weight = 'weight'
             data_frame[weight] = 1.0
@@ -193,6 +202,7 @@ class AbstractSurveyScenario(object):
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
+                data_frame[value].fillna(missing_variable_default_value)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
@@ -202,7 +212,7 @@ class AbstractSurveyScenario(object):
                 elif aggfunc == 'count':
                     result = pivot_mass
 
-                data_frame_by_value[value] = result.fillna(missing_variable_default_value)
+                data_frame_by_value[value] = result
 
             if len(data_frame_by_value.keys()) > 1:
                 return data_frame_by_value
@@ -213,7 +223,6 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return (data_frame
                 .pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
-                .fillna(missing_variable_default_value)
                 )
 
     def create_data_frame_by_entity(self, variables = None, index = False, period = None, reference = False):
