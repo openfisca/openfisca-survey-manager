@@ -6,6 +6,7 @@ import humanize
 import logging
 import numpy as np
 import pandas as pd
+import re
 
 
 from openfisca_core import formulas, periods, simulations
@@ -225,9 +226,40 @@ class AbstractSurveyScenario(object):
                 .pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 )
 
-    def create_data_frame_by_entity(self, variables = None, index = False, period = None, reference = False):
-        assert variables is not None or index
-        tax_benefit_system = self.tax_benefit_system
+    def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
+            period = None, reference = False, merge = False):
+        assert variables or index or expressions or filter_by
+        if merge:
+            index = True
+        if expressions is None:
+            expressions = []
+
+        if filter_by is not None:
+            if filter_by in self.tax_benefit_system.column_by_name.keys():
+                variables.append(filter_by)
+                filter_entity_key = self.tax_benefit_system.column_by_name.get(filter_by).entity.key
+            else:
+                filter_entity_key = assert_variables_in_same_entity(self, get_words(filter_by))
+                expressions.append(filter_by)
+
+        expressions_by_entity_key = dict()
+        for expression in expressions:
+            expression_variables = get_words(expression)
+            entity_key = assert_variables_in_same_entity(self, expression_variables)
+            if entity_key in expressions_by_entity_key:
+                expressions_by_entity_key[entity_key].append(expression)
+            else:
+                expressions_by_entity_key[entity_key] = [expression]
+            variables += expression_variables
+
+        variables = set(variables)
+        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
+        if missing_variables:
+            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
+        columns_to_fetch = [
+            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
+            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
+            ]
 
         if reference:
             simulation = self.reference_simulation
@@ -236,16 +268,10 @@ class AbstractSurveyScenario(object):
 
         assert simulation is not None
 
-        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
-        if missing_variables:
-            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
-        columns_to_fetch = [
-            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
-            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
-            ]
         openfisca_data_frame_by_entity_key = dict()
         non_person_entities = list()
-        for entity in tax_benefit_system.entities:
+
+        for entity in self.tax_benefit_system.entities:
             entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
@@ -271,12 +297,36 @@ class AbstractSurveyScenario(object):
                     ] = simulation.entities[entity.key].members_entity_id
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.entities[entity.key].members_legacy_role,
+                    ] = simulation.entities[entity.key].members_legacy_role
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
-                    ] = simulation.entities[entity.key].members_position,
+                    ] = simulation.entities[entity.key].members_position
 
-        return openfisca_data_frame_by_entity_key
+        for entity_key, expressions in expressions_by_entity_key.iteritems():
+            data_frame = openfisca_data_frame_by_entity_key[entity_key]
+            for expression in expressions:
+                data_frame[expression] = data_frame.eval(expression)
+
+        if filter_by is not None:
+            openfisca_data_frame_by_entity_key[filter_entity_key] = (
+                openfisca_data_frame_by_entity_key[filter_entity_key].loc[
+                    openfisca_data_frame_by_entity_key[filter_entity_key][filter_by]
+                    ].copy()
+                )
+
+        if not merge:
+            return openfisca_data_frame_by_entity_key
+        else:
+            for entity_key, openfisca_data_frame in openfisca_data_frame_by_entity_key.iteritems():
+                if entity_key != person_entity.key:
+                    openfisca_data_frame.index.name = '{}_id'.format(entity_key)
+                    if len(openfisca_data_frame.reset_index()) > 0:
+                        person_data_frame = person_data_frame.merge(
+                            openfisca_data_frame.reset_index(),
+                            left_on = '{}_id'.format(entity_key),
+                            right_on = '{}_id'.format(entity_key),
+                            )
+            return person_data_frame
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
         pass
@@ -748,3 +798,22 @@ def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None,
                 array.size,
                 entity.count)
             holder.array = np.array(array, dtype = holder.column.dtype)
+
+
+# Helpers
+
+def get_words(text):
+    return re.compile('[A-Za-z_]+').findall(text)
+
+
+def assert_variables_in_same_entity(self, variables):
+    entity = None
+    for variable_name in variables:
+        variable = self.tax_benefit_system.column_by_name.get(variable_name)
+        assert variable
+        if entity is None:
+            entity = variable.entity
+        assert variable.entity == entity, "{} are not from the same entity: {} doesn't belong to {}".format(
+            variables, variable_name, entity.key)
+    return entity.key
+
