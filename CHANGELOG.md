@@ -1,8 +1,14 @@
+
 # Changelog
+
+## 0.8.7
+
+* Improve `create_entity_by_dataframe` by adding `expressions` and `merge` options and
+enhancing `filter_by`
 
 ## 0.8.4
 
-* Fix summarize variable when dealing with neutralized variables
+* Fix `summarize_variable` when dealing with neutralized variables
 
 ## 0.8.3
 
