@@ -806,10 +806,10 @@ def get_words(text):
     return re.compile('[A-Za-z_]+').findall(text)
 
 
-def assert_variables_in_same_entity(self, variables):
+def assert_variables_in_same_entity(survey_scenario, variables):
     entity = None
     for variable_name in variables:
-        variable = self.tax_benefit_system.column_by_name.get(variable_name)
+        variable = survey_scenario.tax_benefit_system.column_by_name.get(variable_name)
         assert variable
         if entity is None:
             entity = variable.entity
@@ -817,3 +817,14 @@ def assert_variables_in_same_entity(self, variables):
             variables, variable_name, entity.key)
     return entity.key
 
+
+def get_entity(survey_scenario, variable):
+    variable_ = survey_scenario.tax_benefit_system.column_by_name.get(variable)
+    assert variable_, 'Variable {} is not part of the tax-benefit-system'.format(variable)
+    return variable_.entity
+
+
+def get_weights(survey_scenario, variable):
+    entity = get_entity(survey_scenario, variable)
+    weight_variable = survey_scenario.weight_column_name_by_entity.get(entity.key)
+    return weight_variable
