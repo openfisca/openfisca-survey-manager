@@ -252,8 +252,6 @@ class AbstractSurveyScenario(object):
                 expressions_by_entity_key[entity_key] = [expression]
             variables += expression_variables
 
-        if variables is not None:
-            assert isinstance(variables, list)
         variables = set(variables)
         missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
         if missing_variables:
@@ -262,7 +260,7 @@ class AbstractSurveyScenario(object):
             self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
             if self.tax_benefit_system.column_by_name.get(variable_name) is not None
             ]
-        assert len(columns_to_fetch) > 1, "None of the requested variables {} are in the tax-benefit-system".format(variables)
+        assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system".format(variables)
 
         if reference:
             simulation = self.reference_simulation
