@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.8.8
+
+* Improve handling of difference option in `create_entity_by_dataframe`
+
 ## 0.8.7
 
 * Improve `create_entity_by_dataframe` by adding `expressions` and `merge` options and
