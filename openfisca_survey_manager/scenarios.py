@@ -222,22 +222,25 @@ class AbstractSurveyScenario(object):
 
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
-            return (data_frame
-                .pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
-                )
+            return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
-            period = None, reference = False, merge = False):
+            period = None, reference = False, merge = False, ignore_missing_variables = False):
+
+        simulation = self.reference_simulation if reference else self.simulation
+        tax_benefit_system = self.reference_tax_benefit_system if reference else self.tax_benefit_system
+
         assert variables or index or expressions or filter_by
+
         if merge:
             index = True
         if expressions is None:
             expressions = []
 
         if filter_by is not None:
-            if filter_by in self.tax_benefit_system.column_by_name.keys():
+            if filter_by in tax_benefit_system.column_by_name.keys():
                 variables.append(filter_by)
-                filter_entity_key = self.tax_benefit_system.column_by_name.get(filter_by).entity.key
+                filter_entity_key = tax_benefit_system.column_by_name.get(filter_by).entity.key
             else:
                 filter_entity_key = assert_variables_in_same_entity(self, get_words(filter_by))
                 expressions.append(filter_by)
@@ -253,26 +256,25 @@ class AbstractSurveyScenario(object):
             variables += expression_variables
 
         variables = set(variables)
-        missing_variables = set(variables).difference(set(self.tax_benefit_system.column_by_name.keys()))
+
+
+        missing_variables = set(variables).difference(set(self.reference_tax_benefit_system.column_by_name.keys()))
         if missing_variables:
             log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
         columns_to_fetch = [
-            self.tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
-            if self.tax_benefit_system.column_by_name.get(variable_name) is not None
+            tax_benefit_system.column_by_name.get(variable_name) for variable_name in variables
+            if tax_benefit_system.column_by_name.get(variable_name) is not None
             ]
-        assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system".format(variables)
 
-        if reference:
-            simulation = self.reference_simulation
-        else:
-            simulation = self.simulation
+        assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system".format(
+            variables)
 
         assert simulation is not None
 
         openfisca_data_frame_by_entity_key = dict()
         non_person_entities = list()
 
-        for entity in self.tax_benefit_system.entities:
+        for entity in tax_benefit_system.entities:
             entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
