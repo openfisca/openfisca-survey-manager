@@ -257,7 +257,6 @@ class AbstractSurveyScenario(object):
 
         variables = set(variables)
 
-
         missing_variables = set(variables).difference(set(self.reference_tax_benefit_system.column_by_name.keys()))
         if missing_variables:
             log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
