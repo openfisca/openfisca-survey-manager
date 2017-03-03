@@ -394,13 +394,20 @@ class AbstractSurveyScenario(object):
             if not entity.is_person]
 
         log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
+
+        unknown_columns = []
         for column_name in input_data_frame:
             if column_name in id_variables + role_variables:
                 continue
             if column_name not in column_by_name:
-                log.info('Unknown column "{}" in survey, dropped from input table'.format(column_name))
+                unknown_columns.append(column_name)
                 input_data_frame.drop(column_name, axis = 1, inplace = True)
 
+        if unknown_columns:
+            log.info('The following unknown columns {}, are dropped from input table'.format(unknown_columns))
+
+        used_columns = []
+        dropped_columns = []
         for column_name in input_data_frame:
             if column_name in id_variables + role_variables:
                 continue
@@ -412,15 +419,22 @@ class AbstractSurveyScenario(object):
             # Keeping the calculated variables that are initialized by the input data
             if function is not None:
                 if column_name in used_as_input_variables:
-                    log.info(
-                        'Column "{}" not dropped because present in used_as_input_variables'.format(column_name))
+                    used_columns.append(column_name)
                     continue
 
-                log.info('Column "{}" in survey set to be calculated, dropped from input table'.format(column_name))
+                dropped_columns.append(column_name)
                 input_data_frame.drop(column_name, axis = 1, inplace = True)
                 #
             #
         #
+        if used_columns:
+            log.info(
+                'These columns are not dropped because present in used_as_input_variables: {}'.format(used_columns))
+        if dropped_columns:
+            log.info(
+                'These columns in survey are set to be calculated, we drop them from the input table'.format(
+                    dropped_columns))
+
         log.info('Keeping the following variables in the input_data_frame: \n {}'.format(input_data_frame.columns))
         return input_data_frame
 
