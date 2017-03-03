@@ -404,7 +404,8 @@ class AbstractSurveyScenario(object):
                 input_data_frame.drop(column_name, axis = 1, inplace = True)
 
         if unknown_columns:
-            log.info('The following unknown columns {}, are dropped from input table'.format(unknown_columns))
+            log.info('The following unknown columns {}, are dropped from input table'.format(
+                sorted(unknown_columns)))
 
         used_columns = []
         dropped_columns = []
@@ -429,13 +430,15 @@ class AbstractSurveyScenario(object):
         #
         if used_columns:
             log.info(
-                'These columns are not dropped because present in used_as_input_variables: {}'.format(used_columns))
+                'These columns are not dropped because present in used_as_input_variables:\n {}'.format(
+                    sorted(used_columns)))
         if dropped_columns:
             log.info(
-                'These columns in survey are set to be calculated, we drop them from the input table'.format(
-                    dropped_columns))
+                'These columns in survey are set to be calculated, we drop them from the input table:\n {}'.format(
+                    sorted(dropped_columns)))
 
-        log.info('Keeping the following variables in the input_data_frame: \n {}'.format(input_data_frame.columns))
+        log.info('Keeping the following variables in the input_data_frame:\n {}'.format(
+            sorted(list(input_data_frame.columns))))
         return input_data_frame
 
     def inflate(self, inflator_by_variable = None, target_by_variable = None):
@@ -512,9 +515,12 @@ class AbstractSurveyScenario(object):
         if variables_mismatch:
             log.info(
                 'The following variables used as input variables are not present in the input data frame: \n {}'.format(
-                    variables_mismatch))
-            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
-            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
+                    sorted(variables_mismatch)))
+        if variables_mismatch and verbose:
+            log.info('The following variables are used as input variables: \n {}'.format(
+                sorted(used_as_input_variables)))
+            log.info('The input_data_frame contains the following variables: \n {}'.format(
+                sorted(list(input_data_frame.columns))))
 
         id_variables = [
             id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
