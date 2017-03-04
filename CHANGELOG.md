@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.8.9
+
+* Fix a bug when variables are missing form the tax and benefit system in `create_entity_by_dataframe`
+
 ## 0.8.8
 
 * Improve handling of difference option in `create_entity_by_dataframe`
