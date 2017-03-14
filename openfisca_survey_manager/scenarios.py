@@ -118,7 +118,7 @@ class AbstractSurveyScenario(object):
             period = None, reference = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
-        assert difference != reference, "Can't have difference and reference both set to True"
+        assert not (difference and reference), "Can't have difference and reference both set to True"
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -175,21 +175,26 @@ class AbstractSurveyScenario(object):
                 self.create_data_frame_by_entity(
                     values, period = period, reference = True, index = False)[entity_key]
                 )
-            additionnal_variables = []
-            if filter_by is not None:
-                additionnal_variables.append(filter_by)
-            if weight is not None:
-                additionnal_variables.append(weight)
-            reference_variables = set(index + columns + additionnal_variables)
-            data_frame = pd.concat(
-                [
-                    self.create_data_frame_by_entity(
-                        variables = reference_variables, period = period, reference = True, index = False
-                        )[entity_key],
-                    data_frame,
-                    ],
-                axis = 1,
+        else:
+            data_frame = (
+                self.create_data_frame_by_entity(
+                    values, period = period, reference = reference, index = False)[entity_key]
                 )
+        additionnal_variables = []
+        if filter_by is not None:
+            additionnal_variables.append(filter_by)
+        if weight is not None:
+            additionnal_variables.append(weight)
+        reference_variables = set(index + columns + additionnal_variables)
+        data_frame = pd.concat(
+            [
+                self.create_data_frame_by_entity(
+                    variables = reference_variables, period = period, reference = True, index = False
+                    )[entity_key],
+                data_frame,
+                ],
+            axis = 1,
+            )
         if filter_by in data_frame:
             filter_dummy = data_frame[filter_by]
 
