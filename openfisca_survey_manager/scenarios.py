@@ -352,8 +352,6 @@ class AbstractSurveyScenario(object):
     def fill(self, input_data_frame, simulation, period):
         assert period is not None
         log.info('Initialasing simulation using data_frame for period {}'.format(period))
-
-        log.info("Initialasing {}".format(period))
         if period.unit == 'year':  # 1. year
             self.init_simulation_with_data_frame(
                 input_data_frame = input_data_frame,
@@ -375,12 +373,12 @@ class AbstractSurveyScenario(object):
                 simulation = simulation,
                 )
         else:
-            log.info("Unvalid period {}".format(period))
+            log.info("Invalid period {}".format(period))
             raise
 
     def filter_input_variables(self, input_data_frame = None, simulation = None):
         """
-        Clean the data_frame
+        Filter the input data frame from variables that won't be used or are set to be computed
         """
         assert input_data_frame is not None
         assert simulation is not None
@@ -398,7 +396,7 @@ class AbstractSurveyScenario(object):
             role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
             if not entity.is_person]
 
-        log.info('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
+        log.debug('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
 
         unknown_columns = []
         for column_name in input_data_frame:
@@ -409,7 +407,7 @@ class AbstractSurveyScenario(object):
                 input_data_frame.drop(column_name, axis = 1, inplace = True)
 
         if unknown_columns:
-            log.info('The following unknown columns {}, are dropped from input table'.format(
+            log.debug('The following unknown columns {}, are dropped from input table'.format(
                 sorted(unknown_columns)))
 
         used_columns = []
@@ -434,11 +432,11 @@ class AbstractSurveyScenario(object):
             #
         #
         if used_columns:
-            log.info(
+            log.debug(
                 'These columns are not dropped because present in used_as_input_variables:\n {}'.format(
                     sorted(used_columns)))
         if dropped_columns:
-            log.info(
+            log.debug(
                 'These columns in survey are set to be calculated, we drop them from the input table:\n {}'.format(
                     sorted(dropped_columns)))
 
@@ -504,8 +502,7 @@ class AbstractSurveyScenario(object):
         #
         return self
 
-    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None,
-            verbose = False):
+    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None):
         """
         Initialize the simulation period with current input_data_frame
         """
@@ -521,10 +518,10 @@ class AbstractSurveyScenario(object):
             log.info(
                 'The following variables used as input variables are not present in the input data frame: \n {}'.format(
                     sorted(variables_mismatch)))
-        if variables_mismatch and verbose:
-            log.info('The following variables are used as input variables: \n {}'.format(
+        if variables_mismatch:
+            log.debug('The following variables are used as input variables: \n {}'.format(
                 sorted(used_as_input_variables)))
-            log.info('The input_data_frame contains the following variables: \n {}'.format(
+            log.debug('The input_data_frame contains the following variables: \n {}'.format(
                 sorted(list(input_data_frame.columns))))
 
         id_variables = [
@@ -562,18 +559,17 @@ class AbstractSurveyScenario(object):
                 continue
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
-            if verbose and (column_serie.values.dtype != holder.column.dtype):
-                log.info(
+            if column_serie.values.dtype != holder.column.dtype:
+                log.debug(
                     'Converting {} from dtype {} to {}'.format(
                         column_name, column_serie.values.dtype, holder.column.dtype)
                     )
             if np.issubdtype(column_serie.values.dtype, np.float):
                 if column_serie.isnull().any():
-                    if verbose:
-                        log.info('There are {} NaN values for {} non NaN values in variable {}'.format(
-                            column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
-                        log.info('We convert these NaN values of variable {} to {} its default value'.format(
-                            column_name, holder.column.default))
+                    log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
+                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
+                    log.debug('We convert these NaN values of variable {} to {} its default value'.format(
+                        column_name, holder.column.default))
                     input_data_frame.loc[column_serie.isnull(), column_name] = holder.column.default
                 assert input_data_frame[column_name].notnull().all(), \
                     'There are {} NaN values for {} non NaN values in variable {}'.format(
@@ -647,7 +643,8 @@ class AbstractSurveyScenario(object):
         survey_collection = SurveyCollection.load(collection = self.collection)
         survey = survey or "{}_{}".format(self.input_data_survey_prefix, self.year)
         survey_ = survey_collection.get_survey(survey)
-        return survey_.get_values(table = table, variables = variables)  # .reset_index(drop = True)
+        log.info("Loading table {} in survey {} from collection {}".format(table, survey, collection))
+        return survey_.get_values(table = table, variables = variables)
 
     def memory_usage(self, reference = False):
         if reference:
@@ -811,7 +808,7 @@ def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None,
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
             if column_serie.values.dtype != holder.column.dtype:
-                log.info(
+                log.debug(
                     'Converting {} from dtype {} to {}'.format(
                         column_name, column_serie.values.dtype, holder.column.dtype)
                     )
