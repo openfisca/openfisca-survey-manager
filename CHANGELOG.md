@@ -1,10 +1,14 @@
 
 # Changelog
 
+## 0.8.11
+
+* Decrease logs verbosity by starting using the DEBUG level more often
+
 ## 0.8.10
 
 * Fix a bug in `compute_pivot_table` which was no more able to compute non-difference pivot-table
-o
+
 ## 0.8.9
 
 * Fix a bug when variables are missing form the tax and benefit system in `create_entity_by_dataframe`
