@@ -590,7 +590,7 @@ class AbstractSurveyScenario(object):
     # def input_data_frame(self):
     #     return self.input_data_frame_by_entity.get(period = periods.period(self.year))
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, survey = None):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
         if self.reference_tax_benefit_system is not None and reference:
@@ -619,11 +619,11 @@ class AbstractSurveyScenario(object):
             input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
             self.fill(input_data_frame, simulation, period)
-        # Case 2: fill simulation with a unique input_data_frame containing all entity variables
+        # Case 2: fill simulation with input_data_frame by period containing all entity variables
         elif self.input_data_table_by_period is not None:
             for period, table in self.input_data_table_by_period.iteritems():
                 period = periods.period(period)
-                input_data_frame = self.load_table(table = table)
+                input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
                 self.fill(input_data_frame, simulation, period)
         #
