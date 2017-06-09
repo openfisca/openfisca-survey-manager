@@ -209,7 +209,8 @@ Fix the option output_directory in the collections section of your config file."
              A DataFrame containing the variables
         """
         assert self.hdf5_file_path is not None
-        assert os.path.exists(self.hdf5_file_path)
+        assert os.path.exists(self.hdf5_file_path), '{} is not a valid path'.format(
+            self.hdf5_file_path) 
         store = pandas.HDFStore(self.hdf5_file_path)
 
         try:
