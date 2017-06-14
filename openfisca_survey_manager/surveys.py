@@ -110,7 +110,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             config = survey.survey_collection.config
             directory_path = config.get("data", "output_directory")
             assert os.path.isdir(directory_path), """{} who should be the HDF5 data directory does not exist.
-Fix the option output_directory in the collections section of your config file.""".format(directory_path)
+Fix the option output_directory in the data section of your config file.""".format(directory_path)
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
