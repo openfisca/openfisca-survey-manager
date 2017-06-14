@@ -203,16 +203,16 @@ class AbstractSurveyScenario(object):
             data_frame[weight] = 1.0
 
         data_frame[weight] = data_frame[weight] * filter_dummy
-
+        
         if values:
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
                 data_frame[value].fillna(missing_variable_default_value)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
-                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
+                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')                
                 if aggfunc == 'mean':
-                    result = (pivot_sum / pivot_mass)
+                    result = (pivot_sum / pivot_mass.loc[weight])
                 elif aggfunc == 'sum':
                     result = pivot_sum
                 elif aggfunc == 'count':
