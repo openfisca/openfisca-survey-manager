@@ -1,6 +1,9 @@
 
 # Changelog
 
+
+## 0.8.12
+* Fix a bug resulting from pandas [v0.20 pivot_table fix](https://github.com/pandas-dev/pandas/pull/13554)
 ## 0.8.11
 
 * Decrease logs verbosity by starting using the DEBUG level more often
