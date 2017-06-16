@@ -76,8 +76,13 @@ Contains the following surveys :
         config.set("collections", self.name, self.json_file_path)
         config.save()
 
-        with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
-            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
+        try:
+            with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
+                json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
+        except UnicodeDecodeError as e:
+            with open(self.json_file_path, 'w') as _file:
+                json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
+            # raise(e)
 
     def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
         if source_format is not None:

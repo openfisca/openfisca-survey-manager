@@ -132,8 +132,6 @@ class Table(object):
         overwrite = kwargs.pop('overwrite')
         clean = kwargs.pop("clean")
 
-        # if source_format == 'stata':
-        #     kwargs[]
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
@@ -143,9 +141,9 @@ class Table(object):
             try:
                 try:
                     data_frame = reader(data_file, **kwargs)
-                except ValueError as e:
-                    log.info('Error while reading {}'.format(data_file))
-                    raise e
+                except ValueError as ee:
+                    log.info('Error while reading {}: {}'.format(data_file, ee))
+                    # raise ee
                 gc.collect()
                 if clean:
                     utils.clean_data_frame(data_frame)
@@ -153,7 +151,7 @@ class Table(object):
                 log.info("File {} has been processed in {}".format(
                     data_file, datetime.datetime.now() - start_table_time))
             except ValueError as e:
-                raise e
+                # raise e
                 log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
 
     def save_data_frame(self, data_frame):
