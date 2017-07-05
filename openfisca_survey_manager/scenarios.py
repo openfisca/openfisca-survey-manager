@@ -232,8 +232,8 @@ class AbstractSurveyScenario(object):
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, reference = False, merge = False, ignore_missing_variables = False):
 
-        simulation = self.reference_simulation if reference else self.simulation
-        tax_benefit_system = self.reference_tax_benefit_system if reference else self.tax_benefit_system
+        simulation = self.reference_simulation if (reference and self.reference_simulation) else self.simulation
+        tax_benefit_system = self.reference_tax_benefit_system if (reference and self.reference_tax_benefit_system) else self.tax_benefit_system
 
         assert variables or index or expressions or filter_by
 
