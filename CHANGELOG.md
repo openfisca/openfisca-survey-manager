@@ -1,6 +1,8 @@
 
 # Changelog
 
+## 0.8.13
+* Fix a bug in `create_data_frame_by_entity`
 
 ## 0.8.12
 * Fix a bug resulting from pandas [v0.20 pivot_table fix](https://github.com/pandas-dev/pandas/pull/13554)
