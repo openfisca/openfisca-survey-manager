@@ -210,7 +210,7 @@ Fix the option output_directory in the data section of your config file.""".form
         """
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path), '{} is not a valid path'.format(
-            self.hdf5_file_path) 
+            self.hdf5_file_path)
         store = pandas.HDFStore(self.hdf5_file_path)
 
         try:

@@ -119,6 +119,7 @@ class AbstractSurveyScenario(object):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and reference), "Can't have difference and reference both set to True"
+        assert period is not None
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -154,6 +155,7 @@ class AbstractSurveyScenario(object):
             weight = self.weight_column_name_by_entity[entity_key]
             variables.add(weight)
         else:
+            log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
         if filter_by is not None:
@@ -203,14 +205,14 @@ class AbstractSurveyScenario(object):
             data_frame[weight] = 1.0
 
         data_frame[weight] = data_frame[weight] * filter_dummy
-        
+
         if values:
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
                 data_frame[value].fillna(missing_variable_default_value)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
-                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')                
+                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
                     result = (pivot_sum / pivot_mass.loc[weight])
                 elif aggfunc == 'sum':
@@ -232,8 +234,13 @@ class AbstractSurveyScenario(object):
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, reference = False, merge = False, ignore_missing_variables = False):
 
-        simulation = self.reference_simulation if reference else self.simulation
-        tax_benefit_system = self.reference_tax_benefit_system if reference else self.tax_benefit_system
+        simulation = self.reference_simulation \
+            if (reference and (self.reference_simulation is not None)) else self.simulation
+        tax_benefit_system = self.reference_tax_benefit_system \
+            if (reference and (self.reference_tax_benefit_system is not None)) else self.tax_benefit_system
+
+        assert simulation is not None
+        assert tax_benefit_system is not None
 
         assert variables or index or expressions or filter_by
 
@@ -416,12 +423,10 @@ class AbstractSurveyScenario(object):
             if column_name in id_variables + role_variables:
                 continue
             column = column_by_name[column_name]
-            formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
+            if column.is_input_variable():
                 continue
-            function = formula_class.function
             # Keeping the calculated variables that are initialized by the input data
-            if function is not None:
+            else:
                 if column_name in used_as_input_variables:
                     used_columns.append(column_name)
                     continue
@@ -675,11 +680,7 @@ class AbstractSurveyScenario(object):
         Neutralizing input variables not present in the input_data_frame and keep some crucial variables
         """
         for column_name, column in tax_benefit_system.column_by_name.items():
-            formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
-                continue
-            function = formula_class.function
-            if function is not None:
+            if column.is_input_variable():
                 continue
             if column_name in self.used_as_input_variables:
                 continue
@@ -688,7 +689,7 @@ class AbstractSurveyScenario(object):
             if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
                 continue
 
-            tax_benefit_system.neutralize_column(column_name)
+            tax_benefit_system.neutralize_variable(column_name)
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
