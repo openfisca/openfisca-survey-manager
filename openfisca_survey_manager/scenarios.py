@@ -9,7 +9,7 @@ import pandas as pd
 import re
 
 
-from openfisca_core import formulas, periods, simulations
+from openfisca_core import periods, simulations
 try:
     from openfisca_core.tools.memory import get_memory_usage
 except ImportError:
@@ -677,19 +677,22 @@ class AbstractSurveyScenario(object):
 
     def neutralize_variables(self, tax_benefit_system):
         """
-        Neutralizing input variables not present in the input_data_frame and keep some crucial variables
+        Neutralizing input variables not in input dataframe and keep some crucial variables
         """
-        for column_name, column in tax_benefit_system.column_by_name.items():
-            if column.is_input_variable():
-                continue
-            if column_name in self.used_as_input_variables:
-                continue
-            if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
-                continue
-            if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
-                continue
+        if self.used_as_input_variables is None or self.used_as_input_variables == []:
+            pass
+        else:
+            for column_name, column in tax_benefit_system.column_by_name.items():
+                if not column.is_input_variable():
+                    continue
+                if column_name in self.used_as_input_variables:
+                    continue
+                if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
+                    continue
+                if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
+                    continue
 
-            tax_benefit_system.neutralize_variable(column_name)
+                tax_benefit_system.neutralize_variable(column_name)
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
