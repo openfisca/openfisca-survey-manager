@@ -449,8 +449,9 @@ class AbstractSurveyScenario(object):
             sorted(list(input_data_frame.columns))))
         return input_data_frame
 
-    def inflate(self, inflator_by_variable = None, target_by_variable = None):
+    def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
+        assert period is not None
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
         target_by_variable = dict() if target_by_variable is None else target_by_variable
         self.inflator_by_variable = inflator_by_variable
@@ -472,15 +473,16 @@ class AbstractSurveyScenario(object):
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
-                            variable = column_name, reference = reference)
+                            variable = column_name, reference = reference, period = period)
                     log.info('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
                     assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
-                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name))
-                        )
+                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(
+                            variable = column_name, period = period)
+                        ))
                     inflator = inflator_by_variable[column_name]
 
                 holder.array = inflator * holder.array
