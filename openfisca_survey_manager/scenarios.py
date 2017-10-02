@@ -484,8 +484,8 @@ class AbstractSurveyScenario(object):
                             variable = column_name, period = period)
                         ))
                     inflator = inflator_by_variable[column_name]
-
-                holder.array = inflator * holder.array
+                if holder.array is not None:
+                    holder.array = inflator * holder.array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
 
