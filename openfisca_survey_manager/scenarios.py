@@ -9,7 +9,7 @@ import pandas as pd
 import re
 
 
-from openfisca_core import formulas, periods, simulations
+from openfisca_core import periods, simulations
 try:
     from openfisca_core.tools.memory import get_memory_usage
 except ImportError:
@@ -119,6 +119,7 @@ class AbstractSurveyScenario(object):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and reference), "Can't have difference and reference both set to True"
+        assert period is not None
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -154,6 +155,7 @@ class AbstractSurveyScenario(object):
             weight = self.weight_column_name_by_entity[entity_key]
             variables.add(weight)
         else:
+            log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
         if filter_by is not None:
@@ -203,14 +205,14 @@ class AbstractSurveyScenario(object):
             data_frame[weight] = 1.0
 
         data_frame[weight] = data_frame[weight] * filter_dummy
-        
+
         if values:
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
                 data_frame[value].fillna(missing_variable_default_value)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
-                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')                
+                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
                     result = (pivot_sum / pivot_mass.loc[weight])
                 elif aggfunc == 'sum':
@@ -232,8 +234,13 @@ class AbstractSurveyScenario(object):
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, reference = False, merge = False, ignore_missing_variables = False):
 
-        simulation = self.reference_simulation if reference else self.simulation
-        tax_benefit_system = self.reference_tax_benefit_system if reference else self.tax_benefit_system
+        simulation = self.reference_simulation \
+            if (reference and (self.reference_simulation is not None)) else self.simulation
+        tax_benefit_system = self.reference_tax_benefit_system \
+            if (reference and (self.reference_tax_benefit_system is not None)) else self.tax_benefit_system
+
+        assert simulation is not None
+        assert tax_benefit_system is not None
 
         assert variables or index or expressions or filter_by
 
@@ -416,12 +423,10 @@ class AbstractSurveyScenario(object):
             if column_name in id_variables + role_variables:
                 continue
             column = column_by_name[column_name]
-            formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
+            if column.is_input_variable():
                 continue
-            function = formula_class.function
             # Keeping the calculated variables that are initialized by the input data
-            if function is not None:
+            else:
                 if column_name in used_as_input_variables:
                     used_columns.append(column_name)
                     continue
@@ -444,18 +449,20 @@ class AbstractSurveyScenario(object):
             sorted(list(input_data_frame.columns))))
         return input_data_frame
 
-    def inflate(self, inflator_by_variable = None, target_by_variable = None):
+    def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
+        assert period is not None
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
         target_by_variable = dict() if target_by_variable is None else target_by_variable
         self.inflator_by_variable = inflator_by_variable
         self.target_by_variable = target_by_variable
 
-        assert self.simulation is not None
         for reference in [False, True]:
             if reference is True:
+                assert self.reference_simulation is not None
                 simulation = self.reference_simulation
             else:
+                assert self.simulation is not None
                 simulation = self.simulation
             if simulation is None:
                 continue
@@ -467,17 +474,19 @@ class AbstractSurveyScenario(object):
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
-                            variable = column_name, reference = reference)
+                            variable = column_name, reference = reference, period = period)
                     log.info('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
                     assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
-                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name))
-                        )
+                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(
+                            variable = column_name, reference = reference, period = period)
+                        ))
                     inflator = inflator_by_variable[column_name]
-
+                
+                assert holder.array is not None
                 holder.array = inflator * holder.array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
@@ -672,23 +681,22 @@ class AbstractSurveyScenario(object):
 
     def neutralize_variables(self, tax_benefit_system):
         """
-        Neutralizing input variables not present in the input_data_frame and keep some crucial variables
+        Neutralizing input variables not in input dataframe and keep some crucial variables
         """
-        for column_name, column in tax_benefit_system.column_by_name.items():
-            formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
-                continue
-            function = formula_class.function
-            if function is not None:
-                continue
-            if column_name in self.used_as_input_variables:
-                continue
-            if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
-                continue
-            if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
-                continue
+        if self.used_as_input_variables is None or self.used_as_input_variables == []:
+            pass
+        else:
+            for column_name, column in tax_benefit_system.column_by_name.items():
+                if not column.is_input_variable():
+                    continue
+                if column_name in self.used_as_input_variables:
+                    continue
+                if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
+                    continue
+                if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
+                    continue
 
-            tax_benefit_system.neutralize_column(column_name)
+                tax_benefit_system.neutralize_variable(column_name)
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
