@@ -457,11 +457,12 @@ class AbstractSurveyScenario(object):
         self.inflator_by_variable = inflator_by_variable
         self.target_by_variable = target_by_variable
 
-        assert self.simulation is not None
         for reference in [False, True]:
             if reference is True:
+                assert self.reference_simulation is not None
                 simulation = self.reference_simulation
             else:
+                assert self.simulation is not None
                 simulation = self.simulation
             if simulation is None:
                 continue
@@ -481,11 +482,12 @@ class AbstractSurveyScenario(object):
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
                         column_name, inflator_by_variable[column_name] * self.compute_aggregate(
-                            variable = column_name, period = period)
+                            variable = column_name, reference = reference, period = period)
                         ))
                     inflator = inflator_by_variable[column_name]
-                if holder.array is not None:
-                    holder.array = inflator * holder.array
+                
+                assert holder.array is not None
+                holder.array = inflator * holder.array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
 
