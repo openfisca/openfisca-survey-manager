@@ -3,6 +3,7 @@ output
 
 # ignore tags files
 .tags*
+tags
 
 # Ignore personal tests
 openfisca_survey_manager/tests/test_read_dbf.py
