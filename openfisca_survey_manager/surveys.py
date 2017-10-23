@@ -109,8 +109,11 @@ Contains the following tables : \n""".format(self.name, self.label)
         if survey.hdf5_file_path is None:
             config = survey.survey_collection.config
             directory_path = config.get("data", "output_directory")
-            assert os.path.isdir(directory_path), """{} who should be the HDF5 data directory does not exist.
-Fix the option output_directory in the data section of your config file.""".format(directory_path)
+            if not os.path.isdir(directory_path):
+                print("{} who should be the HDF5 data directory does not exist: we create the directory".format(
+                    directory_path))
+                os.makedirs(directory_path)
+
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
             source_formats = ['stata', 'sas', 'spss', 'Rdata']
@@ -210,7 +213,7 @@ Fix the option output_directory in the data section of your config file.""".form
         """
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path), '{} is not a valid path'.format(
-            self.hdf5_file_path) 
+            self.hdf5_file_path)
         store = pandas.HDFStore(self.hdf5_file_path)
 
         try:
