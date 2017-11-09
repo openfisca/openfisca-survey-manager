@@ -739,7 +739,7 @@ class AbstractSurveyScenario(object):
             if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
                 continue
 
-            tax_benefit_system.neutralize_column(column_name)
+            tax_benefit_system.neutralize_variable(column_name)
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
