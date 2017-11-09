@@ -360,7 +360,7 @@ class AbstractSurveyScenario(object):
                 )
         elif period.unit == 'month' and period.size == 3:  # 2. quarter
             for offset in range(period.size):
-                period_item = periods.period('month', period.start.offset(offset, 'month'))
+                period_item = period.first_month.offset(offset, 'month')
                 self.init_simulation_with_data_frame(
                     input_data_frame = input_data_frame,
                     period = period_item,
@@ -626,7 +626,6 @@ class AbstractSurveyScenario(object):
                     ].astype(holder.column.dtype)
             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                 column_name, array.size, entity.count)
-
             holder.set_input(period, np.array(array, dtype = holder.column.dtype))
 
     # @property
