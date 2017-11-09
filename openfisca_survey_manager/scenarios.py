@@ -85,6 +85,8 @@ class AbstractSurveyScenario(object):
             simulation = self.simulation
 
         assert simulation is not None
+        if period is None:
+            period = simulation.period
 
         if filter_by:
             assert filter_by in self.tax_benefit_system.column_by_name, \
