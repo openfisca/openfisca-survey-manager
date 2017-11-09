@@ -10,6 +10,8 @@ import re
 
 
 from openfisca_core import formulas, periods, simulations
+from openfisca_core.periods import MONTH, YEAR
+
 try:
     from openfisca_core.tools.memory import get_memory_usage
 except ImportError:
@@ -352,21 +354,21 @@ class AbstractSurveyScenario(object):
     def fill(self, input_data_frame, simulation, period):
         assert period is not None
         log.info('Initialasing simulation using data_frame for period {}'.format(period))
-        if period.unit == 'year':  # 1. year
+        if period.unit == YEAR:  # 1. year
             self.init_simulation_with_data_frame(
                 input_data_frame = input_data_frame,
                 period = period,
                 simulation = simulation,
                 )
-        elif period.unit == 'month' and period.size == 3:  # 2. quarter
+        elif period.unit == MONTH and period.size == 3:  # 2. quarter
             for offset in range(period.size):
-                period_item = period.first_month.offset(offset, 'month')
+                period_item = period.first_month.offset(offset, MONTH)
                 self.init_simulation_with_data_frame(
                     input_data_frame = input_data_frame,
                     period = period_item,
                     simulation = simulation,
                     )
-        elif period.unit == 'month' and period.size == 1:  # 3. months
+        elif period.unit == MONTH and period.size == 1:  # 3. months
             self.init_simulation_with_data_frame(
                 input_data_frame = input_data_frame,
                 period = period,
@@ -626,8 +628,15 @@ class AbstractSurveyScenario(object):
                     ].astype(holder.column.dtype)
             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                 column_name, array.size, entity.count)
-            holder.set_input(period, np.array(array, dtype = holder.column.dtype))
-
+            np_array = np.array(array, dtype = holder.column.dtype)
+            if holder.column.definition_period == YEAR and period.unit == MONTH:
+                # Some variables defined for a year are present in month/quarter dataframes
+                # Cleaning the dataframe would probably be better in the long run
+                if holder.get_array(period.this_year) is not None:
+                    assert holder.get_array(period.this_year) == np_array, "Inconsistency: yearly variable {} has already been declared with a different value.".format(column_name)
+                holder.set_input(period.this_year, np_array)
+                return
+            holder.set_input(period, np_array)
     # @property
     # def input_data_frame(self):
     #     return self.input_data_frame_by_entity.get(period = periods.period(self.year))
