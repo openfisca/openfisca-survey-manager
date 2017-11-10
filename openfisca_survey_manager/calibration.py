@@ -51,7 +51,7 @@ class Calibration(object):
         Set simulation
         """
         self.survey_scenario = survey_scenario
-        # TODO deal with reference if reform is present
+        # TODO deal with baseline if reform is present
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
         self.filter_by = filter_by = survey_scenario.simulation.calculate_add(self.filter_by_name)
@@ -166,7 +166,7 @@ class Calibration(object):
         """
         survey_scenario = self.survey_scenario
         assert survey_scenario.simulation is not None
-        for simulation in [survey_scenario.simulation, survey_scenario.reference_simulation]:
+        for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
             if simulation is None:
                 continue
             holder = simulation.get_or_new_holder(self.weight_name)

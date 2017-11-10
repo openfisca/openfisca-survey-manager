@@ -33,8 +33,8 @@ class AbstractSurveyScenario(object):
     legislation_json = None
     non_neutralizable_variables = None
     cache_blacklist = None
-    reference_simulation = None
-    reference_tax_benefit_system = None
+    baseline_simulation = None
+    baseline_tax_benefit_system = None
     role_variable_by_entity_key = None
     simulation = None
     target_by_variable = None  # variable total target to inflate to
@@ -69,7 +69,7 @@ class AbstractSurveyScenario(object):
         calibration.set_calibrated_weights()
         self.calibration = calibration
 
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False,
+    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
                           missing_variable_default_value = np.nan):
         # TODO deal here with filter_by instead of openfisca_france_data ?
         assert aggfunc in ['count', 'mean', 'sum']
@@ -79,8 +79,8 @@ class AbstractSurveyScenario(object):
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
         assert variable is not None
-        if reference:
-            simulation = self.reference_simulation
+        if use_baseline:
+            simulation = self.baseline_simulation
         else:
             simulation = self.simulation
 
@@ -119,10 +119,10 @@ class AbstractSurveyScenario(object):
             return (weight * filter_dummy).sum()
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
-            period = None, reference = False, values = None, missing_variable_default_value = np.nan):
+            period = None, use_baseline = False, values = None, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
-        assert not (difference and reference), "Can't have difference and reference both set to True"
+        assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -175,14 +175,14 @@ class AbstractSurveyScenario(object):
         if difference:
             data_frame = (
                 self.create_data_frame_by_entity(
-                    values, period = period, reference = False, index = False)[entity_key] -
+                    values, period = period, use_baseline = False, index = False)[entity_key] -
                 self.create_data_frame_by_entity(
-                    values, period = period, reference = True, index = False)[entity_key]
+                    values, period = period, use_baseline = True, index = False)[entity_key]
                 )
         else:
             data_frame = (
                 self.create_data_frame_by_entity(
-                    values, period = period, reference = reference, index = False)[entity_key]
+                    values, period = period, use_baseline = use_baseline, index = False)[entity_key]
                 )
         additionnal_variables = []
         if filter_by is not None:
@@ -193,7 +193,7 @@ class AbstractSurveyScenario(object):
         data_frame = pd.concat(
             [
                 self.create_data_frame_by_entity(
-                    variables = reference_variables, period = period, reference = True, index = False
+                    variables = reference_variables, period = period, use_baseline = True, index = False
                     )[entity_key],
                 data_frame,
                 ],
@@ -234,10 +234,10 @@ class AbstractSurveyScenario(object):
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
-            period = None, reference = False, merge = False, ignore_missing_variables = False):
+            period = None, use_baseline = False, merge = False, ignore_missing_variables = False):
 
-        simulation = self.reference_simulation if (reference and self.reference_simulation) else self.simulation
-        tax_benefit_system = self.reference_tax_benefit_system if (reference and self.reference_tax_benefit_system) else self.tax_benefit_system
+        simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
+        tax_benefit_system = self.baseline_tax_benefit_system if (use_baseline and self.baseline_tax_benefit_system) else self.tax_benefit_system
 
         assert variables or index or expressions or filter_by
 
@@ -458,9 +458,9 @@ class AbstractSurveyScenario(object):
         self.target_by_variable = target_by_variable
 
         assert self.simulation is not None
-        for reference in [False, True]:
-            if reference is True:
-                simulation = self.reference_simulation
+        for use_baseline in [False, True]:
+            if use_baseline is True:
+                simulation = self.baseline_simulation
             else:
                 simulation = self.simulation
             if simulation is None:
@@ -473,7 +473,7 @@ class AbstractSurveyScenario(object):
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
-                            variable = column_name, reference = reference)
+                            variable = column_name, use_baseline = use_baseline)
                     log.info('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
@@ -542,8 +542,8 @@ class AbstractSurveyScenario(object):
         #
         input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
         self.new_simulation(survey = input_survey_kwargs.get('input_survey'))
-        if self.reference_tax_benefit_system is not None:
-            self.new_simulation(reference = True, survey = input_survey_kwargs.get('reference_input_survey'))
+        if self.baseline_tax_benefit_system is not None:
+            self.new_simulation(use_baseline = True, survey = input_survey_kwargs.get('baseline_input_survey'))
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
@@ -645,18 +645,18 @@ class AbstractSurveyScenario(object):
     # def input_data_frame(self):
     #     return self.input_data_frame_by_entity.get(period = periods.period(self.year))
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, survey = None):
+    def new_simulation(self, debug = False, debug_all = False, use_baseline = False, trace = False, survey = None):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
-        if self.reference_tax_benefit_system is not None and reference:
-            tax_benefit_system = self.reference_tax_benefit_system
-        elif reference:
+        if self.baseline_tax_benefit_system is not None and use_baseline:
+            tax_benefit_system = self.baseline_tax_benefit_system
+        elif use_baseline:
             while True:
-                reference_tax_benefit_system = tax_benefit_system.reference
-                if isinstance(reference, bool) and reference_tax_benefit_system is None \
-                        or reference_tax_benefit_system == reference:
+                baseline_tax_benefit_system = tax_benefit_system.baseline
+                if isinstance(use_baseline, bool) and baseline_tax_benefit_system is None \
+                        or baseline_tax_benefit_system == use_baseline:
                     break
-                tax_benefit_system = reference_tax_benefit_system
+                tax_benefit_system = baseline_tax_benefit_system
 
         period = periods.period(self.year)
         self.neutralize_variables(tax_benefit_system)
@@ -682,10 +682,10 @@ class AbstractSurveyScenario(object):
                 self.custom_input_data_frame(input_data_frame, period = period)
                 self.fill(input_data_frame, simulation, period)
         #
-        if not reference:
+        if not use_baseline:
             self.simulation = simulation
         else:
-            self.reference_simulation = simulation
+            self.baseline_simulation = simulation
         #
         if 'custom_initialize' in dir(self):
             self.custom_initialize(simulation)
@@ -701,9 +701,9 @@ class AbstractSurveyScenario(object):
         log.info("Loading table {} in survey {} from collection {}".format(table, survey, collection))
         return survey_.get_values(table = table, variables = variables)
 
-    def memory_usage(self, reference = False):
-        if reference:
-            simulation = self.reference_simulation
+    def memory_usage(self, use_baseline = False):
+        if use_baseline:
+            simulation = self.baseline_simulation
         else:
             simulation = self.simulation
 
@@ -745,22 +745,22 @@ class AbstractSurveyScenario(object):
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
 
-    def set_tax_benefit_systems(self, tax_benefit_system = None, reference_tax_benefit_system = None):
+    def set_tax_benefit_systems(self, tax_benefit_system = None, baseline_tax_benefit_system = None):
         """
-        Set the tax and benefit system and eventually the reference atx and benefit system
+        Set the tax and benefit system and eventually the baseline tax and benefit system
         """
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
         if self.cache_blacklist is not None:
             self.tax_benefit_system.cache_blacklist = self.cache_blacklist
-        if reference_tax_benefit_system is not None:
-            self.reference_tax_benefit_system = reference_tax_benefit_system
+        if baseline_tax_benefit_system is not None:
+            self.baseline_tax_benefit_system = baseline_tax_benefit_system
             if self.cache_blacklist is not None:
-                self.reference_tax_benefit_system.cache_blacklist = self.cache_blacklist
+                self.baseline_tax_benefit_system.cache_blacklist = self.cache_blacklist
 
-    def summarize_variable(self, variable = None, reference = False, weighted = False, force_compute = False):
-        if reference:
-            simulation = self.reference_simulation
+    def summarize_variable(self, variable = None, use_baseline = False, weighted = False, force_compute = False):
+        if use_baseline:
+            simulation = self.baseline_simulation
         else:
             simulation = self.simulation
 
@@ -778,7 +778,7 @@ class AbstractSurveyScenario(object):
         if not infos_by_variable:
             if force_compute:
                 simulation.calculate_add(variable)
-                self.summarize_variable(variable = variable, reference = reference, weighted = weighted)
+                self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
                 print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
