@@ -421,11 +421,13 @@ class AbstractSurveyScenario(object):
                 continue
             column = column_by_name[column_name]
             formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
+
+            # The variable has several formulas for different dates
+            # Why don't we do anything in that case ?
+            if len(formula_class.dated_formulas_class) > 1:
                 continue
-            function = formula_class.function
             # Keeping the calculated variables that are initialized by the input data
-            if function is not None:
+            if formula_class.dated_formulas_class:
                 if column_name in used_as_input_variables:
                     used_columns.append(column_name)
                     continue
@@ -729,10 +731,7 @@ class AbstractSurveyScenario(object):
         """
         for column_name, column in tax_benefit_system.column_by_name.items():
             formula_class = column.formula_class
-            if not issubclass(formula_class, formulas.SimpleFormula):
-                continue
-            function = formula_class.function
-            if function is not None:
+            if formula_class.dated_formulas_class:
                 continue
             if column_name in self.used_as_input_variables:
                 continue
