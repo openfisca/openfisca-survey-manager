@@ -44,7 +44,7 @@ class Calibration(object):
         """
         simulation = self.survey_scenario.simulation
         holder = simulation.get_or_new_holder(self.weight_name)
-        holder.array = numpy.array(self.initial_weight, dtype = holder.column.dtype)
+        holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
 
     def _set_survey_scenario(self, survey_scenario):
         """
@@ -126,7 +126,7 @@ class Calibration(object):
         for var in self.margins_by_variable:
             if var == 'total_population':
                 continue
-            assert var in self.survey_scenario.tax_benefit_system.column_by_name.keys()
+            assert var in self.survey_scenario.tax_benefit_system.variables.keys()
             data[var] = self.survey_scenario.simulation.calculate_add(var)
         return data
 
@@ -170,7 +170,7 @@ class Calibration(object):
             if simulation is None:
                 continue
             holder = simulation.get_or_new_holder(self.weight_name)
-            holder.array = numpy.array(self.weight, dtype = holder.column.dtype)
+            holder.array = numpy.array(self.weight, dtype = holder.variable.dtype)
             # TODO: propagation to other weights
 
     def set_target_margins(self, target_margin_by_variable):
@@ -181,9 +181,9 @@ class Calibration(object):
         survey_scenario = self.survey_scenario
         simulation = survey_scenario.simulation
         assert simulation is not None
-        column_by_name = survey_scenario.tax_benefit_system.column_by_name
+        column_by_name = survey_scenario.tax_benefit_system.variables
         assert variable in column_by_name
-        column = survey_scenario.tax_benefit_system.column_by_name[variable]
+        column = survey_scenario.tax_benefit_system.variables[variable]
 
         filter_by = self.filter_by
         target_by_category = None
@@ -204,10 +204,10 @@ class Calibration(object):
         for variable in self.margins_by_variable:
             survey_scenario = self.survey_scenario
             simulation = survey_scenario.simulation
-            column_by_name = survey_scenario.tax_benefit_system.column_by_name
+            column_by_name = survey_scenario.tax_benefit_system.variables
 
             assert variable in column_by_name
-            column = survey_scenario.tax_benefit_system.column_by_name[variable]
+            column = survey_scenario.tax_benefit_system.variables[variable]
             weight = self.weight
             filter_by = self.filter_by
             initial_weight = self.initial_weight

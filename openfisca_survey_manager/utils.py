@@ -101,11 +101,11 @@ def get_data_frame(columns_name, survey_scenario, load_first = False, collection
     simulation = survey_scenario.simulation
     if load_first:
         assert collection is not None
-        entities = [simulation.tax_benefit_system.column_by_name[column_name].entity for column_name in columns_name]
+        entities = [simulation.tax_benefit_system.variables[column_name].entity for column_name in columns_name]
         assert len(set(entities)) == 1
         # entity_symbol = entities[0]
         for entity_key, entity in simulation.entities.iteritems():
-            if columns_name[0] in entity.column_by_name:
+            if columns_name[0] in entity.variables:
                 break
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
         survey_name = "openfisca_data_{}".format(year)
@@ -123,7 +123,7 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
     simulation = survey_scenario.simulation
     data_frame_by_entity = dict()
     for entity in simulation.entity_by_key_plural.itervalues():
-        variables_name = entity.column_by_name.keys()
+        variables_name = entity.variables.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
 
@@ -132,7 +132,7 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
     assert survey_scenario is not None
     assert force_sum is False or entity != 'ind', "force_sum cannot be True when entity is 'ind'"
     simulation = survey_scenario.simulation
-    column_by_name = simulation.tax_benefit_system.column_by_name
+    column_by_name = simulation.tax_benefit_system.variables
     assert set(column_names) <= set(column_by_name), \
         "Variables {} do not exist".format(list(set(column_names) - set(column_by_name)))
     entities = list(set([column_by_name[column_name].entity for column_name in column_names] + [entity]))
