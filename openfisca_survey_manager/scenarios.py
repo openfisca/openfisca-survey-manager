@@ -30,7 +30,6 @@ class AbstractSurveyScenario(object):
     inflator_by_variable = None  # factor used to inflate variable total
     input_data_frame = None
     input_data_table_by_period = None
-    legislation_json = None
     non_neutralizable_variables = None
     cache_blacklist = None
     baseline_simulation = None
@@ -645,7 +644,7 @@ class AbstractSurveyScenario(object):
     # def input_data_frame(self):
     #     return self.input_data_frame_by_entity.get(period = periods.period(self.year))
 
-    def new_simulation(self, debug = False, debug_all = False, use_baseline = False, trace = False, survey = None):
+    def new_simulation(self, debug = False, use_baseline = False, trace = False, survey = None):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
         if self.baseline_tax_benefit_system is not None and use_baseline:
@@ -663,7 +662,6 @@ class AbstractSurveyScenario(object):
 
         simulation = simulations.Simulation(
             debug = debug,
-            debug_all = debug_all,
             opt_out_cache = True if self.cache_blacklist is not None else False,
             period = period,
             tax_benefit_system = tax_benefit_system,
