@@ -635,10 +635,15 @@ class AbstractSurveyScenario(object):
             if holder.variable.definition_period == YEAR and period.unit == MONTH:
                 # Some variables defined for a year are present in month/quarter dataframes
                 # Cleaning the dataframe would probably be better in the long run
+                log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The montly values you provided will be summed.'
+                    .format(column_name).encode('utf-8'))
+
                 if holder.get_array(period.this_year) is not None:
-                    assert holder.get_array(period.this_year) == np_array, "Inconsistency: yearly variable {} has already been declared with a different value.".format(column_name)
-                holder.set_input(period.this_year, np_array)
-                return
+                    sum = holder.get_array(period.this_year) + np_array
+                    holder.put_in_cache(sum, period.this_year)
+                else:
+                    holder.put_in_cache(np_array, period.this_year)
+                continue
             holder.set_input(period, np_array)
     # @property
     # def input_data_frame(self):
