@@ -773,14 +773,14 @@ class AbstractSurveyScenario(object):
 
         if weighted:
             weight_variable = self.weight_column_name_by_entity[column.entity.key]
-            weights = simulation.calculate(weight_variable)
+            weights = simulation.calculate(weight_variable, simulation.period)
 
         default_value = column.default_value
         infos_by_variable = get_memory_usage(simulation, variables = [variable])
 
         if not infos_by_variable:
             if force_compute:
-                simulation.calculate_add(variable)
+                simulation.calculate_add(variable, simulation.period)
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
