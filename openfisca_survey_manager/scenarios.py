@@ -232,11 +232,15 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
+
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False, ignore_missing_variables = False):
 
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (use_baseline and self.baseline_tax_benefit_system) else self.tax_benefit_system
+
+        if period is None:
+            period = simulation.period
 
         assert variables or index or expressions or filter_by
 
@@ -287,9 +291,26 @@ class AbstractSurveyScenario(object):
                 column.name for column in columns_to_fetch
                 if column.entity == entity
                 ]
+
+            column_name_value = dict()
+            for column_name in column_names:
+                if tax_benefit_system.get_variable(column_name).is_period_size_independent is False:
+                    column_name_value[column_name] = simulation.calculate_add(column_name, period = period)
+                elif tax_benefit_system.get_variable(column_name).is_period_size_independent is True and tax_benefit_system.get_variable(column_name).definition_period == u'month' and period.size_in_months > 1:
+                    column_name_value[column_name] = simulation.calculate(column_name, period = period.first_month)
+                elif tax_benefit_system.get_variable(column_name).is_period_size_independent is True and tax_benefit_system.get_variable(column_name).definition_period == u'month' and period.size_in_months == 1:
+                    column_name_value[column_name] = simulation.calculate(column_name, period = period)
+                elif tax_benefit_system.get_variable(column_name).is_period_size_independent is True and tax_benefit_system.get_variable(column_name).definition_period == u'year' and period.size_in_months > 12:
+                    column_name_value[column_name] = simulation.calculate(column_name, period = period.start.offset('first-of', 'year').period('year'))
+                elif tax_benefit_system.get_variable(column_name).is_period_size_independent is True and tax_benefit_system.get_variable(column_name).definition_period == u'year' and period.size_in_months == 12:
+                    column_name_value[column_name] = simulation.calculate(column_name, period = period)
+                else:
+                    column_name_value[column_name] = None
+                assert column_name_value[column_name] is not None, 'Unspecified calculation period for variable {}'.format(column_name)
+
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
-                    (column_name, simulation.calculate_add(column_name, period = period))
+                    (column_name, column_name_value[column_name])
                     for column_name in column_names
                     )
                 )
