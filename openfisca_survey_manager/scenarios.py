@@ -251,6 +251,8 @@ class AbstractSurveyScenario(object):
             values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
         elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
             values = simulation.calculate(variable, period = period)
+        elif definition_period == u'eternity':
+            values = simulation.calculate(variable, period = period)
         else:
             values = None
         assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
