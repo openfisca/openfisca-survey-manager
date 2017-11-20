@@ -10,7 +10,7 @@ import re
 
 
 from openfisca_core import formulas, periods, simulations
-from openfisca_core.periods import MONTH, YEAR
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
 
 try:
     from openfisca_core.tools.memory import get_memory_usage
@@ -833,9 +833,8 @@ class AbstractSurveyScenario(object):
         print("Details: ")
         holder = simulation.holder_by_name[variable]
         if holder is not None:
-            if holder._array is not None:
-                # Only used when column.is_permanent
-                array = holder._array
+            if holder.variable.definition_period == ETERNITY:
+                array = holder.get_array(ETERNITY)
                 print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
                     array.mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
@@ -847,9 +846,9 @@ class AbstractSurveyScenario(object):
                         else ((array == default_value) * weights).sum() / weights.sum()
                         )
                     ))
-            elif holder._array_by_period is not None:
-                for period in sorted(holder._array_by_period.keys()):
-                    array = holder._array_by_period[period]
+            else:
+                for period in sorted(holder.known_periods()):
+                    array = holder.get_array(period)
                     if array.shape == ():
                         print("{}: always = {}".format(period, array))
                         continue
