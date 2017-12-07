@@ -12,10 +12,6 @@ import re
 from openfisca_core import formulas, periods, simulations
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 
-try:
-    from openfisca_core.tools.memory import get_memory_usage
-except ImportError:
-    get_memory_usage = None
 from openfisca_survey_manager.calibration import Calibration
 
 from .survey_collections import SurveyCollection
@@ -742,19 +738,24 @@ class AbstractSurveyScenario(object):
         else:
             simulation = self.simulation
 
-        infos_by_variable = get_memory_usage(simulation)
+        memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
+        try:
+            usage_stats = simulation.tracer.usage_stats
+        except AttributeError:
+            log.warning("The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits).")
+            usage_stats = None
         infos_lines = list()
-        for variable, infos in infos_by_variable.iteritems():
-            hits = infos.get('hits', (None, None))
-            infos_lines.append((infos['nbytes'], variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits (missed = {})".format(
+
+        for variable, infos in memory_usage_by_variable.iteritems():
+            hits = usage_stats[variable]['nb_hits'] if usage_stats else None
+            infos_lines.append((infos['total_nb_bytes'], variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits".format(
                 variable,
-                len(infos['periods']),
-                infos['ncells'],
-                infos['item_size'],
+                infos['nb_arrays'],
+                infos['nb_cells_by_array'],
+                infos['cell_size'],
                 infos['dtype'],
-                humanize.naturalsize(infos['nbytes'], gnu = True),
-                hits[0],
-                hits[1],
+                humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
+                hits,
                 )))
         infos_lines.sort()
         for _, _, line in infos_lines:
@@ -808,9 +809,8 @@ class AbstractSurveyScenario(object):
             weights = simulation.calculate(weight_variable, simulation.period)
 
         default_value = column.default_value
-        infos_by_variable = get_memory_usage(simulation, variables = [variable])
-
-        if not infos_by_variable:
+        infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
+        if not infos:
             if force_compute:
                 simulation.calculate_add(variable, simulation.period)
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
@@ -818,20 +818,19 @@ class AbstractSurveyScenario(object):
             else:
                 print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
                 return
-        infos = infos_by_variable[variable]
         header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
             variable,
-            len(infos['periods']),
-            infos['ncells'],
-            infos['item_size'],
+            infos['nb_arrays'],
+            infos['nb_cells_by_array'],
+            infos['cell_size'],
             infos['dtype'],
             default_value,
-            humanize.naturalsize(infos['nbytes'], gnu = True),
+            humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
             )
         print("")
         print(header_line)
         print("Details: ")
-        holder = simulation.holder_by_name[variable]
+        holder = simulation.get_holder(variable)
         if holder is not None:
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
@@ -847,7 +846,7 @@ class AbstractSurveyScenario(object):
                         )
                     ))
             else:
-                for period in sorted(holder.known_periods()):
+                for period in sorted(holder.get_known_periods()):
                     array = holder.get_array(period)
                     if array.shape == ():
                         print("{}: always = {}".format(period, array))
