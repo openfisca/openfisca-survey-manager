@@ -118,6 +118,7 @@ class AbstractSurveyScenario(object):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
+	assert period is not None
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -153,6 +154,7 @@ class AbstractSurveyScenario(object):
             weight = self.weight_column_name_by_entity[entity_key]
             variables.add(weight)
         else:
+            log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
         if filter_by is not None:
@@ -262,7 +264,10 @@ class AbstractSurveyScenario(object):
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (use_baseline and self.baseline_tax_benefit_system) else self.tax_benefit_system
 
-        if period is None:
+        assert simulation is not None
+        assert tax_benefit_system is not None
+
+	if period is None:
             period = simulation.period
 
         assert variables or index or expressions or filter_by
@@ -477,8 +482,9 @@ class AbstractSurveyScenario(object):
             sorted(list(input_data_frame.columns))))
         return input_data_frame
 
-    def inflate(self, inflator_by_variable = None, target_by_variable = None):
+    def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
+        assert period is not None
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
         target_by_variable = dict() if target_by_variable is None else target_by_variable
         self.inflator_by_variable = inflator_by_variable
@@ -489,6 +495,7 @@ class AbstractSurveyScenario(object):
             if use_baseline is True:
                 simulation = self.baseline_simulation
             else:
+                assert self.simulation is not None
                 simulation = self.simulation
             if simulation is None:
                 continue
@@ -507,10 +514,12 @@ class AbstractSurveyScenario(object):
                     assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
-                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name))
-                        )
+                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(
+                            variable = column_name, reference = reference, period = period)
+                        ))
                     inflator = inflator_by_variable[column_name]
-
+                
+                assert holder.array is not None
                 holder.array = inflator * holder.array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
@@ -763,7 +772,7 @@ class AbstractSurveyScenario(object):
 
     def neutralize_variables(self, tax_benefit_system):
         """
-        Neutralizing input variables not present in the input_data_frame and keep some crucial variables
+        Neutralizing input variables not in input dataframe and keep some crucial variables
         """
         for column_name, column in tax_benefit_system.variables.items():
             formula_class = column.formula
