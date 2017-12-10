@@ -747,7 +747,7 @@ class AbstractSurveyScenario(object):
         infos_lines = list()
 
         for variable, infos in memory_usage_by_variable.iteritems():
-            hits = usage_stats[variable]['nb_hits'] if usage_stats else None
+            hits = usage_stats[variable]['nb_requests'] if usage_stats else None
             infos_lines.append((infos['total_nb_bytes'], variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits".format(
                 variable,
                 infos['nb_arrays'],
