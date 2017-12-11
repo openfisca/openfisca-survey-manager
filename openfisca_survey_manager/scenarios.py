@@ -519,8 +519,9 @@ class AbstractSurveyScenario(object):
                         ))
                     inflator = inflator_by_variable[column_name]
                 
-                assert holder.array is not None
-                holder.array = inflator * holder.array
+                array = holder.get_array(period)
+		assert holder.array is not None
+		holder.put_in_cache(inflator * array, period)  # insert inflated array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
 
