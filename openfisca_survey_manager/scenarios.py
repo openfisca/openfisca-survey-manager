@@ -677,7 +677,7 @@ class AbstractSurveyScenario(object):
     # def input_data_frame(self):
     #     return self.input_data_frame_by_entity.get(period = periods.period(self.year))
 
-    def new_simulation(self, debug = False, use_baseline = False, trace = False, survey = None):
+    def new_simulation(self, debug = False, use_baseline = False, trace = False, survey = None, memory_config = None):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
         if self.baseline_tax_benefit_system is not None and use_baseline:
@@ -699,6 +699,7 @@ class AbstractSurveyScenario(object):
             period = period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,
+            memory_config = memory_config
             )
         # Case 1: fill simulation with a unique input_data_frame given by the attribute
         if self.input_data_frame is not None:
