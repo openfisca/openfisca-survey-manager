@@ -95,13 +95,13 @@ class AbstractSurveyScenario(object):
             entity_weight = None
 
         if variable in simulation.tax_benefit_system.variables:
-            value = self.calculate_statsdescr(variable = variable, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system)
+            value = self.calculate_statsdescr(variable = variable, period = period, use_baseline = use_baseline)
         else:
             log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
             return missing_variable_default_value
 
         weight = (
-            self.calculate_statsdescr(variable = entity_weight, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system).astype(float)
+            self.calculate_statsdescr(variable = entity_weight, period = period, use_baseline = use_baseline).astype(float)
             if entity_weight else 1.0
             )
         filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
@@ -118,7 +118,7 @@ class AbstractSurveyScenario(object):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
-	assert period is not None
+        assert period is not None
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -230,11 +230,20 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
-    def calculate_statsdescr(self, variable = None, period = None, simulation = None, tax_benefit_system = None):
+    def calculate_statsdescr(self, variable = None, period = None, use_baseline = False):
+
+        if use_baseline:
+            assert self.baseline_simulation is not None
+            simulation = self.baseline_simulation
+        else:
+            assert self.simulation is not None
+            simulation = self.simulation
+
+        tax_benefit_system = simulation.tax_benefit_system
 
         assert period is not None
-        assert tax_benefit_system is not None
         assert simulation is not None
+        assert tax_benefit_system is not None
 
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
@@ -257,7 +266,6 @@ class AbstractSurveyScenario(object):
 
         return values
 
-
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False, ignore_missing_variables = False):
 
@@ -267,7 +275,7 @@ class AbstractSurveyScenario(object):
         assert simulation is not None
         assert tax_benefit_system is not None
 
-	if period is None:
+        if period is None:
             period = simulation.period
 
         assert variables or index or expressions or filter_by
@@ -322,7 +330,8 @@ class AbstractSurveyScenario(object):
 
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
-                    (column_name, self.calculate_statsdescr(variable = column_name, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system))
+                    (column_name, self.calculate_statsdescr(
+                        variable = column_name, period = period, use_baseline = use_baseline))
                     for column_name in column_names
                     )
                 )
@@ -518,10 +527,10 @@ class AbstractSurveyScenario(object):
                             variable = column_name, reference = reference, period = period)
                         ))
                     inflator = inflator_by_variable[column_name]
-                
+
                 array = holder.get_array(period)
-		assert holder.array is not None
-		holder.put_in_cache(inflator * array, period)  # insert inflated array
+                assert holder.array is not None
+                holder.put_in_cache(inflator * array, period)  # insert inflated array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
 
