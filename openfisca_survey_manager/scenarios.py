@@ -104,7 +104,7 @@ class AbstractSurveyScenario(object):
             self.calculate_statsdescr(variable = entity_weight, period = period, use_baseline = use_baseline).astype(float)
             if entity_weight else 1.0
             )
-        filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
+        filter_dummy = self.calculate_statsdescr(variable = filter_by, period = period) if filter_by else 1.0
 
         if aggfunc == 'sum':
             return (value * weight * filter_dummy).sum()
@@ -831,7 +831,7 @@ class AbstractSurveyScenario(object):
         infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
         if not infos:
             if force_compute:
-                simulation.calculate_add(variable, simulation.period)
+                self.calculate_statsdescr(variable = variable, period = simulation.period, use_baseline = use_baseline)
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
