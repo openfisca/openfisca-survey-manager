@@ -1,5 +1,10 @@
-collections
-output
+# Keys
+openfisca_bot
+openfisca_bot.pub
+
+
+# Vscode config
+.vscode
 
 # ignore tags files
 .tags*
