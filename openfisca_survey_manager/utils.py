@@ -1,33 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-import os
-
 import logging
+import os
 from pandas import DataFrame, concat
 
+
+from openfisca_core.periods import period as make_period
 
 log = logging.getLogger(__name__)
 
@@ -78,7 +57,6 @@ def dump_simulation_results_data_frame(survey_scenario, collection = None):
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_data_{}".format(year)
     for entity, data_frame in data_frame_by_entity.iteritems():
-        print entity
         table = entity
         hdf5_file_path = os.path.join(
             os.path.dirname(output_data_directory),
@@ -126,6 +104,17 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
         variables_name = entity.variables.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
+
+
+def has_formula(variable, period):
+    period = make_period(period)
+    formulas = variable.formula_class.dated_formulas_class
+    any_formula_defined_before_period = any(
+        [formula['start_instant'] <= period.start for formula in formulas]
+        )
+    formula_stopped = variable.end and period.start.date > variable.end
+
+    return any_formula_defined_before_period and not formula_stopped
 
 
 def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):

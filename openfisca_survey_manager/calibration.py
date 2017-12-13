@@ -54,13 +54,16 @@ class Calibration(object):
         # TODO deal with baseline if reform is present
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
-        self.filter_by = filter_by = survey_scenario.simulation.calculate_add(self.filter_by_name)
+        period = self.simulation.period
+        self.filter_by = filter_by = survey_scenario.calculate_variable(
+            variable = self.filter_by_name, period = period)
         # TODO: shoud not be france specific
         self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity['menage']
         self.initial_weight_name = weight_name + "_ini"
-        self.initial_weight = initial_weight = survey_scenario.simulation.calculate_add(weight_name)
+        self.initial_weight = initial_weight = survey_scenario.calculate_variable(
+            variable = weight_name, period = period)
         self.initial_total_population = sum(initial_weight * filter_by)
-        self.weight = survey_scenario.simulation.calculate_add(weight_name)
+        self.weight = survey_scenario.calculate_variable(variable = weight_name, period = period)
 
     def set_parameters(self, parameter, value):
         """
@@ -123,11 +126,13 @@ class Calibration(object):
         # Select only filtered entities
         assert self.initial_weight_name is not None
         data = {self.initial_weight_name: self.initial_weight * self.filter_by}
-        for var in self.margins_by_variable:
-            if var == 'total_population':
+        for variable in self.margins_by_variable:
+            if variable == 'total_population':
                 continue
-            assert var in self.survey_scenario.tax_benefit_system.variables.keys()
-            data[var] = self.survey_scenario.simulation.calculate_add(var)
+            assert variable in self.survey_scenario.tax_benefit_system.variables.keys()
+            period = self.survey_scenario.simulation.period
+            data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
+
         return data
 
     def _update_weights(self, margins, parameters = {}):
@@ -179,16 +184,14 @@ class Calibration(object):
 
     def set_target_margin(self, variable, target):
         survey_scenario = self.survey_scenario
-        simulation = survey_scenario.simulation
-        assert simulation is not None
-        column_by_name = survey_scenario.tax_benefit_system.variables
-        assert variable in column_by_name
+        period = survey_scenario.simulation.period
+        assert variable in survey_scenario.tax_benefit_system.variables
         column = survey_scenario.tax_benefit_system.variables[variable]
 
         filter_by = self.filter_by
         target_by_category = None
         if column.__class__ in [AgeCol, BoolCol, EnumCol]:
-            value = simulation.calculate_add(variable)
+            value = survey_scenario.calculate_variable(variable = variable, period = period)
             categories = numpy.sort(numpy.unique(value[filter_by]))
             target_by_category = dict(zip(categories, target))
 
@@ -203,16 +206,14 @@ class Calibration(object):
     def _update_margins(self):
         for variable in self.margins_by_variable:
             survey_scenario = self.survey_scenario
-            simulation = survey_scenario.simulation
-            column_by_name = survey_scenario.tax_benefit_system.variables
-
-            assert variable in column_by_name
+            period = survey_scenario.simulation.period
+            assert variable in survey_scenario.tax_benefit_system.variables
             column = survey_scenario.tax_benefit_system.variables[variable]
             weight = self.weight
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = simulation.calculate_add(variable)
+            value = survey_scenario.calculate_variable(variable, period = period)
             margin_items = [
                 ('actual', weight[filter_by]),
                 ('initial', initial_weight[filter_by]),

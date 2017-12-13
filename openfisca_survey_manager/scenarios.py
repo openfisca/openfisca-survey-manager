@@ -95,16 +95,16 @@ class AbstractSurveyScenario(object):
             entity_weight = None
 
         if variable in simulation.tax_benefit_system.variables:
-            value = self.calculate_statsdescr(variable = variable, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system)
+            value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
         else:
             log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
             return missing_variable_default_value
 
         weight = (
-            self.calculate_statsdescr(variable = entity_weight, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system).astype(float)
+            self.calculate_variable(variable = entity_weight, period = period, use_baseline = use_baseline).astype(float)
             if entity_weight else 1.0
             )
-        filter_dummy = simulation.calculate_add(filter_by, period = period) if filter_by else 1.0
+        filter_dummy = self.calculate_variable(variable = filter_by, period = period) if filter_by else 1.0
 
         if aggfunc == 'sum':
             return (value * weight * filter_dummy).sum()
@@ -118,6 +118,7 @@ class AbstractSurveyScenario(object):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
+        assert period is not None
 
         tax_benefit_system = self.tax_benefit_system
 
@@ -153,6 +154,7 @@ class AbstractSurveyScenario(object):
             weight = self.weight_column_name_by_entity[entity_key]
             variables.add(weight)
         else:
+            log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
         if filter_by is not None:
@@ -228,11 +230,20 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
-    def calculate_statsdescr(self, variable = None, period = None, simulation = None, tax_benefit_system = None):
+    def calculate_variable(self, variable = None, period = None, use_baseline = False):
+
+        if use_baseline:
+            assert self.baseline_simulation is not None
+            simulation = self.baseline_simulation
+        else:
+            assert self.simulation is not None
+            simulation = self.simulation
+
+        tax_benefit_system = simulation.tax_benefit_system
 
         assert period is not None
-        assert tax_benefit_system is not None
         assert simulation is not None
+        assert tax_benefit_system is not None
 
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
@@ -255,12 +266,14 @@ class AbstractSurveyScenario(object):
 
         return values
 
-
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False, ignore_missing_variables = False):
 
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (use_baseline and self.baseline_tax_benefit_system) else self.tax_benefit_system
+
+        assert simulation is not None
+        assert tax_benefit_system is not None
 
         if period is None:
             period = simulation.period
@@ -317,7 +330,8 @@ class AbstractSurveyScenario(object):
 
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
-                    (column_name, self.calculate_statsdescr(variable = column_name, period = period, simulation = simulation, tax_benefit_system = tax_benefit_system))
+                    (column_name, self.calculate_variable(
+                        variable = column_name, period = period, use_baseline = use_baseline))
                     for column_name in column_names
                     )
                 )
@@ -477,8 +491,9 @@ class AbstractSurveyScenario(object):
             sorted(list(input_data_frame.columns))))
         return input_data_frame
 
-    def inflate(self, inflator_by_variable = None, target_by_variable = None):
+    def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
+        assert period is not None
         inflator_by_variable = dict() if inflator_by_variable is None else inflator_by_variable
         target_by_variable = dict() if target_by_variable is None else target_by_variable
         self.inflator_by_variable = inflator_by_variable
@@ -489,6 +504,7 @@ class AbstractSurveyScenario(object):
             if use_baseline is True:
                 simulation = self.baseline_simulation
             else:
+                assert self.simulation is not None
                 simulation = self.simulation
             if simulation is None:
                 continue
@@ -507,11 +523,14 @@ class AbstractSurveyScenario(object):
                     assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
-                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(variable = column_name))
-                        )
+                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(
+                            variable = column_name, reference = reference, period = period)
+                        ))
                     inflator = inflator_by_variable[column_name]
 
-                holder.array = inflator * holder.array
+                array = holder.get_array(period)
+                assert holder.array is not None
+                holder.put_in_cache(inflator * array, period)  # insert inflated array
 
     def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
 
@@ -764,7 +783,7 @@ class AbstractSurveyScenario(object):
 
     def neutralize_variables(self, tax_benefit_system):
         """
-        Neutralizing input variables not present in the input_data_frame and keep some crucial variables
+        Neutralizing input variables not in input dataframe and keep some crucial variables
         """
         for column_name, column in tax_benefit_system.variables.items():
             formula_class = column.formula
@@ -813,7 +832,7 @@ class AbstractSurveyScenario(object):
         infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
         if not infos:
             if force_compute:
-                simulation.calculate_add(variable, simulation.period)
+                self.calculate_variable(variable = variable, period = simulation.period, use_baseline = use_baseline)
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
