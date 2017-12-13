@@ -55,15 +55,15 @@ class Calibration(object):
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
         period = self.simulation.period
-        self.filter_by = filter_by = survey_scenario.calculate_statsdescr(
+        self.filter_by = filter_by = survey_scenario.calculate_variable(
             variable = self.filter_by_name, period = period)
         # TODO: shoud not be france specific
         self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity['menage']
         self.initial_weight_name = weight_name + "_ini"
-        self.initial_weight = initial_weight = survey_scenario.calculate_statsdescr(
+        self.initial_weight = initial_weight = survey_scenario.calculate_variable(
             variable = weight_name, period = period)
         self.initial_total_population = sum(initial_weight * filter_by)
-        self.weight = survey_scenario.calculate_statsdescr(variable = weight_name, period = period)
+        self.weight = survey_scenario.calculate_variable(variable = weight_name, period = period)
 
     def set_parameters(self, parameter, value):
         """
@@ -131,7 +131,7 @@ class Calibration(object):
                 continue
             assert variable in self.survey_scenario.tax_benefit_system.variables.keys()
             period = self.survey_scenario.simulation.period
-            data[variable] = self.survey_scenario.calculate_statsdescr(variable = variable, period = period)
+            data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
 
         return data
 
@@ -191,7 +191,7 @@ class Calibration(object):
         filter_by = self.filter_by
         target_by_category = None
         if column.__class__ in [AgeCol, BoolCol, EnumCol]:
-            value = survey_scenario.calculate_statsdescr(variable = variable, period = period)
+            value = survey_scenario.calculate_variable(variable = variable, period = period)
             categories = numpy.sort(numpy.unique(value[filter_by]))
             target_by_category = dict(zip(categories, target))
 
@@ -213,7 +213,7 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = survey_scenario.calculate_statsdescr(variable, period = period)
+            value = survey_scenario.calculate_variable(variable, period = period)
             margin_items = [
                 ('actual', weight[filter_by]),
                 ('initial', initial_weight[filter_by]),

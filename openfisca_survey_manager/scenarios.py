@@ -95,16 +95,16 @@ class AbstractSurveyScenario(object):
             entity_weight = None
 
         if variable in simulation.tax_benefit_system.variables:
-            value = self.calculate_statsdescr(variable = variable, period = period, use_baseline = use_baseline)
+            value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
         else:
             log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
             return missing_variable_default_value
 
         weight = (
-            self.calculate_statsdescr(variable = entity_weight, period = period, use_baseline = use_baseline).astype(float)
+            self.calculate_variable(variable = entity_weight, period = period, use_baseline = use_baseline).astype(float)
             if entity_weight else 1.0
             )
-        filter_dummy = self.calculate_statsdescr(variable = filter_by, period = period) if filter_by else 1.0
+        filter_dummy = self.calculate_variable(variable = filter_by, period = period) if filter_by else 1.0
 
         if aggfunc == 'sum':
             return (value * weight * filter_dummy).sum()
@@ -230,7 +230,7 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
-    def calculate_statsdescr(self, variable = None, period = None, use_baseline = False):
+    def calculate_variable(self, variable = None, period = None, use_baseline = False):
 
         if use_baseline:
             assert self.baseline_simulation is not None
@@ -330,7 +330,7 @@ class AbstractSurveyScenario(object):
 
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
-                    (column_name, self.calculate_statsdescr(
+                    (column_name, self.calculate_variable(
                         variable = column_name, period = period, use_baseline = use_baseline))
                     for column_name in column_names
                     )
@@ -831,7 +831,7 @@ class AbstractSurveyScenario(object):
         infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
         if not infos:
             if force_compute:
-                self.calculate_statsdescr(variable = variable, period = simulation.period, use_baseline = use_baseline)
+                self.calculate_variable(variable = variable, period = simulation.period, use_baseline = use_baseline)
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
