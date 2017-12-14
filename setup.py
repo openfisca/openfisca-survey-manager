@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.8.13',
+    version = '0.9.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -51,9 +51,8 @@ setup(
         },
     install_requires = [
         'configparser',
-        'humanize',
         'numpy',
-        'openfisca-core >= 14.1.2',
+        'openfisca-core >= 20.0.0, < 21.0.0 ',
         'pandas >= 0.20',
         'PyYAML',
         'pyxdg',

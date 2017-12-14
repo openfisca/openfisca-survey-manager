@@ -1,6 +1,9 @@
 
 # Changelog
 
+## 0.9.0
+* Migrate to openfisca-core v20 syntax
+* Fix a bug in `create_data_frame_by_entity`
 
 ## 0.8.13
 

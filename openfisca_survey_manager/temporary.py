@@ -24,8 +24,9 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
         'tmp_directory is not set: {!r} in {}'.format(tmp_directory, read_config_file_name)
     assert os.path.isabs(tmp_directory), \
         'tmp_directory should be an absolut path: {!r} in {}'.format(tmp_directory, read_config_file_name)
-    assert os.path.isdir(tmp_directory), \
-        'tmp_directory does not exist: {!r} in {}'.format(tmp_directory, read_config_file_name)
+    if not os.path.isdir(tmp_directory):
+        'tmp_directory does not exist: {!r} in {}. Creating it.'.format(tmp_directory, read_config_file_name)
+        os.makedirs(tmp_directory)
 
     assert file_name is not None
     if not file_name.endswith('.h5'):

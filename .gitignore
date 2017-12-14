@@ -1,8 +1,14 @@
-collections
-output
+# Keys
+openfisca_bot
+openfisca_bot.pub
+
+
+# Vscode config
+.vscode
 
 # ignore tags files
 .tags*
+tags
 
 # Ignore personal tests
 openfisca_survey_manager/tests/test_read_dbf.py
