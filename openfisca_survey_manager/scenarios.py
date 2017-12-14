@@ -524,7 +524,7 @@ class AbstractSurveyScenario(object):
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
                         inflator_by_variable[column_name],
                         column_name, inflator_by_variable[column_name] * self.compute_aggregate(
-                            variable = column_name, reference = reference, period = period)
+                            variable = column_name, use_baseline = use_baseline, period = period)
                         ))
                     inflator = inflator_by_variable[column_name]
 
