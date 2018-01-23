@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.9.1
+* Fix difference pivot_tabke computation
+* CLarify code (use variable instead of column) and add some doctring
+
 ## 0.9.0
 * Migrate to openfisca-core v20 syntax
 * Fix a bug in `create_data_frame_by_entity`
