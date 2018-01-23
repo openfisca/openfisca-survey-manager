@@ -190,7 +190,11 @@ class AbstractSurveyScenario(object):
         data_frame = pd.concat(
             [
                 self.create_data_frame_by_entity(
-                    variables = reference_variables, period = period, use_baseline = True, index = False
+                    variables = reference_variables,
+                    period = period,
+                    # use baseline if explicited or when computing difference
+                    use_baseline = use_baseline or difference,
+                    index = False
                     )[entity_key],
                 data_frame,
                 ],
@@ -231,9 +235,11 @@ class AbstractSurveyScenario(object):
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
     def calculate_variable(self, variable = None, period = None, use_baseline = False):
-
+        """
+        Compute and return the variable values for period and baseline or reform tax_benefit_system
+        """
         if use_baseline:
-            assert self.baseline_simulation is not None
+            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
             simulation = self.baseline_simulation
         else:
             assert self.simulation is not None
@@ -313,8 +319,8 @@ class AbstractSurveyScenario(object):
             if tax_benefit_system.variables.get(variable_name) is not None
             ]
 
-        assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system".format(
-            variables)
+        assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system {}".format(
+            variables, tax_benefit_system.variables.keys())
 
         assert simulation is not None
 
@@ -785,18 +791,18 @@ class AbstractSurveyScenario(object):
         """
         Neutralizing input variables not in input dataframe and keep some crucial variables
         """
-        for column_name, column in tax_benefit_system.variables.items():
-            formula_class = column.formula
+        for variable_name, variable in tax_benefit_system.variables.items():
+            formula_class = variable.formula
             if formula_class.dated_formulas_class:
                 continue
-            if column_name in self.used_as_input_variables:
+            if variable_name in self.used_as_input_variables:
                 continue
-            if self.non_neutralizable_variables and (column_name in self.non_neutralizable_variables):
+            if self.non_neutralizable_variables and (variable_name in self.non_neutralizable_variables):
                 continue
-            if self.weight_column_name_by_entity and column_name in self.weight_column_name_by_entity.values():
+            if self.weight_column_name_by_entity and variable_name in self.weight_column_name_by_entity.values():
                 continue
 
-            tax_benefit_system.neutralize_column(column_name)
+            tax_benefit_system.neutralize_variable(variable_name)
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
