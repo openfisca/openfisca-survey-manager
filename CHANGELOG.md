@@ -1,8 +1,8 @@
 
 # Changelog
 
-## 0.9.1
-* Fix difference pivot_tabke computation
+## 0.9.2
+* Fix difference pivot_table computation
 * CLarify code (use variable instead of column) and add some doctring
 
 ## 0.9.0
