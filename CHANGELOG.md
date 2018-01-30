@@ -2,7 +2,7 @@
 # Changelog
 
 ## 0.9.4
-* Numpy deprcates use of np.float with issubdtype
+* Numpy [deprecates use of np.float with issubdtype](https://github.com/numpy/numpy/pull/9505)
 
 ## 0.9.3
 * Fix difference pivot_table computation
