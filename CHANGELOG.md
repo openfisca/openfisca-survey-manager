@@ -1,6 +1,9 @@
 
 # Changelog
 
+## 0.9.4
+* Numpy deprcates use of np.float with issubdtype
+
 ## 0.9.3
 * Fix difference pivot_table computation
 * CLarify code (use variable instead of column) and add some doctring
