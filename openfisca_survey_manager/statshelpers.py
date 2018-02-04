@@ -33,7 +33,7 @@ def gini(values, weights = None, bin_size = None):
         weights = ones(len(values))
 
     df = DataFrame({'x': values, 'w': weights})
-    df = df.sort_index(by='x')
+    df = df.sort_values(by='x')
     x = df['x']
     w = df['w']
     wx = w * x
@@ -77,7 +77,7 @@ def lorenz(values, weights = None):
         weights = ones(len(values))
 
     df = DataFrame({'v': values, 'w': weights})
-    df = df.sort_index(by = 'v')
+    df = df.sort_values(by = 'v')
     x = cumsum(df['w'])
     x = x / float(x[-1:])
     y = cumsum(df['v'] * df['w'])
@@ -262,7 +262,7 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     if weights is None:
         weights = ones(len(values))
     df = DataFrame({'v': values, 'a': ineq_axis, 'w': weights})
-    df = df.sort_index(by = 'a')
+    df = df.sort_values(by = 'a')
     x = cumsum(df['w'])
     x = x / float(x[-1:])
     y = cumsum(df['v'] * df['w'])

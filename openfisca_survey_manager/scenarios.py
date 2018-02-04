@@ -248,9 +248,12 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = simulation.tax_benefit_system
 
         assert period is not None
+        if not isinstance(period, periods.Period):
+            period = periods.period(period)
         assert simulation is not None
         assert tax_benefit_system is not None
 
+        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
 
