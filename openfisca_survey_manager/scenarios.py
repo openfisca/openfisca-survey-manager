@@ -657,8 +657,13 @@ class AbstractSurveyScenario(object):
 
         for column_name, column_serie in input_data_frame.iteritems():
             if role_variable_by_entity_key is not None:
-                if column_name in role_variable_by_entity_key.values() + id_variable_by_entity_key.values():
+                if column_name in role_variable_by_entity_key.values():
                     continue
+
+            if id_variable_by_entity_key is not None:
+                if column_name in id_variable_by_entity_key.values():
+                    continue
+
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
             if column_serie.values.dtype != holder.variable.dtype:
