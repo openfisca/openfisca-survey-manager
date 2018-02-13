@@ -1,6 +1,9 @@
 
 # Changelog
 
+## 0.9.4
+* Fix bug when initialising mono-entity (person-only) TaxBenefitSystem
+
 ## 0.9.3
 * Fix difference pivot_table computation
 * CLarify code (use variable instead of column) and add some doctring
