@@ -3,9 +3,10 @@
 
 ## 0.9.5
 * Pandas deprecates the use of sort_index for sort_values
+* Numpy [deprecates use of np.float with issubdtype](https://github.com/numpy/numpy/pull/9505)
 
 ## 0.9.4
-* Numpy [deprecates use of np.float with issubdtype](https://github.com/numpy/numpy/pull/9505)
+* Fix bug when initialising mono-entity (person-only) TaxBenefitSystem
 
 ## 0.9.3
 * Fix difference pivot_table computation
