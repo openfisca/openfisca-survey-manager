@@ -248,9 +248,12 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = simulation.tax_benefit_system
 
         assert period is not None
+        if not isinstance(period, periods.Period):
+            period = periods.period(period)
         assert simulation is not None
         assert tax_benefit_system is not None
 
+        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
 
@@ -671,7 +674,7 @@ class AbstractSurveyScenario(object):
                     'Converting {} from dtype {} to {}'.format(
                         column_name, column_serie.values.dtype, holder.variable.dtype)
                     )
-            if np.issubdtype(column_serie.values.dtype, np.float):
+            if np.issubdtype(column_serie.values.dtype, np.floating):
                 if column_serie.isnull().any():
                     log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
                         column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
@@ -929,7 +932,7 @@ def init_simulation_with_data_frame_by_entity(input_data_frame_by_entity = None,
                     'Converting {} from dtype {} to {}'.format(
                         column_name, column_serie.values.dtype, holder.variable.dtype)
                     )
-            if np.issubdtype(column_serie.values.dtype, np.float):
+            if np.issubdtype(column_serie.values.dtype, np.floating):
                 assert column_serie.notnull().all(), 'There are {} NaN values in variable {}'.format(
                     column_serie.isnull().sum(), column_name)
 
