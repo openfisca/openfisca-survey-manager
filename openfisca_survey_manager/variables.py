@@ -9,6 +9,7 @@ from openfisca_survey_manager.statshelpers import weighted_quantiles
 
 class Quantile(Variable):
     def __init__(self, name, attributes, variable_class):
+        Variable.__init__(self)
         self.name = name
         self.attributes = attributes
         assert 'q' in self.attributes
@@ -26,10 +27,8 @@ class Quantile(Variable):
             weight_variable = None
 
         self.baseline_variable = self.name
-
         self.variable_class = variable_class
         Variable.__init__(self, self.name, self.attributes, self.variable_class)
-
 
         # filter_variable = self.attributes['filter_variable']
 
