@@ -32,12 +32,21 @@ class salaire(Variable):
     definition_period = YEAR
 
 
-class decile_salaire_new(Quantile):
+class decile_salaire_from_quantile(Quantile):
     entity = Individu
     label = u"Décile de salaire nouveau calcul"
     definition_period = YEAR
     q = 10
     variable = 'salaire'
+
+
+class vingtile_salaire_from_quantile(Quantile):
+    entity = Individu
+    label = u"Décile de salaire nouveau calcul"
+    definition_period = YEAR
+    q = 20
+    variable = 'salaire'
+
 
 
 class decile_salaire(Variable):
@@ -47,17 +56,11 @@ class decile_salaire(Variable):
     definition_period = YEAR
 
     def formula(individu, period):
-        revenu_disponible = individu('revenu_disponible', period)
+        salaire = individu('salaire', period)
         labels = np.arange(1, 11)
-        weights = 1.0 * np.ones(shape = len(revenu_disponible))
-        # decile, _ = weighted_quantiles(
-        #     revenu_disponible,  # + np.random.uniform(size = len(revenu_disponible)) - 0.5,
-        #     labels,
-        #     weights,
-        #     return_quantiles = True,
-        #     )
+        weights = 1.0 * np.ones(shape = len(salaire))
         decile, _ = mark_weighted_percentiles(
-            revenu_disponible,  # + np.random.uniform(size = len(revenu_disponible)) - 0.5,
+            salaire,  # + np.random.uniform(size = len(salaire)) - 0.5,
             labels,
             weights,
             method = 2,
@@ -73,11 +76,11 @@ class vingtile_salaire(Variable):
     definition_period = YEAR
 
     def formula(individu, period):
-        revenu_disponible = individu('revenu_disponible', period)
+        salaire = individu('salaire', period)
         labels = np.arange(1, 21)
-        weights = 1.0 * np.ones(shape = len(revenu_disponible))
+        weights = 1.0 * np.ones(shape = len(salaire))
         vingtile, _ = mark_weighted_percentiles(
-            revenu_disponible,  # + np.random.uniform(size = len(revenu_disponible)) - 0.5,
+            salaire,
             labels,
             weights,
             method = 2,
@@ -92,7 +95,8 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
 
     def __init__(self):
         super(QuantileTestTaxBenefitSystem, self).__init__(entities)
-        for variable in [salaire, decile_salaire, vingtile_salaire, decile_salaire_new]:
+        for variable in [salaire, decile_salaire, vingtile_salaire, decile_salaire_from_quantile,
+                vingtile_salaire_from_quantile]:
             self.add_variable(variable)
 
 
@@ -119,19 +123,14 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
             self.new_simulation(use_baseline = True)
 
 
-def create_input_dataframe():
+def create_input_dataframe(size = 9):
     """
     Create input dataframe with variable salaire and pension_retraite
     """
-    # Almost 15 millions people
-    # Around 1.5 million household
     np.random.seed(216)
-    number_of_households = 1.5e6
-    household_weight = 50
-    size = int(number_of_households / household_weight)
-    print "Size of the sample: {}".format(size)
-    # We choose a mean salary of 5e6 CFA with a log normal ditribution
-    # We choose a mean pension of 2.5e6 CFA
+    household_weight = 1
+    number_of_indididual = size
+    size = int(number_of_indididual / household_weight)
     salaire = np.linspace(0, 100, size)
     return pd.DataFrame({
         'salaire': salaire,
@@ -139,15 +138,33 @@ def create_input_dataframe():
 
 
 def test_quantile():
-    input_data_frame = create_input_dataframe()
+    size = 1000
+    input_data_frame = create_input_dataframe(size = size)
     survey_scenario = QuantileTestSurveyScenario(
         input_data_frame = input_data_frame,
         tax_benefit_system = QuantileTestTaxBenefitSystem(),
         year = 2017
         )
-    print survey_scenario.calculate_variable(
-        variable = 'decile_salaire_new', period = '2017'
+    target = np.floor(np.linspace(1, 11 - 1e-9, size))
+    assert all(survey_scenario.calculate_variable(
+        variable = 'decile_salaire_from_quantile', period = '2017'
+        ) == target
         )
+
+    assert all(survey_scenario.calculate_variable(
+        variable = 'decile_salaire_from_quantile', period = '2017'
+        ) == survey_scenario.calculate_variable(
+        variable = 'decile_salaire', period = '2017'
+            )
+        )
+
+    assert all(survey_scenario.calculate_variable(
+        variable = 'vingtile_salaire_from_quantile', period = '2017'
+        ) == survey_scenario.calculate_variable(
+        variable = 'vingtile_salaire', period = '2017'
+            )
+        )
+
 
 
 if __name__ == '__main__':

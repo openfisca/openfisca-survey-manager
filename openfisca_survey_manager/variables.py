@@ -4,7 +4,7 @@ from numpy import arange
 
 from openfisca_core.formulas import Formula
 from openfisca_core.variables import Variable, VALUE_TYPES, Enum, MONTH, YEAR, ETERNITY
-# from openfisca_core.model_api import Enum
+from openfisca_core.model_api import where
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 
 
@@ -18,9 +18,15 @@ class Quantile(Variable):
         assert 'variable' in attr
         variable = attr.pop('variable')
         q = attr.pop('q')
+        filter_variable = None
+        weight_variable = None
+        if 'weight_variable' in attr:
+            weight_variable = attr.pop('weight_variable')
+
+        if 'filter_variable' in attr:
+            filter_variable = attr.pop('filter_variable')
 
         attr['value_type'] = int
-
         self.baseline_variable = baseline_variable
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
@@ -48,25 +54,26 @@ class Quantile(Variable):
         # if 'possible_values' in self.attributes:
         #     possible_values = self.attributes['possible_values']
         #     assert len(possible_values) == q
-        # weight_variable = None
-        # # if 'weight_variable' in self.attributes:
-        #     weight_variable = self.attributes['weight_variable']
-        # filter_variable = self.attributes['filter_variable']
-        weight_variable = None
 
         def formula(entity, period):
             value = entity(variable, period)
-            if weight_variable is None:
+            if weight_variable is not None:
                 weight = entity(weight_variable, period)
             weight = entity.filled_array(1)
-            # filter = entity(filter_variable, period)
+            if filter_variable is not None:
+                filter_value = entity(filter_variable, period)
+                weight = filter_value * weight
+
             labels = arange(1, q + 1)
             quantile, _ = mark_weighted_percentiles(
                 value,
                 labels,
-                weight,  # * filter,
+                weight,
+                method = 2,  # * filter,
                 return_quantiles = True,
                 )
+            if filter_variable is not None:
+                quantile = where(weight > 0, quantile, -1)
             return quantile
 
         attr['formula'] = formula
