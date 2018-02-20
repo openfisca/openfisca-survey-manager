@@ -33,11 +33,11 @@ class salaire(Variable):
 
 
 class decile_salaire_new(Quantile):
-    q = 10
-    variable = 'salaire'
     entity = Individu
     label = u"Décile de salaire nouveau calcul"
     definition_period = YEAR
+    q = 10
+    variable = 'salaire'
 
 
 class decile_salaire(Variable):
@@ -145,7 +145,9 @@ def test_quantile():
         tax_benefit_system = QuantileTestTaxBenefitSystem(),
         year = 2017
         )
-    print survey_scenario.calculate_variable('decile_salaire_new', period = '2017')
+    print survey_scenario.calculate_variable(
+        variable = 'decile_salaire_new', period = '2017'
+        )
 
 
 if __name__ == '__main__':
