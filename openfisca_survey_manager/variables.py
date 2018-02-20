@@ -9,7 +9,6 @@ from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 
 
 class Quantile(Variable):
-
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
         attr = dict(self.__class__.__dict__)
@@ -38,9 +37,11 @@ class Quantile(Variable):
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
         default_type = int if self.value_type == Enum else self.value_type
-        self.default_value = self.set(attr, 'default_value', allowed_type = default_type, default = VALUE_TYPES[self.value_type]['default'])
+        self.default_value = self.set(attr, 'default_value', allowed_type = default_type,
+            default = VALUE_TYPES[self.value_type]['default'])
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
-        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
+        self.definition_period = self.set(attr, 'definition_period', required = True,
+            allowed_values = (MONTH, YEAR, ETERNITY))
         self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)
         self.end = self.set(attr, 'end', allowed_type = basestring, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
@@ -48,7 +49,8 @@ class Quantile(Variable):
         self.unit = self.set(attr, 'unit', allowed_type = basestring)
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
-        self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
+        self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool,
+            default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
         self.base_function = self.set_base_function(attr.pop('base_function', None))
 
         # if 'possible_values' in self.attributes:

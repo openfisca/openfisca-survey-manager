@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 
-from openfisca_core.model_api import *
+from openfisca_core.model_api import Variable, YEAR
 from openfisca_core.entities import build_entity
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
@@ -46,7 +46,6 @@ class vingtile_salaire_from_quantile(Quantile):
     definition_period = YEAR
     q = 20
     variable = 'salaire'
-
 
 
 class decile_salaire(Variable):
@@ -164,7 +163,6 @@ def test_quantile():
         variable = 'vingtile_salaire', period = '2017'
             )
         )
-
 
 
 if __name__ == '__main__':
