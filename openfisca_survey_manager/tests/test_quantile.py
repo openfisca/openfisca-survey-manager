@@ -12,7 +12,7 @@ from openfisca_core.entities import build_entity
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
-from openfisca_survey_manager.variables import Quantile
+from openfisca_survey_manager.variables import quantile
 
 
 Individu = build_entity(
@@ -32,20 +32,20 @@ class salaire(Variable):
     definition_period = YEAR
 
 
-class decile_salaire_from_quantile(Quantile):
+class decile_salaire_from_quantile(Variable):
     entity = Individu
+    value_type = int
     label = u"Décile de salaire nouveau calcul"
     definition_period = YEAR
-    q = 10
-    variable = 'salaire'
+    formula = quantile(q = 10, variable = 'salaire')
 
 
-class vingtile_salaire_from_quantile(Quantile):
+class vingtile_salaire_from_quantile(Variable):
     entity = Individu
+    value_type = int
     label = u"Décile de salaire nouveau calcul"
     definition_period = YEAR
-    q = 20
-    variable = 'salaire'
+    formula = quantile(q = 20, variable = 'salaire')
 
 
 class decile_salaire(Variable):
