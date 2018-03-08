@@ -2,8 +2,6 @@
 
 from numpy import arange
 
-from openfisca_core.formulas import Formula
-from openfisca_core.variables import Variable, VALUE_TYPES, Enum, MONTH, YEAR, ETERNITY
 from openfisca_core.model_api import where
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 

@@ -1,6 +1,9 @@
 
 # Changelog
 
+## 0.9.7
+* Remove unused imports
+
 ## 0.9.6
 * Add a Quantile class inheriting for Variable
 
