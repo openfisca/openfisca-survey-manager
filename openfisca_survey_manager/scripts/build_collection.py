@@ -141,7 +141,10 @@ def check_template_config_files():
                     'raw_data_template.ini', 'config_template.ini'
                     ]
                 templates_config_files_directory = os.path.join(
-                    pkg_resources.get_distribution('openfisca-survey-manager').location)
+                    pkg_resources.get_distribution('openfisca-survey-manager').location,
+                    'openfisca_survey_manager',
+                    'config_files_templates'
+                    )
                 for template_file in template_files:
                     shutil.copy(
                         os.path.join(templates_config_files_directory, template_file),
