@@ -1,6 +1,9 @@
 
 # Changelog
 
+## 0.9.8
+* Create directory for config templates files
+
 ## 0.9.7
 * Remove unused imports
 

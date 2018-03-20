@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.9.7',
+    version = '0.9.8',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -33,7 +33,9 @@ setup(
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-survey-manager',
-
+    data_files = [
+        ('share/openfisca/openfisca-survey-manager', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
+        ],
     entry_points = {
         'console_scripts': ['build-collection=openfisca_survey_manager.scripts.build_collection:main'],
         },
@@ -49,6 +51,7 @@ setup(
             'SAS7BDAT',
             ],
         },
+    include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'configparser',
         'humanize',

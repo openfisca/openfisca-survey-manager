@@ -1,0 +1,1 @@
+recursive-include openfisca_survey_manager/config_templates *.ini
