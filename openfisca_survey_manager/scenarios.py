@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 
 
 class AbstractSurveyScenario(object):
+    debug = False
     filtering_variable_by_entity = None
     id_variable_by_entity_key = None
     inflator_by_variable = None  # factor used to inflate variable total
@@ -34,6 +35,7 @@ class AbstractSurveyScenario(object):
     simulation = None
     target_by_variable = None  # variable total target to inflate to
     tax_benefit_system = None
+    trace = False
     used_as_input_variables = None
     weight_column_name_by_entity = None
     year = None
@@ -596,9 +598,22 @@ class AbstractSurveyScenario(object):
             pass
         #
         input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
-        self.new_simulation(survey = input_survey_kwargs.get('input_survey'))
+
+        debug = self.debug
+        trace = self.trace
+        self.new_simulation(
+            debug = debug,
+            survey = input_survey_kwargs.get('input_survey'),
+            trace = trace,
+            )
+
         if self.baseline_tax_benefit_system is not None:
-            self.new_simulation(use_baseline = True, survey = input_survey_kwargs.get('baseline_input_survey'))
+            self.new_simulation(
+                debug = debug,
+                survey = input_survey_kwargs.get('baseline_input_survey'),
+                trace = trace,
+                use_baseline = True,
+                )
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
