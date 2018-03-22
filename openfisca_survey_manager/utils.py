@@ -17,7 +17,8 @@ def clean_data_frame(data_frame):
         "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
         )
     for column_name in object_column_names:
-        if data_frame[column_name].isnull().all():  # drop empty columns
+        if data_frame[column_name].isnull().all():  #
+            log.info("Drop empty column {}".format(column_name))
             data_frame.drop(column_name, axis = 1, inplace = True)
             continue
 
@@ -104,17 +105,6 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
         variables_name = entity.variables.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
-
-
-def has_formula(variable, period):
-    period = make_period(period)
-    formulas = variable.formula_class.dated_formulas_class
-    any_formula_defined_before_period = any(
-        [formula['start_instant'] <= period.start for formula in formulas]
-        )
-    formula_stopped = variable.end and period.start.date > variable.end
-
-    return any_formula_defined_before_period and not formula_stopped
 
 
 def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):
