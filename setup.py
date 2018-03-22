@@ -47,7 +47,8 @@ setup(
             'feather',
             'rpy2',
             ],
-        'sas': [
+        'test': [
+            'openfisca-country-template',
             'SAS7BDAT',
             ],
         },
