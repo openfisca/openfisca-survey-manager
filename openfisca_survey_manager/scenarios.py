@@ -588,6 +588,8 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
+        self._set_ids_and_roles_variables()
+
         if rebuild_input_data:
             if rebuild_kwargs is not None:
                 self.build_input_data(year = data_year, **rebuild_kwargs)
@@ -692,12 +694,7 @@ class AbstractSurveyScenario(object):
         assert input_data_frame is not None
         assert period is not None
         assert simulation is not None
-        log.info("Intialisaing entity {} with provided input_data_frame")
         used_as_input_variables = self.used_as_input_variables
-        id_variable_by_entity_key = self.id_variable_by_entity_key
-        role_variable_by_entity_key = self.role_variable_by_entity_key
-
-        assert id_variable_by_entity_key is not None
 
         # TODO adapt to entity
         variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
@@ -712,14 +709,14 @@ class AbstractSurveyScenario(object):
                 sorted(list(input_data_frame.columns))))
 
         entity = simulation.entities[entity]
-        if entity.is_person:
-            id_variables = [
-                id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-                if not _entity.is_person]
-            role_variables = [
-                role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-                if not _entity.is_person]
+        id_variables = [
+            self.id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
+        role_variables = [
+            self.role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
 
+        if entity.is_person:
             for id_variable in id_variables + role_variables:
                 assert id_variable in input_data_frame.columns, \
                     "Variable {} is not present in input dataframe".format(id_variable)
@@ -728,21 +725,17 @@ class AbstractSurveyScenario(object):
 
         if entity.is_person:
             entity.count = entity.step_size = len(input_data_frame)
-            for collective_entity in simulation.entities:
+            for collective_entity in simulation.entities.values():
                 if collective_entity.is_person:
                     continue
                 _key = collective_entity.key
-                _id_variable = id_variable_by_entity_key[_key]
-                _role_variable = role_variable_by_entity_key[_key]
+                _id_variable = self.id_variable_by_entity_key[_key]
+                _role_variable = self.role_variable_by_entity_key[_key]
                 collective_entity.roles_count = int(input_data_frame[_role_variable].max() + 1)
                 assert isinstance(collective_entity.roles_count, int), \
                     '{} is not a valid roles_count (int) for {}'.format(collective_entity.roles_count, _key)
 
-                unique_ids_count = len(input_data_frame[_id_variable].unique())
-                assert entity.count == unique_ids_count, \
-                    "There are {0} person of role 0 in {1} but {2} {1}".format(
-                        collective_entity.count, collective_entity.key, unique_ids_count)
-
+                collective_entity.count == len(input_data_frame[_id_variable].unique())
                 collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
                 # TODO legacy use
                 collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
@@ -751,10 +744,11 @@ class AbstractSurveyScenario(object):
             entity.count = entity.step_size = len(input_data_frame)
 
         for column_name, column_serie in input_data_frame.iteritems():
+            if column_name in (id_variables + role_variables):
+                continue
             # TODO: may be should regroup this part in a private method or helper function
             # (column_name, entity, simulation)
-            holder = simulation.get_or_new_holder(column_name)
-            assert holder.entity == entity
+            holder = entity.get_holder(column_name)
             if column_serie.values.dtype != holder.variable.dtype:
                 log.debug(
                     'Converting {} from dtype {} to {}'.format(
@@ -788,7 +782,7 @@ class AbstractSurveyScenario(object):
                 else:
                     holder.put_in_cache(np_array, period.this_year)
                 continue
-            holder.set_input(period, np_array)
+            holder.put_in_cache(np_array, period)
 
     def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None):
         """
@@ -987,7 +981,7 @@ class AbstractSurveyScenario(object):
         else:
             simulation = self.simulation
 
-        memory_usage_by_variable = simulation.self.used_as_input_variablesget_memory_usage()['by_variable']
+        memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
         try:
             usage_stats = simulation.tracer.usage_stats
         except AttributeError:
@@ -1118,6 +1112,19 @@ class AbstractSurveyScenario(object):
                         np.median(array),
                         ))
 
+    def _set_ids_and_roles_variables(self):
+        id_variable_by_entity_key = self.id_variable_by_entity_key
+        role_variable_by_entity_key = self.role_variable_by_entity_key
+
+        if id_variable_by_entity_key is None:
+            log.debug("Use default id_variable names")
+            self.id_variable_by_entity_key = dict(
+                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities
+                )
+        if role_variable_by_entity_key is None:
+            self.role_variable_by_entity_key = dict(
+                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities
+                )
 
 # Helpers
 

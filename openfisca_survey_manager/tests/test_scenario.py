@@ -3,7 +3,8 @@
 
 import logging
 
-
+from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_core import periods
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     randomly_init_variable,
@@ -56,17 +57,23 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.year = 2017
+    survey_scenario.used_as_input_variables = ['salary', 'rent']
     survey_scenario.init_from_data()
     simulation = survey_scenario.simulation
-
+    period = periods.period('2017-01')
     for entity, input_dataframe in input_dataframe_by_entity.iteritems():
-        print entity, input_dataframe
         survey_scenario.init_entity_with_data_frame(
             entity = entity,
             input_data_frame = input_dataframe,
-            period = 2017,
+            period = period,
             simulation = simulation,
             )
+    assert (
+        simulation.calculate('salary', period) == input_dataframe_by_entity['person']['salary']
+        ).all()
+    assert (
+        simulation.calculate('rent', period) == input_dataframe_by_entity['household']['rent']
+        ).all()
 
 
 if __name__ == "__main__":
