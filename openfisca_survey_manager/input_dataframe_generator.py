@@ -8,6 +8,9 @@ import pandas as pd
 import random
 
 
+from openfisca_core import periods
+
+
 def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     """
         Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
@@ -62,9 +65,9 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
     return input_dataframe_by_entity
 
 
-def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, period, max_value, condition = None):
+def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition = None):
     """
-        Initialise a variable with random values (from 0 to max_value) for the given period.
+        Initialise a variable with random values (from 0 to max_value).
         If a condition vector is provided, only set the value of persons or groups for which condition is True.
 
         Exemple:
@@ -73,7 +76,7 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
         >>> from openfisca_france import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)  # Create an input_dataframe_by_entity with 400 persons, spread among 100 household
-        >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', 2017, max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
+        >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
         >>> input_dataframe_by_entity
         """
 
@@ -88,4 +91,36 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
     count = len(input_dataframe_by_entity[entity.key])
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
     input_dataframe_by_entity[entity.key][variable_name] = value
-    # entity.get_holder(variable_name).set_input(make_period(period), value)
+
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.tables import Table
+
+
+def set_table_in_survey(input_dataframe, entity, period, collection, survey):
+    period = periods.period(period)
+    name = entity + '_' + str(period)
+    label = "Input data for entity {} at period {}".format(entity, period)
+    survey_collection = SurveyCollection.load(collection = collection)
+    survey = survey_collection.get_survey(survey)
+
+    survey.insert_table(label = label, name = name, dataframe = input_dataframe)
+
+
+def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
+    initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
+    for period, variable_generators in variable_generators_by_period.iteritems():
+        for variable_generator in variable_generators:
+            variable = variable_generator['variable']
+            max_value = variable_generator['max_value']
+            condition = variable_generator.get(None)
+            input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
+            randomly_init_variable(
+                tax_benefit_system = tax_benefit_system,
+                input_dataframe_by_entity = input_dataframe_by_entity,
+                variable_name = variable,
+                max_value = max_value,
+                condition = condition,
+                )
+        survey = 'input'
+        for entity, input_dataframe in input_dataframe_by_entity.iteritems():
+            set_table_in_survey(input_dataframe, entity, period, collection, survey)

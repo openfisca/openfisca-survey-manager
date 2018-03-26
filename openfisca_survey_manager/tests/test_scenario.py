@@ -77,7 +77,6 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
 
 
 if __name__ == "__main__":
-    import logging
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)

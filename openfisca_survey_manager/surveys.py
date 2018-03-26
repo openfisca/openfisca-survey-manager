@@ -244,7 +244,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             df = df[variables]
             return df
 
-    def insert_table(self, name = None, **kwargs):
+    def insert_table(self, label = None, name = None, **kwargs):
         """
         Insert a table in the Survey object
         """
@@ -254,7 +254,9 @@ Contains the following tables : \n""".format(self.name, self.label)
             assert isinstance(data_frame, pandas.DataFrame)
 
         if data_frame is not None:
-            table = Table(label = name, name = name, survey = self)
+            if label is None:
+                label = name
+            table = Table(label = label, name = name, survey = self)
             assert table.survey.hdf5_file_path is not None
             table.save_data_frame(data_frame)
 
