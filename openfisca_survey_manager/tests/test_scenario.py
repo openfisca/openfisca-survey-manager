@@ -7,6 +7,7 @@ from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_core import periods
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
+    random_data_generator,
     randomly_init_variable,
     )
 from openfisca_country_template import CountryTaxBenefitSystem
@@ -76,8 +77,49 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
         ).all()
 
 
+def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
+        rent_max_value = 1000, collection = "toto"):
+
+    data_dir = os.path.join(
+        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        'openfisca_survey_manager',
+        'tests',
+        'data_files',
+        )
+    survey_collection = SurveyCollection(name = collection)
+
+    variable_generators_by_period = {
+        periods.period('2017-01'): [
+            {
+                'variable': 'salary',
+                'max_value': salary_max_value,
+                },
+            {
+                'variable': 'rent',
+                'max_value': rent_max_value,
+                }
+            ],
+        }
+    random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection)
+
+
+    # input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
+    #     nb_persons, nb_groups, salary_max_value, rent_max_value)
+    # period = periods.period('2017-01')
+
+
+
+    # for entity, input_dataframe in input_dataframe_by_entity.iteritems():
+    #     survey_scenario.init_entity_with_data_frame(
+    #         entity = entity,
+    #         input_data_frame = input_dataframe,
+    #         period = period,
+    #         simulation = simulation,
+    #         )
+
+
 if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    test_survey_scenario_input_dataframe_import()
+    test_random_data_generator()
