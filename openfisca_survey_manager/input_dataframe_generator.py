@@ -3,12 +3,18 @@
 from __future__ import division
 
 
+import ConfigParser
+import logging
 import numpy as np
+import os
 import pandas as pd
 import random
 
 
 from openfisca_core import periods
+
+
+log = logging.getLogger(__name__)
 
 
 def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **kwargs):
@@ -93,6 +99,7 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
     input_dataframe_by_entity[entity.key][variable_name] = value
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.tables import Table
 
 
@@ -100,10 +107,33 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey):
     period = periods.period(period)
     name = entity + '_' + str(period)
     label = "Input data for entity {} at period {}".format(entity, period)
-    survey_collection = SurveyCollection.load(collection = collection)
-    survey = survey_collection.get_survey(survey)
+    try:
+        survey_collection = SurveyCollection.load(collection = collection)
+    except ConfigParser.NoOptionError:
+        survey_collection = SurveyCollection(name = collection)
 
+    survey = Survey(
+        name = survey,
+        label = label,
+        survey_collection = survey_collection,
+        )
+
+    if survey.hdf5_file_path is None:
+        config = survey.survey_collection.config
+        directory_path = config.get("data", "output_directory")
+        if not os.path.isdir(directory_path):
+            log.warn("{} who should be the HDF5 data directory does not exist: we create the directory".format(
+                directory_path))
+            os.makedirs(directory_path)
+        survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+
+    assert survey.hdf5_file_path is not None
     survey.insert_table(label = label, name = name, dataframe = input_dataframe)
+    collections_directory = survey_collection.config.get('collections', 'collections_directory')
+    assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
+Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
+    collection_json_path = os.path.join(collections_directory, "{}.json".format(collection))
+    survey_collection.dump(json_file_path = collection_json_path)
 
 
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):

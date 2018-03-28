@@ -11,8 +11,8 @@ import os
 
 import logging
 
-from .surveys import Survey
-from .config import Config
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.config import Config
 
 
 log = logging.getLogger(__name__)
@@ -75,8 +75,8 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
+        config.save
         config.save()
-
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 

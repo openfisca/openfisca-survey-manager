@@ -13,6 +13,10 @@ from openfisca_survey_manager.input_dataframe_generator import (
 from openfisca_country_template import CountryTaxBenefitSystem
 
 
+
+log = logging.getLogger(__name__)
+
+
 tax_benefit_system = CountryTaxBenefitSystem()
 
 
@@ -79,15 +83,15 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
 
 def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000, collection = "toto"):
-
+    import os
+    import pkg_resources
     data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
         )
-    survey_collection = SurveyCollection(name = collection)
-
+    from openfisca_survey_manager.survey_collections import SurveyCollection
     variable_generators_by_period = {
         periods.period('2017-01'): [
             {

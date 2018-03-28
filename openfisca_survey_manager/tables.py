@@ -65,7 +65,7 @@ class Table(object):
         if source_format is not None:
             self.source_format = source_format
 
-        from .surveys import Survey
+        from .surveys import Survey  # Keep it here to avoid infinite recursion
         assert isinstance(survey, Survey)
         self.survey = survey
         if not survey.tables:
