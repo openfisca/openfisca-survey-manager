@@ -1,6 +1,9 @@
 
 # Changelog
 
+### 0.9.10
+* Add a difference argument for compute_aggregate (fixes #45)
+
 ### 0.9.9
 * Add `trace` and `debug` attributes to `AbstractSurveyScenario` to use with `new_simulation`
 

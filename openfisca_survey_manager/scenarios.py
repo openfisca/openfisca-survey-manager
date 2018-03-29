@@ -67,9 +67,31 @@ class AbstractSurveyScenario(object):
         self.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
-                          missing_variable_default_value = np.nan):
-        # TODO deal here with filter_by instead of openfisca_france_data ?
+            difference = False, missing_variable_default_value = np.nan):
         assert aggfunc in ['count', 'mean', 'sum']
+        assert period is not None
+        assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
+
+        if difference:
+            return (
+                self.compute_aggregate(
+                    variable = variable,
+                    aggfunc = aggfunc,
+                    filter_by = filter_by,
+                    period = period,
+                    use_baseline = False,
+                    missing_variable_default_value = missing_variable_default_value,
+                    ) -
+                self.compute_aggregate(
+                    variable = variable,
+                    aggfunc = aggfunc,
+                    filter_by = filter_by,
+                    period = period,
+                    use_baseline = True,
+                    missing_variable_default_value = missing_variable_default_value,
+                    )
+                )
+
         tax_benefit_system = self.tax_benefit_system
         if filter_by is None and self.filtering_variable_by_entity is not None:
             entity_key = tax_benefit_system.variables[variable].entity.key
