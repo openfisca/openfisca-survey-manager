@@ -11,7 +11,7 @@ from openfisca_survey_manager.input_dataframe_generator import (
     randomly_init_variable,
     )
 from openfisca_country_template import CountryTaxBenefitSystem
-
+from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 
 log = logging.getLogger(__name__)
@@ -58,7 +58,6 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
 
     input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
-    from openfisca_survey_manager.scenarios import AbstractSurveyScenario
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.year = 2017
@@ -82,16 +81,7 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
 
 
 def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000, collection = "toto"):
-    import os
-    import pkg_resources
-    data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
-        'openfisca_survey_manager',
-        'tests',
-        'data_files',
-        )
-    from openfisca_survey_manager.survey_collections import SurveyCollection
+        rent_max_value = 1000, collection = "test_random_generator"):
     variable_generators_by_period = {
         periods.period('2017-01'): [
             {
@@ -103,20 +93,23 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
                 'max_value': rent_max_value,
                 }
             ],
+        periods.period('2018'): [
+            {
+                'variable': 'salary',
+                'max_value': salary_max_value,
+                },
+            ],
         }
-    random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection)
+    table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection)
+    print table_by_entity_by_period.values()
 
+    survey_scenario = AbstractSurveyScenario()
+    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.used_as_input_variables = ['salary', 'rent']
 
-    # input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
-    #     nb_persons, nb_groups, salary_max_value, rent_max_value)
-    # period = periods.period('2017-01')
-
-
-
-    # for entity, input_dataframe in input_dataframe_by_entity.iteritems():
-    #     survey_scenario.init_entity_with_data_frame(
-    #         entity = entity,
-    #         input_data_frame = input_dataframe,
+    survey_scenario.init_from_data()
+        entity = entity,
+    input_data_frame = input_dataframe,
     #         period = period,
     #         simulation = simulation,
     #         )

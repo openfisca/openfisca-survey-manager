@@ -66,7 +66,7 @@ class Table(object):
             self.source_format = source_format
 
         from .surveys import Survey  # Keep it here to avoid infinite recursion
-        assert isinstance(survey, Survey)
+        assert isinstance(survey, Survey), 'survey is of type {} and not {}'.format(type(survey), Survey)
         self.survey = survey
         if not survey.tables:
             survey.tables = collections.OrderedDict()
@@ -156,5 +156,5 @@ class Table(object):
                 raise e
                 log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
 
-    def save_data_frame(self, data_frame):
-        data_frame.to_hdf(self.survey.hdf5_file_path, self.name)
+    def save_data_frame(self, data_frame, **kwargs):
+        data_frame.to_hdf(self.survey.hdf5_file_path, self.name, append = False, **kwargs)

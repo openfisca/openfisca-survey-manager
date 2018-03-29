@@ -630,61 +630,61 @@ class AbstractSurveyScenario(object):
         #
         return self
 
-    def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
-
-        if data_year is None:
-            data_year = self.year
-
-        if calibration_kwargs is not None:
-            assert set(calibration_kwargs.keys()).issubset(set(
-                ['target_margins_by_variable', 'parameters', 'total_population']))
-
-        if inflation_kwargs is not None:
-            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
-
-        if rebuild_input_data:
-            if rebuild_kwargs is not None:
-                self.build_input_data(year = data_year, **rebuild_kwargs)
-            else:
-                self.build_input_data(year = data_year)
-
-        if self.input_data_table_by_period is None:
-            assert self.input_data_survey_prefix is not None
-            openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                self.input_data_survey_prefix, data_year))
-            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-
-            self.init_from_data_frame(
-                input_data_frame = input_data_frame,
-                )
-        else:
-            pass
-        #
-        input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
-
-        debug = self.debug
-        trace = self.trace
-        self.new_simulation(
-            debug = debug,
-            survey = input_survey_kwargs.get('input_survey'),
-            trace = trace,
-            )
-
-        if self.baseline_tax_benefit_system is not None:
-            self.new_simulation(
-                debug = debug,
-                survey = input_survey_kwargs.get('baseline_input_survey'),
-                trace = trace,
-                use_baseline = True,
-                )
-        #
-        if calibration_kwargs:
-            self.calibrate(**calibration_kwargs)
-
-        if inflation_kwargs:
-            self.inflate(**inflation_kwargs)
+#    def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
+#            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
+#
+#        if data_year is None:
+#            data_year = self.year
+#
+#        if calibration_kwargs is not None:
+#            assert set(calibration_kwargs.keys()).issubset(set(
+#                ['target_margins_by_variable', 'parameters', 'total_population']))
+#
+#        if inflation_kwargs is not None:
+#            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
+#
+#        if rebuild_input_data:
+#            if rebuild_kwargs is not None:
+#                self.build_input_data(year = data_year, **rebuild_kwargs)
+#            else:
+#                self.build_input_data(year = data_year)
+#
+#        if self.input_data_table_by_period is None:
+#            assert self.input_data_survey_prefix is not None
+#            openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
+#            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+#                self.input_data_survey_prefix, data_year))
+#            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+#
+#            self.init_from_data_frame(
+#                input_data_frame = input_data_frame,
+#                )
+#        else:
+#            pass
+#        #
+#        input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
+#
+#        debug = self.debug
+#        trace = self.trace
+#        self.new_simulation(
+#            debug = debug,
+#            survey = input_survey_kwargs.get('input_survey'),
+#            trace = trace,
+#            )
+#
+#        if self.baseline_tax_benefit_system is not None:
+#            self.new_simulation(
+#                debug = debug,
+#                survey = input_survey_kwargs.get('baseline_input_survey'),
+#                trace = trace,
+#                use_baseline = True,
+#                )
+#        #
+#        if calibration_kwargs:
+#            self.calibrate(**calibration_kwargs)
+#
+#        if inflation_kwargs:
+#            self.inflate(**inflation_kwargs)
 
     def init_entity_with_data_frame(self, entity = None, input_data_frame = None, period = None, simulation = None):
         """
@@ -927,6 +927,8 @@ class AbstractSurveyScenario(object):
             data_year = data.get("data_year", self.year)
 
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
+
+        # Unique monolithic dataframe
         if self.input_data_table_by_period is None and input_data_survey_prefix is not None:
             openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
             openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(

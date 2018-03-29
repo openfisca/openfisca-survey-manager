@@ -71,6 +71,34 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
     return input_dataframe_by_entity
 
 
+def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
+    initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
+    table_by_entity_by_period = dict()
+    for period, variable_generators in variable_generators_by_period.iteritems():
+        input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
+        table_by_entity_by_period[period] = table_by_entity = dict()
+        for variable_generator in variable_generators:
+            variable = variable_generator['variable']
+            max_value = variable_generator['max_value']
+            condition = variable_generator.get(None)
+            randomly_init_variable(
+                tax_benefit_system = tax_benefit_system,
+                input_dataframe_by_entity = input_dataframe_by_entity,
+                variable_name = variable,
+                max_value = max_value,
+                condition = condition,
+                )
+
+        for entity, input_dataframe in input_dataframe_by_entity.iteritems():
+            print period
+            print entity
+            print input_dataframe
+            set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
+            table_by_entity[entity] = entity + '_' + str(period)
+
+    return table_by_entity_by_period
+
+
 def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition = None):
     """
         Initialise a variable with random values (from 0 to max_value).
@@ -98,23 +126,21 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
     input_dataframe_by_entity[entity.key][variable_name] = value
 
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager.tables import Table
 
-
-def set_table_in_survey(input_dataframe, entity, period, collection, survey):
+def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None):
+    from openfisca_survey_manager.survey_collections import SurveyCollection
+    from openfisca_survey_manager.surveys import Survey
     period = periods.period(period)
-    name = entity + '_' + str(period)
-    label = "Input data for entity {} at period {}".format(entity, period)
+    table_name = entity + '_' + str(period)
+    table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
         survey_collection = SurveyCollection.load(collection = collection)
     except ConfigParser.NoOptionError:
         survey_collection = SurveyCollection(name = collection)
 
     survey = Survey(
-        name = survey,
-        label = label,
+        name = survey_name,
+        label = survey_label or None,
         survey_collection = survey_collection,
         )
 
@@ -128,29 +154,9 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey):
         survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
 
     assert survey.hdf5_file_path is not None
-    survey.insert_table(label = label, name = name, dataframe = input_dataframe)
+    survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe)
     collections_directory = survey_collection.config.get('collections', 'collections_directory')
     assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
     collection_json_path = os.path.join(collections_directory, "{}.json".format(collection))
     survey_collection.dump(json_file_path = collection_json_path)
-
-
-def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
-    initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
-    for period, variable_generators in variable_generators_by_period.iteritems():
-        for variable_generator in variable_generators:
-            variable = variable_generator['variable']
-            max_value = variable_generator['max_value']
-            condition = variable_generator.get(None)
-            input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
-            randomly_init_variable(
-                tax_benefit_system = tax_benefit_system,
-                input_dataframe_by_entity = input_dataframe_by_entity,
-                variable_name = variable,
-                max_value = max_value,
-                condition = condition,
-                )
-        survey = 'input'
-        for entity, input_dataframe in input_dataframe_by_entity.iteritems():
-            set_table_in_survey(input_dataframe, entity, period, collection, survey)

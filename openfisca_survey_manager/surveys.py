@@ -250,9 +250,9 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
 
         data_frame = kwargs.pop('data_frame', None) or kwargs.pop('dataframe', None)
+        to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
         if data_frame is not None:
             assert isinstance(data_frame, pandas.DataFrame)
-
 
         if data_frame is not None:
             if label is None:
@@ -260,7 +260,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             table = Table(label = label, name = name, survey = self)
             assert table.survey.hdf5_file_path is not None
             log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
-            table.save_data_frame(data_frame)
+            table.save_data_frame(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
             self.tables[name] = dict()
