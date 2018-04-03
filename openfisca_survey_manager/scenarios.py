@@ -445,6 +445,7 @@ class AbstractSurveyScenario(object):
                 input_data_frame = input_data_frame,
                 period = period,
                 simulation = simulation,
+                entity = entity,
                 )
         elif period.unit == MONTH and period.size == 3:  # 2. quarter
             for offset in range(period.size):
@@ -453,12 +454,14 @@ class AbstractSurveyScenario(object):
                     input_data_frame = input_data_frame,
                     period = period_item,
                     simulation = simulation,
+                    entity = entity,
                     )
         elif period.unit == MONTH and period.size == 1:  # 3. months
             self.init_simulation_with_data_frame(
                 input_data_frame = input_data_frame,
                 period = period,
                 simulation = simulation,
+                entity = entity,
                 )
         else:
             log.info("Invalid period {}".format(period))
@@ -475,14 +478,14 @@ class AbstractSurveyScenario(object):
         used_as_input_variables = self.used_as_input_variables
 
         tax_benefit_system = simulation.tax_benefit_system
-        column_by_name = tax_benefit_system.variables
+        variables = tax_benefit_system.variables
 
         id_variables = [
-            id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
+            id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
         role_variables = [
-            role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
+            role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
 
         log.debug('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
 
@@ -490,7 +493,7 @@ class AbstractSurveyScenario(object):
         for column_name in input_data_frame:
             if column_name in id_variables + role_variables:
                 continue
-            if column_name not in column_by_name:
+            if column_name not in variables:
                 unknown_columns.append(column_name)
                 input_data_frame.drop(column_name, axis = 1, inplace = True)
 
@@ -503,8 +506,8 @@ class AbstractSurveyScenario(object):
         for column_name in input_data_frame:
             if column_name in id_variables + role_variables:
                 continue
-            column = column_by_name[column_name]
-            formula_class = column.formula
+            variable = variables[column_name]
+            formula_class = variable.formula
 
             # The variable has several formulas for different dates
             # Why don't we do anything in that case ?
@@ -607,28 +610,6 @@ class AbstractSurveyScenario(object):
 
         if inflation_kwargs:
             self.inflate(**inflation_kwargs)
-
-    def init_from_data_frame(self, input_data_frame = None, input_data_table_by_period = None):
-
-        if input_data_frame is not None:
-            self.set_input_data_frame(input_data_frame)
-
-        self.input_data_table_by_period = self.input_data_table_by_period or input_data_table_by_period
-
-        assert (
-            self.input_data_frame is not None or
-            self.input_data_table_by_period is not None
-            )
-
-        if self.used_as_input_variables is None:
-            self.used_as_input_variables = []
-        else:
-            assert isinstance(self.used_as_input_variables, list)
-
-        if 'initialize_weights' in dir(self):
-            self.initialize_weights()
-        #
-        return self
 
 #    def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
 #            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
@@ -784,9 +765,9 @@ class AbstractSurveyScenario(object):
                 continue
             holder.put_in_cache(np_array, period)
 
-    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None):
+    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, entity = None):
         """
-        Initialize the simulation period with current input_data_frame
+        Initialize the simulation period with current input_data_frame for an entity if specified
         """
         assert input_data_frame is not None
         assert period is not None
@@ -807,17 +788,21 @@ class AbstractSurveyScenario(object):
                 sorted(list(input_data_frame.columns))))
 
         id_variables = [
-            id_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
+            id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
         role_variables = [
-            role_variable_by_entity_key[entity.key] for entity in simulation.entities.values()
-            if not entity.is_person]
+            role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
+            if not _entity.is_person]
 
         for id_variable in id_variables + role_variables:
+            if entity is not None:
+                assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]]
+                continue
             assert id_variable in input_data_frame.columns, \
                 "Variable {} is not present in input dataframe".format(id_variable)
 
-        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation)
+        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation,
+            entity = entity)
 
         for key, entity in simulation.entities.iteritems():
             if entity.is_person:
@@ -923,46 +908,61 @@ class AbstractSurveyScenario(object):
         return simulation
 
     def fill_simulation(self, simulation, period, data = None):
+
         if data is not None:
             data_year = data.get("data_year", self.year)
+            survey = data.get('survey')
 
-        input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
-
-        # Unique monolithic dataframe
-        if self.input_data_table_by_period is None and input_data_survey_prefix is not None:
-            openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                self.input_data_survey_prefix, data_year))
-            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-
-            self.init_from_data_frame(
-                input_data_frame = input_data_frame,
-                )
+        default_source_types = [
+            'input_data_frame',
+            'input_data_table_by_entity_by_period',
+            'input_data_table_by_period',
+            'input_data_table',
+            ]
+        source_types = [
+            source_type
+            for source_type in default_source_types
+            if data.get(source_type, None) is not None
+            ]
+        assert len(source_types) < 2, "There are too many data sources"
+        if len(source_types) == 1:
+            source_type = source_types[0]
+            source = data[source_type]
         else:
             pass
-        #
-        if data is not None:
-            survey = data['survey']
+        print source_type, source
+        input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
-        # Case 1: fill simulation with a unique input_data_frame given by the attribute
-        if self.input_data_frame is not None:
+        if source_type == 'input_data_table':
+            # Case 1: fill simulation with a unique input_data_frame given by the attribute
+            if input_data_survey_prefix is not None:
+                openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
+                openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+                    self.input_data_survey_prefix, data_year))
+                input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+            else:
+                NotImplementedError
             input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
             self.fill(input_data_frame, simulation, period)
-        # Case 2: fill simulation with input_data_frame by period containing all entity variables
-        elif self.input_data_table_by_period is not None:
+
+        elif source_type == 'input_data_table_by_period':
+            # Case 2: fill simulation with input_data_frame by period containing all entity variables
             for period, table in self.input_data_table_by_period.iteritems():
                 period = periods.period(period)
                 input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
                 self.fill(input_data_frame, simulation, period)
-        # Case 3: fill simulation with input_data_table by entity_by_period containing a dictionnary
-        # of all periods containing a dictionnary of entity variables
-        elif self.input_data_table_by_entity_by_period is not None:
-            for period, input_data_table_by_entity in self.input_data_table_by_entity_by_period.iteritems():
+        elif source_type == 'input_data_table_by_entity_by_period':
+            # Case 3: fill simulation with input_data_table by entity_by_period containing a dictionnary
+            # of all periods containing a dictionnary of entity variables
+            input_data_table_by_entity_by_period = source
+            for period, input_data_table_by_entity in input_data_table_by_entity_by_period.iteritems():
                 period = periods.period(period)
                 for entity, table in input_data_table_by_entity.iteritems():
+                    survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
+                    print input_data_frame
                     self.custom_input_data_frame(input_data_frame, period = period, entity = entity)
                     self.fill(input_data_frame, simulation, period, entity = entity)
         else:
@@ -972,7 +972,10 @@ class AbstractSurveyScenario(object):
             table = None):
         collection = collection or self.collection
         survey_collection = SurveyCollection.load(collection = self.collection)
-        survey = survey or "{}_{}".format(self.input_data_survey_prefix, self.year)
+        if survey is not None:
+            survey = survey
+        else:
+            survey = "{}_{}".format(self.input_data_survey_prefix, self.year)
         survey_ = survey_collection.get_survey(survey)
         log.info("Loading table {} in survey {} from collection {}".format(table, survey, collection))
         return survey_.get_values(table = table, variables = variables)

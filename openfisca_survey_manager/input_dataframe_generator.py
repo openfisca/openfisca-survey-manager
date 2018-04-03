@@ -90,9 +90,6 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
                 )
 
         for entity, input_dataframe in input_dataframe_by_entity.iteritems():
-            print period
-            print entity
-            print input_dataframe
             set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
             table_by_entity[entity] = entity + '_' + str(period)
 
@@ -155,6 +152,10 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
 
     assert survey.hdf5_file_path is not None
     survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe)
+    survey_collection.surveys = [
+        kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+        ]
+    survey_collection.surveys.append(survey)
     collections_directory = survey_collection.config.get('collections', 'collections_directory')
     assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)

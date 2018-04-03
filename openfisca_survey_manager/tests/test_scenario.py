@@ -100,19 +100,20 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
                 },
             ],
         }
-    table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection)
+    table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups,
+        variable_generators_by_period, collection)
+
     print table_by_entity_by_period.values()
 
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.used_as_input_variables = ['salary', 'rent']
-
-    survey_scenario.init_from_data()
-        entity = entity,
-    input_data_frame = input_dataframe,
-    #         period = period,
-    #         simulation = simulation,
-    #         )
+    survey_scenario.year = 2017
+    survey_scenario.collection = "test_random_generator"
+    data = {
+        'input_data_table_by_entity_by_period': table_by_entity_by_period
+        }
+    survey_scenario.init_from_data(data = data)
 
 
 if __name__ == "__main__":
