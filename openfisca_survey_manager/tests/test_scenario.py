@@ -89,28 +89,27 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
 
 def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000):
-    input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
+    input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
-    input_dataframe_by_entity['person']['household_id'] =  4 - input_dataframe_by_entity['person']['household_id']
+    input_data_frame_by_entity['person']['household_id'] = 4 - input_data_frame_by_entity['person']['household_id']
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.year = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
-    survey_scenario.init_from_data()
+    period = periods.period('2017-01')
+    data = {
+        'input_data_frame_by_entity_by_period': {
+            period: input_data_frame_by_entity
+            }
+        }
+    survey_scenario.init_from_data(data = data)
     simulation = survey_scenario.simulation
     period = periods.period('2017-01')
-    for entity, input_dataframe in input_dataframe_by_entity.iteritems():
-        survey_scenario.init_entity_with_data_frame(
-            entity = entity,
-            input_data_frame = input_dataframe,
-            period = period,
-            simulation = simulation,
-            )
     assert (
-        simulation.calculate('salary', period) == input_dataframe_by_entity['person']['salary']
+        simulation.calculate('salary', period) == input_data_frame_by_entity['person']['salary']
         ).all()
     assert (
-        simulation.calculate('rent', period) == input_dataframe_by_entity['household']['rent']
+        simulation.calculate('rent', period) == input_data_frame_by_entity['household']['rent']
         ).all()
 
 

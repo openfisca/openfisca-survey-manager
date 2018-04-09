@@ -932,7 +932,6 @@ class AbstractSurveyScenario(object):
             for source_type_ in default_source_types
             if data.get(source_type_, None) is not None
             ]
-        print source_types
         assert len(source_types) < 2, "There are too many data sources"
         if len(source_types) == 1:
             source_type = source_types[0]
@@ -997,7 +996,6 @@ class AbstractSurveyScenario(object):
                 for entity, table in input_data_table_by_entity.iteritems():
                     survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
-                    print input_data_frame
                     self.custom_input_data_frame(input_data_frame, period = period, entity = entity)
                     self.fill(input_data_frame, simulation, period, entity = entity)
         else:
