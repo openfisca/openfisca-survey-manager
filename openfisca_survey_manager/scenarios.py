@@ -823,7 +823,7 @@ class AbstractSurveyScenario(object):
                 entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
                 entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
                 index_by_entity_key[entity.key] = input_data_frame.loc[
-                    role_variable_by_entity_key[entity.key] == 0,
+                    input_data_frame[role_variable_by_entity_key[key]] == 0,
                     id_variable_by_entity_key[key]
                     ].sort_values(id_variable_by_entity_key[key]).index
 
@@ -941,17 +941,14 @@ class AbstractSurveyScenario(object):
 
         if source_type == 'input_data_frame_by_entity':
             assert data_year is not None
-            input_data_frame_by_entity_by_period = {
-                periods.period(data_year): source
-                }
             source_type = 'input_data_frame_by_entity_by_period'
+            source = {periods.period(data_year): source}
 
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
         if source_type == 'input_data_frame':
             self.init_entity_with_data_frame(
-                entity = entity,
-                input_data_frame = input_dataframe,
+                input_data_frame = source,
                 period = period,
                 simulation = simulation,
                 )

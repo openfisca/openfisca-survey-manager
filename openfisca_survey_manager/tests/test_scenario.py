@@ -105,12 +105,15 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
     survey_scenario.init_from_data(data = data)
     simulation = survey_scenario.simulation
     period = periods.period('2017-01')
+    print input_data_frame_by_entity
     assert (
         simulation.calculate('salary', period) == input_data_frame_by_entity['person']['salary']
         ).all()
     assert (
         simulation.calculate('rent', period) == input_data_frame_by_entity['household']['rent']
         ).all()
+    print input_data_frame_by_entity['household']['rent']
+    print simulation.calculate('rent', period)
 
 
 def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
