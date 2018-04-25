@@ -138,9 +138,6 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
         }
     table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups,
         variable_generators_by_period, collection)
-
-    print table_by_entity_by_period.values()
-
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.used_as_input_variables = ['salary', 'rent']
@@ -156,13 +153,5 @@ if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-#    nb_persons = 10
-#    nb_groups = 5
-#    salary_max_value = 50000
-#    rent_max_value = 1000
-#    input_dataframe_by_entity = generate_input_input_dataframe_by_entity(nb_persons, nb_groups, salary_max_value, rent_max_value)
-#    input_dataframe_by_entity['person']['household_id'] =  4 - input_dataframe_by_entity['person']['household_id']
-
-    #test_random_data_generator()
     test_survey_scenario_input_dataframe_import()
     test_survey_scenario_input_dataframe_import_scrambled_ids()
