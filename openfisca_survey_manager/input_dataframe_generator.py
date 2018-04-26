@@ -12,6 +12,8 @@ import random
 
 
 from openfisca_core import periods
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
 
 log = logging.getLogger(__name__)
@@ -125,8 +127,6 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
 
 def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None):
-    from openfisca_survey_manager.survey_collections import SurveyCollection
-    from openfisca_survey_manager.surveys import Survey
     period = periods.period(period)
     table_name = entity + '_' + str(period)
     table_label = "Input data for entity {} at period {}".format(entity, period)
@@ -134,6 +134,17 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
         survey_collection = SurveyCollection.load(collection = collection)
     except ConfigParser.NoOptionError:
         survey_collection = SurveyCollection(name = collection)
+    except ConfigParser.NoSectionError:  # For tests
+        data_dir = os.path.join(
+            pkg_resources.get_distribution('openfisca-survey-manager').location,
+            'openfisca_survey_manager',
+            'tests',
+            'data_files',
+            )
+        survey_collection = SurveyCollection(
+            name = collection,
+            config_files_directory = data_dir,
+            )
 
     survey = Survey(
         name = survey_name,
