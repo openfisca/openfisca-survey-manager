@@ -14,8 +14,8 @@ from openfisca_core.periods import MONTH, YEAR, ETERNITY
 
 from openfisca_survey_manager.calibration import Calibration
 
-from .survey_collections import SurveyCollection
-from .surveys import Survey
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 
 log = logging.getLogger(__name__)
 
@@ -801,8 +801,7 @@ class AbstractSurveyScenario(object):
             assert id_variable in input_data_frame.columns, \
                 "Variable {} is not present in input dataframe".format(id_variable)
 
-        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation,
-            entity = entity)
+        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation)
 
         index_by_entity_key = dict()
 
@@ -947,11 +946,12 @@ class AbstractSurveyScenario(object):
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
         if source_type == 'input_data_frame':
-            self.init_entity_with_data_frame(
+            self.fill(
                 input_data_frame = source,
-                period = period,
                 simulation = simulation,
+                period = period,
                 )
+
         if source_type == 'input_data_table':
             # Case 1: fill simulation with a unique input_data_frame given by the attribute
             if input_data_survey_prefix is not None:
