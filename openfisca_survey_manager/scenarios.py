@@ -432,7 +432,7 @@ class AbstractSurveyScenario(object):
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
 
-    def fill(self, input_data_frame, simulation, period = None, entity = None):
+    def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
         assert period is not None
         if entity:
             log.info('Initialasing simulation using input_data_frame for entity {} for period {}'.format(
@@ -611,63 +611,7 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs:
             self.inflate(**inflation_kwargs)
 
-#    def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-#            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
-#
-#        if data_year is None:
-#            data_year = self.year
-#
-#        if calibration_kwargs is not None:
-#            assert set(calibration_kwargs.keys()).issubset(set(
-#                ['target_margins_by_variable', 'parameters', 'total_population']))
-#
-#        if inflation_kwargs is not None:
-#            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
-#
-#        if rebuild_input_data:
-#            if rebuild_kwargs is not None:
-#                self.build_input_data(year = data_year, **rebuild_kwargs)
-#            else:
-#                self.build_input_data(year = data_year)
-#
-#        if self.input_data_table_by_period is None:
-#            assert self.input_data_survey_prefix is not None
-#            openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-#            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-#                self.input_data_survey_prefix, data_year))
-#            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-#
-#            self.init_from_data_frame(
-#                input_data_frame = input_data_frame,
-#                )
-#        else:
-#            pass
-#        #
-#        input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
-#
-#        debug = self.debug
-#        trace = self.trace
-#        self.new_simulation(
-#            debug = debug,
-#            survey = input_survey_kwargs.get('input_survey'),
-#            trace = trace,
-#            )
-#
-#        if self.baseline_tax_benefit_system is not None:
-#            self.new_simulation(
-#                debug = debug,
-#                survey = input_survey_kwargs.get('baseline_input_survey'),
-#                trace = trace,
-#                use_baseline = True,
-#                )
-#        #
-#        if calibration_kwargs:
-#            self.calibrate(**calibration_kwargs)
-#
-#        if inflation_kwargs:
-#            self.inflate(**inflation_kwargs)
-
-    def init_entity_with_data_frame(self, entity = None, input_data_frame = None, period = None, simulation = None):
+    def init_entity(self, entity = None, input_data_frame = None, period = None, simulation = None):
         """
         Initialize the simulation period with current input_data_frame
         """
@@ -729,41 +673,12 @@ class AbstractSurveyScenario(object):
                 continue
             # TODO: may be should regroup this part in a private method or helper function
             # (column_name, entity, simulation)
-            holder = entity.get_holder(column_name)
-            if column_serie.values.dtype != holder.variable.dtype:
-                log.debug(
-                    'Converting {} from dtype {} to {}'.format(
-                        column_name, column_serie.values.dtype, holder.variable.dtype)
-                    )
-            if np.issubdtype(column_serie.values.dtype, np.floating):
-                if column_serie.isnull().any():
-                    log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
-                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
-                    log.debug('We convert these NaN values of variable {} to {} its default value'.format(
-                        column_name, holder.variable.default_value))
-                    input_data_frame.loc[column_serie.isnull(), column_name] = holder.variable.default_value
-                assert input_data_frame[column_name].notnull().all(), \
-                    'There are {} NaN values for {} non NaN values in variable {}'.format(
-                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
-
-            array = column_serie.values.astype(holder.variable.dtype)
-            assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                column_name, array.size, entity.count)
-            # TODO is the next line needed ?
-            np_array = np.array(array, dtype = holder.variable.dtype)
-            if holder.variable.definition_period == YEAR and period.unit == MONTH:
-                # Some variables defined for a year are present in month/quarter dataframes
-                # Cleaning the dataframe would probably be better in the long run
-                log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The  montly values you provided will be summed.'
-                    .format(column_name).encode('utf-8'))
-
-                if holder.get_array(period.this_year) is not None:
-                    sum = holder.get_array(period.this_year) + np_array
-                    holder.put_in_cache(sum, period.this_year)
-                else:
-                    holder.put_in_cache(np_array, period.this_year)
-                continue
-            holder.put_in_cache(np_array, period)
+            init_variable_in_entity(
+                entity = entity,
+                variable = column_name,
+                series = column_serie,
+                period = period,
+                )
 
     def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, entity = None):
         """
@@ -795,8 +710,14 @@ class AbstractSurveyScenario(object):
             if not _entity.is_person]
 
         for id_variable in id_variables + role_variables:
-            if entity is not None:
-                assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]]
+            if (entity_key is not None) and (not simulation.entities[entity].is_person):
+                assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]], \
+                    "variable {} for entity {} is not valid (not {} nor {})".format(
+                        id_variable,
+                        entity_key,
+                        id_variable_by_entity_key[entity_key],
+                        role_variable_by_entity_key[entity_key],
+                        )
                 continue
             assert id_variable in input_data_frame.columns, \
                 "Variable {} is not present in input dataframe".format(id_variable)
@@ -824,7 +745,7 @@ class AbstractSurveyScenario(object):
                 index_by_entity_key[entity.key] = input_data_frame.loc[
                     input_data_frame[role_variable_by_entity_key[key]] == 0,
                     id_variable_by_entity_key[key]
-                    ].sort_values(id_variable_by_entity_key[key]).index
+                    ].sort_values().index
 
         for column_name, column_serie in input_data_frame.iteritems():
             if role_variable_by_entity_key is not None:
@@ -837,44 +758,8 @@ class AbstractSurveyScenario(object):
 
             holder = simulation.get_or_new_holder(column_name)
             entity = holder.entity
-            if column_serie.values.dtype != holder.variable.dtype:
-                log.debug(
-                    'Converting {} from dtype {} to {}'.format(
-                        column_name, column_serie.values.dtype, holder.variable.dtype)
-                    )
-            if np.issubdtype(column_serie.values.dtype, np.floating):
-                if column_serie.isnull().any():
-                    log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
-                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name))
-                    log.debug('We convert these NaN values of variable {} to {} its default value'.format(
-                        column_name, holder.variable.default_value))
-                    input_data_frame.loc[column_serie.isnull(), column_name] = holder.variable.default_value
-                assert input_data_frame[column_name].notnull().all(), \
-                    'There are {} NaN values for {} non NaN values in variable {}'.format(
-                        column_serie.isnull().sum(), column_serie.notnull().sum(), column_name)
 
-            if entity.is_person:
-                array = column_serie.values.astype(holder.variable.dtype)
-            else:
-                array = column_serie.values[
-                    index_by_entity_key[entity.key]
-                    ].astype(holder.variable.dtype)
-            assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-                column_name, array.size, entity.count)
-            np_array = np.array(array, dtype = holder.variable.dtype)
-            if holder.variable.definition_period == YEAR and period.unit == MONTH:
-                # Some variables defined for a year are present in month/quarter dataframes
-                # Cleaning the dataframe would probably be better in the long run
-                log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The montly values you provided will be summed.'
-                    .format(column_name).encode('utf-8'))
-
-                if holder.get_array(period.this_year) is not None:
-                    sum = holder.get_array(period.this_year) + np_array
-                    holder.put_in_cache(sum, period.this_year)
-                else:
-                    holder.put_in_cache(np_array, period.this_year)
-                continue
-            holder.set_input(period, np_array)
+            init_variable_in_entity(entity, column_name, column_serie, period)
 
     def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
         assert self.tax_benefit_system is not None
@@ -900,7 +785,7 @@ class AbstractSurveyScenario(object):
             trace = trace,
             memory_config = memory_config
             )
-        self.fill_simulation(simulation = simulation, period = period, data = data)
+        self.init_simulation(simulation = simulation, period = period, data = data)
         #
         if not use_baseline:
             self.simulation = simulation
@@ -912,7 +797,7 @@ class AbstractSurveyScenario(object):
         #
         return simulation
 
-    def fill_simulation(self, simulation, period, data = None):
+    def init_simulation(self, simulation, period, data = None):
 
         assert data is not None
         data_year = data.get("data_year", self.year)
@@ -946,7 +831,7 @@ class AbstractSurveyScenario(object):
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
         if source_type == 'input_data_frame':
-            self.fill(
+            self.init_all_entities(
                 input_data_frame = source,
                 simulation = simulation,
                 period = period,
@@ -964,7 +849,7 @@ class AbstractSurveyScenario(object):
 
             input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
-            self.fill(input_data_frame, simulation, period)
+            self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
         elif source_type == 'input_data_table_by_period':
             # Case 2: fill simulation with input_data_frame by period containing all entity variables
@@ -972,12 +857,12 @@ class AbstractSurveyScenario(object):
                 period = periods.period(period)
                 input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
-                self.fill(input_data_frame, simulation, period)
+                self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
         elif source_type == 'input_data_frame_by_entity_by_period':
             for period, input_data_frame_by_entity in source.iteritems():
                 for entity, input_data_frame in input_data_frame_by_entity.iteritems():
-                    self.init_entity_with_data_frame(
+                    self.init_entity(
                         entity = entity,
                         input_data_frame = input_data_frame,
                         period = period,
@@ -994,7 +879,12 @@ class AbstractSurveyScenario(object):
                     survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
                     self.custom_input_data_frame(input_data_frame, period = period, entity = entity)
-                    self.fill(input_data_frame, simulation, period, entity = entity)
+                    self.init_entity(
+                        entity = entity,
+                        input_data_frame = input_data_frame,
+                        period = period,
+                        simulation = simulation,
+                        )
         else:
             pass
 
@@ -1234,3 +1124,44 @@ def get_weights(survey_scenario, variable):
     entity = get_entity(survey_scenario, variable)
     weight_variable = survey_scenario.weight_column_name_by_entity.get(entity.key)
     return weight_variable
+
+
+def init_variable_in_entity(entity, variable, series, period):
+    holder = entity.get_holder(variable)
+    if series.values.dtype != holder.variable.dtype:
+        log.debug(
+            'Converting {} from dtype {} to {}'.format(
+                variable, series.values.dtype, holder.variable.dtype)
+            )
+    if np.issubdtype(series.values.dtype, np.floating):
+        if series.isnull().any():
+            log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
+                series.isnull().sum(), series.notnull().sum(), variable))
+            log.debug('We convert these NaN values of variable {} to {} its default value'.format(
+                variable, holder.variable.default_value))
+            series.fillna(holder.variable.default_value, inplace = True)
+        assert series.notnull().all(), \
+            'There are {} NaN values for {} non NaN values in variable {}'.format(
+                series.isnull().sum(), series.notnull().sum(), variable)
+
+    array = series.values.astype(holder.variable.dtype)
+    assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
+        variable, array.size, entity.count)
+    # TODO is the next line needed ?
+    # Might be due to values returning also ndarray like objects
+    # for instance for categories or
+    np_array = np.array(array, dtype = holder.variable.dtype)
+    if holder.variable.definition_period == YEAR and period.unit == MONTH:
+        # Some variables defined for a year are present in month/quarter dataframes
+        # Cleaning the dataframe would probably be better in the long run
+        log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The  montly values you provided will be summed.'
+            .format(variable).encode('utf-8'))
+
+        if holder.get_array(period.this_year) is not None:
+            sum = holder.get_array(period.this_year) + np_array
+            holder.put_in_cache(sum, period.this_year)
+        else:
+            holder.put_in_cache(np_array, period.this_year)
+
+    else:
+        holder.put_in_cache(np_array, period)

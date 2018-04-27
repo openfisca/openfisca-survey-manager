@@ -126,7 +126,7 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
                 'max_value': rent_max_value,
                 }
             ],
-        periods.period('2018'): [
+        periods.period('2018-01'): [
             {
                 'variable': 'salary',
                 'max_value': salary_max_value,
@@ -150,5 +150,6 @@ if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
+    test_random_data_generator()
     test_survey_scenario_input_dataframe_import()
     test_survey_scenario_input_dataframe_import_scrambled_ids()
