@@ -507,14 +507,8 @@ class AbstractSurveyScenario(object):
             if column_name in id_variables + role_variables:
                 continue
             variable = variables[column_name]
-            formula_class = variable.formula
-
-            # The variable has several formulas for different dates
-            # Why don't we do anything in that case ?
-            if len(formula_class.dated_formulas_class) > 1:
-                continue
             # Keeping the calculated variables that are initialized by the input data
-            if formula_class.dated_formulas_class:
+            if variable.formulas:
                 if column_name in used_as_input_variables:
                     used_columns.append(column_name)
                     continue
@@ -710,6 +704,7 @@ class AbstractSurveyScenario(object):
             if not _entity.is_person]
 
         for id_variable in id_variables + role_variables:
+            entity_key = entity.key if entity is not None else None
             if (entity_key is not None) and (not simulation.entities[entity].is_person):
                 assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]], \
                     "variable {} for entity {} is not valid (not {} nor {})".format(
@@ -756,7 +751,7 @@ class AbstractSurveyScenario(object):
                 if column_name in id_variable_by_entity_key.values():
                     continue
 
-            holder = simulation.get_or_new_holder(column_name)
+            holder = simulation.get_holder(column_name)
             entity = holder.entity
 
             init_variable_in_entity(entity, column_name, column_serie, period)
@@ -937,8 +932,7 @@ class AbstractSurveyScenario(object):
         Neutralizing input variables not in input dataframe and keep some crucial variables
         """
         for variable_name, variable in tax_benefit_system.variables.items():
-            formula_class = variable.formula
-            if formula_class.dated_formulas_class:
+            if variable.formulas:
                 continue
             if self.used_as_input_variables and (variable_name in self.used_as_input_variables):
                 continue
@@ -1077,7 +1071,7 @@ class AbstractSurveyScenario(object):
 
 #         # Convert columns from df to array:
 #         for column_name, column_serie in input_data_frame.iteritems():
-#             holder = simulation.get_or_new_holder(column_name)
+#             holder = simulation.get_holder(column_name)
 #             entity = holder.entity
 #             if column_serie.values.dtype != holder.variable.dtype:
 #                 log.debug(

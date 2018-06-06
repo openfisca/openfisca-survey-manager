@@ -57,7 +57,7 @@ setup(
         'configparser',
         'humanize',
         'numpy >= 1.12',
-        'openfisca-core >= 21.3.1',
+        'openfisca-core >= 23.0.0, < 24.0.0',
         'pandas >= 0.20',
         'PyYAML',
         'pyxdg',
