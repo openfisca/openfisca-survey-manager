@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from . import default_config_files_directory
+from openfisca_survey_manager import default_config_files_directory
 
 
 import codecs
