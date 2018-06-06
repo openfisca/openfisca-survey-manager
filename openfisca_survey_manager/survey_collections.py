@@ -103,7 +103,12 @@ Contains the following surveys :
         if json_file_path is None:
             assert collection is not None
             config = Config(config_files_directory = config_files_directory)
-            json_file_path = config.get("collections", collection)
+            try:
+                json_file_path = config.get("collections", collection)
+            except Exception as error:
+                log.debug("Looking for congi file in {}".format(config_files_directory))
+                log.error(error)
+                raise
 
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
