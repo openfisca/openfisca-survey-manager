@@ -573,7 +573,7 @@ class AbstractSurveyScenario(object):
                 holder.put_in_cache(inflator * array, period)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, data = None):
+            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
 
         if data is not None:
             data_year = data.get("data_year", self.year)
@@ -595,9 +595,9 @@ class AbstractSurveyScenario(object):
 
         debug = self.debug
         trace = self.trace
-        self.new_simulation(debug = debug, data = data, trace = trace)
+        self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
         if self.baseline_tax_benefit_system is not None:
-            self.new_simulation(debug = debug, data = data, trace = trace, use_baseline = True)
+            self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config, use_baseline = True)
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
@@ -753,8 +753,12 @@ class AbstractSurveyScenario(object):
 
             holder = simulation.get_holder(column_name)
             entity = holder.entity
-
-            init_variable_in_entity(entity, column_name, column_serie, period)
+            if entity.is_person:
+                # print entity, column_name, len(column_serie), period
+                init_variable_in_entity(entity, column_name, column_serie, period)
+            else:
+                # print entity, column_name, len(column_serie[index_by_entity_key[entity.key]]), period
+                init_variable_in_entity(entity, column_name, column_serie[index_by_entity_key[entity.key]], period)
 
     def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
         assert self.tax_benefit_system is not None
@@ -844,12 +848,13 @@ class AbstractSurveyScenario(object):
 
             input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
-            self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
+            self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
         elif source_type == 'input_data_table_by_period':
             # Case 2: fill simulation with input_data_frame by period containing all entity variables
             for period, table in self.input_data_table_by_period.iteritems():
                 period = periods.period(period)
+                log.debug('From survey {} loading table {}'.format(survey, table))
                 input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
                 self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
@@ -892,7 +897,7 @@ class AbstractSurveyScenario(object):
         else:
             survey = "{}_{}".format(self.input_data_survey_prefix, self.year)
         survey_ = survey_collection.get_survey(survey)
-        log.info("Loading table {} in survey {} from collection {}".format(table, survey, collection))
+        log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
         return survey_.get_values(table = table, variables = variables)
 
     def memory_usage(self, use_baseline = False):
@@ -1139,8 +1144,8 @@ def init_variable_in_entity(entity, variable, series, period):
                 series.isnull().sum(), series.notnull().sum(), variable)
 
     array = series.values.astype(holder.variable.dtype)
-    assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-        variable, array.size, entity.count)
+    assert array.size == entity.count, 'Entity {}: bad size for variable {} ({} instead of {})'.format(
+        entity.key, variable, array.size, entity.count)
     # TODO is the next line needed ?
     # Might be due to values returning also ndarray like objects
     # for instance for categories or
@@ -1158,4 +1163,5 @@ def init_variable_in_entity(entity, variable, series, period):
             holder.put_in_cache(np_array, period.this_year)
 
     else:
+        # print holder.variable.__dict__
         holder.put_in_cache(np_array, period)

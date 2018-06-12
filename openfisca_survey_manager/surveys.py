@@ -249,7 +249,10 @@ Contains the following tables : \n""".format(self.name, self.label)
         Insert a table in the Survey object
         """
 
-        data_frame = kwargs.pop('data_frame', None) or kwargs.pop('dataframe', None)
+        data_frame = kwargs.pop('data_frame', None)
+        if data_frame is None:
+            data_frame = kwargs.pop('dataframe', None)
+
         to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
         if data_frame is not None:
             assert isinstance(data_frame, pandas.DataFrame)
