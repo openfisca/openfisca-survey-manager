@@ -16,9 +16,8 @@ log = logging.getLogger(__name__)
 
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):
     parser = SafeConfigParser()
-    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
-    read_config_file_name = parser.read([config_ini, config_local_ini])
+    read_config_file_name = parser.read([config_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
     assert tmp_directory is not None, \
         'tmp_directory is not set: {!r} in {}'.format(tmp_directory, read_config_file_name)
@@ -49,9 +48,8 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
 
 def get_store(config_files_directory = default_config_files_directory, file_name = None):
     parser = SafeConfigParser()
-    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
-    _ = parser.read([config_ini, config_local_ini])
+    _ = parser.read(config_ini)
     tmp_directory = parser.get('data', 'tmp_directory')
     assert file_name is not None
     if not file_name.endswith('.h5'):
@@ -64,9 +62,8 @@ def save_hdf_r_readable(data_frame, config_files_directory = default_config_file
                         file_path = None):
     if file_path is None:
         parser = SafeConfigParser()
-        config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
         config_ini = os.path.join(config_files_directory, 'config.ini')
-        _ = parser.read([config_ini, config_local_ini])
+        _ = parser.read(config_ini)
         tmp_directory = parser.get('data', 'tmp_directory')
         if file_name is not None:
             if not file_name.endswith('.h5'):
@@ -85,9 +82,8 @@ class TemporaryStore(HDFStore):
     def create(cls, config_files_directory = default_config_files_directory, file_name = None, file_path = None):
         if file_path is None:
             parser = SafeConfigParser()
-            config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
             config_ini = os.path.join(config_files_directory, 'config.ini')
-            _ = parser.read([config_ini, config_local_ini])
+            _ = parser.read(config_ini)
             tmp_directory = parser.get('data', 'tmp_directory')
             if file_name is not None:
                 if not file_name.endswith('.h5'):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from . import default_config_files_directory
+from openfisca_survey_manager import default_config_files_directory
 
 
 import codecs
@@ -11,8 +11,8 @@ import os
 
 import logging
 
-from .surveys import Survey
-from .config import Config
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.config import Config
 
 
 log = logging.getLogger(__name__)
@@ -75,8 +75,8 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
+        config.save
         config.save()
-
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
@@ -103,7 +103,12 @@ Contains the following surveys :
         if json_file_path is None:
             assert collection is not None
             config = Config(config_files_directory = config_files_directory)
-            json_file_path = config.get("collections", collection)
+            try:
+                json_file_path = config.get("collections", collection)
+            except Exception as error:
+                log.debug("Looking for congi file in {}".format(config_files_directory))
+                log.error(error)
+                raise
 
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)

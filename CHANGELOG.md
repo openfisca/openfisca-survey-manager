@@ -2,6 +2,9 @@
 # Changelog
 
 ### 0.9.10
+* Migrate to a new method to pass data to SurveyScenario
+
+### 0.9.10
 * Add a difference argument for compute_aggregate (fixes #45)
 
 ### 0.9.9

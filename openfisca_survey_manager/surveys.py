@@ -110,7 +110,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             config = survey.survey_collection.config
             directory_path = config.get("data", "output_directory")
             if not os.path.isdir(directory_path):
-                print("{} who should be the HDF5 data directory does not exist: we create the directory".format(
+                log.warn("{} who should be the HDF5 data directory does not exist: we create the directory".format(
                     directory_path))
                 os.makedirs(directory_path)
 
@@ -244,19 +244,26 @@ Contains the following tables : \n""".format(self.name, self.label)
             df = df[variables]
             return df
 
-    def insert_table(self, name = None, **kwargs):
+    def insert_table(self, label = None, name = None, **kwargs):
         """
         Insert a table in the Survey object
         """
 
         data_frame = kwargs.pop('data_frame', None)
+        if data_frame is None:
+            data_frame = kwargs.pop('dataframe', None)
+
+        to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
         if data_frame is not None:
             assert isinstance(data_frame, pandas.DataFrame)
 
         if data_frame is not None:
-            table = Table(label = name, name = name, survey = self)
+            if label is None:
+                label = name
+            table = Table(label = label, name = name, survey = self)
             assert table.survey.hdf5_file_path is not None
-            table.save_data_frame(data_frame)
+            log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
+            table.save_data_frame(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
             self.tables[name] = dict()

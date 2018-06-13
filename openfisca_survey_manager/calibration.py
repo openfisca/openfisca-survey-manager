@@ -43,7 +43,7 @@ class Calibration(object):
         Reset the calibration to it initial state
         """
         simulation = self.survey_scenario.simulation
-        holder = simulation.get_or_new_holder(self.weight_name)
+        holder = simulation.get_holder(self.weight_name)
         holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
 
     def _set_survey_scenario(self, survey_scenario):
@@ -174,7 +174,7 @@ class Calibration(object):
         for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
             if simulation is None:
                 continue
-            holder = simulation.get_or_new_holder(self.weight_name)
+            holder = simulation.get_holder(self.weight_name)
             holder.array = numpy.array(self.weight, dtype = holder.variable.dtype)
             # TODO: propagation to other weights
 

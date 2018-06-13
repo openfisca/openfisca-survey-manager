@@ -116,10 +116,10 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
             set(tax_benefit_system.variables.keys()).intersection(
                 set(input_data_frame.columns)
                 ))
-        self.init_from_data_frame(input_data_frame = input_data_frame)
-        self.new_simulation()
-        if baseline_tax_benefit_system is not None:
-            self.new_simulation(use_baseline = True)
+        data = {
+            'input_data_frame': input_data_frame
+            }
+        self.init_from_data(data = data)
 
 
 def create_input_dataframe(size = 9):
