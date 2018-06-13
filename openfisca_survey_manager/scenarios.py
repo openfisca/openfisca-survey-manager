@@ -552,7 +552,7 @@ class AbstractSurveyScenario(object):
             for column_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
                 assert column_name in tax_benefit_system.variables, \
                     "Variable {} is not a valid variable of the tax-benefit system".format(column_name)
-                holder = simulation.get_or_new_holder(column_name)
+                holder = simulation.get_holder(column_name)
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
@@ -570,7 +570,7 @@ class AbstractSurveyScenario(object):
 
                 array = holder.get_array(period)
                 assert holder.array is not None
-                holder.put_in_cache(inflator * array, period)  # insert inflated array
+                holder.set_input(inflator * array, period)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
@@ -1157,11 +1157,10 @@ def init_variable_in_entity(entity, variable, series, period):
             .format(variable).encode('utf-8'))
 
         if holder.get_array(period.this_year) is not None:
-            sum = holder.get_array(period.this_year) + np_array
-            holder.put_in_cache(sum, period.this_year)
+            array_sum = holder.get_array(period.this_year) + np_array
+            holder.set_input(period.this_year, array_sum)
         else:
-            holder.put_in_cache(np_array, period.this_year)
+            holder.set_input(period.this_year, np_array)
 
     else:
-        # print holder.variable.__dict__
-        holder.put_in_cache(np_array, period)
+        holder.set_input(period, np_array)
