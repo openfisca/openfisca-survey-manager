@@ -28,9 +28,7 @@ class SurveyCollection(object):
     name = None
     surveys = list()
 
-    def __init__(self, config_files_directory = None, label = None, name = None, json_file_path = None):
-        if config_files_directory is None:
-            config_files_directory = default_config_files_directory
+    def __init__(self, config_files_directory = default_config_files_directory, label = None, name = None, json_file_path = None):
 
         log.info("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
         self.config = Config(config_files_directory = config_files_directory)

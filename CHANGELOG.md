@@ -1,6 +1,7 @@
 
 # Changelog
 
+
 ### 0.9.10
 * Migrate to a new method to pass data to SurveyScenario
 
@@ -30,11 +31,14 @@
 * Fix difference pivot_table computation
 * CLarify code (use variable instead of column) and add some doctring
 
+## 0.9.2
+* Hack to custom default_config_files_diretory at CASD when using taxipp
+
 ## 0.9.0
 * Migrate to openfisca-core v20 syntax
 * Fix a bug in `create_data_frame_by_entity`
 
-### 0.8.13
+### 0.8.13
 
 * Migrate to openfisca-core v14.1.2 syntax
 
@@ -90,21 +94,21 @@ enhancing `filter_by`
 
 * Adapat to new syntax (progressive elimination of `entity_key_plural`)
 
-## 0.5.2
+## 0.5.2
 
 * Fix path of entry point build-collection
 
-### 0.5.2
+### 0.5.2
 
 * Add entry point build-collection
 
 
-### 0.5.1
+### 0.5.1
 
 * Fix tagging
 
 
-## 0.5
+## 0.5
 
 * Create Changelog.md
 * Check version and changelog when pushing

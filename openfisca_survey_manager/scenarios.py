@@ -284,7 +284,7 @@ class AbstractSurveyScenario(object):
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
 
-        if period_size_independent is False:
+        if period_size_independent is False and definition_period != u'eternity':
             values = simulation.calculate_add(variable, period = period)
         elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
             values = simulation.calculate(variable, period = period.first_month)
@@ -738,7 +738,7 @@ class AbstractSurveyScenario(object):
                 entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
                 entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
                 index_by_entity_key[entity.key] = input_data_frame.loc[
-                    input_data_frame[role_variable_by_entity_key[key]] == 0,
+                    input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
                     id_variable_by_entity_key[key]
                     ].sort_values().index
 
