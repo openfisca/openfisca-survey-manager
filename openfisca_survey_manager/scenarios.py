@@ -841,12 +841,12 @@ class AbstractSurveyScenario(object):
             if input_data_survey_prefix is not None:
                 openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
                 openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                    self.input_data_survey_prefix, data_year))
+                    input_data_survey_prefix, data_year))
                 input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
             else:
                 NotImplementedError
 
-            input_data_frame = self.input_data_frame.copy()
+            # input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
             self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
