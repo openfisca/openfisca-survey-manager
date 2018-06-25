@@ -8,11 +8,11 @@ import pkg_resources
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 
-use_travis = os.environ.get('USE_TRAVIS', None) == 'true'
+is_travis = 'TRAVIS' in os.environ
 
 
 def test_add_survey_to_collection():
-    if use_travis:
+    if is_travis:
         return
     name = 'fake'
     survey_name = 'fake_survey'
