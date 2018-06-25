@@ -1,6 +1,10 @@
 
 # Changelog
 
+### 0.10.1
+
+* Cleaner checks for travis use
+
 ### 0.10
 
 * Migrate to a new method to pass data to SurveyScenario
