@@ -1,36 +1,46 @@
 
 # Changelog
 
-### 0.9.10
+### 0.10
+
 * Migrate to a new method to pass data to SurveyScenario
 
 ### 0.9.10
+
 * Add a difference argument for compute_aggregate (fixes #45)
 
 ### 0.9.9
+
 * Add `trace` and `debug` attributes to `AbstractSurveyScenario` to use with `new_simulation`
 
 ### 0.9.8
+
 * Create directory for config templates files
 
 ### 0.9.7
+
 * Remove unused imports
 
 ### 0.9.6
+
 * Add a Quantile class inheriting for Variable
 
 ### 0.9.5
+
 * Pandas deprecates the use of sort_index for sort_values
 * Numpy [deprecates use of np.float with issubdtype](https://github.com/numpy/numpy/pull/9505)
 
 ### 0.9.4
+
 * Fix bug when initialising mono-entity (person-only) TaxBenefitSystem
 
 ### 0.9.3
+
 * Fix difference pivot_table computation
 * CLarify code (use variable instead of column) and add some doctring
 
 ## 0.9.0
+
 * Migrate to openfisca-core v20 syntax
 * Fix a bug in `create_data_frame_by_entity`
 
@@ -39,6 +49,7 @@
 * Migrate to openfisca-core v14.1.2 syntax
 
 ### 0.8.12
+
 * Fix a bug resulting from pandas [v0.20 pivot_table fix](https://github.com/pandas-dev/pandas/pull/13554)
 
 ### 0.8.11
@@ -59,8 +70,7 @@
 
 ### 0.8.7
 
-* Improve `create_entity_by_dataframe` by adding `expressions` and `merge` options and
-enhancing `filter_by`
+* Improve `create_entity_by_dataframe` by adding `expressions` and `merge` options and enhancing `filter_by`
 
 ### 0.8.4
 
@@ -98,11 +108,9 @@ enhancing `filter_by`
 
 * Add entry point build-collection
 
-
 ### 0.5.1
 
 * Fix tagging
-
 
 ## 0.5
 
