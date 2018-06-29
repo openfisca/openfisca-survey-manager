@@ -2,8 +2,9 @@
 
 
 import logging
-import os
-from pandas import DataFrame, concat
+
+from openfisca_core import periods
+from openfisca_core.parameters import ParameterNode, Scale
 
 
 log = logging.getLogger(__name__)
@@ -48,48 +49,95 @@ def clean_data_frame(data_frame):
                     )
 
 
-def dump_simulation_results_data_frame(survey_scenario, collection = None):
-    assert collection is not None
-    year = survey_scenario.year
-    data_frame_by_entity = get_calculated_data_frame_by_entity(survey_scenario)
-    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
-    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    survey_name = "openfisca_data_{}".format(year)
-    for entity, data_frame in data_frame_by_entity.iteritems():
-        table = entity
-        hdf5_file_path = os.path.join(
-            os.path.dirname(output_data_directory),
-            "{}{}".format(survey_name, ".h5"),
+def get_parameters_by_unit(parameter, parameters_by_unit = None):
+    if parameters_by_unit is None:
+        parameters_by_unit = dict(
+            scale = list(),
+            none = list(),
+            currency = list(),
+            rate = list(),
+            year = list(),
             )
-        survey = Survey(
-            name = survey_name,
-            hdf5_file_path = hdf5_file_path,
-            )
-        survey.insert_table(name = table)
-        survey.fill_hdf(table, data_frame)
-        openfisca_survey_collection.surveys[survey_name] = survey
-        openfisca_survey_collection.dump(collection = "openfisca")
+    for name, sub_parameter in parameters.children.items():
+        if isinstance(sub_parameter, ParameterNode):
+            get_parameters_by_unit(sub_parameter, parameters_by_unit)
+        else:
+            if isinstance(sub_parameter, Scale):
+                parameters_by_unit['scale'].append(sub_parameter)
+            elif sub_parameter.unit is None:
+                parameters_by_unit['none'].append(sub_parameter)
+            elif sub_parameter.unit == "/1":
+                parameters_by_unit['rate'].append(sub_parameter)
+            elif sub_parameter.unit == "currency":
+                parameters_by_unit['currency'].append(sub_parameter)
+            elif sub_parameter.unit == "year":
+                parameters_by_unit['year'].append(sub_parameter)
+            else:
+                raise ValueError("Parameter {} has a stange unit {}".format(
+                    sub_parameter.name, sub_parameter.unit))
+
+    return parameters_by_unit
 
 
-def get_data_frame(columns_name, survey_scenario, load_first = False, collection = None):
-    year = survey_scenario.year
-    if survey_scenario.simulation is None:
-        survey_scenario.new_simulation()
-    simulation = survey_scenario.simulation
-    if load_first:
-        assert collection is not None
-        entities = [simulation.tax_benefit_system.variables[column_name].entity for column_name in columns_name]
-        assert len(set(entities)) == 1
-        # entity_symbol = entities[0]
-        for entity_key, entity in simulation.entities.iteritems():
-            if columns_name[0] in entity.variables:
-                break
-        openfisca_survey_collection = SurveyCollection.load(collection = collection)
-        survey_name = "openfisca_data_{}".format(year)
-        survey = openfisca_survey_collection.surveys[survey_name]
-        table = entity_key
-        data_frame = survey.get_values(variables = columns_name, table = table)
+def inflate_parameters(parameters, inflator, base_year, last_year = None):
+
+    if (last_year is not None) and (last_year > base_year + 1):
+            for year in range(base_year + 1, last_year + 1):
+                print year
+                inflate_parameters(parameters, inflator, year - 1, last_year = year)
+
     else:
-        data_frame = DataFrame(dict([(column_name, simulation.calculate(column_name)) for column_name in columns_name]))
-    return data_frame
+        if last_year is None:
+            last_year = base_year + 1
+
+        assert last_year == base_year + 1
+
+        for name, sub_parameter in parameters.children.items():
+            # print sub_parameter.name
+            if isinstance(sub_parameter, ParameterNode):
+                inflate_parameters(sub_parameter, inflator, base_year, last_year)
+            else:
+                if sub_parameter.unit == "currency" and (not isinstance(sub_parameter, Scale)):
+                    # Remove new values for year > base_year
+                    kept_instants_str = [
+                        parameter_at_instant.instant_str
+                        for parameter_at_instant in sub_parameter.values_list
+                        if periods.instant(parameter_at_instant.instant_str).year <= base_year
+                        ]
+                    if len(kept_instants_str) == 0:
+                        continue
+
+                    last_admissible_instant_str = max(kept_instants_str)
+                    # print last_admissible_instant_str
+                    # print(sorted(sub_parameter.values_list))
+                    sub_parameter.update(
+                        start = last_admissible_instant_str,
+                        value = sub_parameter(last_admissible_instant_str)
+                        )
+                    # print(sorted(sub_parameter.values_list))
+                    for parameter_at_instant in sorted(sub_parameter.values_list, reverse = True):
+                        if parameter_at_instant.instant_str.startswith(str(base_year)):
+                                value = (
+                                    parameter_at_instant.value * inflator
+                                    if parameter_at_instant.value is not None
+                                    else None
+                                    )
+                                # print(parameter_at_instant.instant_str)
+                                sub_parameter.update(
+                                    start = parameter_at_instant.instant_str.replace(str(base_year), str(base_year + 1)),
+                                    value = value,
+                                    )
+                    #             print(parameter_at_instant.instant_str, parameter_at_instant.value * inflator)
+
+                    # print(sorted(sub_parameter.values_list))
+
+
+if __name__ == '__main__':
+
+    from openfisca_france import FranceTaxBenefitSystem
+    tax_benefit_system = FranceTaxBenefitSystem()
+    parameters = tax_benefit_system.parameters
+    print parameters.cotsoc.sal.fonc.commun.pt_ind
+    inflate_parameters(parameters, inflator = 2, base_year = 2005, last_year = 2008)
+    print(parameters.cotsoc.sal.fonc.commun.pt_ind)
 
