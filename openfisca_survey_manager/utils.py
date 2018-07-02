@@ -49,36 +49,6 @@ def clean_data_frame(data_frame):
                     )
 
 
-def get_parameters_by_unit(parameter, parameters_by_unit = None):
-    if parameters_by_unit is None:
-        parameters_by_unit = dict(
-            scale = list(),
-            none = list(),
-            currency = list(),
-            rate = list(),
-            year = list(),
-            )
-    for name, sub_parameter in parameters.children.items():
-        if isinstance(sub_parameter, ParameterNode):
-            get_parameters_by_unit(sub_parameter, parameters_by_unit)
-        else:
-            if isinstance(sub_parameter, Scale):
-                parameters_by_unit['scale'].append(sub_parameter)
-            elif sub_parameter.unit is None:
-                parameters_by_unit['none'].append(sub_parameter)
-            elif sub_parameter.unit == "/1":
-                parameters_by_unit['rate'].append(sub_parameter)
-            elif sub_parameter.unit == "currency":
-                parameters_by_unit['currency'].append(sub_parameter)
-            elif sub_parameter.unit == "year":
-                parameters_by_unit['year'].append(sub_parameter)
-            else:
-                raise ValueError("Parameter {} has a stange unit {}".format(
-                    sub_parameter.name, sub_parameter.unit))
-
-    return parameters_by_unit
-
-
 def inflate_parameters(parameters, inflator, base_year, last_year = None):
 
     if (last_year is not None) and (last_year > base_year + 1):
@@ -98,12 +68,12 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None):
             else:
                 if sub_parameter.unit == "currency":
                     if isinstance(sub_parameter, Scale):
-                        print sub_parameter.name
+                        # print sub_parameter.name
                         for bracket in sub_parameter.brackets:
                             threshold = bracket.children['threshold']
-                            print threshold
+                            # print threshold
                             inflate_parameter_leaf(threshold, base_year, inflator)
-                            print threshold
+                            # print threshold
                     else:
                         inflate_parameter_leaf(sub_parameter, base_year, inflator)
 
@@ -127,7 +97,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
         # When value is changed in the base year
         if parameter_at_instant.instant_str.startswith(str(base_year)):
             value = (
-                parameter_at_instant.value * inflator
+                parameter_at_instant.value * (1 + inflator)
                 if parameter_at_instant.value is not None
                 else None
                 )
@@ -142,7 +112,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
         # Or use the value at that instant even when it is defined earlier tahn the abse year
         else:
             value = (
-                sub_parameter("{}-01-01".format(base_year)) * inflator
+                sub_parameter("{}-01-01".format(base_year)) * (1 + inflator)
                 if sub_parameter("{}-01-01".format(base_year)) is not None
                 else None
                 )
@@ -151,14 +121,4 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
                 value = value
                 )
 
-if __name__ == '__main__':
-
-    from openfisca_france import FranceTaxBenefitSystem
-    tax_benefit_system = FranceTaxBenefitSystem()
-    parameters = tax_benefit_system.parameters
-    print parameters.cotsoc.sal.fonc.commun.pt_ind
-    inflate_parameters(parameters, inflator = 2.11, base_year = 2016, last_year = 2017)
-    print(parameters.cotsoc.sal.fonc.commun.pt_ind)
-    print(parameters.impot_revenu.bareme(2016))
-    print(parameters.impot_revenu.bareme(2017))
 
