@@ -53,7 +53,6 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None):
 
     if (last_year is not None) and (last_year > base_year + 1):
             for year in range(base_year + 1, last_year + 1):
-                print year
                 inflate_parameters(parameters, inflator, year - 1, last_year = year)
 
     else:
@@ -68,12 +67,9 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None):
             else:
                 if sub_parameter.unit == "currency":
                     if isinstance(sub_parameter, Scale):
-                        # print sub_parameter.name
                         for bracket in sub_parameter.brackets:
                             threshold = bracket.children['threshold']
-                            # print threshold
                             inflate_parameter_leaf(threshold, base_year, inflator)
-                            # print threshold
                     else:
                         inflate_parameter_leaf(sub_parameter, base_year, inflator)
 
@@ -101,8 +97,6 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
                 if parameter_at_instant.value is not None
                 else None
                 )
-            # if sub_parameter.name == 'cotsoc.sal.fonc.commun.pt_ind':
-            #     print(parameter_at_instant.instant_str)
             sub_parameter.update(
                 start = parameter_at_instant.instant_str.replace(
                     str(base_year), str(base_year + 1)
