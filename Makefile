@@ -21,4 +21,4 @@ pypi-upload:
 	twine upload dist/*
 
 test: check-syntax-errors
-	nosetests openfisca_survey_manager/tests --ignore-files='(test_read_dbf.py)' --exe --with-doctest
+	nosetests openfisca_survey_manager/tests --ignore-files='(test_read_dbf.py|test_legislation_inflator.py)' --exe --with-doctest
