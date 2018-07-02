@@ -1,6 +1,10 @@
 
 # Changelog
 
+### 0.11.0
+
+* Add legislation parameters inflator
+
 ### 0.10.1
 
 * Cleaner checks for travis use
