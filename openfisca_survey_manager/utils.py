@@ -65,16 +65,19 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None):
             if isinstance(sub_parameter, ParameterNode):
                 inflate_parameters(sub_parameter, inflator, base_year, last_year)
             else:
+                assert hasattr(sub_parameter, 'unit'), "{} doesn't have a unit".format(sub_parameter.name)
                 if sub_parameter.unit == "currency":
-                    if isinstance(sub_parameter, Scale):
-                        for bracket in sub_parameter.brackets:
-                            threshold = bracket.children['threshold']
-                            inflate_parameter_leaf(threshold, base_year, inflator)
-                    else:
-                        inflate_parameter_leaf(sub_parameter, base_year, inflator)
+                    inflate_parameter_leaf(sub_parameter, base_year, inflator)
 
 
 def inflate_parameter_leaf(sub_parameter, base_year, inflator):
+
+    if isinstance(sub_parameter, Scale):
+        for bracket in sub_parameter.brackets:
+            threshold = bracket.children['threshold']
+            inflate_parameter_leaf(threshold, base_year, inflator)
+        return
+
     # Remove new values for year > base_year
     kept_instants_str = [
         parameter_at_instant.instant_str
