@@ -32,4 +32,3 @@ def test_inflate_scale():
 if __name__ == '__main__':
     test_inflate_simple_parameter()
     test_inflate_scale()
-

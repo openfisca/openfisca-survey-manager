@@ -90,7 +90,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
         value = sub_parameter(last_admissible_instant_str)
         )
     for parameter_at_instant in reversed(sub_parameter.values_list):
-        # When value is changed in the base year
+        # When value is changed in the base year
         if parameter_at_instant.instant_str.startswith(str(base_year)):
             value = (
                 parameter_at_instant.value * (1 + inflator)
@@ -114,5 +114,3 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator):
                 start = "{}-01-01".format(base_year + 1),
                 value = value
                 )
-
-
