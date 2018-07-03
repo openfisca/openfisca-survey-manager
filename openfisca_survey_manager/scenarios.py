@@ -244,7 +244,10 @@ class AbstractSurveyScenario(object):
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
-                    result = (pivot_sum / pivot_mass.loc[weight])
+                    try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
+                        result = (pivot_sum / pivot_mass.loc[weight])
+                    except KeyError:
+                        result = (pivot_sum / pivot_mass)
                 elif aggfunc == 'sum':
                     result = pivot_sum
                 elif aggfunc == 'count':
@@ -556,7 +559,7 @@ class AbstractSurveyScenario(object):
                 if column_name in target_by_variable:
                     inflator = inflator_by_variable[column_name] = \
                         target_by_variable[column_name] / self.compute_aggregate(
-                            variable = column_name, use_baseline = use_baseline)
+                            variable = column_name, use_baseline = use_baseline, period = period)
                     log.info('Using {} as inflator for {} to reach the target {} '.format(
                         inflator, column_name, target_by_variable[column_name]))
                 else:
@@ -569,8 +572,13 @@ class AbstractSurveyScenario(object):
                     inflator = inflator_by_variable[column_name]
 
                 array = holder.get_array(period)
-                assert holder.array is not None
-                holder.set_input(inflator * array, period)  # insert inflated array
+                if array is None:
+                    array = simulation.calculate_add(column_name, period = period)
+                print holder.__dict__
+                print array
+                assert array is not None
+                holder.delete_arrays(period = period)  # delete existing arrays
+                holder.set_input(period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
@@ -597,7 +605,8 @@ class AbstractSurveyScenario(object):
         trace = self.trace
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
         if self.baseline_tax_benefit_system is not None:
-            self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config, use_baseline = True)
+            self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
+                use_baseline = True)
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
@@ -616,7 +625,11 @@ class AbstractSurveyScenario(object):
         used_as_input_variables = self.used_as_input_variables
 
         # TODO adapt to entity
-        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
+        variables_mismatch = (
+            set(used_as_input_variables).difference(set(input_data_frame.columns))
+            if used_as_input_variables
+            else None
+            )
         if variables_mismatch:
             log.info(
                 'The following variables are used as input variables are not present in the input data frame: \n {}'.format(
@@ -846,7 +859,7 @@ class AbstractSurveyScenario(object):
             else:
                 NotImplementedError
 
-            # input_data_frame = self.input_data_frame.copy()
+            # input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
             self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
