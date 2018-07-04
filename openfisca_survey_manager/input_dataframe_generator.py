@@ -173,3 +173,38 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
 Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
     collection_json_path = os.path.join(collections_directory, "{}.json".format(collection))
     survey_collection.dump(json_file_path = collection_json_path)
+
+
+def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, year = None):
+    for axe in test_case_scenario_kwargs['axes'][0]:
+        axe['name'] = 'salaire_imposable'
+
+    tax_benefit_system = survey_scenario.tax_benefit_system
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        **test_case_scenario_kwargs
+        ).new_simulation()
+    array_by_variable = dict()
+    period = periods.period("{}".format(year))
+
+    for variable in survey_scenario.used_as_input_variables:
+        if variable not in tax_benefit_system.variables:
+            continue
+        try:
+            array_by_variable[variable] = simulation.calculate(variable, period = period)
+        except Exception as e:
+            log.debug(e)
+            try:
+                array_by_variable[variable] = simulation.calculate_add(variable, period = period)
+            except Exception as e:
+                log.debug(e)
+                array_by_variable[variable] = simulation.calculate(variable, period = period.first_month)
+
+    for entity in tax_benefit_system.entities:
+        array_by_variable[entity.key + '_id'] = range(axe['count'])
+
+    input_data_frame = pd.DataFrame(array_by_variable)
+
+    for entity in tax_benefit_system.entities:
+        input_data_frame[entity.key + '_role'] = 0
+
+    return input_data_frame
