@@ -13,6 +13,7 @@ import random
 
 
 from openfisca_core import periods
+from openfisca_core.entities import DIVIDE
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
@@ -175,36 +176,71 @@ Fix the option collections_directory in the collections section of your config f
     survey_collection.dump(json_file_path = collection_json_path)
 
 
-def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, year = None):
-    for axe in test_case_scenario_kwargs['axes'][0]:
-        axe['name'] = 'salaire_imposable'
+def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, period = None,
+         computed_variables = []):
+#    for axe in test_case_scenario_kwargs['axes'][0]:
+#        axe['name'] = 'salaire_imposable'
 
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         **test_case_scenario_kwargs
         ).new_simulation()
     array_by_variable = dict()
-    period = periods.period("{}".format(year))
+    period = periods.period(period)
 
-    for variable in survey_scenario.used_as_input_variables:
+    def compute_variable(variable):
         if variable not in tax_benefit_system.variables:
-            continue
-        try:
-            array_by_variable[variable] = simulation.calculate(variable, period = period)
-        except Exception as e:
-            log.debug(e)
+            return
+        if period.unit == periods.YEAR:
             try:
-                array_by_variable[variable] = simulation.calculate_add(variable, period = period)
+                array_by_variable[variable] = simulation.calculate(variable, period = period)
             except Exception as e:
                 log.debug(e)
-                array_by_variable[variable] = simulation.calculate(variable, period = period.first_month)
+                try:
+                    array_by_variable[variable] = simulation.calculate_add(variable, period = period)
+                except Exception as e:
+                    log.debug(e)
+                    array_by_variable[variable] = simulation.calculate(variable, period = period.first_month)
+        elif period.unit == periods.MONTH:
+            try:
+                array_by_variable[variable] = simulation.calculate(variable, period = period)
+            except ValueError as e:
+                log.debug(e)
+                array_by_variable[variable] = simulation.calculate(variable, period = period.this_year) / 12
+
+    for scenario_key, value_by_variable in test_case_scenario_kwargs.items():
+        if scenario_key == 'axes':
+            variables = [test_case_scenario_kwargs['axes'][0][0]['name']]
+
+        else:
+            if value_by_variable is None:  # empty parent2 for example
+                continue
+            if not isinstance(value_by_variable, dict):  # enfants
+                continue
+            variables = value_by_variable.keys()
+
+        for variable in variables:
+            compute_variable(variable)
+
+    for variable in computed_variables:
+        compute_variable(variable)
 
     for entity in tax_benefit_system.entities:
-        array_by_variable[entity.key + '_id'] = range(axe['count'])
+        if entity.is_person:
+            continue
+        array_by_variable[
+            survey_scenario.id_variable_by_entity_key[entity.key]
+            ] = range(test_case_scenario_kwargs['axes'][0][0]['count'])
 
     input_data_frame = pd.DataFrame(array_by_variable)
 
     for entity in tax_benefit_system.entities:
-        input_data_frame[entity.key + '_role'] = 0
+        if entity.is_person:
+            continue
+        input_data_frame[
+            survey_scenario.role_variable_by_entity_key[entity.key]
+            ] = 0
+
+
 
     return input_data_frame
