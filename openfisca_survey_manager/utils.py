@@ -49,7 +49,7 @@ def clean_data_frame(data_frame):
                     )
 
 
-def inflate_parameters(parameters, inflator, base_year, last_year = None):
+def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False):
 
     if (last_year is not None) and (last_year > base_year + 1):
             for year in range(base_year + 1, last_year + 1):
@@ -65,8 +65,30 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None):
             if isinstance(sub_parameter, ParameterNode):
                 inflate_parameters(sub_parameter, inflator, base_year, last_year)
             else:
-                assert hasattr(sub_parameter, 'unit'), "{} doesn't have a unit".format(sub_parameter.name)
-                if sub_parameter.unit == "currency":
+                if ignore_missing_units:
+                    if not hasattr(sub_parameter, 'metadata'):
+                        return
+                    if 'unit' not in sub_parameter.metadata:
+                        return
+
+                else:
+                    assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
+                    unit_types = set(sub_parameter.metadata.keys()).intersection(set([
+                        'rate_unit',
+                        'threshold_unit',
+                        'unit',
+                        ]))
+                    assert len(unit_types) > 0, "No admissible unit in metadata for parameter {}".format(
+                        sub_parameter.name)
+                    if len(unit_types) > 1:
+                        assert unit_types == set(['threshold_unit', 'rate_unit']), \
+                            "Too much admissible units in metadata for parameter {}".format(
+                                sub_parameter.name)
+                    unit_by_name = dict([
+                        (name, sub_parameter.metadata[name]) for name in unit_types
+                        ])
+                    print unit_by_name
+                if sub_parameter.metadata['unit'].startswith("currency"):
                     inflate_parameter_leaf(sub_parameter, base_year, inflator)
 
 
