@@ -87,8 +87,6 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     unit_by_type = dict([
                         (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
                         ])
-                    print sub_parameter.name
-                    print unit_by_type
 
                 for unit_type, unit in unit_by_type.iteritems():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
