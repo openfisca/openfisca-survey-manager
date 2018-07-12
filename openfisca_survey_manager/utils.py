@@ -84,20 +84,34 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                         assert unit_types == set(['threshold_unit', 'rate_unit']), \
                             "Too much admissible units in metadata for parameter {}".format(
                                 sub_parameter.name)
-                    unit_by_name = dict([
-                        (name, sub_parameter.metadata[name]) for name in unit_types
+                    unit_by_type = dict([
+                        (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
                         ])
-                    print unit_by_name
-                if sub_parameter.metadata['unit'].startswith("currency"):
-                    inflate_parameter_leaf(sub_parameter, base_year, inflator)
+                    print sub_parameter.name
+                    print unit_by_type
+
+                for unit_type, unit in unit_by_type.iteritems():
+                    if sub_parameter.metadata[unit_type].startswith("currency"):
+                        inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type)
 
 
-def inflate_parameter_leaf(sub_parameter, base_year, inflator):
+def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit'):
+    """
+    Inflate a Parameter leaf according to unit type
 
+    Basic unit type are supposed by default
+    Other admissible unit types are threshold_unit and rate_unit
+    """
     if isinstance(sub_parameter, Scale):
-        for bracket in sub_parameter.brackets:
-            threshold = bracket.children['threshold']
-            inflate_parameter_leaf(threshold, base_year, inflator)
+        if unit_type == 'threshold_unit':
+            for bracket in sub_parameter.brackets:
+                threshold = bracket.children['threshold']
+                inflate_parameter_leaf(threshold, base_year, inflator)
+        elif unit_type == 'rate_unit':
+            for bracket in sub_parameter.brackets:
+                rate = bracket.children['rate']
+                inflate_parameter_leaf(rate, base_year, inflator)
+
         return
 
     # Remove new values for year > base_year
