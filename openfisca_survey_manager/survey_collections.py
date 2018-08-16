@@ -30,7 +30,7 @@ class SurveyCollection(object):
 
     def __init__(self, config_files_directory = default_config_files_directory, label = None, name = None, json_file_path = None):
 
-        log.info("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
+        log.debug("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
         self.config = Config(config_files_directory = config_files_directory)
         if label is not None:
             self.label = label

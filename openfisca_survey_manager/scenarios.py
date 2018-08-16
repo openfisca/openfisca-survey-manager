@@ -38,6 +38,7 @@ class AbstractSurveyScenario(object):
     tax_benefit_system = None
     trace = False
     used_as_input_variables = None
+    used_as_input_variables_by_entity = None
     weight_column_name_by_entity = None
     year = None
 
@@ -586,7 +587,7 @@ class AbstractSurveyScenario(object):
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
         self._set_ids_and_roles_variables()
-
+        self._set_used_as_input_variables_by_entity()
         if rebuild_input_data:
             if rebuild_kwargs is not None:
                 self.build_input_data(year = data_year, **rebuild_kwargs)
@@ -613,9 +614,8 @@ class AbstractSurveyScenario(object):
         assert input_data_frame is not None
         assert period is not None
         assert simulation is not None
-        used_as_input_variables = self.used_as_input_variables
+        used_as_input_variables = self.used_as_input_variables_by_entity[entity]
 
-        # TODO adapt to entity
         variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
         if variables_mismatch:
             log.info(
@@ -665,8 +665,13 @@ class AbstractSurveyScenario(object):
         for column_name, column_serie in input_data_frame.iteritems():
             if column_name in (id_variables + role_variables):
                 continue
-            # TODO: may be should regroup this part in a private method or helper function
-            # (column_name, entity, simulation)
+
+            variable_instance = self.tax_benefit_system.variables.get(column_name)
+            if variable_instance.entity.key != entity.key:
+                log.info("Ignoring variable {} which is not part of entity {} but {}".format(
+                    column_name, entity.key, variable_instance.entity.key))
+                continue
+
             init_variable_in_entity(
                 entity = entity,
                 variable = column_name,
@@ -1049,6 +1054,25 @@ class AbstractSurveyScenario(object):
             self.role_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities
                 )
+
+
+    def _set_used_as_input_variables_by_entity(self):
+        if self.used_as_input_variables_by_entity is not None:
+            return
+
+        tax_benefit_system = self.tax_benefit_system
+        assert set(self.used_as_input_variables) <= set(tax_benefit_system.variables.keys()), \
+            "Some variables used as input variables are not part of the tax benefit system:\n {}".format(
+                set(self.used_as_input_variables).difference(set(tax_benefit_system.variables.keys()))
+                )
+        self.used_as_input_variables_by_entity = dict()
+        for entity in tax_benefit_system.entities:
+            self.used_as_input_variables_by_entity[entity.key] = [
+                variable
+                for variable in self.used_as_input_variables
+                if tax_benefit_system.get_variable(variable).entity == entity
+                ]
+
 
 # Helpers
 
