@@ -828,12 +828,12 @@ class AbstractSurveyScenario(object):
             for source_type_ in default_source_types
             if data.get(source_type_, None) is not None
             ]
-        assert len(source_types) < 2, "There are too many data sources"
-        if len(source_types) == 1:
-            source_type = source_types[0]
-            source = data[source_type]
-        else:
-            pass
+        assert len(source_types) < 2, "There are too many data source types"
+        assert len(source_types) >= 1, "There should be one data source type included in {}".format(
+            default_source_types)
+
+        source_type = source_types[0]
+        source = data[source_type]
 
         if source_type == 'input_data_frame_by_entity':
             assert data_year is not None
