@@ -13,16 +13,13 @@ import os
 import pkg_resources
 import shutil
 import sys
-from xdg import BaseDirectory
 
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager import default_config_files_directory
 
-
-config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
-
-
+config_files_directory = default_config_files_directory
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 

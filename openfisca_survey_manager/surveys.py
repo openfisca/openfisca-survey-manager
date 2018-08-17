@@ -192,7 +192,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         df = self.get_values([variable], table)
         return df
 
-    def get_values(self, variables = None, table = None, lowercase = True, rename_ident = True):
+    def get_values(self, variables = None, table = None, lowercase = False, rename_ident = True):
         """
         Get values
 
