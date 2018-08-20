@@ -663,7 +663,7 @@ class AbstractSurveyScenario(object):
                 assert isinstance(collective_entity.roles_count, int), \
                     '{} is not a valid roles_count (int) for {}'.format(collective_entity.roles_count, _key)
 
-                collective_entity.count == len(input_data_frame[_id_variable].unique())
+                collective_entity.count = len(input_data_frame[_id_variable].unique())
                 collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
                 # TODO legacy use
                 collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
@@ -875,9 +875,12 @@ class AbstractSurveyScenario(object):
 
         elif source_type == 'input_data_frame_by_entity_by_period':
             for period, input_data_frame_by_entity in source.iteritems():
-                for entity, input_data_frame in input_data_frame_by_entity.iteritems():
+                for entity in simulation.tax_benefit_system.entities:
+                    input_data_frame = input_data_frame_by_entity.get(entity.key)
+                    if input_data_frame is None:
+                        continue
                     self.init_entity(
-                        entity = entity,
+                        entity = entity.key,
                         input_data_frame = input_data_frame,
                         period = period,
                         simulation = simulation,
