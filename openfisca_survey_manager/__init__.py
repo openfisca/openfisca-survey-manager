@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# Hack to for use at the CASD (shared user)
-# Use taxipp/.config/ directory if exists as default_config_files_directory
-
 import logging
 import os
 import pkg_resources
@@ -11,6 +8,19 @@ import pkg_resources
 
 log = logging.getLogger(__name__)
 
+# Travis tests
+is_travis = 'TRAVIS' in os.environ
+
+if is_travis:
+    default_config_files_directory = os.path.join(
+        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        'openfisca_survey_manager',
+        'tests',
+        'data_files',
+        )
+
+# Hack to for use at the CASD (shared user)
+# Use taxipp/.config/ directory if exists as default_config_files_directory
 try:
     taxipp_location = pkg_resources.get_distribution('taxipp').location
     default_config_files_directory = os.path.join(taxipp_location, '.config', 'openfisca-survey-manager')
