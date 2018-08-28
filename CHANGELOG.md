@@ -3,6 +3,10 @@
 
 ## 0.11
 
+### 0.11.1
+
+* Fix travis tests
+
 ### 0.11.0
 
 * Add legislation parameters inflator
