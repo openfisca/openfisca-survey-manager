@@ -11,6 +11,7 @@ import re
 
 from openfisca_core import periods, simulations
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 from openfisca_survey_manager.calibration import Calibration
 
@@ -435,6 +436,19 @@ class AbstractSurveyScenario(object):
             survey.insert_table(name = entity_key, data_frame = data_frame)
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
+
+    def dump_simulations(self, directory = None):
+        assert directory is not None
+        use_sub_directories = self.baseline_simulation is not None
+        for use_baseline in [False, True]:
+            if use_baseline and not use_sub_directories:
+                continue
+            if use_sub_directories:
+                sub_directory = 'baseline' if use_baseline else 'reform'
+                directory = os.path.join(directory, sub_directory)
+
+            self._dump_simulation(directory = directory, use_baseline = use_baseline)
+
 
     def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
         assert period is not None
@@ -965,6 +979,30 @@ class AbstractSurveyScenario(object):
 
             tax_benefit_system.neutralize_variable(variable_name)
 
+    def restore_simulations(self, directory):
+        assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
+        if os.path.exists(os.path.join(directory, 'baseline')):
+            use_sub_directories = True
+
+        simulation_by_use_baseline = {
+            False: self.simulation,
+            True: self.baseline_simulation,
+            }
+        tax_benefit_system_by_use_baseline = {
+            False: self.tax_benefit_system,
+            True: self.baseline_tax_benefit_system,
+            }
+
+        for use_baseline, simulation in simulation_by_use_baseline.items():
+            if use_sub_directories:
+                tax_benefit_system = tax_benefit_system_by_use_baseline[use_baseline]
+                sub_directory = 'baseline' if use_baseline else 'reform'
+                directory = os.path.join(directory, sub_directory)
+                _restore_simulation(simulation, directory = directory, use_baseline = use_baseline)
+            dump_simulation(simulation, directory = directory, use_baseline = use_baseline)
+
+        restore_simulation(sim)
+
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
 
@@ -1052,6 +1090,15 @@ class AbstractSurveyScenario(object):
                             ),
                         np.median(array),
                         ))
+
+    def _dump_simulation(self, directory = None, use_baseline = False):
+        assert directory is not None
+        if use_baseline:
+            assert self.baseline_simulation is not None
+            dump_simulation(self.baseline_simulation, directory)
+        else:
+            assert self.simulation is not None
+            dump_simulation(self.simulation, directory)
 
     def _set_ids_and_roles_variables(self):
         id_variable_by_entity_key = self.id_variable_by_entity_key
