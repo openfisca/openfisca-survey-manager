@@ -1,6 +1,12 @@
 
 # Changelog
 
+## 0.12
+
+* Introduce new `SurveyScenario` methods:
+  - dump_simulations: dumps the `survey_scenario simulations
+  - restore_simulations: retores previously dumped `survey_scenario simulations
+
 ## 0.11
 
 ### 0.11.1
