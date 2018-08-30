@@ -4,6 +4,7 @@ from __future__ import division
 
 import humanize
 import logging
+import os
 import numpy as np
 import pandas as pd
 import re
@@ -11,6 +12,7 @@ import re
 
 from openfisca_core import periods, simulations
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 from openfisca_survey_manager.calibration import Calibration
 
@@ -436,6 +438,19 @@ class AbstractSurveyScenario(object):
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
 
+    def dump_simulations(self, directory = None):
+        assert directory is not None
+        use_sub_directories = self.baseline_simulation is not None
+        for use_baseline in [False, True]:
+            if use_baseline and not use_sub_directories:
+                continue
+            if use_sub_directories:
+                sub_directory = 'baseline' if use_baseline else 'reform'
+                directory = os.path.join(directory, sub_directory)
+
+            self._dump_simulation(directory = directory, use_baseline = use_baseline)
+
+
     def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
         assert period is not None
         if entity:
@@ -575,8 +590,6 @@ class AbstractSurveyScenario(object):
                 array = holder.get_array(period)
                 if array is None:
                     array = simulation.calculate_add(column_name, period = period)
-                print holder.__dict__
-                print array
                 assert array is not None
                 holder.delete_arrays(period = period)  # delete existing arrays
                 holder.set_input(period, inflator * array)  # insert inflated array
@@ -768,10 +781,8 @@ class AbstractSurveyScenario(object):
             holder = simulation.get_holder(column_name)
             entity = holder.entity
             if entity.is_person:
-                # print entity, column_name, len(column_serie), period
                 init_variable_in_entity(entity, column_name, column_serie, period)
             else:
-                # print entity, column_name, len(column_serie[index_by_entity_key[entity.key]]), period
                 init_variable_in_entity(entity, column_name, column_serie[index_by_entity_key[entity.key]], period)
 
     def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
@@ -965,6 +976,18 @@ class AbstractSurveyScenario(object):
 
             tax_benefit_system.neutralize_variable(variable_name)
 
+    def restore_simulations(self, directory, **kwargs):
+        assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
+
+        for use_baseline in [False, True]:
+            if os.path.exists(os.path.join(directory, 'baseline')):
+                sub_directory = 'baseline' if use_baseline else 'reform'
+                directory = os.path.join(directory, sub_directory)
+            elif use_baseline:
+                continue
+
+            self._restore_simulation(directory = directory, use_baseline = use_baseline, **kwargs)
+
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
 
@@ -1052,6 +1075,32 @@ class AbstractSurveyScenario(object):
                             ),
                         np.median(array),
                         ))
+
+    def _dump_simulation(self, directory = None, use_baseline = False):
+        assert directory is not None
+        if use_baseline:
+            assert self.baseline_simulation is not None
+            dump_simulation(self.baseline_simulation, directory)
+        else:
+            assert self.simulation is not None
+            dump_simulation(self.simulation, directory)
+
+    def _restore_simulation(self, directory = None, use_baseline = False, **kwargs):
+        assert directory is not None
+        if use_baseline:
+            assert self.baseline_tax_benefit_system is not None
+            self.baseline_simulation = restore_simulation(
+                directory,
+                self.baseline_tax_benefit_system,
+                **kwargs
+                )
+        else:
+            assert self.tax_benefit_system is not None
+            self.simulation = restore_simulation(
+                directory,
+                self.tax_benefit_system,
+                **kwargs
+                )
 
     def _set_ids_and_roles_variables(self):
         id_variable_by_entity_key = self.id_variable_by_entity_key

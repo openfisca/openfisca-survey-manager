@@ -2,6 +2,8 @@
 
 
 import logging
+import os
+import pkg_resources
 
 from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_core import periods
@@ -144,12 +146,38 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
         'input_data_table_by_entity_by_period': table_by_entity_by_period
         }
     survey_scenario.init_from_data(data = data)
+    return survey_scenario
+
+
+def test_dump_survey_scenario():
+    survey_scenario = test_random_data_generator()
+    directory = os.path.join(
+        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        'openfisca_survey_manager',
+        'tests',
+        'data_files',
+        'dump',
+        )
+    survey_scenario.dump_simulations(directory = directory)
+    df = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'])
+    household = df['household']
+    person = df['person']
+    del survey_scenario
+    survey_scenario = AbstractSurveyScenario()
+    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.used_as_input_variables = ['salary', 'rent']
+    survey_scenario.year = 2017
+    survey_scenario.restore_simulations(directory = directory)
+    df2 = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'], period = '2017-01')
+    assert (df2['household'] == household).all().all()
+    assert (df2['person'] == person).all().all()
 
 
 if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    test_random_data_generator()
-    test_survey_scenario_input_dataframe_import()
-    test_survey_scenario_input_dataframe_import_scrambled_ids()
+    # test_random_data_generator()
+    # test_survey_scenario_input_dataframe_import()
+    # test_survey_scenario_input_dataframe_import_scrambled_ids()
+    test_dump_survey_scenario()
