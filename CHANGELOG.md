@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.13.0
+
+* Minor change : add the `count_non_zero` value in the `aggfunc` argument of `compute_aggregate`
+
 ## 0.12
 
 * Introduce new `SurveyScenario` methods:

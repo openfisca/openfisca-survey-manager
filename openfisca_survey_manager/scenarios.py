@@ -72,7 +72,7 @@ class AbstractSurveyScenario(object):
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
             difference = False, missing_variable_default_value = np.nan):
-        assert aggfunc in ['count', 'mean', 'sum']
+        assert aggfunc in ['count', 'mean', 'sum', 'count_non_zero']
         assert period is not None
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
 
@@ -142,6 +142,8 @@ class AbstractSurveyScenario(object):
             return (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
         elif aggfunc == 'count':
             return (weight * filter_dummy).sum()
+        elif aggfunc == 'count_non_zero':
+            return (weight * (value != 0) * filter_dummy).sum()
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, values = None, missing_variable_default_value = np.nan):
