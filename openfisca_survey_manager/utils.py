@@ -151,3 +151,59 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
                 start = "{}-01-01".format(base_year + 1),
                 value = value
                 )
+
+
+def asof(tax_benefit_system, instant):
+    parameters = tax_benefit_system.parameters
+    parameters_asof(parameters, instant)
+    variables_asof(tax_benefit_system, instant)
+
+
+def leaf_asof(sub_parameter, instant):
+    kept_instants_str = [
+        parameter_at_instant.instant_str
+        for parameter_at_instant in sub_parameter.values_list
+        if periods.instant(parameter_at_instant.instant_str) <= instant
+        ]
+    if len(kept_instants_str) == 0:
+        sub_parameter.values_list = []
+        return
+
+    last_admissible_instant_str = max(kept_instants_str)
+    sub_parameter.update(
+        start = last_admissible_instant_str,
+        value = sub_parameter(last_admissible_instant_str)
+        )
+    return
+
+
+def parameters_asof(parameters, instant):
+    if isinstance(instant, str):
+        instant = periods.instant(instant)
+    assert isinstance(instant, periods.Instant)
+
+    for name, sub_parameter in parameters.children.items():
+        if isinstance(sub_parameter, ParameterNode):
+            parameters_asof(sub_parameter, instant)
+        else:
+            if isinstance(sub_parameter, Scale):
+                for bracket in sub_parameter.brackets:
+                    threshold = bracket.children['threshold']
+                    rate = bracket.children['rate']
+                    leaf_asof(threshold, instant)
+                    leaf_asof(rate, instant)
+                    return
+
+            leaf_asof(sub_parameter, instant)
+
+
+def variables_asof(tax_benefit_system, instant):
+    if isinstance(instant, str):
+        instant = periods.instant(instant)
+    assert isinstance(instant, periods.Instant)
+
+    for variable_name, variable in tax_benefit_system.variables.items():
+        formulas = variable.formulas
+        for instant_str in formulas.keys():
+            if periods.instant(instant_str) > instant:
+                del formulas[instant_str]

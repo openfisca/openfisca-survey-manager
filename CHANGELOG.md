@@ -1,9 +1,13 @@
 
 # Changelog
 
+## 0.14.0
+
+* Introduce new tools: `asof` extract from any tax_benefit_system its variables and parameters as of some date
+
 ## 0.13.0
 
-* Minor change : add the `count_non_zero` value in the `aggfunc` argument of `compute_aggregate`
+* Introduce new option : add the `count_non_zero` value in the `aggfunc` argument of `compute_aggregate`
 
 ## 0.12
 
