@@ -13,6 +13,7 @@ import humanize
 
 
 from openfisca_core import periods, simulations
+from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
@@ -106,10 +107,11 @@ class AbstractSurveyScenario(object):
         assert variable is not None
         if use_baseline:
             simulation = self.baseline_simulation
+            assert simulation is not None, "Missing baseline simulation"
         else:
             simulation = self.simulation
+            assert simulation is not None, "Missing (reform) simulation"
 
-        assert simulation is not None
         if period is None:
             period = simulation.period
 
@@ -127,7 +129,7 @@ class AbstractSurveyScenario(object):
         if variable in simulation.tax_benefit_system.variables:
             value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
         else:
-            log.info("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
+            log.debug("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
             return missing_variable_default_value
 
         weight = (
@@ -148,13 +150,16 @@ class AbstractSurveyScenario(object):
             return (weight * (value != 0) * filter_dummy).sum()
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
-            period = None, use_baseline = False, values = None, missing_variable_default_value = np.nan):
+            period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
+            missing_variable_default_value = np.nan, concat_axis = None):
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
         assert period is not None
 
-        tax_benefit_system = self.tax_benefit_system
+        tax_benefit_system = self.baseline_tax_benefit_system if (
+            use_baseline and self.baseline_tax_benefit_system
+            ) else self.tax_benefit_system
 
         if isinstance(columns, str):
             columns = [columns]
@@ -176,8 +181,9 @@ class AbstractSurveyScenario(object):
 
         entity_key = None
         for axe in [columns, index, values]:
-            if axe is not None and entity_key is None:
+            if (len(axe) != 0) and (entity_key is None):
                 entity_key = tax_benefit_system.variables[axe[0]].entity.key
+                continue
 
         if filter_by is None and self.filtering_variable_by_entity is not None:
             filter_by = self.filtering_variable_by_entity.get(entity_key)
@@ -204,12 +210,20 @@ class AbstractSurveyScenario(object):
                     )
 
         if difference:
-            data_frame = (
-                self.create_data_frame_by_entity(
-                    values, period = period, use_baseline = False, index = False)[entity_key] -
-                self.create_data_frame_by_entity(
-                    values, period = period, use_baseline = True, index = False)[entity_key]
-                )
+            reform_data_frame = self.create_data_frame_by_entity(
+                values, period = period, use_baseline = False, index = False
+                )[entity_key].fillna(missing_variable_default_value)
+            baseline_data_frame = self.create_data_frame_by_entity(
+                values, period = period, use_baseline = True, index = False
+                )[entity_key].fillna(missing_variable_default_value)
+            for value_variable in values:
+                if value_variable not in baseline_data_frame:
+                    baseline_data_frame[value_variable] = missing_variable_default_value
+                if value_variable not in reform_data_frame:
+                    reform_data_frame[value_variable] = missing_variable_default_value
+
+            data_frame = reform_data_frame - baseline_data_frame
+
         else:
             data_frame = (
                 self.create_data_frame_by_entity(
@@ -221,13 +235,16 @@ class AbstractSurveyScenario(object):
         if weight is not None:
             additionnal_variables.append(weight)
         reference_variables = set(index + columns + additionnal_variables)
+        use_baseline_df = use_baseline or difference
+        if use_baseline_for_columns is not None:
+            use_baseline_df = use_baseline_for_columns
         data_frame = pd.concat(
             [
                 self.create_data_frame_by_entity(
                     variables = reference_variables,
                     period = period,
                     # use baseline if explicited or when computing difference
-                    use_baseline = use_baseline or difference,
+                    use_baseline = use_baseline_df,
                     index = False
                     )[entity_key],
                 data_frame,
@@ -242,13 +259,12 @@ class AbstractSurveyScenario(object):
             data_frame[weight] = 1.0
 
         data_frame[weight] = data_frame[weight] * filter_dummy
-
         if values:
             data_frame_by_value = dict()
             for value in values:
                 data_frame[value] = data_frame[value] * data_frame[weight]
-                data_frame[value].fillna(missing_variable_default_value)
-                pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = values, aggfunc = 'sum')
+                data_frame[value].fillna(missing_variable_default_value, inplace = True)
+                pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
                 if aggfunc == 'mean':
                     try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
@@ -263,7 +279,11 @@ class AbstractSurveyScenario(object):
                 data_frame_by_value[value] = result
 
             if len(list(data_frame_by_value.keys())) > 1:
-                return data_frame_by_value
+                if concat_axis is None:
+                    return data_frame_by_value
+                else:
+                    assert concat_axis in [0, 1]
+                    return pd.concat(data_frame_by_value.values(), axis = concat_axis)
             else:
                 return next(iter(data_frame_by_value.values()))
 
@@ -304,6 +324,8 @@ class AbstractSurveyScenario(object):
             values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
         elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
             values = simulation.calculate(variable, period = period)
+        elif period_size_independent is True and definition_period == u'year':
+            values = simulation.calculate(variable, period = period.this_year)
         elif definition_period == u'eternity':
             values = simulation.calculate(variable, period = period)
         else:
@@ -313,7 +335,7 @@ class AbstractSurveyScenario(object):
         return values
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
-            period = None, use_baseline = False, merge = False, ignore_missing_variables = False):
+            period = None, use_baseline = False, merge = False):
 
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (
@@ -355,7 +377,9 @@ class AbstractSurveyScenario(object):
 
         missing_variables = set(variables).difference(set(tax_benefit_system.variables.keys()))
         if missing_variables:
-            log.info("These variables aren't par of the tax-benefit system: {}".format(missing_variables))
+            log.info("These variables aren't part of the tax-benefit system: {}".format(missing_variables))
+            log.info("These variables are ignored: {}".format(missing_variables))
+
         columns_to_fetch = [
             tax_benefit_system.variables.get(variable_name) for variable_name in variables
             if tax_benefit_system.variables.get(variable_name) is not None
@@ -444,15 +468,18 @@ class AbstractSurveyScenario(object):
 
     def dump_simulations(self, directory = None):
         assert directory is not None
-        use_sub_directories = self.baseline_simulation is not None
-        for use_baseline in [False, True]:
-            if use_baseline and not use_sub_directories:
-                continue
-            if use_sub_directories:
-                sub_directory = 'baseline' if use_baseline else 'reform'
-                directory = os.path.join(directory, sub_directory)
+        use_sub_directories = True if self.baseline_simulation is not None else False
 
-            self._dump_simulation(directory = directory, use_baseline = use_baseline)
+        if use_sub_directories:
+            for use_baseline in [False, True]:
+                sub_directory = 'baseline' if use_baseline else 'reform'
+                self._dump_simulation(
+                    directory = os.path.join(directory, sub_directory),
+                    use_baseline = use_baseline,
+                    )
+
+        else:
+            self._dump_simulation(directory = directory)
 
 
     def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
@@ -621,10 +648,13 @@ class AbstractSurveyScenario(object):
 
         debug = self.debug
         trace = self.trace
-        self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
+        # Inverting reform and baseline because we are more likey
+        # to use baseline input in reform than the other way around
         if self.baseline_tax_benefit_system is not None:
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
                 use_baseline = True)
+
+        self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
@@ -982,14 +1012,21 @@ class AbstractSurveyScenario(object):
     def restore_simulations(self, directory, **kwargs):
         assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
 
-        for use_baseline in [False, True]:
-            if os.path.exists(os.path.join(directory, 'baseline')):
+        use_sub_directories = os.path.exists(os.path.join(directory, 'baseline'))
+        if use_sub_directories:
+            for use_baseline in [False, True]:
                 sub_directory = 'baseline' if use_baseline else 'reform'
-                directory = os.path.join(directory, sub_directory)
-            elif use_baseline:
-                continue
-
-            self._restore_simulation(directory = directory, use_baseline = use_baseline, **kwargs)
+                print(os.path.join(directory, sub_directory), use_baseline)
+                self._restore_simulation(
+                    directory = os.path.join(directory, sub_directory),
+                    use_baseline = use_baseline,
+                    **kwargs
+                    )
+        else:
+            self._restore_simulation(
+                directory = directory,
+                **kwargs
+                )
 
     def set_input_data_frame(self, input_data_frame):
         self.input_data_frame = input_data_frame
@@ -1064,6 +1101,10 @@ class AbstractSurveyScenario(object):
                     if array.shape == ():
                         print("{}: always = {}".format(period, array))
                         continue
+
+                    if column.value_type == Enum:
+                        print("Details are not available for Enums. Feel free to contribute by adding them in the code!")
+                        continue  # TODO code a custom detailed output for Enums
 
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,

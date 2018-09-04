@@ -130,10 +130,13 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
     input_dataframe_by_entity[entity.key][variable_name] = value
 
 
-def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None):
+def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None,
+        table_label = None, table_name = None):
     period = periods.period(period)
-    table_name = entity + '_' + str(period)
-    table_label = "Input data for entity {} at period {}".format(entity, period)
+    if table_name is None:
+        table_name = entity + '_' + str(period)
+    if table_label is None:
+        table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
         survey_collection = SurveyCollection.load(collection = collection)
     except configparser.NoOptionError:
@@ -242,7 +245,4 @@ def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwa
         input_data_frame[
             survey_scenario.role_variable_by_entity_key[entity.key]
             ] = 0
-
-
-
     return input_data_frame
