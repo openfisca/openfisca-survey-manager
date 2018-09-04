@@ -63,7 +63,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
 
         for name, sub_parameter in parameters.children.items():
             if isinstance(sub_parameter, ParameterNode):
-                inflate_parameters(sub_parameter, inflator, base_year, last_year)
+                inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units)
             else:
                 if ignore_missing_units:
                     if not hasattr(sub_parameter, 'metadata'):
@@ -71,22 +71,21 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     if 'unit' not in sub_parameter.metadata:
                         return
 
-                else:
-                    assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
-                    unit_types = set(sub_parameter.metadata.keys()).intersection(set([
-                        'rate_unit',
-                        'threshold_unit',
-                        'unit',
-                        ]))
-                    assert len(unit_types) > 0, "No admissible unit in metadata for parameter {}".format(
-                        sub_parameter.name)
-                    if len(unit_types) > 1:
-                        assert unit_types == set(['threshold_unit', 'rate_unit']), \
-                            "Too much admissible units in metadata for parameter {}".format(
-                                sub_parameter.name)
-                    unit_by_type = dict([
-                        (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
-                        ])
+                assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
+                unit_types = set(sub_parameter.metadata.keys()).intersection(set([
+                    'rate_unit',
+                    'threshold_unit',
+                    'unit',
+                    ]))
+                assert len(unit_types) > 0, "No admissible unit in metadata for parameter {}".format(
+                    sub_parameter.name)
+                if len(unit_types) > 1:
+                    assert unit_types == set(['threshold_unit', 'rate_unit']), \
+                        "Too much admissible units in metadata for parameter {}".format(
+                            sub_parameter.name)
+                unit_by_type = dict([
+                    (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
+                    ])
 
                 for unit_type, unit in unit_by_type.iteritems():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
