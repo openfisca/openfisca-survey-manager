@@ -24,7 +24,7 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
     assert os.path.isabs(tmp_directory), \
         'tmp_directory should be an absolut path: {!r} in {}'.format(tmp_directory, read_config_file_name)
     if not os.path.isdir(tmp_directory):
-        'tmp_directory does not exist: {!r} in {}. Creating it.'.format(tmp_directory, read_config_file_name)
+        log.info('tmp_directory does not exist: {!r} in {}. Creating it.'.format(tmp_directory, read_config_file_name))
         os.makedirs(tmp_directory)
 
     assert file_name is not None
@@ -75,35 +75,3 @@ def save_hdf_r_readable(data_frame, config_files_directory = default_config_file
     store = HDFStore(file_path, "w", complib = str("zlib"), complevel = 5)
     store.put("dataframe", data_frame, data_columns = data_frame.columns)
     store.close()
-
-
-class TemporaryStore(HDFStore):
-    @classmethod
-    def create(cls, config_files_directory = default_config_files_directory, file_name = None, file_path = None):
-        if file_path is None:
-            parser = SafeConfigParser()
-            config_ini = os.path.join(config_files_directory, 'config.ini')
-            _ = parser.read(config_ini)
-            tmp_directory = parser.get('data', 'tmp_directory')
-            if file_name is not None:
-                if not file_name.endswith('.h5'):
-                    file_name = "{}.h5".format(file_name)
-                file_path = os.path.join(tmp_directory, file_name)
-            else:
-                file_path = os.path.join(tmp_directory, 'temp.h5')
-            self = cls(file_path)
-            return self
-
-    def extract(self, name = None, variables = None):
-        assert name is not None
-        data_frame = self[name]
-        if variables is None:
-            return data_frame
-        else:
-            return data_frame[variables].copy()
-        self.close()
-        return data_frame
-
-    def show(self):
-        log.info("{}".format(self))
-        self.close()
