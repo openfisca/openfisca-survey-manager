@@ -164,7 +164,7 @@ def leaf_asof(sub_parameter, instant):
         for parameter_at_instant in sub_parameter.values_list
         if periods.instant(parameter_at_instant.instant_str) <= instant
         ]
-    if len(kept_instants_str) == 0:
+    if not kept_instants_str:
         sub_parameter.values_list = []
         return
 

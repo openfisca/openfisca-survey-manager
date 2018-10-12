@@ -2,12 +2,14 @@
 
 from __future__ import division
 
-import humanize
 import logging
 import os
 import numpy as np
 import pandas as pd
 import re
+
+
+import humanize
 
 
 from openfisca_core import periods, simulations
@@ -263,7 +265,7 @@ class AbstractSurveyScenario(object):
             if len(data_frame_by_value.keys()) > 1:
                 return data_frame_by_value
             else:
-                return data_frame_by_value.values()[0]
+                return next(iter(data_frame_by_value.values()))
 
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
@@ -486,7 +488,7 @@ class AbstractSurveyScenario(object):
                 )
         else:
             log.info("Invalid period {}".format(period))
-            raise
+            raise()
 
     def filter_input_variables(self, input_data_frame = None, simulation = None):
         """

@@ -144,8 +144,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 v = tmp_a[i_low]
             else:
                 # If there are two brackets, then apply the formula as per Wikipedia.
-                v = (tmp_a[i_low] +
-                    ((brk - p_vals[i_low]) / (p_vals[i_high] - p_vals[i_low])) * (tmp_a[i_high] - tmp_a[i_low]))
+                v = (
+                    tmp_a[i_low]
+                    + (
+                        (brk - p_vals[i_low]) / (p_vals[i_high] - p_vals[i_low])) * (tmp_a[i_high] - tmp_a[i_low])
+                        )
 
             # Append the result.
             quantiles.append(v)
@@ -187,7 +190,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Set up the output variable.
         ret = repeat(0, N)
-        if(N < num_categories):
+        if N < num_categories:
             return ret
 
         # Set up space for the values at the breakpoints.
@@ -214,8 +217,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             else:
                 # Interpolate as in the method 1 method, but using the s_vals instead.
                 v = (tmp_a[i_low] +
-                    (((brk * s_vals[-1]) - s_vals[i_low]) /
-                        (s_vals[i_high] - s_vals[i_low])) * (tmp_a[i_high] - tmp_a[i_low]))
+                    (
+                        ((brk * s_vals[-1]) - s_vals[i_low]) /
+                        (s_vals[i_high] - s_vals[i_low])
+                        ) * (tmp_a[i_high] - tmp_a[i_low]))
             quantiles.append(v)
 
         # Now that the weighted breakpoints are set, just categorize
@@ -283,17 +288,11 @@ def weightedcalcs_quantiles(data, labels, weights, return_quantiles = False):
         ]
 
     ret = zeros(len(data))
-    print 'labels', labels
-    print quantiles
     for i in range(0, len(quantiles) - 1):
-        print 'labels[i]', labels[i]
         lower = quantiles[i]
-        print 'lower', lower
         upper = quantiles[i + 1]
-        print 'upper', upper
         ret[and_(data > lower, data <= upper)] = labels[i]
 
-    print 'ret + 1', ret + 1
     if return_quantiles:
         return ret + 1, quantiles
     else:

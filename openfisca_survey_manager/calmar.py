@@ -35,9 +35,10 @@ def logit(u, low, up):
 
 def logit_prime(u, low, up):
     a = (up - low) / ((1 - low) * (up - 1))
-    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u)) -
-        (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) \
-        / (up - 1 + (1 - low) * exp(a * u)) ** 2
+    return (
+        (a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u))
+        - (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)
+        ) / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
 
 def build_dummies_dict(data):

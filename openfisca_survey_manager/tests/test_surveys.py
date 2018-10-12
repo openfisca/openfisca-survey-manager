@@ -33,10 +33,7 @@ def test_survey():
         )
     survey.insert_table(name = 'help')
     survey.fill_hdf(source_format = 'sas')
-    print survey.tables
-#    survey.dump(saved_fake_survey_file_path)
-#    survey_bis = Survey.load(saved_fake_survey_file_path)
-#    assert survey.to_json() == survey_bis.to_json()
+    print(survey.tables)
 
 
 if __name__ == '__main__':

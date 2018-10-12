@@ -5,11 +5,13 @@ from __future__ import division
 
 import ConfigParser
 import logging
-import numpy as np
 import os
-import pandas as pd
 import pkg_resources
 import random
+
+
+import numpy as np
+import pandas as pd
 
 
 from openfisca_core import periods
@@ -177,9 +179,9 @@ Fix the option collections_directory in the collections section of your config f
 
 
 def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, period = None,
-         computed_variables = []):
-#    for axe in test_case_scenario_kwargs['axes'][0]:
-#        axe['name'] = 'salaire_imposable'
+        computed_variables = []):
+    #    for axe in test_case_scenario_kwargs['axes'][0]:
+    #        axe['name'] = 'salaire_imposable'
 
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
