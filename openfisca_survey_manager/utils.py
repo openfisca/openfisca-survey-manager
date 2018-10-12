@@ -77,7 +77,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     'threshold_unit',
                     'unit',
                     ]))
-                assert len(unit_types) > 0, "No admissible unit in metadata for parameter {}".format(
+                assert unit_types, "No admissible unit in metadata for parameter {}".format(
                     sub_parameter.name)
                 if len(unit_types) > 1:
                     assert unit_types == set(['threshold_unit', 'rate_unit']), \
@@ -117,7 +117,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
         for parameter_at_instant in sub_parameter.values_list
         if periods.instant(parameter_at_instant.instant_str).year <= base_year
         ]
-    if len(kept_instants_str) == 0:
+    if not kept_instants_str:
         return
 
     last_admissible_instant_str = max(kept_instants_str)

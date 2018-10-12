@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from openfisca_survey_manager import default_config_files_directory
-
-
 import codecs
 import collections
 import json
@@ -11,6 +7,8 @@ import os
 
 import logging
 
+
+from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.config import Config
 

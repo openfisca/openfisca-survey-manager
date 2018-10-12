@@ -570,31 +570,31 @@ class AbstractSurveyScenario(object):
             if simulation is None:
                 continue
             tax_benefit_system = self.tax_benefit_system
-            for column_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
-                assert column_name in tax_benefit_system.variables, \
-                    "Variable {} is not a valid variable of the tax-benefit system".format(column_name)
-                holder = simulation.get_holder(column_name)
-                if column_name in target_by_variable:
-                    inflator = inflator_by_variable[column_name] = \
-                        target_by_variable[column_name] / self.compute_aggregate(
-                            variable = column_name, use_baseline = use_baseline, period = period)
+            for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
+                assert variable_name in tax_benefit_system.variables, \
+                    "Variable {} is not a valid variable of the tax-benefit system".format(variable_name)
+                holder = simulation.get_holder(variable_name)
+                if variable_name in target_by_variable:
+                    inflator = inflator_by_variable[variable_name] = \
+                        target_by_variable[variable_name] / self.compute_aggregate(
+                            variable = variable_name, use_baseline = use_baseline, period = period)
                     log.info('Using {} as inflator for {} to reach the target {} '.format(
-                        inflator, column_name, target_by_variable[column_name]))
+                        inflator, variable_name, target_by_variable[variable_name]))
                 else:
-                    assert column_name in inflator_by_variable, 'column_name is not in inflator_by_variable'
+                    assert variable_name in inflator_by_variable, 'variable_name is not in inflator_by_variable'
                     log.info('Using inflator {} for {}.  The target is thus {}'.format(
-                        inflator_by_variable[column_name],
-                        column_name, inflator_by_variable[column_name] * self.compute_aggregate(
-                            variable = column_name, use_baseline = use_baseline, period = period)
+                        inflator_by_variable[variable_name],
+                        variable_name, inflator_by_variable[variable_name] * self.compute_aggregate(
+                            variable = variable_name, use_baseline = use_baseline, period = period)
                         ))
-                    inflator = inflator_by_variable[column_name]
+                    inflator = inflator_by_variable[variable_name]
 
                 array = holder.get_array(period)
                 if array is None:
-                    array = simulation.calculate_add(column_name, period = period)
+                    array = simulation.calculate_add(variable_name, period = period)
                 assert array is not None
                 holder.delete_arrays(period = period)  # delete existing arrays
-                holder.set_input(period, inflator * array)  # insert inflated array
+                simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
@@ -698,7 +698,7 @@ class AbstractSurveyScenario(object):
 
             init_variable_in_entity(
                 entity = entity,
-                variable = column_name,
+                variable_name = column_name,
                 series = column_serie,
                 period = period,
                 )
@@ -780,8 +780,7 @@ class AbstractSurveyScenario(object):
                 if column_name in id_variable_by_entity_key.values():
                     continue
 
-            holder = simulation.get_holder(column_name)
-            entity = holder.entity
+            entity = simulation.get_variable_entity(column_name)
             if entity.is_person:
                 init_variable_in_entity(entity, column_name, column_serie, period)
             else:
@@ -1212,42 +1211,44 @@ def get_weights(survey_scenario, variable):
     return weight_variable
 
 
-def init_variable_in_entity(entity, variable, series, period):
-    holder = entity.get_holder(variable)
-    if series.values.dtype != holder.variable.dtype:
+def init_variable_in_entity(entity, variable_name, series, period):
+    # holder = entity.get_holder(variable)
+    simulation = entity.simulation
+    variable = simulation.tax_benefit_system.variables[variable_name]
+    if series.values.dtype != variable.dtype:
         log.debug(
             'Converting {} from dtype {} to {}'.format(
-                variable, series.values.dtype, holder.variable.dtype)
+                variable_name, series.values.dtype, variable.dtype)
             )
     if np.issubdtype(series.values.dtype, np.floating):
         if series.isnull().any():
             log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
-                series.isnull().sum(), series.notnull().sum(), variable))
+                series.isnull().sum(), series.notnull().sum(), variable_name))
             log.debug('We convert these NaN values of variable {} to {} its default value'.format(
-                variable, holder.variable.default_value))
-            series.fillna(holder.variable.default_value, inplace = True)
+                variable_name, variable.default_value))
+            series.fillna(variable.default_value, inplace = True)
         assert series.notnull().all(), \
             'There are {} NaN values for {} non NaN values in variable {}'.format(
-                series.isnull().sum(), series.notnull().sum(), variable)
+                series.isnull().sum(), series.notnull().sum(), variable_name)
 
-    array = series.values.astype(holder.variable.dtype)
+    array = series.values.astype(variable.dtype)
     assert array.size == entity.count, 'Entity {}: bad size for variable {} ({} instead of {})'.format(
-        entity.key, variable, array.size, entity.count)
+        entity.key, variable_name, array.size, entity.count)
     # TODO is the next line needed ?
     # Might be due to values returning also ndarray like objects
     # for instance for categories or
-    np_array = np.array(array, dtype = holder.variable.dtype)
-    if holder.variable.definition_period == YEAR and period.unit == MONTH:
+    np_array = np.array(array, dtype = variable.dtype)
+    if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
         log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The  montly values you provided will be summed.'
-            .format(variable).encode('utf-8'))
+            .format(variable_name).encode('utf-8'))
 
-        if holder.get_array(period.this_year) is not None:
-            array_sum = holder.get_array(period.this_year) + np_array
-            holder.set_input(period.this_year, array_sum)
+        if simulation.get_array(variable_name, period.this_year) is not None:
+            array_sum = simulation.get_array(variable_name, period.this_year) + np_array
+            simulation.set_input(variable_name, period.this_year, array_sum)
         else:
-            holder.set_input(period.this_year, np_array)
+            simulation.set_input(variable_name, period.this_year, np_array)
 
     else:
-        holder.set_input(period, np_array)
+        simulation.set_input(variable_name, period, np_array)
