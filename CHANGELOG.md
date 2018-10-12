@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.14.2
+
+* Use `simulation.set_input` introduced by openfisca-core version 24.5.0
+
 ## 0.14.1
 
 * Use [weightedcalcs](https://github.com/jsvine/weightedcalcs) to compute quantiles
