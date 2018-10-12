@@ -115,7 +115,7 @@ def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = N
         print(donor)
         print(3)
         print(pd.Series(matching_variables))
-        print e
+        print(e)
 
     # create synthetic data.set, without the
     # duplication of the matching variables
