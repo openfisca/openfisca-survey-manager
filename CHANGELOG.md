@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.14.1
+
+* Use [weightedcalcs](https://github.com/jsvine/weightedcalcs) to compute quantiles
+
 ## 0.14.0
 
 * Introduce new tools: `asof` extract from any tax_benefit_system its variables and parameters as of some date

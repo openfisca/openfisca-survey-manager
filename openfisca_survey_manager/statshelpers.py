@@ -4,10 +4,9 @@
 from __future__ import division
 
 from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
-from pandas import DataFrame
-
-
+import pandas as pd
 import weighted
+import weightedcalcs as wc
 
 
 def gini(values, weights = None, bin_size = None):
@@ -32,7 +31,7 @@ def gini(values, weights = None, bin_size = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame({'x': values, 'w': weights})
+    df = pd.DataFrame({'x': values, 'w': weights})
     df = df.sort_values(by='x')
     x = df['x']
     w = df['w']
@@ -76,7 +75,7 @@ def lorenz(values, weights = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame({'v': values, 'w': weights})
+    df = pd.DataFrame({'v': values, 'w': weights})
     df = df.sort_values(by = 'v')
     x = cumsum(df['w'])
     x = x / float(x[-1:])
@@ -84,25 +83,6 @@ def lorenz(values, weights = None):
     y = y / float(y[-1:])
 
     return x, y
-
-
-def weighted_quantiles(data, labels, weights, return_quantiles = False):
-
-    num_categories = len(labels)
-    breaks = linspace(0, 1, num_categories + 1)
-    quantiles = [
-        weighted.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
-        ]
-    ret = zeros(len(data))
-    for i in range(0, len(quantiles) - 1):
-        lower = quantiles[i]
-        upper = quantiles[i + 1]
-        ret[and_(data >= lower, data < upper)] = labels[i]
-
-    if return_quantiles:
-        return ret + 1, quantiles
-    else:
-        return ret + 1
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
@@ -261,7 +241,7 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     '''
     if weights is None:
         weights = ones(len(values))
-    df = DataFrame({'v': values, 'a': ineq_axis, 'w': weights})
+    df = pd.DataFrame({'v': values, 'a': ineq_axis, 'w': weights})
     df = df.sort_values(by = 'a')
     x = cumsum(df['w'])
     x = x / float(x[-1:])
@@ -269,3 +249,52 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     y = y / float(y[-1:])
 
     return x, y
+
+
+def weighted_quantiles(data, labels, weights, return_quantiles = False):
+
+    num_categories = len(labels)
+    breaks = linspace(0, 1, num_categories + 1)
+    quantiles = [
+        weighted.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
+        ]
+    ret = zeros(len(data))
+    for i in range(0, len(quantiles) - 1):
+        lower = quantiles[i]
+        upper = quantiles[i + 1]
+        ret[and_(data >= lower, data < upper)] = labels[i]
+
+    if return_quantiles:
+        return ret + 1, quantiles
+    else:
+        return ret + 1
+
+
+def weightedcalcs_quantiles(data, labels, weights, return_quantiles = False):
+    calc = wc.Calculator("weights")
+    num_categories = len(labels)
+    breaks = linspace(0, 1, num_categories + 1)
+    data_frame = pd.DataFrame({
+        'weights': weights,
+        'data': data,
+        })
+    quantiles = [
+        calc.quantile(data_frame, 'data', mybreak) for mybreak in breaks[1:]
+        ]
+
+    ret = zeros(len(data))
+    print 'labels', labels
+    print quantiles
+    for i in range(0, len(quantiles) - 1):
+        print 'labels[i]', labels[i]
+        lower = quantiles[i]
+        print 'lower', lower
+        upper = quantiles[i + 1]
+        print 'upper', upper
+        ret[and_(data > lower, data <= upper)] = labels[i]
+
+    print 'ret + 1', ret + 1
+    if return_quantiles:
+        return ret + 1, quantiles
+    else:
+        return ret + 1

@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.14.0',
+    version = '0.14.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -62,6 +62,7 @@ setup(
         'PyYAML',
         'pyxdg',
         'tables',
+        'weightedcalcs',
         'wquantiles >= 0.3',
         ],
     message_extractors = {
