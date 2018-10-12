@@ -87,7 +87,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
                     ])
 
-                for unit_type, unit in unit_by_type.iteritems():
+                for unit_type, unit in unit_by_type.items():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
                         inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type)
 

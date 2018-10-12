@@ -78,7 +78,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
-    for period, variable_generators in variable_generators_by_period.iteritems():
+    for period, variable_generators in variable_generators_by_period.items():
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
         table_by_entity_by_period[period] = table_by_entity = dict()
         for variable_generator in variable_generators:
@@ -93,7 +93,7 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
                 condition = condition,
                 )
 
-        for entity, input_dataframe in input_dataframe_by_entity.iteritems():
+        for entity, input_dataframe in input_dataframe_by_entity.items():
             set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
             table_by_entity[entity] = entity + '_' + str(period)
 

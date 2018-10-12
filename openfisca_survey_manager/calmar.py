@@ -126,11 +126,11 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
 
     margins_new = {}
     margins_new_dict = {}
-    for var, val in margins.iteritems():
+    for var, val in margins.items():
         if isinstance(val, dict):
             dummies_dict = build_dummies_dict(data[var])
             k, pop = 0, 0
-            for cat, nb in val.iteritems():
+            for cat, nb in val.items():
                 cat_varname = var + '_' + str(cat)
                 data[cat_varname] = dummies_dict[cat]
                 margins_new[cat_varname] = nb
@@ -148,7 +148,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
                             var
                             )
                         )
-                    for cat, nb in val.iteritems():
+                    for cat, nb in val.items():
                         cat_varname = var + '_' + str(cat)
                         margins_new[cat_varname] = nb * total_population / pop
                         margins_new_dict[var][cat] = nb * total_population / pop
@@ -175,7 +175,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     xmargins = zeros(nj)
     margins_dict = {}
     j = 0
-    for var, val in margins_new.iteritems():
+    for var, val in margins_new.items():
         x[:, j] = data[var]
         xmargins[j] = val
         margins_dict[var] = val
@@ -210,9 +210,9 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
 
         pondfin = d * F(dot(x, lambdasol))
         rel_error = {}
-        for var, val in margins_new.iteritems():
+        for var, val in margins_new.items():
             rel_error[var] = abs((data[var] * pondfin).sum() - margins_dict[var]) / margins_dict[var]
-        sorted_err = sorted(rel_error.iteritems(), key = operator.itemgetter(1), reverse = True)
+        sorted_err = sorted(rel_error.items(), key = operator.itemgetter(1), reverse = True)
 
         conv = abs(err_max - sorted_err[0][1])
         err_max = sorted_err[0][1]
@@ -226,6 +226,6 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
 
 
 def check_calmar(data_in, margins, pondini='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
-    for variable, margin in margins.iteritems():
+    for variable, margin in margins.items():
         if variable != 'total_population':
             print variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin)

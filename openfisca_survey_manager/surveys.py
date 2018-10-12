@@ -267,7 +267,7 @@ Contains the following tables : \n""".format(self.name, self.label)
 
         if name not in self.tables:
             self.tables[name] = dict()
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             self.tables[name][key] = val
 
     def to_json(self):
@@ -277,5 +277,5 @@ Contains the following tables : \n""".format(self.name, self.label)
         self_json['label'] = self.label
         self_json['name'] = self.name
         self_json['tables'] = self.tables
-        self_json['informations'] = collections.OrderedDict(sorted(self.informations.iteritems()))
+        self_json['informations'] = collections.OrderedDict(sorted(self.informations.items()))
         return self_json

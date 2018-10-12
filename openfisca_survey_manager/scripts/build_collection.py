@@ -91,7 +91,7 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
             survey_collection = SurveyCollection(
                 name = collection_name, config_files_directory = config_files_directory)
 
-    for survey_suffix, data_directory_path in data_directory_path_by_survey_suffix.iteritems():
+    for survey_suffix, data_directory_path in data_directory_path_by_survey_suffix.items():
         assert os.path.isdir(data_directory_path), '{} is not a valid directory path'.format(data_directory_path)
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
