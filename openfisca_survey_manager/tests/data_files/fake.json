@@ -1,4 +1,17 @@
 {
   "name": "fake", 
-  "surveys": {}
+  "surveys": {
+    "input": {
+      "hdf5_file_path": "/home/benjello/data/openfisca/output/input.h5", 
+      "label": null, 
+      "name": "input", 
+      "tables": {
+        "household_2018-01": {
+          "variables": null, 
+          "source_format": null
+        }
+      }, 
+      "informations": {}
+    }
+  }
 }

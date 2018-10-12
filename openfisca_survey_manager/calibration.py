@@ -155,7 +155,7 @@ class Calibration(object):
         if margins_by_variable is not None:
             simple_margins_by_variable = dict([
                 (variable, margins_by_type['target'])
-                for variable, margins_by_type in margins_by_variable.iteritems()])
+                for variable, margins_by_type in margins_by_variable.items()])
         else:
             simple_margins_by_variable = dict()
 
@@ -179,7 +179,7 @@ class Calibration(object):
             # TODO: propagation to other weights
 
     def set_target_margins(self, target_margin_by_variable):
-        for variable, target in target_margin_by_variable.iteritems():
+        for variable, target in target_margin_by_variable.items():
             self.set_target_margin(variable, target)
 
     def set_target_margin(self, variable, target):

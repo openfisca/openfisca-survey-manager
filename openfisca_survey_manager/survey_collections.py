@@ -119,7 +119,7 @@ Contains the following surveys :
             self.name = self_json.get('name')
 
         surveys = self_json.get('surveys')
-        for survey_name, survey_json in surveys.iteritems():
+        for survey_name, survey_json in surveys.items():
             survey = Survey(name = survey_name)
             self.surveys.append(survey.create_from_json(survey_json))
         return self

@@ -400,7 +400,7 @@ class AbstractSurveyScenario(object):
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.entities[entity.key].members_position
 
-        for entity_key, expressions in expressions_by_entity_key.iteritems():
+        for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
             for expression in expressions:
                 data_frame[expression] = data_frame.eval(expression)
@@ -415,7 +415,7 @@ class AbstractSurveyScenario(object):
         if not merge:
             return openfisca_data_frame_by_entity_key
         else:
-            for entity_key, openfisca_data_frame in openfisca_data_frame_by_entity_key.iteritems():
+            for entity_key, openfisca_data_frame in openfisca_data_frame_by_entity_key.items():
                 if entity_key != person_entity.key:
                     openfisca_data_frame.index.name = '{}_id'.format(entity_key)
                     if len(openfisca_data_frame.reset_index()) > 0:
@@ -434,7 +434,7 @@ class AbstractSurveyScenario(object):
         assert survey_name is not None
         assert variables is not None
         openfisca_data_frame_by_entity = self.create_data_frame_by_entity(variables = variables)
-        for entity_key, data_frame in openfisca_data_frame_by_entity.iteritems():
+        for entity_key, data_frame in openfisca_data_frame_by_entity.items():
             survey = Survey(name = survey_name)
             survey.insert_table(name = entity_key, data_frame = data_frame)
             survey_collection.surveys.append(survey)
@@ -686,7 +686,7 @@ class AbstractSurveyScenario(object):
         else:
             entity.count = entity.step_size = len(input_data_frame)
 
-        for column_name, column_serie in input_data_frame.iteritems():
+        for column_name, column_serie in input_data_frame.items():
             if column_name in (id_variables + role_variables):
                 continue
 
@@ -750,7 +750,7 @@ class AbstractSurveyScenario(object):
 
         index_by_entity_key = dict()
 
-        for key, entity in simulation.entities.iteritems():
+        for key, entity in simulation.entities.items():
             if entity.is_person:
                 entity.count = entity.step_size = len(input_data_frame)
             else:
@@ -771,7 +771,7 @@ class AbstractSurveyScenario(object):
                     id_variable_by_entity_key[key]
                     ].sort_values().index
 
-        for column_name, column_serie in input_data_frame.iteritems():
+        for column_name, column_serie in input_data_frame.items():
             if role_variable_by_entity_key is not None:
                 if column_name in role_variable_by_entity_key.values():
                     continue
@@ -878,7 +878,7 @@ class AbstractSurveyScenario(object):
 
         elif source_type == 'input_data_table_by_period':
             # Case 2: fill simulation with input_data_frame by period containing all entity variables
-            for period, table in self.input_data_table_by_period.iteritems():
+            for period, table in self.input_data_table_by_period.items():
                 period = periods.period(period)
                 log.debug('From survey {} loading table {}'.format(survey, table))
                 input_data_frame = self.load_table(survey = survey, table = table)
@@ -886,7 +886,7 @@ class AbstractSurveyScenario(object):
                 self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
 
         elif source_type == 'input_data_frame_by_entity_by_period':
-            for period, input_data_frame_by_entity in source.iteritems():
+            for period, input_data_frame_by_entity in source.items():
                 for entity in simulation.tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
@@ -902,9 +902,9 @@ class AbstractSurveyScenario(object):
             # Case 3: fill simulation with input_data_table by entity_by_period containing a dictionnary
             # of all periods containing a dictionnary of entity variables
             input_data_table_by_entity_by_period = source
-            for period, input_data_table_by_entity in input_data_table_by_entity_by_period.iteritems():
+            for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
                 period = periods.period(period)
-                for entity, table in input_data_table_by_entity.iteritems():
+                for entity, table in input_data_table_by_entity.items():
                     survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
                     self.custom_input_data_frame(input_data_frame, period = period, entity = entity)
@@ -943,7 +943,7 @@ class AbstractSurveyScenario(object):
             usage_stats = None
         infos_lines = list()
 
-        for variable, infos in memory_usage_by_variable.iteritems():
+        for variable, infos in memory_usage_by_variable.items():
             hits = usage_stats[variable]['nb_requests'] if usage_stats else None
             infos_lines.append((
                 infos['total_nb_bytes'],
@@ -1134,52 +1134,6 @@ class AbstractSurveyScenario(object):
                 for variable in self.used_as_input_variables
                 if tax_benefit_system.get_variable(variable).entity == entity
                 ]
-
-
-# Helpers
-
-
-# # TODO NOT WORKING RIGH NOW
-# def init_simulation_with_entity_data_frame(input_data_frame = None, entity = None):
-#     assert entity is not None
-#     assert input_data_frame is not None
-#     assert simulation is not None
-#     assert entity in simulation.tax_benefit_system.entities.keys()
-#     for entity in simulation.entities.values():
-#         if entity.index_for_person_variable_name is not None:
-#             input_data_frame = input_data_frame_by_entity[entity.index_for_person_variable_name]
-#         else:
-#             input_data_frame = input_data_frame_by_entity['individus']
-#         input_data_frame = filter_input_variables(input_data_frame)
-
-#         if entity.is_persons_entity:
-#             entity.count = entity.step_size = len(input_data_frame)
-#         else:
-#             entity.count = entity.step_size = len(input_data_frame)
-#             entity.roles_count = input_data_frame_by_entity['individus'][
-#                 entity.role_for_person_variable_name].max() + 1
-#             assert isinstance(entity.roles_count, int)
-
-#         # Convert columns from df to array:
-#         for column_name, column_serie in input_data_frame.iteritems():
-#             holder = simulation.get_holder(column_name)
-#             entity = holder.entity
-#             if column_serie.values.dtype != holder.variable.dtype:
-#                 log.debug(
-#                     'Converting {} from dtype {} to {}'.format(
-#                         column_name, column_serie.values.dtype, holder.variable.dtype)
-#                     )
-#             if np.issubdtype(column_serie.values.dtype, np.floating):
-#                 assert column_serie.notnull().all(), 'There are {} NaN values in variable {}'.format(
-#                     column_serie.isnull().sum(), column_name)
-
-#             array = column_serie.values.astype(holder.variable.dtype)
-#             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
-#                 column_name,
-#                 array.size,
-#                 entity.count)
-#             holder.array = np.array(array, dtype = holder.variable.dtype)
-
 
 # Helpers
 
