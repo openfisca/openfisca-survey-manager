@@ -118,7 +118,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Set up the output array.
         ret = repeat(0, len(a))
-        if(len(a) < num_categories):
+        if len(a) < num_categories:
             return ret
 
         # Set up the array for the values at the breakpoints.
