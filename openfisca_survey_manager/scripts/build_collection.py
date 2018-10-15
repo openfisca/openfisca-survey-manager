@@ -77,7 +77,7 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
 
     assert collection_name is not None
     assert data_directory_path_by_survey_suffix is not None
-    surveys_name = data_directory_path_by_survey_suffix.keys()
+    surveys_name = list(data_directory_path_by_survey_suffix.keys())
     assert surveys_name is not None, "A list of surveys to process is needed"
 
     if replace_metadata:
@@ -104,7 +104,7 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
             )
 
         valid_source_format = [
-            _format for _format in data_file_by_format.keys()
+            _format for _format in list(data_file_by_format.keys())
             if data_file_by_format.get((_format))
             ]
         log.info("Valid source formats are: {}".format(valid_source_format))

@@ -219,7 +219,7 @@ def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwa
                 continue
             if not isinstance(value_by_variable, dict):  # enfants
                 continue
-            variables = value_by_variable.keys()
+            variables = list(value_by_variable.keys())
 
         for variable in variables:
             compute_variable(variable)
