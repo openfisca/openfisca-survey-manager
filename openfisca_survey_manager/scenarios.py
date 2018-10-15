@@ -262,7 +262,7 @@ class AbstractSurveyScenario(object):
 
                 data_frame_by_value[value] = result
 
-            if len(data_frame_by_value.keys()) > 1:
+            if len(list(data_frame_by_value.keys())) > 1:
                 return data_frame_by_value
             else:
                 return next(iter(data_frame_by_value.values()))
@@ -334,7 +334,7 @@ class AbstractSurveyScenario(object):
             expressions = []
 
         if filter_by is not None:
-            if filter_by in tax_benefit_system.variables.keys():
+            if filter_by in tax_benefit_system.variables:
                 variables.append(filter_by)
                 filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
             else:
@@ -362,7 +362,7 @@ class AbstractSurveyScenario(object):
             ]
 
         assert len(columns_to_fetch) >= 1, "None of the requested variables {} are in the tax-benefit-system {}".format(
-            variables, tax_benefit_system.variables.keys())
+            variables, list(tax_benefit_system.variables.keys()))
 
         assert simulation is not None
 
@@ -1014,7 +1014,7 @@ class AbstractSurveyScenario(object):
             simulation = self.simulation
 
         tax_benefit_system = simulation.tax_benefit_system
-        assert variable in tax_benefit_system.variables.keys()
+        assert variable in tax_benefit_system.variables
         column = tax_benefit_system.variables[variable]
 
         if weighted:

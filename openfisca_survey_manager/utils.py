@@ -203,6 +203,6 @@ def variables_asof(tax_benefit_system, instant):
 
     for variable_name, variable in tax_benefit_system.variables.items():
         formulas = variable.formulas
-        for instant_str in formulas.keys():
+        for instant_str in list(formulas.keys()):
             if periods.instant(instant_str) > instant:
                 del formulas[instant_str]

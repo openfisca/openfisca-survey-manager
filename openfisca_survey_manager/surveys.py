@@ -82,7 +82,7 @@ class Survey(object):
         header = """{} : survey data {}
 Contains the following tables : \n""".format(self.name, self.label)
         tables = yaml.safe_dump(
-            self.tables.keys(),
+            list(self.tables.keys()),
             default_flow_style = False)
         informations = yaml.safe_dump(self.informations, default_flow_style = False)
         return header + tables + informations
@@ -148,7 +148,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             tables = self.tables
         tables_index = self.tables_index
         for table in tables:
-            if table not in tables_index.keys():
+            if table not in tables_index:
                 tables_index[table] = self.get_columns(table)
             if variable in tables_index[table]:
                 container_tables.append(table)
