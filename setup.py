@@ -56,7 +56,7 @@ setup(
     install_requires = [
         'configparser',
         'humanize',
-        'numpy >= 1.12',
+        'numpy >= 1.11, < 1.15',
         'openfisca-core >= 24.5.0, < 25.0.0',
         'pandas >= 0.20',
         'PyYAML',
