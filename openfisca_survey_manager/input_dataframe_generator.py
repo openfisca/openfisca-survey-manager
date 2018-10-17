@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-
+from builtins import range
 
 import configparser
 import logging
@@ -45,7 +45,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
         })
     input_dataframe_by_entity[person_entity.key].set_index('person_id')
     #
-    adults = [0] + sorted(random.sample(xrange(1, nb_persons), nb_groups - 1))
+    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
     # A legacy role is an index that every person within an entity has.
     # For instance, the 'first_parent' has legacy role 0, the 'second_parent' 1, the first 'child' 2, the second 3, etc.

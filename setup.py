@@ -57,6 +57,7 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'configparser',
+        'future',
         'humanize',
         'numpy >= 1.11, < 1.15',
         'openfisca-core >= 24.5.0, < 25.0.0',
