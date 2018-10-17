@@ -6,7 +6,7 @@
 
 
 import argparse
-import ConfigParser
+import configparser
 import datetime
 import logging
 import os
@@ -87,7 +87,7 @@ def build_survey_collection(collection_name = None, replace_metadata = False, re
         try:
             survey_collection = SurveyCollection.load(
                 collection = collection_name, config_files_directory = config_files_directory)
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             survey_collection = SurveyCollection(
                 name = collection_name, config_files_directory = config_files_directory)
 
