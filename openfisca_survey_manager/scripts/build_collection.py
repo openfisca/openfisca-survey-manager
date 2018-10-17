@@ -170,7 +170,7 @@ def main():
     if not check_template_config_files():
         return
 
-    config_parser = ConfigParser.SafeConfigParser()
+    config_parser = configparser.SafeConfigParser()
     config_parser.read(os.path.join(config_files_directory, 'raw_data.ini'))
     assert config_parser.has_section(args.collection), 'Unkwnown collection'
     data_directory_path_by_survey_suffix = dict(config_parser.items(args.collection))

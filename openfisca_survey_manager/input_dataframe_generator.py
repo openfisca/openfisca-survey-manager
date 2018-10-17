@@ -3,7 +3,7 @@
 from __future__ import division
 
 
-import ConfigParser
+import configparser
 import logging
 import os
 import pkg_resources
@@ -136,9 +136,9 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
     table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
         survey_collection = SurveyCollection.load(collection = collection)
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         survey_collection = SurveyCollection(name = collection)
-    except ConfigParser.NoSectionError:  # For tests
+    except configparser.NoSectionError:  # For tests
         data_dir = os.path.join(
             pkg_resources.get_distribution('openfisca-survey-manager').location,
             'openfisca_survey_manager',
