@@ -229,4 +229,4 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
 def check_calmar(data_in, margins, pondini='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
     for variable, margin in margins.items():
         if variable != 'total_population':
-            print variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin)
+            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))
