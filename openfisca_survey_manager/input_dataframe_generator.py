@@ -27,7 +27,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
     """
         Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
 
-        Exemple:
+        Example:
 
         >>> from openfisca_survey_manager.tools.input_data_generator import make_simulation
         >>> from openfisca_country_template import CountryTaxBenefitSystem
