@@ -6,12 +6,12 @@ from builtins import range
 import configparser
 import logging
 import os
-import pkg_resources
 import random
 
 
 import numpy as np
 import pandas as pd
+import pkg_resources
 
 
 from openfisca_core import periods

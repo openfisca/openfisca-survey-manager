@@ -1,7 +1,11 @@
 
 # Changelog
 
-## 0.14.2
+## 0.15.0
+
+* Remove travis config file
+
+## 0.15.0
 
 * openfisca-survey-manager can be used with both python 2 and 3
 
