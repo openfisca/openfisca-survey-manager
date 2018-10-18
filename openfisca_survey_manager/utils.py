@@ -87,7 +87,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
                     ])
 
-                for unit_type, unit in unit_by_type.iteritems():
+                for unit_type, unit in unit_by_type.items():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
                         inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type)
 
@@ -164,7 +164,7 @@ def leaf_asof(sub_parameter, instant):
         for parameter_at_instant in sub_parameter.values_list
         if periods.instant(parameter_at_instant.instant_str) <= instant
         ]
-    if len(kept_instants_str) == 0:
+    if not kept_instants_str:
         sub_parameter.values_list = []
         return
 
@@ -203,6 +203,6 @@ def variables_asof(tax_benefit_system, instant):
 
     for variable_name, variable in tax_benefit_system.variables.items():
         formulas = variable.formulas
-        for instant_str in formulas.keys():
+        for instant_str in list(formulas.keys()):
             if periods.instant(instant_str) > instant:
                 del formulas[instant_str]

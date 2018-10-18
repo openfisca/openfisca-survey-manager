@@ -96,7 +96,7 @@ class Calibration(object):
 #                margins[var] = {}
 #            margins[var][mod] = totals.get_value((var, mod), year)
 #
-#        for var in margins.keys():
+#        for var in margins:
 #            if var == 'total_population':
 #                if source == "input" or source == "config":
 #                    total_population = margins.pop('total_population')[0]
@@ -129,7 +129,7 @@ class Calibration(object):
         for variable in self.margins_by_variable:
             if variable == 'total_population':
                 continue
-            assert variable in self.survey_scenario.tax_benefit_system.variables.keys()
+            assert variable in self.survey_scenario.tax_benefit_system.variables
             period = self.survey_scenario.simulation.period
             data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
 
@@ -155,7 +155,7 @@ class Calibration(object):
         if margins_by_variable is not None:
             simple_margins_by_variable = dict([
                 (variable, margins_by_type['target'])
-                for variable, margins_by_type in margins_by_variable.iteritems()])
+                for variable, margins_by_type in margins_by_variable.items()])
         else:
             simple_margins_by_variable = dict()
 
@@ -179,7 +179,7 @@ class Calibration(object):
             # TODO: propagation to other weights
 
     def set_target_margins(self, target_margin_by_variable):
-        for variable, target in target_margin_by_variable.iteritems():
+        for variable, target in target_margin_by_variable.items():
             self.set_target_margin(variable, target)
 
     def set_target_margin(self, variable, target):

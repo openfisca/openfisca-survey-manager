@@ -82,7 +82,7 @@ class Survey(object):
         header = """{} : survey data {}
 Contains the following tables : \n""".format(self.name, self.label)
         tables = yaml.safe_dump(
-            self.tables.keys(),
+            list(self.tables.keys()),
             default_flow_style = False)
         informations = yaml.safe_dump(self.informations, default_flow_style = False)
         return header + tables + informations
@@ -148,7 +148,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             tables = self.tables
         tables_index = self.tables_index
         for table in tables:
-            if table not in tables_index.keys():
+            if table not in tables_index:
                 tables_index[table] = self.get_columns(table)
             if variable in tables_index[table]:
                 container_tables.append(table)
@@ -168,7 +168,7 @@ Contains the following tables : \n""".format(self.name, self.label)
                         break
             return list(data_frame.columns)
         else:
-            print 'table {} was not found in {}'.format(table, store.filename)
+            print('table {} was not found in {}'.format(table, store.filename))
             return list()
 
     def get_value(self, variable = None, table = None):
@@ -267,7 +267,7 @@ Contains the following tables : \n""".format(self.name, self.label)
 
         if name not in self.tables:
             self.tables[name] = dict()
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             self.tables[name][key] = val
 
     def to_json(self):
@@ -277,5 +277,5 @@ Contains the following tables : \n""".format(self.name, self.label)
         self_json['label'] = self.label
         self_json['name'] = self.name
         self_json['tables'] = self.tables
-        self_json['informations'] = collections.OrderedDict(sorted(self.informations.iteritems()))
+        self_json['informations'] = collections.OrderedDict(sorted(self.informations.items()))
         return self_json

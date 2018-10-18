@@ -2,14 +2,14 @@
 
 
 import os
-import ConfigParser
+import configparser
 
 
-class Config(ConfigParser.SafeConfigParser):
+class Config(configparser.SafeConfigParser):
     config_ini = None
 
     def __init__(self, config_files_directory = None):
-        ConfigParser.SafeConfigParser.__init__(self)
+        configparser.SafeConfigParser.__init__(self)
         if config_files_directory is not None:
             config_ini = os.path.join(config_files_directory, 'config.ini')
             if os.path.exists(config_ini):

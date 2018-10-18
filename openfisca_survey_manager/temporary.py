@@ -5,7 +5,7 @@ import gc
 import os
 import logging
 
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 from pandas import HDFStore
 
 from openfisca_survey_manager import default_config_files_directory

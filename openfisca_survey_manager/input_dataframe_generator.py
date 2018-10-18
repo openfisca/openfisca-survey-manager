@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
+from builtins import range
 
-
-import ConfigParser
+import configparser
 import logging
-import numpy as np
 import os
-import pandas as pd
 import pkg_resources
 import random
+
+
+import numpy as np
+import pandas as pd
 
 
 from openfisca_core import periods
@@ -25,7 +27,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
     """
         Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
 
-        Exemple:
+        Example:
 
         >>> from openfisca_survey_manager.tools.input_data_generator import make_simulation
         >>> from openfisca_country_template import CountryTaxBenefitSystem
@@ -43,7 +45,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
         })
     input_dataframe_by_entity[person_entity.key].set_index('person_id')
     #
-    adults = [0] + sorted(random.sample(xrange(1, nb_persons), nb_groups - 1))
+    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
     # A legacy role is an index that every person within an entity has.
     # For instance, the 'first_parent' has legacy role 0, the 'second_parent' 1, the first 'child' 2, the second 3, etc.
@@ -78,7 +80,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
-    for period, variable_generators in variable_generators_by_period.iteritems():
+    for period, variable_generators in variable_generators_by_period.items():
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
         table_by_entity_by_period[period] = table_by_entity = dict()
         for variable_generator in variable_generators:
@@ -93,7 +95,7 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
                 condition = condition,
                 )
 
-        for entity, input_dataframe in input_dataframe_by_entity.iteritems():
+        for entity, input_dataframe in input_dataframe_by_entity.items():
             set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
             table_by_entity[entity] = entity + '_' + str(period)
 
@@ -134,9 +136,9 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
     table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
         survey_collection = SurveyCollection.load(collection = collection)
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         survey_collection = SurveyCollection(name = collection)
-    except ConfigParser.NoSectionError:  # For tests
+    except configparser.NoSectionError:  # For tests
         data_dir = os.path.join(
             pkg_resources.get_distribution('openfisca-survey-manager').location,
             'openfisca_survey_manager',
@@ -177,9 +179,9 @@ Fix the option collections_directory in the collections section of your config f
 
 
 def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, period = None,
-         computed_variables = []):
-#    for axe in test_case_scenario_kwargs['axes'][0]:
-#        axe['name'] = 'salaire_imposable'
+        computed_variables = []):
+    #    for axe in test_case_scenario_kwargs['axes'][0]:
+    #        axe['name'] = 'salaire_imposable'
 
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
@@ -217,7 +219,7 @@ def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwa
                 continue
             if not isinstance(value_by_variable, dict):  # enfants
                 continue
-            variables = value_by_variable.keys()
+            variables = list(value_by_variable.keys())
 
         for variable in variables:
             compute_variable(variable)

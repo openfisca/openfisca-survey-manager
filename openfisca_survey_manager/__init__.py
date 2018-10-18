@@ -18,8 +18,9 @@ except pkg_resources.DistributionNotFound:
 
 # Travis tests
 is_travis = 'TRAVIS' in os.environ
+is_circleci = 'CIRCLECI' in os.environ
 
-if is_travis:
+if is_travis or is_circleci:
     default_config_files_directory = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',

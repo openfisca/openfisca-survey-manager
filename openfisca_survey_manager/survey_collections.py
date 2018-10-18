@@ -74,7 +74,7 @@ Contains the following surveys :
         config.save
         config.save()
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
-            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
+            json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
     def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
         if source_format is not None:
@@ -119,7 +119,7 @@ Contains the following surveys :
             self.name = self_json.get('name')
 
         surveys = self_json.get('surveys')
-        for survey_name, survey_json in surveys.iteritems():
+        for survey_name, survey_json in surveys.items():
             survey = Survey(name = survey_name)
             self.surveys.append(survey.create_from_json(survey_json))
         return self

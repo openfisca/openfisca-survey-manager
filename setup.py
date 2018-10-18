@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.14.2',
+    version = '0.15.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -47,7 +47,9 @@ setup(
             'feather',
             'rpy2',
             ],
-        'test': [
+        'dev': [
+            'flake8',
+            'nose',
             'openfisca-country-template',
             'SAS7BDAT',
             ],
@@ -55,8 +57,9 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'configparser',
+        'future',
         'humanize',
-        'numpy >= 1.12',
+        'numpy >= 1.11, < 1.15',
         'openfisca-core >= 24.5.0, < 25.0.0',
         'pandas >= 0.20',
         'PyYAML',
