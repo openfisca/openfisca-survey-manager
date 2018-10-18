@@ -1,7 +1,11 @@
 
 # Changelog
 
-## 0.15.0
+## 0.15.2
+
+* Test tagging
+
+## 0.15.1
 
 * Remove travis config file
 
