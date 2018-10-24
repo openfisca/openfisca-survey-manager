@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.15.3
+
+* Fix asof
+
 ## 0.15.2
 
 * Test tagging
