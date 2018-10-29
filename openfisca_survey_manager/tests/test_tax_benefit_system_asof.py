@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# from openfisca_france import FranceTaxBenefitSystem
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 from openfisca_country_template import CountryTaxBenefitSystem
@@ -15,7 +14,7 @@ def check_max_instant_leaf(sub_parameter, instant):
 
 
 def check_max_instant(parameters, instant):
-    for name, sub_parameter in parameters.children.items():
+    for _, sub_parameter in parameters.children.items():
         if isinstance(sub_parameter, ParameterNode):
             check_max_instant(sub_parameter, instant)
         else:
@@ -35,6 +34,7 @@ def test_parameters_as_of():
     instant = periods.instant("2012-12-31")
     parameters_asof(parameters, instant)
     check_max_instant(parameters, instant)
+
 
 def test_variables_as_of():
     tax_benefit_system = CountryTaxBenefitSystem()

@@ -1,3 +1,6 @@
+# dump files
+openfisca_survey_manager/tests/data_files/dump/
+
 # Keys
 ./openfisca_bot
 ./openfisca_bot.pub
