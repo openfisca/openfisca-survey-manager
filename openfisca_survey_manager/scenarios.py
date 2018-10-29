@@ -47,9 +47,11 @@ class AbstractSurveyScenario(object):
     weight_column_name_by_entity = None
     year = None
 
+    def build_input_data(self, **kwargs):
+        NotImplementedError
+
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self
-        survey_scenario.initialize_weights()
         calibration = Calibration(survey_scenario)
 
         if parameters is not None:
@@ -88,8 +90,8 @@ class AbstractSurveyScenario(object):
                     period = period,
                     use_baseline = False,
                     missing_variable_default_value = missing_variable_default_value,
-                    ) -
-                self.compute_aggregate(
+                    )
+                - self.compute_aggregate(
                     variable = variable,
                     aggfunc = aggfunc,
                     filter_by = filter_by,
@@ -480,7 +482,6 @@ class AbstractSurveyScenario(object):
 
         else:
             self._dump_simulation(directory = directory)
-
 
     def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
         assert period is not None
@@ -1160,7 +1161,6 @@ class AbstractSurveyScenario(object):
                 (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities
                 )
 
-
     def _set_used_as_input_variables_by_entity(self):
         if self.used_as_input_variables_by_entity is not None:
             return
@@ -1177,6 +1177,7 @@ class AbstractSurveyScenario(object):
                 for variable in self.used_as_input_variables
                 if tax_benefit_system.get_variable(variable).entity == entity
                 ]
+
 
 # Helpers
 
@@ -1209,7 +1210,6 @@ def get_weights(survey_scenario, variable):
 
 
 def init_variable_in_entity(entity, variable_name, series, period):
-    # holder = entity.get_holder(variable)
     simulation = entity.simulation
     variable = simulation.tax_benefit_system.variables[variable_name]
     if series.values.dtype != variable.dtype:
