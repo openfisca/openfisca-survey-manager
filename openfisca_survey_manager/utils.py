@@ -31,24 +31,21 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
             if isinstance(sub_parameter, ParameterNode):
                 inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units)
             else:
-                if ignore_missing_units:
-                    if not hasattr(sub_parameter, 'metadata'):
-                        continue
-                    no_unit_present = (
-                        ('unit' not in sub_parameter.metadata)
-                        and ('threshold_unit' not in sub_parameter.metadata)
-                        and ('rate_unit' not in sub_parameter.metadata)
-                        )
-                    if no_unit_present:
-                        continue
-
-                assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
-                unit_types = set(sub_parameter.metadata.keys()).intersection(set([
+                acceptable_units = [
                     'rate_unit',
                     'threshold_unit',
                     'unit',
-                    ]))
-                assert unit_types, "No admissible unit in metadata for parameter {}".format(
+                    ]
+                if ignore_missing_units:
+                    if not hasattr(sub_parameter, 'metadata'):
+                        continue
+                    # Empty intersection: not unit present in metadata
+                    if not bool(set(sub_parameter.metadata.keys()) & set(acceptable_units)):
+                        continue
+
+                assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
+                unit_types = set(sub_parameter.metadata.keys()).intersection(set(acceptable_units))
+                assert unit_types, "No admissible unit in metadata for parameter {}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function.".format(
                     sub_parameter.name)
                 if len(unit_types) > 1:
                     assert unit_types == set(['threshold_unit', 'rate_unit']), \
