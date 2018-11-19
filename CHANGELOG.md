@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.16.0
+
+* Provide summarize_variable for enums
+
 ## 0.15.3
 
 * Fix asof

@@ -719,7 +719,7 @@ class AbstractSurveyScenario(object):
         else:
             entity.count = entity.step_size = len(input_data_frame)
 
-        for column_name, column_serie in input_data_frame.items():
+        for column_name, column_serie in input_data_frame.iteritems():
             if column_name in (id_variables + role_variables):
                 continue
 
@@ -1053,13 +1053,15 @@ class AbstractSurveyScenario(object):
 
         tax_benefit_system = simulation.tax_benefit_system
         assert variable in tax_benefit_system.variables
-        column = tax_benefit_system.variables[variable]
+        variable_instance = tax_benefit_system.variables[variable]
+
+        default_value = variable_instance.default_value
+        value_type = variable_instance.value_type
 
         if weighted:
-            weight_variable = self.weight_column_name_by_entity[column.entity.key]
+            weight_variable = self.weight_column_name_by_entity[variable_instance.entity.key]
             weights = simulation.calculate(weight_variable, simulation.period)
 
-        default_value = column.default_value
         infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
         if not infos:
             if force_compute:
@@ -1103,9 +1105,20 @@ class AbstractSurveyScenario(object):
                         print("{}: always = {}".format(period, array))
                         continue
 
-                    if column.value_type == Enum:
-                        print("Details are not available for Enums. Feel free to contribute by adding them in the code!")
-                        continue  # TODO code a custom detailed output for Enums
+                    if value_type == Enum:
+                        possible_values = variable_instance.possible_values
+                        categories_by_index = dict(zip(
+                            range(len(possible_values._member_names_)),
+                            possible_values._member_names_
+                            ))
+                        categories_type = pd.api.types.CategoricalDtype(categories = possible_values._member_names_, ordered = True)
+                        df = pd.DataFrame({variable: array}).replace(categories_by_index).astype(categories_type)
+                        df['weights'] = weights if weighted else 1
+                        groupby = df.groupby(variable)['weights'].sum()
+                        total = groupby.sum()
+                        expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.iteritems()]
+                        print("{}:{}.".format(period, ",".join(expr)))
+                        continue
 
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,
