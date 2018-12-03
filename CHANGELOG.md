@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.16.2
+
+* Use `simulation.delete_arrays` introduced by openfisca-core version 24.10.0
+
 ## 0.16.1
 
 * Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
