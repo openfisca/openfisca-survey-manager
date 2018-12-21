@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# from openfisca_france import FranceTaxBenefitSystem
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 from openfisca_country_template import CountryTaxBenefitSystem
@@ -10,14 +9,14 @@ from openfisca_survey_manager.utils import parameters_asof, variables_asof
 
 def check_max_instant_leaf(sub_parameter, instant):
     for parameter_at_instant in sub_parameter.values_list:
-        assert periods.instant(parameter_at_instant.instant_str) <= instant
+        assert periods.instant(parameter_at_instant.instant_str) <= instant, "Error for {}: \n {}".format(
+            sub_parameter.name, sub_parameter.values_list)
 
 
 def check_max_instant(parameters, instant):
-    for name, sub_parameter in parameters.children.items():
+    for _, sub_parameter in parameters.children.items():
         if isinstance(sub_parameter, ParameterNode):
             check_max_instant(sub_parameter, instant)
-
         else:
             if isinstance(sub_parameter, Scale):
                 for bracket in sub_parameter.brackets:
@@ -25,9 +24,8 @@ def check_max_instant(parameters, instant):
                     rate = bracket.children['rate']
                     check_max_instant_leaf(threshold, instant)
                     check_max_instant_leaf(rate, instant)
-                    return
-
-            check_max_instant_leaf(sub_parameter, instant)
+            else:
+                check_max_instant_leaf(sub_parameter, instant)
 
 
 def test_parameters_as_of():

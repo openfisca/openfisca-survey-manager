@@ -67,10 +67,10 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
     def __init__(self):
         super(QuantileTestTaxBenefitSystem, self).__init__(entities)
         for variable in [
-            decile_salaire_from_quantile,
-            decile_salaire,
-            salaire,
-            ]:
+                decile_salaire_from_quantile,
+                decile_salaire,
+                salaire,
+                ]:
             self.add_variable(variable)
 
 
@@ -124,12 +124,13 @@ def test_quantile():
     result = survey_scenario.calculate_variable(
         variable = 'decile_salaire_from_quantile', period = '2017'
         )
-    assert all((result == target) + (abs(result - target + 1) < .001) #  Finite size problem handling
+    assert all(
+        (result == target) + (abs(result - target + 1) < .001)  # Finite size problem handling
         ), "{} != {}, \n{} , \n{},".format(
             result[result != target],
             target[result != target],
             data[result != target],
-            abs(result - target +1)[result != target],
+            abs(result - target + 1)[result != target],
             )
 
     # No reason that method coincides so close to the quantiles thresholds

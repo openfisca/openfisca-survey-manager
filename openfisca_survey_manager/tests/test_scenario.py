@@ -139,7 +139,7 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
         variable_generators_by_period, collection)
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
-    survey_scenario.used_as_input_variables = ['salary', 'rent']
+    survey_scenario.used_as_input_variables = ['salary', 'rent', 'housing_occupancy_status']
     survey_scenario.year = 2017
     survey_scenario.collection = "test_random_generator"
     data = {
