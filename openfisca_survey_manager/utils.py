@@ -6,6 +6,9 @@ import logging
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 
+import os
+import pandas as pd
+
 
 log = logging.getLogger(__name__)
 
@@ -174,3 +177,23 @@ def variables_asof(tax_benefit_system, instant, variables_list = []):
             if variable.end is not None:
                 if periods.instant(variable.end) >= instant:
                     variable.end = None
+
+
+def stata_files_to_data_frames(data, period = None):
+    assert period is not None
+    period = periods.period(period)
+
+    stata_file_by_entity = data.get('stata_file_by_entity')
+    if stata_file_by_entity is None:
+        return
+
+    variables_from_stata_files = list()
+    input_data_frame_by_entity_by_period = dict()
+    input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = dict()
+    for entity, file_path in stata_file_by_entity.items():
+        assert os.path.exists(file_path), "Invalid file path: {}".format(file_path)
+        entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
+        variables_from_stata_files += list(entity_data_frame.columns)
+    data['input_data_frame_by_entity_by_period'] = input_data_frame_by_entity_by_period
+
+    return variables_from_stata_files
