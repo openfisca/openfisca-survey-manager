@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.16.2
+
+* Add stata file conversion helper for survey scenarios
+
 ## 0.16.1
 
 * Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
