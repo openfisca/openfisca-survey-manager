@@ -115,7 +115,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
         ).all()
 
 
-def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
+def create_randomly_initialized_survey_scenario(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000, collection = "test_random_generator"):
     variable_generators_by_period = {
         periods.period('2017-01'): [
@@ -150,7 +150,7 @@ def test_random_data_generator(nb_persons = 10, nb_groups = 5, salary_max_value 
 
 
 def test_dump_survey_scenario():
-    survey_scenario = test_random_data_generator()
+    survey_scenario = create_randomly_initialized_survey_scenario()
     directory = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
@@ -177,7 +177,5 @@ if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    # test_random_data_generator()
-    # test_survey_scenario_input_dataframe_import()
-    # test_survey_scenario_input_dataframe_import_scrambled_ids()
+
     test_dump_survey_scenario()
