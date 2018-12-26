@@ -1,10 +1,15 @@
 
 # Changelog
 
+## 0.16.1
+
+* Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
+* Improve doc tests
+* use pytest instead of nosetest
+
 ## 0.16.0
 
 * Provide summarize_variable for enums
-* Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
 
 ## 0.15.3
 
