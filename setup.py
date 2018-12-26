@@ -62,7 +62,7 @@ setup(
         'future',
         'humanize',
         'numpy >= 1.11, < 1.15',
-        'openfisca-core >= 25.5.2, < 26.0.0',
+        'openfisca-core >= 25.2.2, < 26.0.0',
         'pandas >= 0.23',
         'PyYAML',
         'pyxdg',
