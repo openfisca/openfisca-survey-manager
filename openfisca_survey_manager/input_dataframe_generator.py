@@ -23,18 +23,26 @@ from openfisca_survey_manager.surveys import Survey
 log = logging.getLogger(__name__)
 
 
-def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **kwargs):
+def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     """
         Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
 
+        :param TaxBenefitSystem tax_benefit_system: the tax_benefit_system to use
+        :param int nb_persons: the number of persons in the system
+        :param int nb_groups: the number of collective entities in the system
+
+        :returns: A dictionary whose keys are entities and values the corresponding data frames
+
         Example:
 
-        >>> from openfisca_survey_manager.tools.input_data_generator import make_simulation
+        >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
         >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
-        >>> data_input_by_entity = make_data_input_by_entity(tbs, 400, 100)
-        # Create a simulation with 400 persons, spread among 100 households
-        >>> simulation.calculate('revenu_disponible', 2017)
+        >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
+        >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
+        ['household_id', 'household_legacy_role', 'household_role', 'person_id']
+        >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
+        []
     """
     input_dataframe_by_entity = dict()
     person_entity = [entity for entity in tax_benefit_system.entities if entity.is_person][0]
@@ -77,7 +85,19 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups, **
     return input_dataframe_by_entity
 
 
-def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection):
+def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection = None):
+    """
+
+    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
+
+    :param TaxBenefitSystem tax_benefit_system: the tax_benefit_system to use
+    :param int nb_persons: the number of persons in the system
+    :param int nb_groups: the number of collective entities in the system
+    :param dict variable_generators_by_period: the specification of the periods and values of the generated variables
+    :param string collection: the collection storing the produced data
+
+    :returns: A dictionnary of the entities tables by period
+    """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
     for period, variable_generators in variable_generators_by_period.items():
@@ -102,19 +122,33 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
     return table_by_entity_by_period
 
 
-def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition = None):
+def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition = None, seed = None):
     """
         Initialise a variable with random values (from 0 to max_value).
         If a condition vector is provided, only set the value of persons or groups for which condition is True.
 
         Exemple:
 
-        >>> from openfisca_survey_manager.tools.input_data_generator import make_input_data_by_entity, randomly_init_variable
-        >>> from openfisca_france import CountryTaxBenefitSystem
+        >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
-        >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)  # Create an input_dataframe_by_entity with 400 persons, spread among 100 household
+        >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
         >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
-        >>> input_dataframe_by_entity
+        >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
+        ['household_id', 'household_legacy_role', 'household_role', 'person_id', 'salary']
+        >>> input_dataframe_by_entity['person'].salary.max() <= 50000
+        True
+        >>> len(input_dataframe_by_entity['person'].salary)
+        400
+        >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'rent', max_value = 1000)
+        >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
+        ['rent']
+        >>> input_dataframe_by_entity['household'].rent.max() <= 1000
+        True
+        >>> input_dataframe_by_entity['household'].rent.max() >= 1
+        True
+        >>> len(input_dataframe_by_entity['household'].rent)
+        100
         """
 
     variable = tax_benefit_system.variables[variable_name]
@@ -125,6 +159,10 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
     else:
         condition = input_dataframe_by_entity[entity.key].eval(condition).values
 
+    if seed is None:
+        seed = 42
+
+    np.random.seed(seed)
     count = len(input_dataframe_by_entity[entity.key])
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
     input_dataframe_by_entity[entity.key][variable_name] = value

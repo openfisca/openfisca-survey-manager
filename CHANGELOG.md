@@ -4,6 +4,7 @@
 ## 0.16.0
 
 * Provide summarize_variable for enums
+* Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
 
 ## 0.15.3
 

@@ -1046,6 +1046,30 @@ class AbstractSurveyScenario(object):
                 self.baseline_tax_benefit_system.cache_blacklist = self.cache_blacklist
 
     def summarize_variable(self, variable = None, use_baseline = False, weighted = False, force_compute = False):
+        """
+            Prints a summary of a variable including its memory usage.
+
+            :param string variable: the variable being summarized
+            :param bool use_baseline: the tax-benefit-system considered
+            :param bool weighted: whether the produced statistics should be weigthted or not
+            :param bool force_compute: whether the computation of the variable should be forced
+
+            Example:
+            >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
+            >>> survey_scenario = create_randomly_initialized_survey_scenario()
+            >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
+            <BLANKLINE>
+            housing_occupancy_status: 1 periods * 5 cells * item size 2 (<type 'numpy.int16'>, default = HousingOccupancyStatus.tenant) = 10B
+            Details:
+            2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
+            >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
+            <BLANKLINE>
+            rent: 2 periods * 5 cells * item size 4 (<type 'numpy.float32'>, default = 0) = 40B
+            Details:
+            2017-01: mean = 562.385070801, min = 156.01864624, max = 950.714294434, mass = 2.81e+03, default = 0.0%, median = 598.658508301
+            2018-01: mean = 562.385070801, min = 156.01864624, max = 950.714294434, mass = 2.81e+03, default = 0.0%, median = 598.658508301
+        """
+
         if use_baseline:
             simulation = self.baseline_simulation
         else:
@@ -1082,7 +1106,7 @@ class AbstractSurveyScenario(object):
             )
         print("")
         print(header_line)
-        print("Details: ")
+        print("Details:")
         holder = simulation.get_holder(variable)
         if holder is not None:
             if holder.variable.definition_period == ETERNITY:
