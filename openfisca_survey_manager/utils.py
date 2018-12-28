@@ -6,47 +6,11 @@ import logging
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 
+import os
+import pandas as pd
+
 
 log = logging.getLogger(__name__)
-
-
-def clean_data_frame(data_frame):
-    object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
-    log.info(
-        "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
-        )
-    for column_name in object_column_names:
-        if data_frame[column_name].isnull().all():  #
-            log.info("Drop empty column {}".format(column_name))
-            data_frame.drop(column_name, axis = 1, inplace = True)
-            continue
-
-        values = list(data_frame[column_name].value_counts().keys())
-        empty_string_present = "" in values
-        if empty_string_present:
-            values.remove("")
-        all_digits = all([value.strip().isdigit() for value in values])
-        no_zero = all([value != 0 for value in values])
-        if all_digits and no_zero:
-            log.info(
-                "Replacing empty string with zero for variable {}".format(column_name)
-                )
-            data_frame.replace(
-                to_replace = {
-                    column_name: {"": 0},
-                    },
-                inplace = True,
-                )
-            log.info(
-                "Converting string variable {} to integer".format(column_name)
-                )
-            try:
-                data_frame[column_name] = data_frame[column_name].astype("int")
-            except OverflowError:
-                log.info(
-                    'OverflowError when converting {} to int. Keeping as {}'.format(
-                        column_name, data_frame[column_name].dtype)
-                    )
 
 
 def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False):
@@ -213,3 +177,23 @@ def variables_asof(tax_benefit_system, instant, variables_list = []):
             if variable.end is not None:
                 if periods.instant(variable.end) >= instant:
                     variable.end = None
+
+
+def stata_files_to_data_frames(data, period = None):
+    assert period is not None
+    period = periods.period(period)
+
+    stata_file_by_entity = data.get('stata_file_by_entity')
+    if stata_file_by_entity is None:
+        return
+
+    variables_from_stata_files = list()
+    input_data_frame_by_entity_by_period = dict()
+    input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = dict()
+    for entity, file_path in stata_file_by_entity.items():
+        assert os.path.exists(file_path), "Invalid file path: {}".format(file_path)
+        entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
+        variables_from_stata_files += list(entity_data_frame.columns)
+    data['input_data_frame_by_entity_by_period'] = input_data_frame_by_entity_by_period
+
+    return variables_from_stata_files
