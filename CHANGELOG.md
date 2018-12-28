@@ -1,11 +1,11 @@
 
 # Changelog
 
-## 0.16.3
+## 0.16.4
 
 * Use `simulation.delete_arrays` introduced by openfisca-core version 24.10.0
 
-## 0.16.2
+## 0.16.2, 0.16.3
 
 * Add stata file conversion helper for survey scenarios
 
