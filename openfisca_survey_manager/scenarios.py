@@ -603,7 +603,6 @@ class AbstractSurveyScenario(object):
             for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
                 assert variable_name in tax_benefit_system.variables, \
                     "Variable {} is not a valid variable of the tax-benefit system".format(variable_name)
-                holder = simulation.get_holder(variable_name)
                 if variable_name in target_by_variable:
                     inflator = inflator_by_variable[variable_name] = \
                         target_by_variable[variable_name] / self.compute_aggregate(
@@ -619,11 +618,9 @@ class AbstractSurveyScenario(object):
                         ))
                     inflator = inflator_by_variable[variable_name]
 
-                array = holder.get_array(period)
-                if array is None:
-                    array = simulation.calculate_add(variable_name, period = period)
+                array = simulation.calculate_add(variable_name, period = period)
                 assert array is not None
-                holder.delete_arrays(period = period)  # delete existing arrays
+                simulation.delete_arrays('variable_name', period = period)  # delete existing arrays
                 simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
