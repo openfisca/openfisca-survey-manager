@@ -29,8 +29,7 @@ def nnd_hotdeck_using_feather(receiver = None, donor = None, matching_variables 
     donor_path = os.path.join(temporary_directory_path, 'donor.feather')
     feather.write_dataframe(receiver, receiver_path)
     feather.write_dataframe(donor, donor_path)
-
-    if isinstance(matching_variables, basestring):
+    if isinstance(matching_variables, str):
         match_vars = '"{}"'.format(matching_variables)
     elif len(matching_variables) == 1:
         match_vars = '"{}"'.format(matching_variables[0])

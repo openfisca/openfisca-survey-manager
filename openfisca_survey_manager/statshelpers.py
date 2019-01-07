@@ -148,7 +148,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                     tmp_a[i_low]
                     + (
                         (brk - p_vals[i_low]) / (p_vals[i_high] - p_vals[i_low])) * (tmp_a[i_high] - tmp_a[i_low])
-                        )
+                    )
 
             # Append the result.
             quantiles.append(v)
@@ -216,11 +216,13 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 v = tmp_a[i_low]
             else:
                 # Interpolate as in the method 1 method, but using the s_vals instead.
-                v = (tmp_a[i_low] +
-                    (
-                        ((brk * s_vals[-1]) - s_vals[i_low]) /
-                        (s_vals[i_high] - s_vals[i_low])
-                        ) * (tmp_a[i_high] - tmp_a[i_low]))
+                v = (
+                    tmp_a[i_low]
+                    + (
+                        ((brk * s_vals[-1]) - s_vals[i_low])
+                        / (s_vals[i_high] - s_vals[i_low])
+                        ) * (tmp_a[i_high] - tmp_a[i_low])
+                    )
             quantiles.append(v)
 
         # Now that the weighted breakpoints are set, just categorize

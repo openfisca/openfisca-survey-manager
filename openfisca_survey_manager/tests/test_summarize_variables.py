@@ -3,22 +3,13 @@
 
 import logging
 
-from openfisca_core import periods
-from openfisca_survey_manager.input_dataframe_generator import (
-    make_input_dataframe_by_entity,
-    random_data_generator,
-    randomly_init_variable,
-    )
 from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_survey_manager.scenarios import AbstractSurveyScenario
-
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
 
 log = logging.getLogger(__name__)
 
 
 tax_benefit_system = CountryTaxBenefitSystem()
-
 
 
 def test_summarize_variable():
@@ -28,8 +19,6 @@ def test_summarize_variable():
 
 
 if __name__ == "__main__":
-    import sys
-    import pandas as pd
     # log = logging.getLogger(__name__)
     # logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     test_summarize_variable()
