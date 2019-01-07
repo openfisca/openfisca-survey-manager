@@ -9,7 +9,7 @@ from openfisca_survey_manager.utils import inflate_parameters, parameters_asof
 def test_asof_simple_annual_parameter():
     """
     Test parameters_asof on a simple parameter
-    """"
+    """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     income_tax_rate_2014 = parameters.taxes.income_tax_rate(2014)
