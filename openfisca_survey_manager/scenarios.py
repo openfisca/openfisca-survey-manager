@@ -516,7 +516,7 @@ class AbstractSurveyScenario(object):
                 )
         else:
             log.info("Invalid period {}".format(period))
-            raise()
+            raise
 
     def filter_input_variables(self, input_data_frame = None, simulation = None):
         """

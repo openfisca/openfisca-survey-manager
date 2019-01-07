@@ -73,7 +73,7 @@ def test_inflate_scale_with_changing_number_of_brackets():
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
-    parameters_asof(parameters, instant = periods.instant(2016))  # Remove post 2016 legislation changes
+    parameters_asof(parameters, instant = periods.instant(2016))  # Remove post 2016 legislation changes
     inflate_parameters(parameters, inflator = .3, base_year = 2016, last_year = 2017)
     for (threshold_2017, threshold_2016) in zip(
             parameters.taxes.social_security_contribution(2017).thresholds,

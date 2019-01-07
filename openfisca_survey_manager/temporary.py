@@ -49,7 +49,7 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
 def get_store(config_files_directory = default_config_files_directory, file_name = None):
     parser = SafeConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
-    _ = parser.read(config_ini)
+    parser.read(config_ini)
     tmp_directory = parser.get('data', 'tmp_directory')
     assert file_name is not None
     if not file_name.endswith('.h5'):
@@ -63,7 +63,7 @@ def save_hdf_r_readable(data_frame, config_files_directory = default_config_file
     if file_path is None:
         parser = SafeConfigParser()
         config_ini = os.path.join(config_files_directory, 'config.ini')
-        _ = parser.read(config_ini)
+        parser.read(config_ini)
         tmp_directory = parser.get('data', 'tmp_directory')
         if file_name is not None:
             if not file_name.endswith('.h5'):

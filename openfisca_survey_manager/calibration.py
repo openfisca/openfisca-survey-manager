@@ -34,7 +34,8 @@ class Calibration(object):
     initial_weight_name = None
 
     def __init__(self, survey_scenario = None):
-        self.filter_by_name = "menage_ordinaire"  # TODO should migrate this to france
+        # TODO should migrate this to france
+        self.filter_by_name = "menage_ordinaire"
         assert survey_scenario is not None
         self._set_survey_scenario(survey_scenario)
 

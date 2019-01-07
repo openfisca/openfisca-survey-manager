@@ -1,6 +1,12 @@
 
 # Changelog
 
+## 0.16.5
+
+* Fix asof
+* Clean Makefile
+* Clean style
+
 ## 0.16.4
 
 * Use `simulation.delete_arrays` introduced by openfisca-core version 24.10.0

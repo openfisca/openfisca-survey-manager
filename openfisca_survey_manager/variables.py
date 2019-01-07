@@ -6,7 +6,7 @@ from openfisca_core.model_api import where
 from openfisca_survey_manager.statshelpers import (
     mark_weighted_percentiles,
     weightedcalcs_quantiles
-)
+    )
 
 
 def quantile(q, variable, weight_variable = None, filter_variable = None):

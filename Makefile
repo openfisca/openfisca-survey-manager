@@ -1,24 +1,35 @@
-all: flake8 test
+all: test
 
-check-style:
-	@# Do not analyse .gitignored files.
-	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
-	flake8 `git ls-files | grep "\.py$$"`
-
-check-syntax-errors:
-	python -m compileall -q .
+uninstall:
+		pip freeze | grep -v "^-e" | xargs pip uninstall -y
 
 clean:
-	rm -rf build dist
-	find . -name '*.pyc' -exec rm \{\} \;
+		rm -rf build dist
+		find . -name '*.pyc' -exec rm \{\} \;
 
-ctags:
-	ctags --recurse=yes .
+deps:
+		pip install --upgrade pip twine wheel
 
-pypi-upload:
-	rm -rf dist/*
-	python setup.py sdist bdist_wheel
-	twine upload dist/*
+install: deps
+		@# Install OpenFisca-Survey-Manager for development.
+		@# `make install` installs the editable version of OpenFisca-Survey-Manager.
+		@# This allows contributors to test as they code.
+		pip install --editable .[dev] --upgrade
 
-test: clean check-syntax-errors
-	pytest --ignore=openfisca_survey_manager/tests/test_legislation_inflator.py
+check-syntax-errors:
+		python -m compileall -q .
+
+format-style:
+		@# Do not analyse .gitignored files.
+		@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
+		autopep8 `git ls-files | grep "\.py$$"`
+
+check-style:
+		@# Do not analyse .gitignored files.
+		@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
+		flake8 `git ls-files | grep "\.py$$"`
+
+test: clean check-syntax-errors check-style
+		@# Launch tests from openfisca_france/tests directory (and not .) because TaxBenefitSystem must be initialized
+		@# before parsing source files containing formulas.
+		pytest

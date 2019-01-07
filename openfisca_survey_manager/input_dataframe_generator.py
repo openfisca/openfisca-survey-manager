@@ -15,7 +15,6 @@ import pkg_resources
 
 
 from openfisca_core import periods
-from openfisca_core.entities import DIVIDE
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
