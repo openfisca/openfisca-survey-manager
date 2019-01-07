@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 
 import logging
+import os
+import pandas as pd
+
 
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
-
-import os
-import pandas as pd
 
 
 log = logging.getLogger(__name__)
@@ -32,7 +34,12 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                 if ignore_missing_units:
                     if not hasattr(sub_parameter, 'metadata'):
                         continue
-                    if 'unit' not in sub_parameter.metadata:
+                    no_unit_present = (
+                        ('unit' not in sub_parameter.metadata)
+                        and ('threshold_unit' not in sub_parameter.metadata)
+                        and ('rate_unit' not in sub_parameter.metadata)
+                        )
+                    if no_unit_present:
                         continue
 
                 assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
@@ -65,10 +72,11 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
     """
 
     if isinstance(sub_parameter, Scale):
-        if unit_type == 'unit':
+        if unit_type == 'threshold_unit':
             for bracket in sub_parameter.brackets:
                 threshold = bracket.children['threshold']
                 inflate_parameter_leaf(threshold, base_year, inflator)
+            return
     else:
         # Remove new values for year > base_year
         kept_instants_str = [
