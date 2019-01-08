@@ -74,10 +74,27 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     from scipy.optimize import fsolve
 
     # remove null weights and keep original data
+    null_weight_observations = data_in[pondini].isnull().sum()
+    if null_weight_observations > 0:
+        log.info("{} observations have a NaN weight. Not used in the calibration.".format(null_weight_observations))
+
+    is_non_zero_weight = (data_in[pondini].fillna(0) > 0)
+    if is_non_zero_weight.sum() > null_weight_observations:
+        log.info("{} observations have a zero weight. Not used in the calibration.".format(
+            is_non_zero_weight.sum() - null_weight_observations))
+
+    variables = set(margins.keys()).intersection(set(data_in.columns))
+    for variable in variables:
+        null_value_observations = data_in[variable].isnull().sum()
+        if null_value_observations > 0:
+            log.info("For varaible {}, {} observations have a NaN value. Not used in the calibration.".format(
+                variable, null_value_observations))
+            is_non_zero_weight = is_non_zero_weight & data_in[variable].notnull()
+
     data = dict()
-    is_weight_not_null = (data_in[pondini] > 0)
-    for a in data_in:
-        data[a] = data_in[a][is_weight_not_null]
+    for a in data_in.columns:
+        print(a)
+        data[a] = data_in.loc[is_non_zero_weight, a].copy()
 
     if not margins:
         raise Exception("Calmar requires non empty dict of margins")
@@ -113,7 +130,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     if 'total_population' in margins:
         total_population = margins.pop('total_population')
     else:
-        total_population = data[pondini].sum()
+        total_population = data[pondini].fillna(0).sum()
 
     if 'use_proportions' in parameters:
         use_proportions = parameters['use_proportions']
@@ -154,7 +171,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
                         margins_new[cat_varname] = nb * total_population / pop
                         margins_new_dict[var][cat] = nb * total_population / pop
                 else:
-                    raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
+                    raise Exception('calmar: categorical variable {} weights sums up to {} != {}'.format(
+                       var, pop, total_population))
         else:
             margins_new[var] = val
             margins_new_dict[var] = val
@@ -171,6 +189,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     lambda0 = zeros(nj)
 
     # initial weights
+    import pprint
+    pprint.pprint(data)
     d = data[pondini]
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
@@ -187,6 +207,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         return dot(d * F(dot(x, l)), x) - xmargins
 
     def constraint_prime(l):
+        print('l:\n', l)
+        print('x:\n', x)
         return dot(d * (x.T * F_prime(dot(x, l))), x)
     # le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
@@ -205,7 +227,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
             fprime = constraint_prime,
             maxfev = 256,
             xtol = xtol,
-            full_output = 1)
+            full_output = 1,
+            )
         lambda0 = 1 * lambdasol
         tries += 1
 
@@ -222,7 +245,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         log.info("calmar: stopped after {} tries".format(tries))
     # rebuilding a weight vector with the same size of the initial one
     pondfin_out = array(data_in[pondini], dtype = float64)
-    pondfin_out[is_weight_not_null] = pondfin
+    pondfin_out[is_non_zero_weight] = pondfin
     return pondfin_out, lambdasol, margins_new_dict
 
 
