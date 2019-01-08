@@ -81,7 +81,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     is_non_zero_weight = (data_in[pondini].fillna(0) > 0)
     if is_non_zero_weight.sum() > null_weight_observations:
         log.info("{} observations have a zero weight. Not used in the calibration.".format(
-            is_non_zero_weight.sum() - null_weight_observations))
+            (data_in[pondini].fillna(0) <= 0).sum() - null_weight_observations))
 
     variables = set(margins.keys()).intersection(set(data_in.columns))
     for variable in variables:
@@ -91,9 +91,11 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
                 variable, null_value_observations))
             is_non_zero_weight = is_non_zero_weight & data_in[variable].notnull()
 
+    if not is_non_zero_weight.all():
+        log.info("We drop {} observations.".format((~is_non_zero_weight).sum()))
+
     data = dict()
     for a in data_in.columns:
-        print(a)
         data[a] = data_in.loc[is_non_zero_weight, a].copy()
 
     if not margins:
@@ -138,7 +140,6 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         use_proportions = False
 
     nk = len(data[pondini])
-
     # number of Lagrange parameters (at least total population)
     nj = 1
 
@@ -189,9 +190,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     lambda0 = zeros(nj)
 
     # initial weights
-    import pprint
-    pprint.pprint(data)
-    d = data[pondini]
+    d = data[pondini].values
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
@@ -207,10 +206,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         return dot(d * F(dot(x, l)), x) - xmargins
 
     def constraint_prime(l):
-        print('l:\n', l)
-        print('x:\n', x)
         return dot(d * (x.T * F_prime(dot(x, l))), x)
-    # le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
+        # le jacobien ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
     tries, ier = 0, 2
     if 'xtol' in parameters:
