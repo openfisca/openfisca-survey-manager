@@ -173,7 +173,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
                         margins_new_dict[var][cat] = nb * total_population / pop
                 else:
                     raise Exception('calmar: categorical variable {} weights sums up to {} != {}'.format(
-                       var, pop, total_population))
+                        var, pop, total_population))
         else:
             margins_new[var] = val
             margins_new_dict[var] = val

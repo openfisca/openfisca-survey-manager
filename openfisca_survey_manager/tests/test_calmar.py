@@ -30,7 +30,7 @@ def create_input_dataframe():
         ]
     df = pd.DataFrame(columns = columns, index = index)
     values_by_index = {
-        'A': [1, 1, 1, 10 ],
+        'A': [1, 1, 1, 10],
         'B': [1, 2, 2, 0],
         'C': [1, 2, 3, np.nan],
         'D': [2, 1, 1, 11],
