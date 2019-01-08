@@ -54,6 +54,7 @@ setup(
             'pytest >= 3.0, < 4.0.0',
             'openfisca-country-template',
             'SAS7BDAT',
+            'scipy',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
