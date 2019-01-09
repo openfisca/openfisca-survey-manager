@@ -10,7 +10,7 @@ import weightedcalcs as wc
 
 
 def gini(values, weights = None, bin_size = None):
-    '''
+    """
     Gini coefficient (normalized to 1)
     Using fastgini formula :
 
@@ -27,7 +27,7 @@ def gini(values, weights = None, bin_size = None):
         where observations are sorted in ascending order of X.
 
     From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
-    '''
+    """
     if weights is None:
         weights = ones(len(values))
 
@@ -46,9 +46,9 @@ def gini(values, weights = None, bin_size = None):
 
 
 def kakwani(values, ineq_axis, weights = None):
-    '''
+    """
     Computes the Kakwani index
-    '''
+    """
     from scipy.integrate import simps
 
     if weights is None:
@@ -69,9 +69,9 @@ def kakwani(values, ineq_axis, weights = None):
 
 
 def lorenz(values, weights = None):
-    '''
+    """
     Computes Lorenz Curve coordinates
-    '''
+    """
     if weights is None:
         weights = ones(len(values))
 
@@ -243,9 +243,9 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
 
 def pseudo_lorenz(values, ineq_axis, weights = None):
-    '''
-    Computes The pseudo Lorenz Curve coordinates
-    '''
+    """
+        Computes The pseudo Lorenz Curve coordinates
+    """
     if weights is None:
         weights = ones(len(values))
     df = pd.DataFrame({'v': values, 'a': ineq_axis, 'w': weights})

@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class Calibration(object):
     """
-    An object to calibrate survey data of a SurveySimulation
+        An object to calibrate survey data of a SurveySimulation
     """
     filter_by_name = None
     initial_total_population = None
@@ -41,7 +41,7 @@ class Calibration(object):
 
     def reset(self):
         """
-        Reset the calibration to it initial state
+            Reset the calibration to it initial state
         """
         simulation = self.survey_scenario.simulation
         holder = simulation.get_holder(self.weight_name)
@@ -49,7 +49,9 @@ class Calibration(object):
 
     def _set_survey_scenario(self, survey_scenario):
         """
-        Set simulation
+            Set survey scenario
+
+            :param survey_scenario: the survey scenario
         """
         self.survey_scenario = survey_scenario
         # TODO deal with baseline if reform is present
@@ -68,7 +70,10 @@ class Calibration(object):
 
     def set_parameters(self, parameter, value):
         """
-        Set parameter
+            Set parameters value
+
+            :param parameter: the parameter to be set
+            :param value: the valeu used to set the parameter
         """
         if parameter == 'lo':
             self.parameters['lo'] = 1 / value
@@ -77,7 +82,7 @@ class Calibration(object):
 
 #    def set_margins_target_from_file(self, filename, year, source):
 #        """
-#        Sets margins for inputs variable from file
+#            Sets margins for inputs variable from file
 #        """
 #        # TODO read from h5 files
 #        with open(filename) as f_tot:
@@ -122,7 +127,7 @@ class Calibration(object):
 
     def _build_calmar_data(self):
         """
-        Builds the data dictionnary used as calmar input argument
+            Builds the data dictionnary used as calmar input argument
         """
         # Select only filtered entities
         assert self.initial_weight_name is not None
@@ -138,7 +143,7 @@ class Calibration(object):
 
     def _update_weights(self, margins, parameters = {}):
         """
-        Runs calmar, stores new weights and returns adjusted margins
+            Run calmar, stores new weights and returns adjusted margins
         """
         data = self._build_calmar_data()
         assert self.initial_weight_name is not None
@@ -168,7 +173,7 @@ class Calibration(object):
 
     def set_calibrated_weights(self):
         """
-        Modify the weights to use the calibrated weights
+            Modify the weights to use the calibrated weights
         """
         survey_scenario = self.survey_scenario
         assert survey_scenario.simulation is not None

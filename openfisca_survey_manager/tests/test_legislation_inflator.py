@@ -8,7 +8,7 @@ from openfisca_survey_manager.utils import inflate_parameters, parameters_asof
 
 def test_asof_simple_annual_parameter():
     """
-    Test parameters_asof on a simple parameter
+        Test parameters_asof on a simple parameter
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
@@ -24,7 +24,7 @@ def test_asof_simple_annual_parameter():
 
 def test_asof_scale_parameters():
     """
-    Test parameters_asof on a scale parameter
+        Test parameters_asof on a scale parameter
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
@@ -38,7 +38,7 @@ def test_asof_scale_parameters():
 
 def test_inflate_simple_parameter():
     """
-    Test parameters inflator on a simple parameter as the basic income
+        Test parameters inflator on a simple parameter as the basic income
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
@@ -53,7 +53,7 @@ def test_inflate_simple_parameter():
 
 def test_inflate_scale():
     """
-    Test parameters inflator on a scale parameter as the social security contributions tax_scale
+        Test parameters inflator on a scale parameter as the social security contributions tax_scale
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
@@ -67,9 +67,10 @@ def test_inflate_scale():
 
 def test_inflate_scale_with_changing_number_of_brackets():
     """
-    Test parameters inflator on a scale parameter as the social security contributions tax_scale
-    when the number of scales changes.
-    Use parameters_asof to use the present legislation the future pre-inflated legislation
+        Test parameters inflator on a scale parameter when the number of brackets changes
+
+        Use parameters_asof to use the present legislation the future pre-inflated legislation
+        Test on the social security contributions tax_scale
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters

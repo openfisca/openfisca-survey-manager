@@ -54,9 +54,9 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
 
 
 def create_data_file_by_format(directory_path = None):
-    '''
+    """
     Browse subdirectories to extract stata and sas files
-    '''
+    """
     stata_files = []
     sas_files = []
 

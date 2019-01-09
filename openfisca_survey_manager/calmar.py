@@ -42,9 +42,9 @@ def logit_prime(u, low, up):
 
 
 def build_dummies_dict(data):
-    '''
-    return a dict with unique values as keys and vectors as values
-    '''
+    """
+        Return a dict with unique values as keys and vectors as values
+    """
     unique_val_list = unique(data)
     output = {}
     for val in unique_val_list:
@@ -52,24 +52,25 @@ def build_dummies_dict(data):
     return output
 
 
-def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
-    '''
-    Calibraters weights according to some margins
-      - data_in is a dict containing individual data
-      - pondini (char) is the inital weight
-     margins is a dict containing for each var:
-      - a scalar var numeric variables
-      - a dict with categories key and population
-      - eventually a key named total_population : total population. If absent initialized to actual total population
-     parameters is a dict containing the following keys
-      - method : 'linear', 'raking ratio', 'logit'
-      - lo     : lower bound on weights ratio  <1
-      - up     : upper bound on weights ration >1
-      - use_proportions : default FALSE; if TRUE use proportions if total population from margins doesn't match total
-        population
-      - param xtol  : relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
-      - param maxfev :  maximum number of function evaluation TODO
-    '''
+def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
+        xtol = 1.49012e-08, maxfev = 256):
+    """
+        Calibrate weights to satisfy some margin constraints
+
+        :param dataframe data_in: The observations data
+        :param str pondini: The initial weight variable name
+        :param dict margins: Margins is a dictionnary containing for each variable as key the following values
+            - a scalar for numeric variables
+            - a dictionnary with categories as key and populations as values
+            - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
+
+        :param str method: Should be 'linear', 'raking ratio' or 'logit'
+        :param float lo: lower bound on weights ratio. Mandatory when using logit method. Should be < 1.
+        :param float up: upper bound on weights ratio. Mandatory when using logit method. Should be > 1.
+        :param bool use_proportions: default to False. if True use proportions if total population from margins doesn't match total population
+        :param xtol: relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
+        :param maxfev: maximum number of function evaluation default to 256
+    """
 
     from scipy.optimize import fsolve
 
@@ -87,7 +88,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     for variable in variables:
         null_value_observations = data_in[variable].isnull().sum()
         if null_value_observations > 0:
-            log.info("For varaible {}, {} observations have a NaN value. Not used in the calibration.".format(
+            log.info("For variable {}, {} observations have a NaN value. Not used in the calibration.".format(
                 variable, null_value_observations))
             is_non_zero_weight = is_non_zero_weight & data_in[variable].notnull()
 
@@ -101,43 +102,31 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     if not margins:
         raise Exception("Calmar requires non empty dict of margins")
 
-    # choice of method
-    if 'method' not in parameters:
-        parameters['method'] = 'linear'
-
-    if parameters['method'] == 'linear':
+    # choose method
+    if method == 'linear':
         F = linear
         F_prime = linear_prime
-    elif parameters['method'] == 'raking ratio':
+    elif method == 'raking ratio':
         F = raking_ratio
         F_prime = raking_ratio_prime
-    elif parameters['method'] == 'logit':
-        if 'up' not in parameters:
-            raise Exception("When method is 'logit', 'up' parameter is needed in parameters")
-        if 'lo' not in parameters:
-            raise Exception("When method is 'logit', 'lo' parameter is needed in parameters")
-        if parameters['up'] <= 1:
-            raise Exception("When method is 'logit', 'up' should be strictly greater than 1")
-        if parameters['lo'] >= 1:
-            raise Exception("When method is 'logit', 'lo' should be strictly less than 1")
-
+    elif method == 'logit':
+        assert up is not None, "When method == 'logit', a value > 1 for up is mandatory"
+        assert up > 1, "up should be > 1"
+        assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
+        assert lo < 1, "lo should be < 1"
         def F(x):
             return logit(x, parameters['lo'], parameters['up'])
 
         def F_prime(x):
             return logit_prime(x, parameters['lo'], parameters['up'])
     else:
-        raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
-    # construction observations matrix
+        raise ValueError("method should be 'linear', 'raking ratio' or 'logit'")
+
+    # Construction observations matrix
     if 'total_population' in margins:
         total_population = margins.pop('total_population')
     else:
         total_population = data[pondini].fillna(0).sum()
-
-    if 'use_proportions' in parameters:
-        use_proportions = parameters['use_proportions']
-    else:
-        use_proportions = False
 
     nk = len(data[pondini])
     # number of Lagrange parameters (at least total population)
@@ -210,11 +199,6 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         # le jacobien ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
     tries, ier = 0, 2
-    if 'xtol' in parameters:
-        xtol = parameters['xtol']
-    else:
-        xtol = 1.49012e-08
-
     err_max = 1
     conv = 1
     while (ier == 2 or ier == 5 or ier == 4) and not (tries >= 10 or (err_max < 1e-6 and conv < 1e-8)):
@@ -222,7 +206,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
             constraint,
             lambda0,
             fprime = constraint_prime,
-            maxfev = 256,
+            maxfev = maxfev,
             xtol = xtol,
             full_output = 1,
             )
@@ -239,7 +223,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         err_max = sorted_err[0][1]
 
     if (ier == 2 or ier == 5 or ier == 4):
-        log.info("calmar: stopped after {} tries".format(tries))
+        log.debug("optimization converged after {} tries".format(tries))
+
     # rebuilding a weight vector with the same size of the initial one
     pondfin_out = array(data_in[pondini], dtype = float64)
     pondfin_out[is_non_zero_weight] = pondfin
