@@ -42,7 +42,7 @@ import pandas as pd
 
 
 def read_dbf(dbf_path, index = None, cols = False, incl_index = False):
-    '''
+    """
     Read a dbf file as a pandas.DataFrame, optionally selecting the index
     variable and which columns are to be loaded.
 
@@ -66,7 +66,7 @@ def read_dbf(dbf_path, index = None, cols = False, incl_index = False):
     -------
     df          : DataFrame
                   pandas.DataFrame object created
-    '''
+    """
     db = ps.open(dbf_path)
     if cols:
         if incl_index:

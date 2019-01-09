@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.16.5',
+    version = '0.17.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -54,6 +54,7 @@ setup(
             'pytest >= 3.0, < 4.0.0',
             'openfisca-country-template',
             'SAS7BDAT',
+            'scipy',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in

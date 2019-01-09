@@ -1,6 +1,10 @@
 
 # Changelog
 
+## 0.17
+
+* Fix, test and document calmar
+
 ## 0.16.5
 
 * Fix asof
