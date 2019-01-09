@@ -103,6 +103,7 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
         raise Exception("Calmar requires non empty dict of margins")
 
     # choose method
+    assert method in ['linear', 'raking ratio', 'logit'], "method should be 'linear', 'raking ratio' or 'logit'"
     if method == 'linear':
         F = linear
         F_prime = linear_prime
@@ -114,13 +115,12 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
         assert up > 1, "up should be > 1"
         assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
         assert lo < 1, "lo should be < 1"
+
         def F(x):
-            return logit(x, parameters['lo'], parameters['up'])
+            return logit(x, lo, up)
 
         def F_prime(x):
-            return logit_prime(x, parameters['lo'], parameters['up'])
-    else:
-        raise ValueError("method should be 'linear', 'raking ratio' or 'logit'")
+            return logit_prime(x, lo, up)
 
     # Construction observations matrix
     if 'total_population' in margins:
