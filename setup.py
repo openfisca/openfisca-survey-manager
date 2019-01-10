@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.17.0',
+    version = '0.17.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -65,7 +65,7 @@ setup(
             # 'SAS7BDAT',
             'scipy',
             ],
-            },
+        },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'configparser',
