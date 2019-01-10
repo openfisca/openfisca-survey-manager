@@ -1,25 +1,28 @@
-
 # Changelog
+
+### 0.17.1
+
+* Minor Python 2/3 compatibility string issue fixed
 
 ## 0.17
 
 * Fix, test and document calmar
 
-## 0.16.5
+### 0.16.5
 
 * Fix asof
 * Clean Makefile
 * Clean style
 
-## 0.16.4
+### 0.16.4
 
 * Use `simulation.delete_arrays` introduced by openfisca-core version 24.10.0
 
-## 0.16.2, 0.16.3
+### 0.16.2, 0.16.3
 
 * Add stata file conversion helper for survey scenarios
 
-## 0.16.1
+### 0.16.1
 
 * Rename test_random_data_generator method to create_randomly_initialized_survey_scenario
 * Improve doc tests
@@ -29,15 +32,15 @@
 
 * Provide summarize_variable for enums
 
-## 0.15.3
+### 0.15.3
 
 * Fix asof
 
-## 0.15.2
+### 0.15.2
 
 * Test tagging
 
-## 0.15.1
+### 0.15.1
 
 * Remove travis config file
 
@@ -45,11 +48,11 @@
 
 * openfisca-survey-manager can be used with both python 2 and 3
 
-## 0.14.2
+### 0.14.2
 
 * Use `simulation.set_input` introduced by openfisca-core version 24.5.0
 
-## 0.14.1
+### 0.14.1
 
 * Use [weightedcalcs](https://github.com/jsvine/weightedcalcs) to compute quantiles
 
@@ -67,13 +70,11 @@
   - dump_simulations: dumps the `survey_scenario simulations
   - restore_simulations: retores previously dumped `survey_scenario simulations
 
-## 0.11
-
 ### 0.11.1
 
 * Fix travis tests
 
-### 0.11.0
+## 0.11.0
 
 * Add legislation parameters inflator
 
@@ -117,9 +118,10 @@
 ### 0.9.3
 
 * Fix difference pivot_table computation
-* CLarify code (use variable instead of column) and add some doctring
+* Clarify code (use variable instead of column) and add some doctring
 
-## 0.9.2
+### 0.9.2
+
 * Hack to custom default_config_files_diretory at CASD when using taxipp
 
 ## 0.9.0
@@ -171,7 +173,7 @@
 
 * Add automatic push to PyPi
 
-### 0.8.0
+## 0.8.0
 
 * Improve `compute_aggregates` and `compute_pivot_table`
 
@@ -183,12 +185,9 @@
 
 * Adapat to new syntax (progressive elimination of `entity_key_plural`)
 
-## 0.5.2
-
-* Fix path of entry point build-collection
-
 ### 0.5.2
 
+* Fix path of entry point build-collection
 * Add entry point build-collection
 
 ### 0.5.1
