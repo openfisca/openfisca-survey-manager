@@ -3,6 +3,7 @@
 ### 0.17.4
 
 * Fix config.ini initialisation
+* Remove ptyhon2 tests
 
 ### 0.17.3
 
