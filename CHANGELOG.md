@@ -1,5 +1,8 @@
 # Changelog
 
+### 0.17.2
+
+* Update MANIFEST.in
 
 ### 0.17.2
 

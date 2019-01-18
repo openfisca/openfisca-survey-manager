@@ -1,1 +1,2 @@
 recursive-include openfisca_survey_manager/config_templates *.ini
+include openfisca_survey_manager/tests/data_files/config_template.ini
