@@ -801,7 +801,7 @@ class AbstractSurveyScenario(object):
                     id_variable_by_entity_key[key]
                     ].sort_values().index
 
-        for column_name, column_serie in input_data_frame.items():
+        for column_name, column_serie in input_data_frame.iteritems():
             if role_variable_by_entity_key is not None:
                 if column_name in role_variable_by_entity_key.values():
                     continue
