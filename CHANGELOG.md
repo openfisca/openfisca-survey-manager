@@ -1,5 +1,10 @@
 # Changelog
 
+
+### 0.17.2
+
+* Minor change in dependencies to allow more flexibility and use in Binder
+
 ### 0.17.1
 
 * Minor Python 2/3 compatibility string issue fixed

@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.17.1',
+    version = '0.17.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -55,15 +55,16 @@ setup(
             'openfisca-country-template',
             'SAS7BDAT',
             'scipy',
+            'pyxdg',
+            'tables',
             ],
         'casd': [
             'autopep8 == 1.4.0',
-            # 'flake8 >= 3.5.0, < 3.6.0',
             'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
             'pytest >= 3.0, < 4.0.0',
-            # 'openfisca-country-template',
-            # 'SAS7BDAT',
             'scipy',
+            'pyxdg',
+            'tables',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
@@ -71,12 +72,10 @@ setup(
         'configparser',
         'future',
         'humanize',
-        'numpy >= 1.11',
+        'numpy >= 1.16',
         'openfisca-core >= 25.2.2, < 26.0.0',
         'pandas >= 0.23',
         'PyYAML',
-        'pyxdg',
-        'tables',
         'weightedcalcs',
         'wquantiles >= 0.3',
         ],
