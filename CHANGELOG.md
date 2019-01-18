@@ -1,6 +1,11 @@
 # Changelog
 
-### 0.17.2
+### 0.17.4
+
+* Fix config.ini initialisation
+* Remove ptyhon2 tests
+
+### 0.17.3
 
 * Update MANIFEST.in
 
