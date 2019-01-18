@@ -21,7 +21,7 @@ is_travis = 'TRAVIS' in os.environ
 is_circleci = 'CIRCLECI' in os.environ
 
 
-if is_travis or is_circleci or (default_config_files_directory is None):
+if is_travis or is_circleci:
     default_config_files_directory = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
@@ -38,13 +38,10 @@ if is_travis or is_circleci or (default_config_files_directory is None):
         file.write(config_ini)
 
 
-if default_config_files_directory:
-    if not os.path.exists(default_config_files_directory):
-        from xdg import BaseDirectory
-        default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
+if default_config_files_directory is None:
+    from xdg import BaseDirectory
+    default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
 
     log.debug('Using default_config_files_directory = {}'.format(
         default_config_files_directory
         ))
-else:
-    log.info('Unable to initialize default_config_files_directory')
