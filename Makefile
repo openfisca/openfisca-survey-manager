@@ -30,6 +30,8 @@ check-style:
 		flake8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors check-style
-		@# Launch tests from openfisca_france/tests directory (and not .) because TaxBenefitSystem must be initialized
+		@# Launch tests from openfisca_survey_manager/tests directory (and not .) because TaxBenefitSystem must be initialized
 		@# before parsing source files containing formulas.
+		rm -rf ./openfisca_survey_manager/tests/data_files/config.ini
+		rm -rf ./openfisca_survey_manager/tests/data_files/dump
 		pytest

@@ -1,5 +1,5 @@
 {
-  "name": "fake",
+  "name": "test_random_generator",
   "surveys": {
     "input": {
       "hdf5_file_path": "/home/benjello/openfisca/openfisca-survey-manager/openfisca_survey_manager/tests/data_files/input.h5",

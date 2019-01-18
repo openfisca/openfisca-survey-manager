@@ -9,10 +9,11 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 
 is_travis = 'TRAVIS' in os.environ
+is_circleci = 'CIRCLECI' in os.environ
 
 
 def test_add_survey_to_collection():
-    if is_travis:
+    if is_travis or is_circleci:
         return
     name = 'fake'
     survey_name = 'fake_survey'

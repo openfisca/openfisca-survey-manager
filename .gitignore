@@ -94,3 +94,8 @@ openfisca_survey_manager/tests/data_files/fake.hdf5
 # ctags file
 /tags
 .spyproject
+openfisca_survey_manager/tests/data_files/config.ini
+openfisca_survey_manager/tests/data_files/test_random_generator.json
+openfisca_survey_manager/tests/data_files/fake.json
+openfisca_survey_manager/tests/data_files/config.ini
+openfisca_survey_manager/tests/data_files/config.ini

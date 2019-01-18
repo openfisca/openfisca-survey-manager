@@ -20,13 +20,23 @@ except pkg_resources.DistributionNotFound:
 is_travis = 'TRAVIS' in os.environ
 is_circleci = 'CIRCLECI' in os.environ
 
-if is_travis or is_circleci:
+
+if is_travis or is_circleci or (default_config_files_directory is None):
     default_config_files_directory = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
         )
+
+    with open(os.path.join(default_config_files_directory, 'config_template.ini')) as file:
+        config_ini = file.read()
+
+    config_ini = config_ini.format(location = pkg_resources.get_distribution('openfisca-survey-manager').location)
+
+    with open(os.path.join(default_config_files_directory, 'config.ini'), "w+") as file:
+        file.write(config_ini)
+
 
 if default_config_files_directory:
     if not os.path.exists(default_config_files_directory):
@@ -38,4 +48,3 @@ if default_config_files_directory:
         ))
 else:
     log.info('Unable to initialize default_config_files_directory')
-    raise
