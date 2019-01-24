@@ -68,12 +68,6 @@ workflows:
   build_and_deploy:
     jobs:
       - build_python3
-      - deploy_python2:
-          requires:
-            - build_python3
-          filters:
-            branches:
-              only: master
       - deploy_python3:
           requires:
             - build_python3
