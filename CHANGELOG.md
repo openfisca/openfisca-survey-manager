@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.17.5
+
+* Add pyxdg as a core dependency
+
 ### 0.17.4
 
 * Fix config.ini initialisation

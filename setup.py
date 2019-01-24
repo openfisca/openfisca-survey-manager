@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.17.4',
+    version = '0.17.5',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -55,7 +55,6 @@ setup(
             'openfisca-country-template',
             'SAS7BDAT',
             'scipy',
-            'pyxdg',
             'tables',
             ],
         'casd': [
@@ -63,7 +62,6 @@ setup(
             'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
             'pytest >=3.0,<5.0.0',
             'scipy',
-            'pyxdg',
             'tables',
             ],
         },
@@ -75,6 +73,7 @@ setup(
         'numpy >= 1.11, < 1.16',  # to work with tables
         'openfisca-core >= 25.2.2, < 26.0.0',
         'pandas >= 0.23',
+        'pyxdg',
         'PyYAML',
         'weightedcalcs',
         'wquantiles >= 0.3',
