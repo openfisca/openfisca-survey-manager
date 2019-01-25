@@ -49,8 +49,8 @@ setup(
             ],
         'dev': [
             'autopep8 ==1.4.3',
-            'flake8 >= 3.5.0, < 3.6.0',
-            'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
+            'flake8 >=3.5.0,<3.7.0',
+            'pycodestyle >=2.3.0,<2.5.0',
             'pytest >=3.0,<5.0.0',
             'openfisca-country-template',
             'SAS7BDAT',
@@ -59,7 +59,8 @@ setup(
             ],
         'casd': [
             'autopep8 ==1.4.3',
-            'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
+            'flake8 >=3.5.0,<3.7.0',
+            'pycodestyle >=2.3.0,<2.5.0',
             'pytest >=3.0,<5.0.0',
             'scipy',
             'tables',
