@@ -12,8 +12,8 @@ class Config(configparser.SafeConfigParser):
         configparser.SafeConfigParser.__init__(self)
         if config_files_directory is not None:
             config_ini = os.path.join(config_files_directory, 'config.ini')
-            if os.path.exists(config_ini):
-                self.config_ini = config_ini
+            assert os.path.exists(config_ini), "{} is not a valid path"
+            self.config_ini = config_ini
             self.read([config_ini])
 
     def save(self):
