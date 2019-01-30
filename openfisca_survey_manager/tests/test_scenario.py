@@ -160,7 +160,8 @@ def test_dump_survey_scenario():
         'data_files',
         'dump',
         )
-    shutil.rmtree(directory)
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
     survey_scenario.dump_simulations(directory = directory)
     df = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'])
     household = df['household']
