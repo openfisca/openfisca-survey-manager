@@ -36,6 +36,8 @@ class SurveyCollection(object):
             self.name = name
         if json_file_path is not None:
             self.json_file_path = json_file_path
+            if 'collections' not in self.config.sections():
+                self.config["collections"] = dict()
             self.config.set("collections", self.name, self.json_file_path)
             self.config.save()
         elif self.config is not None:
