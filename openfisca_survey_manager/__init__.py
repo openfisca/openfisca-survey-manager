@@ -20,23 +20,21 @@ except pkg_resources.DistributionNotFound:
 is_travis = 'TRAVIS' in os.environ
 is_circleci = 'CIRCLECI' in os.environ
 
+test_config_files_directory = os.path.join(
+    pkg_resources.get_distribution('openfisca-survey-manager').location,
+    'openfisca_survey_manager',
+    'tests',
+    'data_files',
+    )
+with open(os.path.join(test_config_files_directory, 'config_template.ini')) as file:
+    config_ini = file.read()
+
+config_ini = config_ini.format(location = pkg_resources.get_distribution('openfisca-survey-manager').location)
+with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
+    file.write(config_ini)
 
 if is_travis or is_circleci:
-    default_config_files_directory = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
-        'openfisca_survey_manager',
-        'tests',
-        'data_files',
-        )
-
-    with open(os.path.join(default_config_files_directory, 'config_template.ini')) as file:
-        config_ini = file.read()
-
-    config_ini = config_ini.format(location = pkg_resources.get_distribution('openfisca-survey-manager').location)
-
-    with open(os.path.join(default_config_files_directory, 'config.ini'), "w+") as file:
-        file.write(config_ini)
-
+    default_config_files_directory = test_config_files_directory
 
 if default_config_files_directory is None:
     from xdg import BaseDirectory

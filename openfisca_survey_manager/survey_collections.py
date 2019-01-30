@@ -29,23 +29,27 @@ class SurveyCollection(object):
     def __init__(self, config_files_directory = default_config_files_directory, label = None, name = None, json_file_path = None):
 
         log.debug("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
-        self.config = Config(config_files_directory = config_files_directory)
+        config = Config(config_files_directory = config_files_directory)
         if label is not None:
             self.label = label
         if name is not None:
             self.name = name
         if json_file_path is not None:
             self.json_file_path = json_file_path
-            self.config.set("collections", self.name, self.json_file_path)
-            self.config.save()
-        elif self.config is not None:
-            if self.config.has_option("collections", self.name):
-                self.json_file_path = self.config.get("collections", self.name)
-            elif self.config.get("collections", 'collections_directory') is not None:
+            if 'collections' not in config.sections():
+                config["collections"] = dict()
+            config.set("collections", self.name, self.json_file_path)
+            config.save()
+        elif config is not None:
+            if config.has_option("collections", self.name):
+                self.json_file_path = config.get("collections", self.name)
+            elif config.get("collections", 'collections_directory') is not None:
                 self.json_file_path = os.path.join(
-                    self.config.get("collections", 'collections_directory'),
+                    config.get("collections", 'collections_directory'),
                     name + '.json',
                     )
+
+        self.config = config
 
     def __repr__(self):
         header = """{}
