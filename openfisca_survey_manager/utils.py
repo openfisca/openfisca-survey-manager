@@ -18,8 +18,8 @@ log = logging.getLogger(__name__)
 def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False):
 
     if (last_year is not None) and (last_year > base_year + 1):
-            for year in range(base_year + 1, last_year + 1):
-                inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units)
+        for year in range(base_year + 1, last_year + 1):
+            inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units)
 
     else:
         if last_year is None:
