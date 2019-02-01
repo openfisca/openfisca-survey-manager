@@ -704,9 +704,6 @@ class AbstractSurveyScenario(object):
                 _key = collective_entity.key
                 _id_variable = self.id_variable_by_entity_key[_key]
                 _role_variable = self.role_variable_by_entity_key[_key]
-                collective_entity.roles_count = int(input_data_frame[_role_variable].max() + 1)
-                assert isinstance(collective_entity.roles_count, int), \
-                    '{} is not a valid roles_count (int) for {}'.format(collective_entity.roles_count, _key)
 
                 collective_entity.count = len(input_data_frame[_id_variable].unique())
                 collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
@@ -786,9 +783,6 @@ class AbstractSurveyScenario(object):
             else:
                 entity.count = entity.step_size = \
                     (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
-                entity.roles_count = int(input_data_frame[role_variable_by_entity_key[key]].max() + 1)
-                assert isinstance(entity.roles_count, int), '{} is not a valid roles_count (int) for {}'.format(
-                    entity.roles_count, entity.key)
                 unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
                 assert entity.count == unique_ids_count, \
                     "There are {0} person of role 0 in {1} but {2} {1}".format(
