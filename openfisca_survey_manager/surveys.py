@@ -212,7 +212,7 @@ Contains the following tables : \n""".format(self.name, self.label)
              A DataFrame containing the variables
         """
         assert self.hdf5_file_path is not None
-        assert os.path.exists(self.hdf5_file_path), '{} is not a valid path'.format(
+        assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
             self.hdf5_file_path)
         store = pandas.HDFStore(self.hdf5_file_path)
 
@@ -220,7 +220,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             df = store.select(table)
         except KeyError:
             log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
-            log.error('Table(s) available are: {}'.format(store.keys()))
+            log.error('This could happen because your data were not builded yet. Available tables are: {}'.format(store.keys()))
             store.close()
             raise
 

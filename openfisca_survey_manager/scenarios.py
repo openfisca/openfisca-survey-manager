@@ -4,6 +4,7 @@ from __future__ import division
 
 from typing import Dict, List
 
+import copy
 import logging
 import os
 import numpy as np
@@ -107,7 +108,7 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = self.tax_benefit_system
         if filter_by is None and self.filtering_variable_by_entity is not None:
             entity_key = tax_benefit_system.variables[variable].entity.key
-            filter_by = self.filtering_variable_by_entity.get(entity_key)
+            filter_by_variable = self.filtering_variable_by_entity.get(entity_key)
 
         assert variable is not None
         if use_baseline:
@@ -121,8 +122,16 @@ class AbstractSurveyScenario(object):
             period = simulation.period
 
         if filter_by:
-            assert filter_by in self.tax_benefit_system.variables, \
-                "{} is not a variables of the tax benefit system".format(filter_by)
+            filter_by_variable = get_words(filter_by)[0]
+            assert filter_by_variable in self.tax_benefit_system.variables, \
+                "{} is not a variables of the tax benefit system".format(filter_by_variable)
+            entity_key = tax_benefit_system.variables[variable].entity.key
+            filter_by_entity_key = tax_benefit_system.variables[filter_by_variable].entity.key
+            assert filter_by_entity_key == entity_key, \
+                ("You tried to compute agregates for variable '{}', of entity {}"
+                " filtering by variable '{}', of entity {}. This is not possible."
+                " Please choose a filter-by variable of same entity as '{}'."
+                .format(variable, entity_key, filter_by_variable, filter_by_entity_key, variable))
 
         if self.weight_variable_by_entity:
             weight_variable_by_entity = self.weight_variable_by_entity
@@ -143,7 +152,9 @@ class AbstractSurveyScenario(object):
                 ).astype(float)
             if entity_weight else 1.0
             )
-        filter_dummy = self.calculate_variable(variable = filter_by, period = period) if filter_by else 1.0
+        filter_dummy = self.calculate_variable(variable = filter_by_variable, period = period) if filter_by else 1.0
+        if filter_by:
+            filter_dummy = pd.DataFrame({'{}'.format(filter_by_variable): filter_dummy}).eval(filter_by)
 
         if aggfunc == 'sum':
             return (value * weight * filter_dummy).sum()
@@ -193,7 +204,7 @@ class AbstractSurveyScenario(object):
         if filter_by is None and self.filtering_variable_by_entity is not None:
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
-        variables = set(index + values + columns)
+        variables = set(index + columns)
         # Select the entity weight corresponding to the variables that will provide values
         if self.weight_variable_by_entity is not None:
             weight = self.weight_variable_by_entity[entity_key]
@@ -202,17 +213,33 @@ class AbstractSurveyScenario(object):
             log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
+        expressions = []
         if filter_by is not None:
-            variables.add(filter_by)
+            if filter_by in tax_benefit_system.variables:
+                variables.add(filter_by)
+                filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
+                assert filter_entity_key == entity_key
+            else:
+                filter_entity_key = assert_variables_in_same_entity(self, get_words(filter_by))
+                expressions.extend([filter_by])
+                assert filter_entity_key == entity_key
         else:
             filter_dummy = 1.0
 
-        for variable in variables:
-            assert tax_benefit_system.variables[variable].entity.key == entity_key, \
-                'The variable {} is not present or does not belong to entity {}'.format(
-                    variable,
-                    entity_key,
-                    )
+        for expression in expressions:
+            expression_variables = get_words(expression)
+            entity_key_expression = assert_variables_in_same_entity(self, expression_variables)
+            assert entity_key_expression == entity_key
+            for variable in expression_variables:
+                variables.add(variable)
+
+        for variable in variables|set(values):
+            if variable in tax_benefit_system.variables:
+                assert tax_benefit_system.variables[variable].entity.key == entity_key, \
+                    'The variable {} does not belong to entity {}'.format(
+                        variable,
+                        entity_key,
+                        )
 
         if difference:
             reform_data_frame = self.create_data_frame_by_entity(
@@ -230,40 +257,45 @@ class AbstractSurveyScenario(object):
             data_frame = reform_data_frame - baseline_data_frame
 
         else:
-            data_frame = (
-                self.create_data_frame_by_entity(
-                    values, period = period, use_baseline = use_baseline, index = False)[entity_key]
-                )
-        additionnal_variables = []
-        if filter_by is not None:
-            additionnal_variables.append(filter_by)
-        if weight is not None:
-            additionnal_variables.append(weight)
-        reference_variables = set(index + columns + additionnal_variables)
+            if values:
+                data_frame = (
+                    self.create_data_frame_by_entity(
+                        values, period = period, use_baseline = use_baseline, index = False)[entity_key]
+                    )
+                for value_variable in values:
+                    if value_variable not in data_frame:
+                        data_frame[value_variable] = missing_variable_default_value
+            else:
+                data_frame = None
+
         use_baseline_df = use_baseline or difference
         if use_baseline_for_columns is not None:
             use_baseline_df = use_baseline_for_columns
-        data_frame = pd.concat(
-            [
-                self.create_data_frame_by_entity(
-                    variables = reference_variables,
+        data_frame2 = self.create_data_frame_by_entity(
+                    variables = variables,
                     period = period,
                     # use baseline if explicited or when computing difference
                     use_baseline = use_baseline_df,
                     index = False
-                    )[entity_key],
-                data_frame,
-                ],
-            axis = 1,
-            )
-        if filter_by in data_frame:
-            filter_dummy = data_frame[filter_by]
+                    )[entity_key]
 
+        for expression in expressions:
+            data_frame2[expression] = data_frame2.eval(expression)
+        if filter_by is not None:
+            filter_dummy = data_frame2[filter_by]
         if weight is None:
             weight = 'weight'
-            data_frame[weight] = 1.0
+            data_frame2[weight] = 1.0
+        data_frame2[weight] = data_frame2[weight] * filter_dummy
+        for column in data_frame2.columns:
+            if column in values:
+                data_frame2.drop(columns = [column], inplace = True)
 
-        data_frame[weight] = data_frame[weight] * filter_dummy
+        data_frame = pd.concat(
+            [data_frame2, data_frame],
+            axis = 1,
+            )
+
         if values:
             data_frame_by_value = dict()
             for value in values:
@@ -295,6 +327,7 @@ class AbstractSurveyScenario(object):
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
+
 
     def calculate_variable(self, variable = None, period = None, use_baseline = False):
         """
@@ -1101,10 +1134,10 @@ class AbstractSurveyScenario(object):
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
                 print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
-                    array.mean() if not weighted else np.average(array, weights = weights),
+                    array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
                     array.max(),
-                    np.median(array),
+                    np.median(array.astype(float)),
                     (
                         (array == default_value).sum() / len(array)
                         if not weighted
@@ -1135,10 +1168,10 @@ class AbstractSurveyScenario(object):
 
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,
-                        array.mean() if not weighted else np.average(array, weights = weights),
+                        array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                         array.min(),
                         array.max(),
-                        array.sum() if not weighted else np.sum(array * weights),
+                        array.astype(float).sum() if not weighted else np.sum(array * weights),
                         (
                             (array == default_value).sum() / len(array)
                             if not weighted
