@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.18.0
+
+* Add a way of creating a raw_data.ini file on Google Colab
+
 ### 0.17.5
 
 * Add pyxdg as a core dependency
