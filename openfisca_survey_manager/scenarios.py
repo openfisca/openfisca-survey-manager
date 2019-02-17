@@ -1067,7 +1067,7 @@ class AbstractSurveyScenario(object):
             simulation = self.simulation
 
         tax_benefit_system = simulation.tax_benefit_system
-        assert variable in tax_benefit_system.variables
+        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
         variable_instance = tax_benefit_system.variables[variable]
 
         default_value = variable_instance.default_value

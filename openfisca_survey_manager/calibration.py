@@ -57,7 +57,7 @@ class Calibration(object):
         # TODO deal with baseline if reform is present
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
-        period = self.simulation.period
+        period = survey_scenario.period
         self.filter_by = filter_by = survey_scenario.calculate_variable(
             variable = self.filter_by_name, period = period)
         # TODO: shoud not be france specific
@@ -136,7 +136,7 @@ class Calibration(object):
             if variable == 'total_population':
                 continue
             assert variable in self.survey_scenario.tax_benefit_system.variables
-            period = self.survey_scenario.simulation.period
+            period = self.survey_scenario.period
             data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
 
         return data
@@ -190,7 +190,7 @@ class Calibration(object):
 
     def set_target_margin(self, variable, target):
         survey_scenario = self.survey_scenario
-        period = survey_scenario.simulation.period
+        period = survey_scenario.period
         assert variable in survey_scenario.tax_benefit_system.variables
         column = survey_scenario.tax_benefit_system.variables[variable]
 
