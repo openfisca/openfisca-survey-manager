@@ -1,6 +1,10 @@
 # Changelog
 
-### 0.18.0
+### 0.18.1
+
+* Lower version for pandas dependency
+
+## 0.18.0
 
 * Add a way of creating a raw_data.ini file on Google Colab
 

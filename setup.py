@@ -24,7 +24,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.18.0',
+    version = '0.18.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -73,7 +73,7 @@ setup(
         'humanize',
         'numpy >= 1.11, < 1.16',  # to work with tables
         'openfisca-core >= 25.2.2, < 26.0.0',
-        'pandas >= 0.23',
+        'pandas >= 0.22',
         'pyxdg',
         'PyYAML',
         'weightedcalcs',
