@@ -219,8 +219,9 @@ Contains the following tables : \n""".format(self.name, self.label)
         try:
             df = store.select(table)
         except KeyError:
-            store.close()
             log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
+            log.error('Table(s) available are: {}'.format(store.keys()))
+            store.close()
             raise
 
         if lowercase:
