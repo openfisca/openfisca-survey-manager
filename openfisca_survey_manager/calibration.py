@@ -207,7 +207,7 @@ class Calibration(object):
             )
         if categorical_variable:
             value = survey_scenario.calculate_variable(variable = variable, period = period)
-            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)] 
+            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
             categories = numpy.sort(numpy.unique(filtered_value))
             target_by_category = dict(zip(categories, target))
 
