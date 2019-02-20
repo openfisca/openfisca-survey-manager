@@ -52,13 +52,13 @@ def build_dummies_dict(data):
     return output
 
 
-def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
+def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
         xtol = 1.49012e-08, maxfev = 256):
     """
         Calibrate weights to satisfy some margin constraints
 
         :param dataframe data_in: The observations data
-        :param str pondini: The initial weight variable name
+        :param str initial_weight: The initial weight variable name
         :param dict margins: Margins is a dictionnary containing for each variable as key the following values
             - a scalar for numeric variables
             - a dictionnary with categories as key and populations as values
@@ -75,14 +75,14 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
     from scipy.optimize import fsolve
 
     # remove null weights and keep original data
-    null_weight_observations = data_in[pondini].isnull().sum()
+    null_weight_observations = data_in[initial_weight].isnull().sum()
     if null_weight_observations > 0:
         log.info("{} observations have a NaN weight. Not used in the calibration.".format(null_weight_observations))
 
-    is_non_zero_weight = (data_in[pondini].fillna(0) > 0)
+    is_non_zero_weight = (data_in[initial_weight].fillna(0) > 0)
     if is_non_zero_weight.sum() > null_weight_observations:
         log.info("{} observations have a zero weight. Not used in the calibration.".format(
-            (data_in[pondini].fillna(0) <= 0).sum() - null_weight_observations))
+            (data_in[initial_weight].fillna(0) <= 0).sum() - null_weight_observations))
 
     variables = set(margins.keys()).intersection(set(data_in.columns))
     for variable in variables:
@@ -126,9 +126,9 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
     if 'total_population' in margins:
         total_population = margins.pop('total_population')
     else:
-        total_population = data[pondini].fillna(0).sum()
+        total_population = data[initial_weight].fillna(0).sum()
 
-    nk = len(data[pondini])
+    nk = len(data[initial_weight])
     # number of Lagrange parameters (at least total population)
     nj = 1
 
@@ -179,7 +179,7 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
     lambda0 = zeros(nj)
 
     # initial weights
-    d = data[pondini].values
+    d = data[initial_weight].values
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
@@ -226,12 +226,12 @@ def calmar(data_in, margins, pondini = 'wprm_init', method = 'linear', lo = None
         log.debug("optimization converged after {} tries".format(tries))
 
     # rebuilding a weight vector with the same size of the initial one
-    pondfin_out = array(data_in[pondini], dtype = float64)
+    pondfin_out = array(data_in[initial_weight], dtype = float64)
     pondfin_out[is_non_zero_weight] = pondfin
     return pondfin_out, lambdasol, margins_new_dict
 
 
-def check_calmar(data_in, margins, pondini='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
+def check_calmar(data_in, margins, initial_weight='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
     for variable, margin in margins.items():
         if variable != 'total_population':
             print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))

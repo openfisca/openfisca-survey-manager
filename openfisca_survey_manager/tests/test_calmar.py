@@ -82,7 +82,7 @@ def test_calmar():
 
     data = create_input_dataframe()
     margins_by_variable = create_margins()
-    pondfin_out, lambdasol, margins_new_dict = calmar(data, margins_by_variable, method = 'raking ratio', pondini = 'POND')
+    pondfin_out, lambdasol, margins_new_dict = calmar(data, margins_by_variable, method = 'raking ratio', initial_weight = 'POND')
 
     data['weightt_ratio'] = pondfin_out / data.POND
     weight_ratio = data.sort_values(['X', 'Y', 'Z'])['weightt_ratio'].round(5)

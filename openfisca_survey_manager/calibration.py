@@ -5,9 +5,9 @@ import logging
 
 import numpy
 from numpy import logical_not
-from pandas import DataFrame
+import pandas as pd
 
-from openfisca_core.columns import AgeCol, BoolCol, EnumCol
+from openfisca_core.model_api import Enum
 from openfisca_survey_manager.calmar import calmar
 
 
@@ -20,22 +20,25 @@ class Calibration(object):
     """
     filter_by_name = None
     initial_total_population = None
+    initial_weight_name = None
     margins_by_variable = dict()
     parameters = {
         'use_proportions': True,
-        'pondini': None,
+        'initial_weight': None,
         'method': None,  # 'linear', 'raking ratio', 'logit'
         'up': None,
         'lo': None
         }
+    period = None
     survey_scenario = None
     total_population = None
     weight_name = None
-    initial_weight_name = None
 
-    def __init__(self, survey_scenario = None):
+    def __init__(self, survey_scenario = None, period = None):
         # TODO should migrate this to france
         self.filter_by_name = "menage_ordinaire"
+        assert period is not None
+        self.period = period
         assert survey_scenario is not None
         self._set_survey_scenario(survey_scenario)
 
@@ -57,7 +60,7 @@ class Calibration(object):
         # TODO deal with baseline if reform is present
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
-        period = self.simulation.period
+        period = self.period
         self.filter_by = filter_by = survey_scenario.calculate_variable(
             variable = self.filter_by_name, period = period)
         # TODO: shoud not be france specific
@@ -122,7 +125,7 @@ class Calibration(object):
             p['lo'] = 1 / self.parameters.get('invlo')
             p['up'] = self.parameters.get('up')
         p['use_proportions'] = self.parameters.get('use_proportions', True)
-        p['pondini'] = self.weight_name + ""
+        p['initial_weight'] = self.weight_name + ""
         return p
 
     def _build_calmar_data(self):
@@ -131,12 +134,13 @@ class Calibration(object):
         """
         # Select only filtered entities
         assert self.initial_weight_name is not None
-        data = {self.initial_weight_name: self.initial_weight * self.filter_by}
+        data = pd.DataFrame()
+        data[self.initial_weight_name] = self.initial_weight * self.filter_by
         for variable in self.margins_by_variable:
             if variable == 'total_population':
                 continue
             assert variable in self.survey_scenario.tax_benefit_system.variables
-            period = self.survey_scenario.simulation.period
+            period = self.period
             data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
 
         return data
@@ -147,9 +151,9 @@ class Calibration(object):
         """
         data = self._build_calmar_data()
         assert self.initial_weight_name is not None
+        parameters['initial_weight'] = self.initial_weight_name
         val_pondfin, lambdasol, updated_margins = calmar(
-            data, margins, parameters = parameters, pondini = self.initial_weight_name
-            )
+            data, margins, **parameters)
         # Updating only afetr filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
         return updated_margins
@@ -175,13 +179,13 @@ class Calibration(object):
         """
             Modify the weights to use the calibrated weights
         """
+        period = self.period
         survey_scenario = self.survey_scenario
         assert survey_scenario.simulation is not None
         for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
             if simulation is None:
                 continue
-            holder = simulation.get_holder(self.weight_name)
-            holder.array = numpy.array(self.weight, dtype = holder.variable.dtype)
+            simulation.set_input(self.weight_name, period, self.weight)
             # TODO: propagation to other weights
 
     def set_target_margins(self, target_margin_by_variable):
@@ -190,18 +194,23 @@ class Calibration(object):
 
     def set_target_margin(self, variable, target):
         survey_scenario = self.survey_scenario
-        period = survey_scenario.simulation.period
+        period = self.period
         assert variable in survey_scenario.tax_benefit_system.variables
-        column = survey_scenario.tax_benefit_system.variables[variable]
+        variable_instance = survey_scenario.tax_benefit_system.variables[variable]
 
         filter_by = self.filter_by
         target_by_category = None
-        if column.__class__ in [AgeCol, BoolCol, EnumCol]:
+        categorical_variable = (
+            (variable_instance.value_type in [bool, Enum])
+            or (variable_instance.unit == 'years')
+            or (variable_instance.unit == 'months')
+            )
+        if categorical_variable:
             value = survey_scenario.calculate_variable(variable = variable, period = period)
-            categories = numpy.sort(numpy.unique(value[filter_by]))
+            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
+            categories = numpy.sort(numpy.unique(filtered_value))
             target_by_category = dict(zip(categories, target))
 
-        # assert len(atrget) = len
         if not self.margins_by_variable:
             self.margins_by_variable = dict()
         if variable not in self.margins_by_variable:
@@ -212,7 +221,7 @@ class Calibration(object):
     def _update_margins(self):
         for variable in self.margins_by_variable:
             survey_scenario = self.survey_scenario
-            period = survey_scenario.simulation.period
+            period = self.period
             assert variable in survey_scenario.tax_benefit_system.variables
             column = survey_scenario.tax_benefit_system.variables[variable]
             weight = self.weight
@@ -225,10 +234,9 @@ class Calibration(object):
                 ('initial', initial_weight[filter_by]),
                 ]
 
-            if column.__class__ in [AgeCol, BoolCol, EnumCol]:
+            if column.value_type in [bool, Enum]:
                 margin_items.append(('category', value[filter_by]))
-                # TODO: should not use DataFrame for that ...
-                margins_data_frame = DataFrame.from_items(margin_items)
+                margins_data_frame = pd.DataFrame.from_items(margin_items)
                 margins_data_frame = margins_data_frame.groupby('category', sort = True).sum()
                 margin_by_type = margins_data_frame.to_dict()
             else:

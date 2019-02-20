@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.18.2
+
+* Incrmentally fixing Calibration
+
 ### 0.18.1
 
 * Lower version for pandas dependency
