@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.19.0 [#103](https://github.com/openfisca/openfisca-survey-manager/pull/103)
+
+* Add a `--path PATH` option to `build-collection`
+
 ### 0.18.5 [#101](https://github.com/openfisca/openfisca-survey-manager/pull/101)
 
 * Add documentation to `init_from_data`
