@@ -1,15 +1,18 @@
 # Config files
+.config
 raw_data.ini
 config.ini
 
-# Fixtures, dumps, personal tests
-openfisca_survey_manager/tests/data_files/fake.hdf5
-openfisca_survey_manager/tests/data_files/dump/
-openfisca_survey_manager/tests/test_read_dbf.py
+# Collections
+.collections
 
-# Keys
-./openfisca_bot
-./openfisca_bot.pub
+# Fixtures, dumps, personal tests, etc.
+openfisca_survey_manager/tests/test_read_dbf.py
+openfisca_survey_manager/tests/data_files/dump/
+openfisca_survey_manager/tests/data_files/config.ini
+openfisca_survey_manager/tests/data_files/fake.hdf5
+openfisca_survey_manager/tests/data_files/fake.json
+openfisca_survey_manager/tests/data_files/test_random_generator.json
 
 # Vscode config
 .vscode
@@ -24,6 +27,7 @@ tags
 # Spyder junk
 .spyderworkspace
 .spyderproject
+.spyproject
 
 # Ignore emacs saves
 *~
@@ -68,7 +72,6 @@ nosetests.xml
 coverage.xml
 .pytest_cache
 
-
 # Translations
 *.mo
 
@@ -88,10 +91,6 @@ coverage.xml
 docs/_build/
 
 # ctags file
+.tags*
 /tags
-.spyproject
-openfisca_survey_manager/tests/data_files/config.ini
-openfisca_survey_manager/tests/data_files/test_random_generator.json
-openfisca_survey_manager/tests/data_files/fake.json
-openfisca_survey_manager/tests/data_files/config.ini
-openfisca_survey_manager/tests/data_files/config.ini
+tags
