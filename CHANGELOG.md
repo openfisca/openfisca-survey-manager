@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.18.5 [#101](https://github.com/openfisca/openfisca-survey-manager/pull/101)
+
+* Add documentation to `init_from_data`
+* Split setters to gain readability
+
 ### 0.18.4
 
 * Add badges to help and reassure users/contributors

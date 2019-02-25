@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+from typing import Dict, List
+
 import logging
 import os
 import numpy as np
@@ -625,7 +627,15 @@ class AbstractSurveyScenario(object):
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
+        '''Initialises a survey scenario from data.
 
+        :param rebuild_input_data:  Whether or not to clean, format and save data.
+                                    Take a look at :func:`build_input_data`
+
+        :param data:                Contains the data, or metadata needed to know where to find it.
+        '''
+
+        # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
             data_year = data.get("data_year", self.year)
 
@@ -636,8 +646,12 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
-        self._set_ids_and_roles_variables()
+        self._set_id_variable_by_entity_key()
+        self._set_role_variable_by_entity_key()
         self._set_used_as_input_variables_by_entity()
+
+        # When ``True`` it'll assume it is raw data and do all that described supra.
+        # When ``False``, it'll assume data is ready for consumption.
         if rebuild_input_data:
             if rebuild_kwargs is not None:
                 self.build_input_data(year = data_year, **rebuild_kwargs)
@@ -646,14 +660,16 @@ class AbstractSurveyScenario(object):
 
         debug = self.debug
         trace = self.trace
-        # Inverting reform and baseline because we are more likey
+
+        # Inverting reform and baseline because we are more likely
         # to use baseline input in reform than the other way around
         if self.baseline_tax_benefit_system is not None:
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
                 use_baseline = True)
 
+        # Note that I can pass a :class:`pd.DataFrame` directly, if I don't want to rebuild the data.
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
-        #
+
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
 
@@ -1175,36 +1191,45 @@ class AbstractSurveyScenario(object):
                 **kwargs
                 )
 
-    def _set_ids_and_roles_variables(self):
-        id_variable_by_entity_key = self.id_variable_by_entity_key
-        role_variable_by_entity_key = self.role_variable_by_entity_key
-
-        if id_variable_by_entity_key is None:
+    def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
+        '''Identify and set the good ids for the different entities'''
+        if self.id_variable_by_entity_key is None:
             log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities
-                )
-        if role_variable_by_entity_key is None:
-            self.role_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities
-                )
+                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
 
-    def _set_used_as_input_variables_by_entity(self):
+        return self.id_variable_by_entity_key
+
+    def _set_role_variable_by_entity_key(self) -> Dict[str, str]:
+        '''Identify and set the good roles for the different entities'''
+        if self.role_variable_by_entity_key is None:
+            self.role_variable_by_entity_key = dict(
+                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities)
+
+        return self.role_variable_by_entity_key
+
+    def _set_used_as_input_variables_by_entity(self) -> Dict[str, List[str]]:
+        '''Identify and set the good input variables for the different entities'''
         if self.used_as_input_variables_by_entity is not None:
             return
 
         tax_benefit_system = self.tax_benefit_system
+
         assert set(self.used_as_input_variables) <= set(tax_benefit_system.variables.keys()), \
             "Some variables used as input variables are not part of the tax benefit system:\n {}".format(
                 set(self.used_as_input_variables).difference(set(tax_benefit_system.variables.keys()))
                 )
+
         self.used_as_input_variables_by_entity = dict()
+
         for entity in tax_benefit_system.entities:
             self.used_as_input_variables_by_entity[entity.key] = [
                 variable
                 for variable in self.used_as_input_variables
                 if tax_benefit_system.get_variable(variable).entity == entity
                 ]
+
+        return self.used_as_input_variables_by_entity
 
 
 # Helpers
