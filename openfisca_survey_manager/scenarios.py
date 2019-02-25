@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-from typing import Dict
+from typing import Dict, List
 
 import logging
 import os
@@ -640,8 +640,6 @@ class AbstractSurveyScenario(object):
 
         self._set_id_variable_by_entity_key()
         self._set_role_variable_by_entity_key()
-
-        # quels sont les bons inputs vars
         self._set_used_as_input_variables_by_entity()
 
         # si rebuild, il va aller travailler (nettoyer) les données pour qu'elles soivent OpenFisca-like
@@ -1205,22 +1203,28 @@ class AbstractSurveyScenario(object):
 
         return self.role_variable_by_entity_key
 
-    def _set_used_as_input_variables_by_entity(self):
+    def _set_used_as_input_variables_by_entity(self) -> Dict[str, List[str]]:
+        '''Identify and set the good input variables for the different entities'''
         if self.used_as_input_variables_by_entity is not None:
             return
 
         tax_benefit_system = self.tax_benefit_system
+
         assert set(self.used_as_input_variables) <= set(tax_benefit_system.variables.keys()), \
             "Some variables used as input variables are not part of the tax benefit system:\n {}".format(
                 set(self.used_as_input_variables).difference(set(tax_benefit_system.variables.keys()))
                 )
+
         self.used_as_input_variables_by_entity = dict()
+
         for entity in tax_benefit_system.entities:
             self.used_as_input_variables_by_entity[entity.key] = [
                 variable
                 for variable in self.used_as_input_variables
                 if tax_benefit_system.get_variable(variable).entity == entity
                 ]
+
+        return self.used_as_input_variables_by_entity
 
 
 # Helpers
