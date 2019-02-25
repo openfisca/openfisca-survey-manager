@@ -76,7 +76,7 @@ jobs:
       - run:
           name: Upload a Python package to Pypi
           command: |
-            source /tmp/venv/openfisca-survey-manager
+            source /tmp/venv/openfisca-survey-manager/bin/activate
             .circleci/publish-python-package.sh
 
 workflows:
