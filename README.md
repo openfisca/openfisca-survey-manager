@@ -8,13 +8,19 @@
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-survey-manager.svg)](https://pypi.python.org/pypi/openfisca-survey-manager)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-survey-manager.svg?style=flat)](https://pypi.python.org/pypi/openfisca-survey-manager)
 
-## Presentation
+[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
-[OpenFisca](http://www.openfisca.fr/) is a versatile microsimulation free software.
+This package contains the Survey-Manager module, to work with OpenFisca and survey data.
 
-This is the source code to a survey manager when openfisca is used with data.
 It provides an API to access HDF data.
-It also provides a script that transforms SAS, stata, SPSS, CSV data files to HDF data files along with some meta-data so they can be used by the API.
+
+It also provides a script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the API.
+
+## Environment
+
+OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, but are not tested.
+
+Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Usage
 
@@ -30,11 +36,50 @@ To be able to use the survey manager you have to edit two configuration files.
 These configurations files will be used by the script [`build_collection.py`](openfisca_survey_manager/scripts/build_collection.py) to build the
 HDF files.
 
-## Contribute
+## Development
 
-OpenFisca is a free software project.
-Its source code is distributed under the [GNU Affero General Public Licence](http://www.gnu.org/licenses/agpl.html)
-version 3 or later (see COPYING).
+If you want to contribute to OpenFisca-Survey-Manager, please be welcomed! To install it locally in development mode:
 
-Feel free to join the OpenFisca development team on [GitHub](https://github.com/openfisca) or contact us by email at
-contact@openfisca.fr
+```bash
+git clone https://github.com/openfisca/openfisca-survey-manager.git
+cd openfisca-survey-manager
+make install
+```
+
+## Testing
+
+To run the entire test suite:
+
+```sh
+make test
+```
+
+## Style
+
+This repository adheres to a certain coding style, and we invite you to follow it for your contributions to be integrated promptly.
+
+To run the style checker:
+
+```sh
+make check-style
+```
+
+To automatically style-format your code changes:
+
+```sh
+make format-style
+```
+
+To automatically style-format your code changes each time you commit:
+
+```sh
+touch .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+tee -a .git/hooks/pre-commit << END
+#!/bin/sh
+#
+# Automatically format your code before committing.
+exec make format-style
+END
+```
