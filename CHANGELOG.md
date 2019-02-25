@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.18.4
+
+* Add badges to help and reassure users/contributors
+
 ### 0.18.3
 
 * Update `setup.py` with missing dependencies
