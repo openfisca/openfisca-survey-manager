@@ -627,7 +627,15 @@ class AbstractSurveyScenario(object):
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
+        '''Initialises a survey scenario from data.
 
+        :param rebuild_input_data:  Whether or not to clean, format and save data.
+                                    Take a look at :func:`build_input_data`
+
+        :param data:                Contains the data, or metadata needed to know where to find it.
+        '''
+
+        # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
             data_year = data.get("data_year", self.year)
 
@@ -642,11 +650,8 @@ class AbstractSurveyScenario(object):
         self._set_role_variable_by_entity_key()
         self._set_used_as_input_variables_by_entity()
 
-        # si rebuild, il va aller travailler (nettoyer) les données pour qu'elles soivent OpenFisca-like
-        #
-        # pour les formatter et sauvergarder
-        #
-        # see build_input_data sur openfica_france_Data.scenatios
+        # When ``True`` it'll assume it is raw data and do all that described supra.
+        # When ``False``, it'll assume data is ready for consumption.
         if rebuild_input_data:
             if rebuild_kwargs is not None:
                 self.build_input_data(year = data_year, **rebuild_kwargs)
@@ -655,16 +660,16 @@ class AbstractSurveyScenario(object):
 
         debug = self.debug
         trace = self.trace
-        # Inverting reform and baseline because we are more likey
+
+        # Inverting reform and baseline because we are more likely
         # to use baseline input in reform than the other way around
         if self.baseline_tax_benefit_system is not None:
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
                 use_baseline = True)
 
-        # data c'est juste les metadonnées pour savoir où aller chercher les données
-        # sinon, je peux lui donner les dataFrame directement et ça marche comme même (par exemple si je ne veux pas les rebuilder)
+        # Note that I can pass a :class:`pd.DataFrame` directly, if I don't want to rebuild the data.
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
-        #
+
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
 
