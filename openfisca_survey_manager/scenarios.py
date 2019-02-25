@@ -636,8 +636,17 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
+        # bons ids pour les diff entities
         self._set_ids_and_roles_variables()
+
+        # quels sont les bons inputs vars
         self._set_used_as_input_variables_by_entity()
+
+        # si rebuild, il va aller travailler (nettoyer) les données pour qu'elles soivent OpenFisca-like
+        #
+        # pour les formatter et sauvergarder
+        #
+        # see build_input_data sur openfica_france_Data.scenatios
         if rebuild_input_data:
             if rebuild_kwargs is not None:
                 self.build_input_data(year = data_year, **rebuild_kwargs)
@@ -652,6 +661,8 @@ class AbstractSurveyScenario(object):
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
                 use_baseline = True)
 
+        # data c'est juste les metadonnées pour savoir où aller chercher les données
+        # sinon, je peux lui donner les dataFrame directement et ça marche comme même (par exemple si je ne veux pas les rebuilder)
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
         #
         if calibration_kwargs:
