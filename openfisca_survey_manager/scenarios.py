@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+from typing import Dict
+
 import logging
 import os
 import numpy as np
@@ -636,8 +638,8 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
-        # bons ids pour les diff entities
-        self._set_ids_and_roles_variables()
+        self._set_id_variable_by_entity_key()
+        self._set_role_variable_by_entity_key()
 
         # quels sont les bons inputs vars
         self._set_used_as_input_variables_by_entity()
@@ -1186,19 +1188,22 @@ class AbstractSurveyScenario(object):
                 **kwargs
                 )
 
-    def _set_ids_and_roles_variables(self):
-        id_variable_by_entity_key = self.id_variable_by_entity_key
-        role_variable_by_entity_key = self.role_variable_by_entity_key
-
-        if id_variable_by_entity_key is None:
+    def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
+        '''Identify and set the good ids for the different entities'''
+        if self.id_variable_by_entity_key is None:
             log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities
-                )
-        if role_variable_by_entity_key is None:
+                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
+
+        return self.id_variable_by_entity_key
+
+    def _set_role_variable_by_entity_key(self) -> Dict[str, str]:
+        '''Identify and set the good roles for the different entities'''
+        if self.role_variable_by_entity_key is None:
             self.role_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities
-                )
+                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities)
+
+        return self.role_variable_by_entity_key
 
     def _set_used_as_input_variables_by_entity(self):
         if self.used_as_input_variables_by_entity is not None:
