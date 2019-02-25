@@ -1,10 +1,15 @@
-# dump files
+# Config files
+raw_data.ini
+config.ini
+
+# Fixtures, dumps, personal tests
+openfisca_survey_manager/tests/data_files/fake.hdf5
 openfisca_survey_manager/tests/data_files/dump/
+openfisca_survey_manager/tests/test_read_dbf.py
 
 # Keys
 ./openfisca_bot
 ./openfisca_bot.pub
-
 
 # Vscode config
 .vscode
@@ -12,13 +17,6 @@ openfisca_survey_manager/tests/data_files/dump/
 # ignore tags files
 .tags*
 tags
-
-# Ignore personal tests
-openfisca_survey_manager/tests/test_read_dbf.py
-
-# Ignore config files
-raw_data.ini
-config.ini
 
 # Ignore temporary h5 files
 *.h5
@@ -88,8 +86,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-
-openfisca_survey_manager/tests/data_files/fake.hdf5
 
 # ctags file
 /tags
