@@ -3,10 +3,6 @@ all: test
 uninstall:
 	pip freeze | grep -v "^-e" | xargs pip uninstall -y
 
-install:
-	pip install --upgrade pip
-	pip install --editable . --upgrade
-
 clean:
 	rm -rf build dist
 	find . -name '*.pyc' -exec rm \{\} \;

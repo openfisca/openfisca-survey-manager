@@ -16,6 +16,8 @@ Development Status :: 2 - Pre-Alpha
 License :: OSI Approved :: GNU Affero General Public License v3
 Operating System :: POSIX
 Programming Language :: Python
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
 Topic :: Scientific/Engineering :: Information Analysis
 """
 
@@ -24,7 +26,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.18.3',
+    version = '0.18.4',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
