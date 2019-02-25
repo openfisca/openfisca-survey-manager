@@ -24,17 +24,109 @@ Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Usage
 
-To be able to use the survey manager you have to edit two configuration files.
+### Installation
 
-- Copy [raw_data_template.ini](raw_data_template.ini) to `raw_data.ini` and edit the latter to reference
-    the location of your raw data (SAS, stata, SPSS, CSV files). For paths in Windows, use `/` instead of `\` to separate folders. You do not need to put quotes, even when the path name contains spaces.
+First, install the package with `pip`:
 
-- Copy [config_template.ini](config_template.ini) to `config.ini` and edit its mandatory fields.
+```bash
+pip install --upgrade pip
+pip install openfisca-survey-manager
+```
 
-`raw_data.ini` and `config.ini` must not be committed (they are ignored by `.gitignore`).
+### Getting the config files directory path
 
-These configurations files will be used by the script [`build_collection.py`](openfisca_survey_manager/scripts/build_collection.py) to build the
-HDF files.
+To be able to use OpenFisca-Survey-Manager, you have to create two configuration files.
+
+To know where to copy them to, use the folling command:
+
+```bash
+build-collection --help
+```
+
+Take note of the default config files directory path:
+
+```bash
+usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
+                        [-v]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c COLLECTION, --collection COLLECTION
+                        name of collection to build or update
+  -d, --replace-data    erase existing survey data HDF5 file (instead of
+                        failing when HDF5 file already exists)
+  -m, --replace-metadata
+                        erase existing collection metadata JSON file (instead
+                        of just adding new surveys)
+  -p PATH, --path PATH  path to the config files directory (default =
+                        /your/path/.config/openfisca-survey-manager)
+  -s SURVEY, --survey SURVEY
+                        name of survey to build or update (default = all)
+  -v, --verbose         increase output verbosity
+```
+
+In your case, it is `/Users/you/.config/openfisca-survey-manager`.
+
+> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still expetimental though.
+
+### Editing the config files
+
+> `raw_data.ini` and `config.ini` must not be committed (they are already ignored by [`.gitignore`](.gitignore)).
+
+#### raw_data.ini
+
+Copy [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to `/your/path/.config/openfisca-survey-manager/raw_data.ini` and edit the latter to reference the location of your raw data (SAS, stata, SPSS, CSV files).
+
+> For paths in Windows, use `/` instead of `\` to separate folders. You do not need to put quotes, even when the path name contains spaces.
+
+It should look similar to this:
+
+```ini
+[revenue_survey]
+
+2014 = /path/to/your/raw/data/REVENUE_2014
+2015 = /path/to/your/raw/data/REVENUE_2015
+2016 = /path/to/your/raw/data/REVENUE_2016
+
+[housing_survey]
+
+2014 = /path/to/your/raw/data/HOUSING_2014
+```
+
+#### config.ini
+
+Copy [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to `/your/path/.config/openfisca-survey-manager/config.ini` and edit its mandatory fields.
+
+It should look similar to this:
+
+```ini
+[collections]
+collections_directory = /path/to/your/collections/directory
+
+[data]
+output_directory = /path/to/your/data/output/directory
+tmp_directory = /path/to/your/data/tmp/directory
+```
+
+> Make sure those directories exist, otherwise the script will fail.
+
+### Building the HDF5 files
+
+To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script:
+
+```bash
+build-collection -c revenue_survey -s 2015 -d -m -v
+```
+
+Or if you want to specify a different config files directory path:
+
+```bash
+build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
+```
+
+> The `--path /another/path` option is still experimental though.
+
+It should work. If it doesn't, please do not hesitate to [open an issue](https://github.com/openfisca/openfisca-survey-manager/issues/new).
 
 ## Development
 
