@@ -1,8 +1,12 @@
 # Changelog
 
+### 0.18.3
+
+* Update `setup.py` with missing dependencies
+
 ### 0.18.2
 
-* Incrmentally fixing Calibration
+* Incrementally fixing Calibration
 
 ### 0.18.1
 
