@@ -1,10 +1,18 @@
-# dump files
+# Config files
+.config
+raw_data.ini
+config.ini
+
+# Collections
+.collections
+
+# Fixtures, dumps, personal tests, etc.
+openfisca_survey_manager/tests/test_read_dbf.py
 openfisca_survey_manager/tests/data_files/dump/
-
-# Keys
-./openfisca_bot
-./openfisca_bot.pub
-
+openfisca_survey_manager/tests/data_files/config.ini
+openfisca_survey_manager/tests/data_files/fake.hdf5
+openfisca_survey_manager/tests/data_files/fake.json
+openfisca_survey_manager/tests/data_files/test_random_generator.json
 
 # Vscode config
 .vscode
@@ -13,19 +21,13 @@ openfisca_survey_manager/tests/data_files/dump/
 .tags*
 tags
 
-# Ignore personal tests
-openfisca_survey_manager/tests/test_read_dbf.py
-
-# Ignore config files
-raw_data.ini
-config.ini
-
 # Ignore temporary h5 files
 *.h5
 
 # Spyder junk
 .spyderworkspace
 .spyderproject
+.spyproject
 
 # Ignore emacs saves
 *~
@@ -70,7 +72,6 @@ nosetests.xml
 coverage.xml
 .pytest_cache
 
-
 # Translations
 *.mo
 
@@ -89,13 +90,7 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-openfisca_survey_manager/tests/data_files/fake.hdf5
-
 # ctags file
+.tags*
 /tags
-.spyproject
-openfisca_survey_manager/tests/data_files/config.ini
-openfisca_survey_manager/tests/data_files/test_random_generator.json
-openfisca_survey_manager/tests/data_files/fake.json
-openfisca_survey_manager/tests/data_files/config.ini
-openfisca_survey_manager/tests/data_files/config.ini
+tags

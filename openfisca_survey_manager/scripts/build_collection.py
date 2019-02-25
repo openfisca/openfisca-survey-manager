@@ -19,7 +19,6 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager import default_config_files_directory
 
-config_files_directory = default_config_files_directory
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
@@ -72,8 +71,14 @@ def create_data_file_by_format(directory_path = None):
     return {'stata': stata_files, 'sas': sas_files}
 
 
-def build_survey_collection(collection_name = None, replace_metadata = False, replace_data = False,
-        data_directory_path_by_survey_suffix = None, source_format = 'sas'):
+def build_survey_collection(
+        config_files_directory: str,
+        collection_name = None,
+        replace_metadata = False,
+        replace_data = False,
+        data_directory_path_by_survey_suffix = None,
+        source_format = 'sas',
+        ):
 
     assert collection_name is not None
     assert data_directory_path_by_survey_suffix is not None
@@ -120,7 +125,7 @@ Fix the option collections_directory in the collections section of your config f
     return survey_collection
 
 
-def check_template_config_files():
+def check_template_config_files(config_files_directory: str):
     raw_data_ini_path = os.path.join(config_files_directory, 'raw_data.ini')
     config_ini_path = os.path.join(config_files_directory, 'config.ini')
     raw_data_template_ini_path = os.path.join(config_files_directory, 'raw_data_template.ini')
@@ -163,11 +168,18 @@ def main():
         help = "erase existing survey data HDF5 file (instead of failing when HDF5 file already exists)")
     parser.add_argument('-m', '--replace-metadata', action = 'store_true', default = False,
         help = "erase existing collection metadata JSON file (instead of just adding new surveys)")
+    parser.add_argument('-p', '--path', help = f'path to the config files directory (default = {default_config_files_directory})')
     parser.add_argument('-s', '--survey', help = 'name of survey to build or update (default = all)')
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
-    if not check_template_config_files():
+
+    if args.path:
+        config_files_directory = args.path
+    else:
+        config_files_directory = default_config_files_directory
+
+    if not check_template_config_files(config_files_directory = config_files_directory):
         return
 
     config_parser = configparser.SafeConfigParser()
@@ -182,9 +194,15 @@ def main():
             }
 
     start_time = datetime.datetime.now()
-    build_survey_collection(collection_name = args.collection,
+
+    build_survey_collection(
+        collection_name = args.collection,
         data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
-        replace_metadata = args.replace_metadata, replace_data = args.replace_data, source_format = 'sas')
+        replace_metadata = args.replace_metadata,
+        replace_data = args.replace_data,
+        source_format = 'sas',
+        config_files_directory = config_files_directory,
+        )
 
     log.info("The program has been executed in {}".format(datetime.datetime.now() - start_time))
 
