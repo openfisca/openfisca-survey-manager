@@ -726,7 +726,7 @@ class AbstractSurveyScenario(object):
                 # TODO remove legacy use
                 collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
 
-                for legacy_role, flattened_role in collective_entity.flattened_roles.items():
+                for (legacy_role, flattened_role) in enumerate(collective_entity.flattened_roles):
                     if legacy_role < len(collective_entity.flattened_roles):
                         collective_entity.members_role = np.where(
                             collective_entity.members_legacy_role == legacy_role,
@@ -736,7 +736,7 @@ class AbstractSurveyScenario(object):
                     else:
                         collective_entity.members_role = np.where(
                             collective_entity.members_legacy_role >= len(collective_entity.flattened_roles),
-                            flattened_role,
+                            collective_entity.flattened_roles[-1],
                             collective_entity.members_role,
                             )
 
