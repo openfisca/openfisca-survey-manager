@@ -729,7 +729,7 @@ class AbstractSurveyScenario(object):
                 for legacy_role, flattened_role in collective_entity.flattened_roles.items():
                     if legacy_role < len(collective_entity.flattened_roles):
                         collective_entity.members_role = np.where(
-                            collective_entity.members_legacy_role == legacy_role),
+                            collective_entity.members_legacy_role == legacy_role,
                             flattened_role,
                             collective_entity.members_role,
                             )
