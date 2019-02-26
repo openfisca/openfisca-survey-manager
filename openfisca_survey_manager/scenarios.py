@@ -723,8 +723,22 @@ class AbstractSurveyScenario(object):
 
                 collective_entity.count = len(input_data_frame[_id_variable].unique())
                 collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
-                # TODO legacy use
+                # TODO remove legacy use
                 collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
+
+                for legacy_role, flattened_role in collective_entity.flattened_roles.items():
+                    if legacy_role < len(collective_entity.flattened_roles):
+                        collective_entity.members_role = np.where(
+                            collective_entity.members_legacy_role == legacy_role),
+                            flattened_role,
+                            collective_entity.members_role,
+                            )
+                    else:
+                        collective_entity.members_role = np.where(
+                            collective_entity.members_legacy_role >= len(collective_entity.flattened_roles),
+                            flattened_role,
+                            collective_entity.members_role,
+                            )
 
         else:
             entity.count = entity.step_size = len(input_data_frame)
