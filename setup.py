@@ -79,11 +79,6 @@ setup(
         'weightedcalcs',
         'wquantiles >= 0.3',
         ],
-    message_extractors = {
-        'openfisca_survey_manager': [
-            ('**.py', 'python', None),
-            ],
-        },
     packages = find_packages(),
     zip_safe = False,
     )
