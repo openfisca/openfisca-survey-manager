@@ -1210,9 +1210,9 @@ class AbstractSurveyScenario(object):
     def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
         '''Identify and set the good ids for the different entities'''
         if self.id_variable_by_entity_key is None:
-            log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
+            log.debug("Use default id_variable names:\n  {}".format(self.id_variable_by_entity_key))
 
         return self.id_variable_by_entity_key
 
