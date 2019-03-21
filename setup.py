@@ -48,7 +48,7 @@ setup(
             ],
         'dev': [
             'autopep8 >= 1.4.0, < 1.5.0',
-            'coveralls >=1.5.0,<1.7.0',
+            'coveralls >=1.5.0,<1.8.0',
             'flake8 >= 3.7.0, < 3.8.0',
             'openfisca-country-template >= 3.6.0, < 4.0.0',
             'pytest >= 4.0.0, < 5.0.0',
@@ -72,7 +72,7 @@ setup(
         'future',
         'humanize',
         'numpy >= 1.11, < 1.16',  # to work with tables
-        'openfisca-core >=25.2.2,<27.0.0',
+        'openfisca-core >=25.2.2,<28.0.0',
         'pandas >= 0.22',
         'pyxdg',
         'PyYAML',
