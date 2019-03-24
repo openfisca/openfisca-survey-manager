@@ -857,13 +857,13 @@ class AbstractSurveyScenario(object):
         self.neutralize_variables(tax_benefit_system)
         #
         simulation = simulations.Simulation(
-            opt_out_cache = True if self.cache_blacklist is not None else False,
-            period = period,
             tax_benefit_system = tax_benefit_system,
-            trace = trace,
-            memory_config = memory_config
             )
-        simulation.debug = debug,
+        simulation.debug = debug
+        simulation.memory_config = memory_config
+        simulation.opt_out_cache = True if self.cache_blacklist is not None else False,
+        simulation.period = period,
+        simulation.trace = trace,
 
         self.init_simulation(simulation = simulation, period = period, data = data)
         #
