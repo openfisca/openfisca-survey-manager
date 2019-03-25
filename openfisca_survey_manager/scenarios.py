@@ -858,6 +858,7 @@ class AbstractSurveyScenario(object):
         #
         simulation = simulations.Simulation(
             tax_benefit_system = tax_benefit_system,
+            entities_instances = tax_benefit_system.instantiate_entities(),
             )
         simulation.debug = debug
         simulation.memory_config = memory_config
