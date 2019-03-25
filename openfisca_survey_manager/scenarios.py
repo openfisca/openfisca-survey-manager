@@ -310,6 +310,11 @@ class AbstractSurveyScenario(object):
 
         assert period is not None
         if not isinstance(period, periods.Period):
+            print(type(period))
+            print(periods.Period)
+            print(id(type(period)))
+            print(id(periods.Period))
+
             period = periods.period(period)
         assert simulation is not None
         assert tax_benefit_system is not None
@@ -862,9 +867,9 @@ class AbstractSurveyScenario(object):
             )
         simulation.debug = debug
         simulation.memory_config = memory_config
-        simulation.opt_out_cache = True if self.cache_blacklist is not None else False,
-        simulation.period = period,
-        simulation.trace = trace,
+        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
+        simulation.period = period
+        simulation.trace = trace
 
         self.init_simulation(simulation = simulation, period = period, data = data)
         #
