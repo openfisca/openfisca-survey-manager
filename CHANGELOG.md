@@ -1,6 +1,10 @@
 # Changelog
 
-### 0.19.0 [#103](https://github.com/openfisca/openfisca-survey-manager/pull/103)
+### 0.19.1 [#107](https://github.com/openfisca/openfisca-survey-manager/pull/107)
+
+* Fix `set_table_in_survey`
+
+## 0.19.0 [#103](https://github.com/openfisca/openfisca-survey-manager/pull/103)
 
 * Add a `--path PATH` option to `build-collection`
 

@@ -190,11 +190,14 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             config_files_directory = data_dir,
             )
 
-    survey = Survey(
-        name = survey_name,
-        label = survey_label or None,
-        survey_collection = survey_collection,
-        )
+    try:
+        survey = survey_collection.get_survey(survey_name)
+    except AssertionError:
+        survey = Survey(
+            name = survey_name,
+            label = survey_label or None,
+            survey_collection = survey_collection,
+            )
 
     if survey.hdf5_file_path is None:
         config = survey.survey_collection.config
