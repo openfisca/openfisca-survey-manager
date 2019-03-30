@@ -36,7 +36,7 @@ jobs:
       - save_cache:
           key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
           paths:
-            - /tmp/venv/openfisca-france-data
+            - /tmp/venv/openfisca-survey-manager
 
       - save_cache:
           key: v1-py3-apt-{{ checksum "setup.py" }}
