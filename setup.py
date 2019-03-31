@@ -62,8 +62,8 @@ setup(
             'flake8 >=3.5.0, <3.8.0',
             'pycodestyle >=2.3.0, <2.6.0',
             'pytest >=3.0, <5.0.0',
-            'scipy',
-            'tables',
+            'scipy >= 1.2.1, < 2.0.0',
+            'tables >= 3.4.4, < 4.0.0',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
