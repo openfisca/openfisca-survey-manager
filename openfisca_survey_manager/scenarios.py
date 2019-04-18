@@ -14,7 +14,8 @@ import re
 import humanize
 
 
-from openfisca_core import periods, simulations
+from openfisca_core import periods
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
@@ -485,10 +486,10 @@ class AbstractSurveyScenario(object):
         else:
             self._dump_simulation(directory = directory)
 
-    def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
+    def init_all_entities(self, input_data_frame, builder, period = None, entity = None):
         assert period is not None
         if entity:
-            log.info('Initialasing simulation using input_data_frame for entity {} for period {}'.format(
+            log.info('Initialaiing simulation using input_data_frame for entity {} for period {}'.format(
                 entity, period))
         else:
             log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
@@ -861,6 +862,8 @@ class AbstractSurveyScenario(object):
         return simulation
 
     def init_simulation(self, tax_benefit_system, period, data):
+        builder = SimulationBuilder()
+
         data_year = data.get("data_year", self.year)
         survey = data.get('survey')
 
@@ -892,11 +895,7 @@ class AbstractSurveyScenario(object):
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
         if source_type == 'input_data_frame':
-            self.init_all_entities(
-                input_data_frame = source,
-                simulation = simulation,
-                period = period,
-                )
+            self.init_all_entities(source, builder, period)
 
         if source_type == 'input_data_table':
             # Case 1: fill simulation with a unique input_data_frame given by the attribute
@@ -910,7 +909,7 @@ class AbstractSurveyScenario(object):
 
             # input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
-            self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
+            self.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
         elif source_type == 'input_data_table_by_period':
             # Case 2: fill simulation with input_data_frame by period containing all entity variables
@@ -919,11 +918,11 @@ class AbstractSurveyScenario(object):
                 log.debug('From survey {} loading table {}'.format(survey, table))
                 input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
-                self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
+                self.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
         elif source_type == 'input_data_frame_by_entity_by_period':
             for period, input_data_frame_by_entity in source.items():
-                for entity in simulation.tax_benefit_system.entities:
+                for entity in tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
                         continue
