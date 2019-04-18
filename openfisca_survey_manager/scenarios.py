@@ -723,22 +723,9 @@ class AbstractSurveyScenario(object):
 
                 collective_entity.count = len(input_data_frame[_id_variable].unique())
                 collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
-                # TODO remove legacy use
-                collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
-
-                for (legacy_role, flattened_role) in enumerate(collective_entity.flattened_roles):
-                    if legacy_role < len(collective_entity.flattened_roles):
-                        collective_entity.members_role = np.where(
-                            collective_entity.members_legacy_role == legacy_role,
-                            flattened_role,
-                            collective_entity.members_role,
-                            )
-                    else:
-                        collective_entity.members_role = np.where(
-                            collective_entity.members_legacy_role >= len(collective_entity.flattened_roles),
-                            collective_entity.flattened_roles[-1],
-                            collective_entity.members_role,
-                            )
+                # TODO legacy use
+                print("*** init members_legacy_role", _role_variable, input_data_frame[_role_variable].astype('int').values)
+                collective_entity.members_role = input_data_frame[_role_variable].astype('int').values
 
         else:
             entity.count = entity.step_size = len(input_data_frame)
@@ -856,17 +843,12 @@ class AbstractSurveyScenario(object):
         period = periods.period(self.year)
         self.neutralize_variables(tax_benefit_system)
         #
-        simulation = simulations.Simulation(
-            tax_benefit_system = tax_benefit_system,
-            entities_instances = tax_benefit_system.instantiate_entities(),
-            )
+        simulation = self.init_simulation(tax_benefit_system, period, data)
         simulation.debug = debug
-        simulation.memory_config = memory_config
-        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
-        simulation.period = period
         simulation.trace = trace
-
-        self.init_simulation(simulation = simulation, period = period, data = data)
+        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
+        simulation.memory_config = memory_config
+        
         #
         if not use_baseline:
             self.simulation = simulation
@@ -878,9 +860,7 @@ class AbstractSurveyScenario(object):
         #
         return simulation
 
-    def init_simulation(self, simulation, period, data = None):
-
-        assert data is not None
+    def init_simulation(self, tax_benefit_system, period, data):
         data_year = data.get("data_year", self.year)
         survey = data.get('survey')
 
@@ -1210,9 +1190,9 @@ class AbstractSurveyScenario(object):
     def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
         '''Identify and set the good ids for the different entities'''
         if self.id_variable_by_entity_key is None:
+            log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
-            log.debug("Use default id_variable names:\n  {}".format(self.id_variable_by_entity_key))
 
         return self.id_variable_by_entity_key
 
