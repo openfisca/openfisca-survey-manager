@@ -741,12 +741,7 @@ class AbstractSurveyScenario(object):
                     column_name, entity.key, variable_instance.entity.key))
                 continue
 
-            init_variable_in_entity(
-                entity = entity,
-                variable_name = column_name,
-                series = column_serie,
-                period = period,
-                )
+            init_variable_in_entity(simulation, entity, column_name, column_serie, period)
 
     def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, entity = None):
         """
@@ -824,9 +819,9 @@ class AbstractSurveyScenario(object):
 
             entity = simulation.get_variable_entity(column_name)
             if entity.is_person:
-                init_variable_in_entity(entity, column_name, column_serie, period)
+                init_variable_in_entity(simulation, entity, column_name, column_serie, period)
             else:
-                init_variable_in_entity(entity, column_name, column_serie[index_by_entity_key[entity.key]], period)
+                init_variable_in_entity(simulation, entity, column_name, column_serie[index_by_entity_key[entity.key]], period)
 
     def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
         assert self.tax_benefit_system is not None
@@ -1257,8 +1252,7 @@ def get_weights(survey_scenario, variable):
     return weight_variable
 
 
-def init_variable_in_entity(entity, variable_name, series, period):
-    simulation = entity.simulation
+def init_variable_in_entity(simulation, entity, variable_name, series, period):
     variable = simulation.tax_benefit_system.variables[variable_name]
     if series.values.dtype != variable.dtype:
         log.debug(
