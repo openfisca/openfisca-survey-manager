@@ -740,7 +740,6 @@ class AbstractSurveyScenario(object):
         """
         Initialize the simulation period with current input_data_frame for an entity if specified
         """
-        BIM
         assert input_data_frame is not None
         assert period is not None
         assert simulation is not None
