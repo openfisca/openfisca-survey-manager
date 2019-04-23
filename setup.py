@@ -72,7 +72,7 @@ setup(
         'future',
         'humanize',
         'numpy >= 1.11, < 1.16',  # to work with tables
-        'openfisca-core >=25.2.2,<31.0.0',
+        'openfisca-core >=34.0.0,<35.0.0',
         'pandas >= 0.22',
         'pyxdg',
         'PyYAML',
