@@ -1291,12 +1291,3 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
             sorted(used_as_input_variables)))
         log.debug('The input_data_frame contains the following variables: \n {}'.format(
             sorted(list(input_data_frame.columns))))
-
-
-def get_ids_and_roles(tax_benefit_system):
-    id_variables = [
-        id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
-    role_variables = [
-        role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
-
-    return id_variables, role_variables
