@@ -932,6 +932,9 @@ class AbstractSurveyScenario(object):
         else:
             pass
 
+        if self.year is not None:
+            simulation.period = periods.period(self.year)
+
         return simulation
 
     def load_table(self, variables = None, collection = None, survey = None,
