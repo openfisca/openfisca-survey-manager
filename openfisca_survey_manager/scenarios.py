@@ -703,7 +703,7 @@ class AbstractSurveyScenario(object):
                 #     )
                 group_population.members_entity_id = input_data_frame[_id_variable].astype('int').values
                 flattened_roles = np.array(group_entity.flattened_roles)
-                group_population.members_role = flattened_roles[np.minimum(input_data_frame[_role_variable].astype('int').values, 2)]
+                group_population.members_role = flattened_roles[input_data_frame[_role_variable].astype('int').values]
 
         else:
             builder.declare_entity(entity.key, ids)
