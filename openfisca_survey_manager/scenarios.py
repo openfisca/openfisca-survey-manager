@@ -691,19 +691,22 @@ class AbstractSurveyScenario(object):
         ids = range(len(input_data_frame))
         if entity.is_person:
             builder.declare_person_entity(entity.key, ids)
-            for collective_entity in tax_benefit_system.group_entities:
-                _key = collective_entity.key
+            for group_entity in tax_benefit_system.group_entities:
+                _key = group_entity.key
                 _id_variable = self.id_variable_by_entity_key[_key]
                 _role_variable = self.role_variable_by_entity_key[_key]
-                collective_entity_instance = builder.declare_entity(_key, input_data_frame[_id_variable].unique())
-                collective_entity_instance.members_entity_id = input_data_frame[_id_variable].astype('int').values
-                # TODO legacy use
-                print("*** init members_legacy_role", _role_variable, input_data_frame[_role_variable].astype('int').values)
-                collective_entity_instance.members_role = input_data_frame[_role_variable].astype('int').values
+                group_population = builder.declare_entity(_key, input_data_frame[_id_variable].unique())
+                # builder.join_with_persons(
+                #     group_population,
+                #     input_data_frame[_id_variable].astype('int').values,
+                #     input_data_frame[_role_variable].astype('int').values,
+                #     )
+                group_population.members_entity_id = input_data_frame[_id_variable].astype('int').values
+                flattened_roles = np.array(group_entity.flattened_roles)
+                group_population.members_role = flattened_roles[np.minimum(input_data_frame[_role_variable].astype('int').values, 2)]
 
         else:
             builder.declare_entity(entity.key, ids)
-            # entity.count = entity.step_size = len(input_data_frame)
 
     def init_entity_data(self, entity, input_data_frame, period, simulation):
         """
