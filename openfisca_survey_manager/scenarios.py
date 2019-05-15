@@ -763,9 +763,10 @@ class AbstractSurveyScenario(object):
         for entity in tax_benefit_system.entities:
             self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
 
-            # if entity.is_person:
+            if entity.is_person:
+                continue
             #     entity.count = entity.step_size = len(input_data_frame)
-            # else:
+            else:
             #     entity.count = entity.step_size = \
             #         (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
             #     unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
@@ -775,10 +776,10 @@ class AbstractSurveyScenario(object):
 
             #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
             #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
-            #     index_by_entity_key[entity.key] = input_data_frame.loc[
-            #         input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
-            #         id_variable_by_entity_key[key]
-            #         ].sort_values().index
+                index_by_entity_key[entity.key] = input_data_frame.loc[
+                        input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
+                        id_variable_by_entity_key[entity.key]
+                        ].sort_values().index
 
         for column_name, column_serie in input_data_frame.iteritems():
             if role_variable_by_entity_key is not None:
