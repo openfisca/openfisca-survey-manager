@@ -777,9 +777,9 @@ class AbstractSurveyScenario(object):
             #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
             #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
                 index_by_entity_key[entity.key] = input_data_frame.loc[
-                        input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
-                        id_variable_by_entity_key[entity.key]
-                        ].sort_values().index
+                    input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
+                    id_variable_by_entity_key[entity.key]
+                    ].sort_values().index
 
         for column_name, column_serie in input_data_frame.iteritems():
             if role_variable_by_entity_key is not None:
