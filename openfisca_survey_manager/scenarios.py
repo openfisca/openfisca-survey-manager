@@ -426,7 +426,7 @@ class AbstractSurveyScenario(object):
                     ] = simulation.entities[entity.key].members_entity_id
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.entities[entity.key].members_legacy_role
+                    ] = simulation.entities[entity.key].members_role_index
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.entities[entity.key].members_position
@@ -774,7 +774,7 @@ class AbstractSurveyScenario(object):
             #             entity.count, entity.key, unique_ids_count)
 
             #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
-            #     entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
+            #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
             #     index_by_entity_key[entity.key] = input_data_frame.loc[
             #         input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
             #         id_variable_by_entity_key[key]
@@ -1187,7 +1187,7 @@ class AbstractSurveyScenario(object):
         '''Identify and set the good roles for the different entities'''
         if self.role_variable_by_entity_key is None:
             self.role_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities)
+                (entity.key, entity.key + '_role_index') for entity in self.tax_benefit_system.entities)
 
         return self.role_variable_by_entity_key
 
