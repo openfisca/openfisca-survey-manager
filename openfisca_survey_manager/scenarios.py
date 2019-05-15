@@ -765,17 +765,17 @@ class AbstractSurveyScenario(object):
 
             if entity.is_person:
                 continue
-            #     entity.count = entity.step_size = len(input_data_frame)
+                #     entity.count = entity.step_size = len(input_data_frame)
             else:
-            #     entity.count = entity.step_size = \
-            #         (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
-            #     unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
-            #     assert entity.count == unique_ids_count, \
-            #         "There are {0} person of role 0 in {1} but {2} {1}".format(
-            #             entity.count, entity.key, unique_ids_count)
+                #     entity.count = entity.step_size = \
+                #         (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
+                #     unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
+                #     assert entity.count == unique_ids_count, \
+                #         "There are {0} person of role 0 in {1} but {2} {1}".format(
+                #             entity.count, entity.key, unique_ids_count)
 
-            #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
-            #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
+                #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
+                #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
                 index_by_entity_key[entity.key] = input_data_frame.loc[
                     input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
                     id_variable_by_entity_key[entity.key]
