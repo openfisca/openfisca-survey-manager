@@ -696,14 +696,11 @@ class AbstractSurveyScenario(object):
                 _id_variable = self.id_variable_by_entity_key[_key]
                 _role_variable = self.role_variable_by_entity_key[_key]
                 group_population = builder.declare_entity(_key, input_data_frame[_id_variable].unique())
-                # builder.join_with_persons(
-                #     group_population,
-                #     input_data_frame[_id_variable].astype('int').values,
-                #     input_data_frame[_role_variable].astype('int').values,
-                #     )
-                group_population.members_entity_id = input_data_frame[_id_variable].astype('int').values
-                flattened_roles = np.array(group_entity.flattened_roles)
-                group_population.members_role = flattened_roles[input_data_frame[_role_variable].astype('int').values]
+                builder.join_with_persons(
+                    group_population,
+                    input_data_frame[_id_variable].astype('int').values,
+                    input_data_frame[_role_variable].astype('int').values,
+                    )
 
         else:
             builder.declare_entity(entity.key, ids)
