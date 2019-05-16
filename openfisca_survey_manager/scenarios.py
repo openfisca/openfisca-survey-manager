@@ -47,7 +47,7 @@ class AbstractSurveyScenario(object):
     trace = False
     used_as_input_variables = None
     used_as_input_variables_by_entity = None
-    weight_column_name_by_entity = None
+    weight_variable_by_entity = None
     year = None
 
     def build_input_data(self, **kwargs):
@@ -124,10 +124,10 @@ class AbstractSurveyScenario(object):
             assert filter_by in self.tax_benefit_system.variables, \
                 "{} is not a variables of the tax benefit system".format(filter_by)
 
-        if self.weight_column_name_by_entity:
-            weight_column_name_by_entity = self.weight_column_name_by_entity
+        if self.weight_variable_by_entity:
+            weight_variable_by_entity = self.weight_variable_by_entity
             entity_key = tax_benefit_system.variables[variable].entity.key
-            entity_weight = weight_column_name_by_entity[entity_key]
+            entity_weight = weight_variable_by_entity[entity_key]
         else:
             entity_weight = None
 
@@ -195,8 +195,8 @@ class AbstractSurveyScenario(object):
 
         variables = set(index + values + columns)
         # Select the entity weight corresponding to the variables that will provide values
-        if self.weight_column_name_by_entity is not None:
-            weight = self.weight_column_name_by_entity[entity_key]
+        if self.weight_variable_by_entity is not None:
+            weight = self.weight_variable_by_entity[entity_key]
             variables.add(weight)
         else:
             log.debug('There is no weight variable for entity {}'.format(entity_key))
@@ -993,7 +993,7 @@ class AbstractSurveyScenario(object):
                 continue
             if self.non_neutralizable_variables and (variable_name in self.non_neutralizable_variables):
                 continue
-            if self.weight_column_name_by_entity and (variable_name in self.weight_column_name_by_entity.values()):
+            if self.weight_variable_by_entity and (variable_name in self.weight_variable_by_entity.values()):
                 continue
 
             tax_benefit_system.neutralize_variable(variable_name)
@@ -1071,7 +1071,7 @@ class AbstractSurveyScenario(object):
         value_type = variable_instance.value_type
 
         if weighted:
-            weight_variable = self.weight_column_name_by_entity[variable_instance.entity.key]
+            weight_variable = self.weight_variable_by_entity[variable_instance.entity.key]
             weights = simulation.calculate(weight_variable, simulation.period)
 
         infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
@@ -1239,7 +1239,7 @@ def get_entity(survey_scenario, variable):
 
 def get_weights(survey_scenario, variable):
     entity = get_entity(survey_scenario, variable)
-    weight_variable = survey_scenario.weight_column_name_by_entity.get(entity.key)
+    weight_variable = survey_scenario.weight_variable_by_entity.get(entity.key)
     return weight_variable
 
 

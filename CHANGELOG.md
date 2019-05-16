@@ -1,14 +1,18 @@
 # Changelog
 
-## 0.22 [#123](https://github.com/openfisca/openfisca-survey-manager/pull/123)
+## 0.23.0 [#124](https://github.com/openfisca/openfisca-survey-manager/pull/124)
+
+* Rename weight_column_name_by_entity to weight_variable_by_entity
+
+## 0.22.0 [#123](https://github.com/openfisca/openfisca-survey-manager/pull/123)
 
 * Add github templates
 
-## 0.21 [#122](https://github.com/openfisca/openfisca-survey-manager/pull/122)
+## 0.21.0 [#122](https://github.com/openfisca/openfisca-survey-manager/pull/122)
 
 * Use SimulationBuilder.join_with_persons to initialize entites
 
-## 0.20 [#120](https://github.com/openfisca/openfisca-survey-manager/pull/120)
+## 0.20.0 [#120](https://github.com/openfisca/openfisca-survey-manager/pull/120)
 
 * Adapt to SimulatioBuilder shipping with openfisa-core v34
 
