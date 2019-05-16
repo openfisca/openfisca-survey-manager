@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20 [#120](https://github.com/openfisca/openfisca-survey-manager/pull/120)
+
+* Adapt to SimulatioBuilder shipping with openfisa-core v34
+
 ### 0.19.1 [#107](https://github.com/openfisca/openfisca-survey-manager/pull/107)
 
 * Fix `set_table_in_survey`

@@ -14,7 +14,8 @@ import re
 import humanize
 
 
-from openfisca_core import periods, simulations
+from openfisca_core import periods
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
@@ -425,7 +426,7 @@ class AbstractSurveyScenario(object):
                     ] = simulation.entities[entity.key].members_entity_id
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.entities[entity.key].members_legacy_role
+                    ] = simulation.entities[entity.key].members_role_index
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.entities[entity.key].members_position
@@ -485,60 +486,55 @@ class AbstractSurveyScenario(object):
         else:
             self._dump_simulation(directory = directory)
 
-    def init_all_entities(self, input_data_frame, simulation, period = None, entity = None):
+    def init_all_entities(self, tax_benefit_system, input_data_frame, builder, period = None):
         assert period is not None
-        if entity:
-            log.info('Initialasing simulation using input_data_frame for entity {} for period {}'.format(
-                entity, period))
-        else:
-            log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
+        log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
 
         if period.unit == YEAR:  # 1. year
-            self.init_simulation_with_data_frame(
+            simulation = self.init_simulation_with_data_frame(
+                tax_benefit_system,
                 input_data_frame = input_data_frame,
                 period = period,
-                simulation = simulation,
-                entity = entity,
+                builder = builder,
                 )
         elif period.unit == MONTH and period.size == 3:  # 2. quarter
             for offset in range(period.size):
                 period_item = period.first_month.offset(offset, MONTH)
-                self.init_simulation_with_data_frame(
+                simulation = self.init_simulation_with_data_frame(
+                    tax_benefit_system,
                     input_data_frame = input_data_frame,
                     period = period_item,
-                    simulation = simulation,
-                    entity = entity,
+                    builder = builder,
                     )
         elif period.unit == MONTH and period.size == 1:  # 3. months
-            self.init_simulation_with_data_frame(
+            simulation = self.init_simulation_with_data_frame(
+                tax_benefit_system,
                 input_data_frame = input_data_frame,
                 period = period,
-                simulation = simulation,
-                entity = entity,
+                builder = builder,
                 )
         else:
             log.info("Invalid period {}".format(period))
             raise
 
-    def filter_input_variables(self, input_data_frame = None, simulation = None):
+        return simulation
+
+    def filter_input_variables(self, input_data_frame = None):
         """
         Filter the input data frame from variables that won't be used or are set to be computed
         """
         assert input_data_frame is not None
-        assert simulation is not None
         id_variable_by_entity_key = self.id_variable_by_entity_key
         role_variable_by_entity_key = self.role_variable_by_entity_key
         used_as_input_variables = self.used_as_input_variables
 
-        tax_benefit_system = simulation.tax_benefit_system
+        tax_benefit_system = self.tax_benefit_system
         variables = tax_benefit_system.variables
 
         id_variables = [
-            id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
         role_variables = [
-            role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
         log.debug('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
 
@@ -676,153 +672,113 @@ class AbstractSurveyScenario(object):
         if inflation_kwargs:
             self.inflate(**inflation_kwargs)
 
-    def init_entity(self, entity = None, input_data_frame = None, period = None, simulation = None):
+    def init_entity_structure(self, tax_benefit_system, entity, input_data_frame, builder):
         """
-        Initialize the simulation period with current input_data_frame
+        Initialize the simulation with tax_benefit_system entities and input_data_frame
         """
-        assert entity is not None
-        assert input_data_frame is not None
-        assert period is not None
-        assert simulation is not None
-        used_as_input_variables = self.used_as_input_variables_by_entity[entity]
-
-        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
-        if variables_mismatch:
-            log.info(
-                'The following variables are used as input variables are not present in the input data frame: \n {}'.format(
-                    sorted(variables_mismatch)))
-        if variables_mismatch:
-            log.debug('The following variables are used as input variables: \n {}'.format(
-                sorted(used_as_input_variables)))
-            log.debug('The input_data_frame contains the following variables: \n {}'.format(
-                sorted(list(input_data_frame.columns))))
-
-        entity = simulation.entities[entity]
         id_variables = [
-            self.id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            self.id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
         role_variables = [
-            self.role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            self.role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
         if entity.is_person:
             for id_variable in id_variables + role_variables:
                 assert id_variable in input_data_frame.columns, \
                     "Variable {} is not present in input dataframe".format(id_variable)
 
-        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation)
+        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
 
+        ids = range(len(input_data_frame))
         if entity.is_person:
-            entity.count = entity.step_size = len(input_data_frame)
-            for collective_entity in simulation.entities.values():
-                if collective_entity.is_person:
-                    continue
-                _key = collective_entity.key
+            builder.declare_person_entity(entity.key, ids)
+            for group_entity in tax_benefit_system.group_entities:
+                _key = group_entity.key
                 _id_variable = self.id_variable_by_entity_key[_key]
                 _role_variable = self.role_variable_by_entity_key[_key]
-
-                collective_entity.count = len(input_data_frame[_id_variable].unique())
-                collective_entity.members_entity_id = input_data_frame[_id_variable].astype('int').values
-                # TODO remove legacy use
-                collective_entity.members_legacy_role = input_data_frame[_role_variable].astype('int').values
-
-                for (legacy_role, flattened_role) in enumerate(collective_entity.flattened_roles):
-                    if legacy_role < len(collective_entity.flattened_roles):
-                        collective_entity.members_role = np.where(
-                            collective_entity.members_legacy_role == legacy_role,
-                            flattened_role,
-                            collective_entity.members_role,
-                            )
-                    else:
-                        collective_entity.members_role = np.where(
-                            collective_entity.members_legacy_role >= len(collective_entity.flattened_roles),
-                            collective_entity.flattened_roles[-1],
-                            collective_entity.members_role,
-                            )
+                group_population = builder.declare_entity(_key, input_data_frame[_id_variable].unique())
+                # builder.join_with_persons(
+                #     group_population,
+                #     input_data_frame[_id_variable].astype('int').values,
+                #     input_data_frame[_role_variable].astype('int').values,
+                #     )
+                group_population.members_entity_id = input_data_frame[_id_variable].astype('int').values
+                flattened_roles = np.array(group_entity.flattened_roles)
+                group_population.members_role = flattened_roles[input_data_frame[_role_variable].astype('int').values]
 
         else:
-            entity.count = entity.step_size = len(input_data_frame)
+            builder.declare_entity(entity.key, ids)
+
+    def init_entity_data(self, entity, input_data_frame, period, simulation):
+        """
+        Initialize the simulation period with current input_data_frame
+        """
+        used_as_input_variables = self.used_as_input_variables_by_entity[entity.key]
+        diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
 
         for column_name, column_serie in input_data_frame.iteritems():
-            if column_name in (id_variables + role_variables):
+            variable_instance = self.tax_benefit_system.variables.get(column_name)
+            if variable_instance is None:
                 continue
 
-            variable_instance = self.tax_benefit_system.variables.get(column_name)
             if variable_instance.entity.key != entity.key:
                 log.info("Ignoring variable {} which is not part of entity {} but {}".format(
                     column_name, entity.key, variable_instance.entity.key))
                 continue
 
-            init_variable_in_entity(
-                entity = entity,
-                variable_name = column_name,
-                series = column_serie,
-                period = period,
-                )
+            init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
-    def init_simulation_with_data_frame(self, input_data_frame = None, period = None, simulation = None, entity = None):
+    def init_simulation_with_data_frame(self, tax_benefit_system, input_data_frame, period, builder):
         """
         Initialize the simulation period with current input_data_frame for an entity if specified
         """
-        assert input_data_frame is not None
-        assert period is not None
-        assert simulation is not None
         used_as_input_variables = self.used_as_input_variables
         id_variable_by_entity_key = self.id_variable_by_entity_key
         role_variable_by_entity_key = self.role_variable_by_entity_key
 
-        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
-        if variables_mismatch:
-            log.info(
-                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
-                    sorted(variables_mismatch)))
-        if variables_mismatch:
-            log.debug('The following variables are used as input variables: \n {}'.format(
-                sorted(used_as_input_variables)))
-            log.debug('The input_data_frame contains the following variables: \n {}'.format(
-                sorted(list(input_data_frame.columns))))
+        diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
 
         id_variables = [
-            id_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
         role_variables = [
-            role_variable_by_entity_key[_entity.key] for _entity in simulation.entities.values()
-            if not _entity.is_person]
+            role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
         for id_variable in id_variables + role_variables:
-            entity_key = entity.key if entity is not None else None
-            if (entity_key is not None) and (not simulation.entities[entity].is_person):
-                assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]], \
-                    "variable {} for entity {} is not valid (not {} nor {})".format(
-                        id_variable,
-                        entity_key,
-                        id_variable_by_entity_key[entity_key],
-                        role_variable_by_entity_key[entity_key],
-                        )
-                continue
+            # entity_key = entity.key if entity is not None else None
+            # if (entity_key is not None) and (not simulation.entities[entity].is_person):
+            #     assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]], \
+            #         "variable {} for entity {} is not valid (not {} nor {})".format(
+            #             id_variable,
+            #             entity_key,
+            #             id_variable_by_entity_key[entity_key],
+            #             role_variable_by_entity_key[entity_key],
+            #             )
+            #     continue
             assert id_variable in input_data_frame.columns, \
                 "Variable {} is not present in input dataframe".format(id_variable)
 
-        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame, simulation = simulation)
+        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
 
         index_by_entity_key = dict()
 
-        for key, entity in simulation.entities.items():
-            if entity.is_person:
-                entity.count = entity.step_size = len(input_data_frame)
-            else:
-                entity.count = entity.step_size = \
-                    (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
-                unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
-                assert entity.count == unique_ids_count, \
-                    "There are {0} person of role 0 in {1} but {2} {1}".format(
-                        entity.count, entity.key, unique_ids_count)
+        for entity in tax_benefit_system.entities:
+            self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
 
-                entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
-                entity.members_legacy_role = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
+            if entity.is_person:
+                continue
+                #     entity.count = entity.step_size = len(input_data_frame)
+            else:
+                #     entity.count = entity.step_size = \
+                #         (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
+                #     unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
+                #     assert entity.count == unique_ids_count, \
+                #         "There are {0} person of role 0 in {1} but {2} {1}".format(
+                #             entity.count, entity.key, unique_ids_count)
+
+                #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
+                #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
                 index_by_entity_key[entity.key] = input_data_frame.loc[
                     input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
-                    id_variable_by_entity_key[key]
+                    id_variable_by_entity_key[entity.key]
                     ].sort_values().index
 
         for column_name, column_serie in input_data_frame.iteritems():
@@ -834,11 +790,14 @@ class AbstractSurveyScenario(object):
                 if column_name in id_variable_by_entity_key.values():
                     continue
 
-            entity = simulation.get_variable_entity(column_name)
+            simulation = builder.build(tax_benefit_system)
+            entity = tax_benefit_system.variables[column_name].entity
             if entity.is_person:
-                init_variable_in_entity(entity, column_name, column_serie, period)
+                init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
             else:
-                init_variable_in_entity(entity, column_name, column_serie[index_by_entity_key[entity.key]], period)
+                init_variable_in_entity(simulation, entity.key, column_name, column_serie[index_by_entity_key[entity.key]], period)
+
+        return simulation
 
     def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
         assert self.tax_benefit_system is not None
@@ -856,17 +815,12 @@ class AbstractSurveyScenario(object):
         period = periods.period(self.year)
         self.neutralize_variables(tax_benefit_system)
         #
-        simulation = simulations.Simulation(
-            tax_benefit_system = tax_benefit_system,
-            entities_instances = tax_benefit_system.instantiate_entities(),
-            )
+        simulation = self.init_simulation(tax_benefit_system, period, data)
         simulation.debug = debug
-        simulation.memory_config = memory_config
-        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
-        simulation.period = period
         simulation.trace = trace
+        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
+        simulation.memory_config = memory_config
 
-        self.init_simulation(simulation = simulation, period = period, data = data)
         #
         if not use_baseline:
             self.simulation = simulation
@@ -878,9 +832,10 @@ class AbstractSurveyScenario(object):
         #
         return simulation
 
-    def init_simulation(self, simulation, period, data = None):
+    def init_simulation(self, tax_benefit_system, period, data):
+        builder = SimulationBuilder()
+        builder.create_entities(tax_benefit_system)
 
-        assert data is not None
         data_year = data.get("data_year", self.year)
         survey = data.get('survey')
 
@@ -912,11 +867,7 @@ class AbstractSurveyScenario(object):
         input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
         if source_type == 'input_data_frame':
-            self.init_all_entities(
-                input_data_frame = source,
-                simulation = simulation,
-                period = period,
-                )
+            simulation = self.init_all_entities(tax_benefit_system, source, builder, period)
 
         if source_type == 'input_data_table':
             # Case 1: fill simulation with a unique input_data_frame given by the attribute
@@ -928,9 +879,8 @@ class AbstractSurveyScenario(object):
             else:
                 NotImplementedError
 
-            # input_data_frame = self.input_data_frame.copy()
             self.custom_input_data_frame(input_data_frame, period = period)
-            self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
+            simulation = self.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
 
         elif source_type == 'input_data_table_by_period':
             # Case 2: fill simulation with input_data_frame by period containing all entity variables
@@ -939,39 +889,57 @@ class AbstractSurveyScenario(object):
                 log.debug('From survey {} loading table {}'.format(survey, table))
                 input_data_frame = self.load_table(survey = survey, table = table)
                 self.custom_input_data_frame(input_data_frame, period = period)
-                self.init_all_entities(input_data_frame, simulation, period)  # monolithic dataframes
+                simulation = self.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
 
         elif source_type == 'input_data_frame_by_entity_by_period':
             for period, input_data_frame_by_entity in source.items():
-                for entity in simulation.tax_benefit_system.entities:
+                for entity in tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
                         continue
-                    self.init_entity(
-                        entity = entity.key,
-                        input_data_frame = input_data_frame,
-                        period = period,
-                        simulation = simulation,
-                        )
+                    self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
+
+            simulation = builder.build(tax_benefit_system)
+            for period, input_data_frame_by_entity in source.items():
+                for entity in tax_benefit_system.entities:
+                    input_data_frame = input_data_frame_by_entity.get(entity.key)
+                    if input_data_frame is None:
+                        continue
+                    self.init_entity_data(entity, input_data_frame, period, simulation)
 
         elif source_type == 'input_data_table_by_entity_by_period':
             # Case 3: fill simulation with input_data_table by entity_by_period containing a dictionnary
             # of all periods containing a dictionnary of entity variables
             input_data_table_by_entity_by_period = source
+            simulation = None
             for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
                 period = periods.period(period)
-                for entity, table in input_data_table_by_entity.items():
+
+                if simulation is None:
+                    for entity in tax_benefit_system.entities:
+                        table = input_data_table_by_entity.get(entity.key)
+                        if table is None:
+                            continue
+                        survey = 'input'
+                        input_data_frame = self.load_table(survey = survey, table = table)
+                        self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
+
+                    simulation = builder.build(tax_benefit_system)
+
+                for entity in tax_benefit_system.entities:
+                    table = input_data_table_by_entity.get(entity.key)
+                    if table is None:
+                        continue
                     survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
-                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity)
-                    self.init_entity(
-                        entity = entity,
-                        input_data_frame = input_data_frame,
-                        period = period,
-                        simulation = simulation,
-                        )
+                    self.init_entity_data(entity, input_data_frame, period, simulation)
         else:
             pass
+
+        if self.year is not None:
+            simulation.period = periods.period(self.year)
+
+        return simulation
 
     def load_table(self, variables = None, collection = None, survey = None,
             table = None):
@@ -1210,9 +1178,9 @@ class AbstractSurveyScenario(object):
     def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
         '''Identify and set the good ids for the different entities'''
         if self.id_variable_by_entity_key is None:
+            log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
-            log.debug("Use default id_variable names:\n  {}".format(self.id_variable_by_entity_key))
 
         return self.id_variable_by_entity_key
 
@@ -1220,7 +1188,7 @@ class AbstractSurveyScenario(object):
         '''Identify and set the good roles for the different entities'''
         if self.role_variable_by_entity_key is None:
             self.role_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_legacy_role') for entity in self.tax_benefit_system.entities)
+                (entity.key, entity.key + '_role_index') for entity in self.tax_benefit_system.entities)
 
         return self.role_variable_by_entity_key
 
@@ -1278,8 +1246,7 @@ def get_weights(survey_scenario, variable):
     return weight_variable
 
 
-def init_variable_in_entity(entity, variable_name, series, period):
-    simulation = entity.simulation
+def init_variable_in_entity(simulation, entity, variable_name, series, period):
     variable = simulation.tax_benefit_system.variables[variable_name]
     if series.values.dtype != variable.dtype:
         log.debug(
@@ -1298,8 +1265,8 @@ def init_variable_in_entity(entity, variable_name, series, period):
                 series.isnull().sum(), series.notnull().sum(), variable_name)
 
     array = series.values.astype(variable.dtype)
-    assert array.size == entity.count, 'Entity {}: bad size for variable {} ({} instead of {})'.format(
-        entity.key, variable_name, array.size, entity.count)
+    # assert array.size == entity.count, 'Entity {}: bad size for variable {} ({} instead of {})'.format(
+    #     entity.key, variable_name, array.size, entity.count)
     # TODO is the next line needed ?
     # Might be due to values returning also ndarray like objects
     # for instance for categories or
@@ -1318,3 +1285,16 @@ def init_variable_in_entity(entity, variable_name, series, period):
 
     else:
         simulation.set_input(variable_name, period, np_array)
+
+
+def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
+    variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
+    if variables_mismatch:
+        log.info(
+            'The following variables are used as input variables are not present in the input data frame: \n {}'.format(
+                sorted(variables_mismatch)))
+    if variables_mismatch:
+        log.debug('The following variables are used as input variables: \n {}'.format(
+            sorted(used_as_input_variables)))
+        log.debug('The input_data_frame contains the following variables: \n {}'.format(
+            sorted(list(input_data_frame.columns))))

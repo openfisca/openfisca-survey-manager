@@ -39,7 +39,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
-        ['household_id', 'household_legacy_role', 'household_role', 'person_id']
+        ['household_id', 'household_role_index', 'household_role', 'person_id']
         >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
         []
     """
@@ -54,17 +54,17 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     #
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
-    # A legacy role is an index that every person within an entity has.
-    # For instance, the 'first_parent' has legacy role 0, the 'second_parent' 1, the first 'child' 2, the second 3, etc.
-    members_legacy_role = np.empty(nb_persons, dtype = int)
+    # A role index is an index that every person within an entity has.
+    # For instance, the 'first_parent' has role index 0, the 'second_parent' 1, the first 'child' 2, the second 2, etc.
+    members_role_index = np.empty(nb_persons, dtype = int)
     id_group = -1
     for id_person in range(nb_persons):
         if id_person in adults:
             id_group += 1
-            legacy_role = 0
+            role_index = 0
         else:
-            legacy_role = 2 if legacy_role == 0 else legacy_role + 1
-        members_legacy_role[id_person] = legacy_role
+            role_index = 2
+        members_role_index[id_person] = role_index
         members_entity_id[id_person] = id_group
 
     for entity in tax_benefit_system.entities:
@@ -73,9 +73,9 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         key = entity.key
         person_dataframe = input_dataframe_by_entity[person_entity.key]
         person_dataframe[key + '_id'] = members_entity_id
-        person_dataframe[key + '_legacy_role'] = members_legacy_role
+        person_dataframe[key + '_role_index'] = members_role_index
         person_dataframe[key + '_role'] = np.where(
-            members_legacy_role == 0, entity.flattened_roles[0].key, entity.flattened_roles[-1].key)
+            members_role_index == 0, entity.flattened_roles[0].key, entity.flattened_roles[-1].key)
         input_dataframe_by_entity[key] = pd.DataFrame({
             key + '_id': range(nb_groups)
             })
@@ -134,7 +134,7 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
         >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
-        ['household_id', 'household_legacy_role', 'household_role', 'person_id', 'salary']
+        ['household_id', 'household_role_index', 'household_role', 'person_id', 'salary']
         >>> input_dataframe_by_entity['person'].salary.max() <= 50000
         True
         >>> len(input_dataframe_by_entity['person'].salary)
