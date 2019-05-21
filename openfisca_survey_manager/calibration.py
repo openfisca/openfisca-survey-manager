@@ -64,7 +64,7 @@ class Calibration(object):
         self.filter_by = filter_by = survey_scenario.calculate_variable(
             variable = self.filter_by_name, period = period)
         # TODO: shoud not be france specific
-        self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity['menage']
+        self.weight_name = weight_name = self.survey_scenario.weight_variable_by_entity['menage']
         self.initial_weight_name = weight_name + "_ini"
         self.initial_weight = initial_weight = survey_scenario.calculate_variable(
             variable = weight_name, period = period)
