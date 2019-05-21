@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22 [#123](https://github.com/openfisca/openfisca-survey-manager/pull/123)
+
+* Add github templates
+
 ## 0.21 [#122](https://github.com/openfisca/openfisca-survey-manager/pull/122)
 
 * Use SimulationBuilder.join_with_persons to initialize entites
