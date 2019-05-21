@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.21 [#121](https://github.com/openfisca/openfisca-survey-manager/pull/121)
+
+* Use SimulatioBuilder.join_with_persons to initialize entites
+
 ## 0.20 [#120](https://github.com/openfisca/openfisca-survey-manager/pull/120)
 
 * Adapt to SimulatioBuilder shipping with openfisa-core v34
