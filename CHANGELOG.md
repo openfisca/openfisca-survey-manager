@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.24.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Fix a bug in create_data_frame_by_entity
+
 ## 0.23.0 [#124](https://github.com/openfisca/openfisca-survey-manager/pull/124)
 
 * Rename weight_column_name_by_entity to weight_variable_by_entity
