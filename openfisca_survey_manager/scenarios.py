@@ -721,7 +721,6 @@ class AbstractSurveyScenario(object):
                 log.info("Ignoring variable {} which is not part of entity {} but {}".format(
                     column_name, entity.key, variable_instance.entity.key))
                 continue
-            print(column_name, column_serie, period)
             init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
     def init_simulation_with_data_frame(self, tax_benefit_system, input_data_frame, period, builder):
@@ -893,7 +892,6 @@ class AbstractSurveyScenario(object):
                 period = periods.period(period)
                 for entity in tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
-                    print(input_data_frame.columns)
                     if input_data_frame is None:
                         continue
                     self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
