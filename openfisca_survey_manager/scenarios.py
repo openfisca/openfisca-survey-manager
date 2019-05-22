@@ -402,9 +402,8 @@ class AbstractSurveyScenario(object):
             entity_key = entity.key
             column_names = [
                 column.name for column in columns_to_fetch
-                if column.entity == entity
+                if column.entity.key == entity_key
                 ]
-
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
                     (column_name, self.calculate_variable(
@@ -416,6 +415,7 @@ class AbstractSurveyScenario(object):
                 person_entity = entity
             else:
                 non_person_entities.append(entity)
+
         if index:
             person_data_frame = openfisca_data_frame_by_entity_key.get(person_entity.key)
             if person_data_frame is None:
@@ -721,7 +721,6 @@ class AbstractSurveyScenario(object):
                 log.info("Ignoring variable {} which is not part of entity {} but {}".format(
                     column_name, entity.key, variable_instance.entity.key))
                 continue
-
             init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
     def init_simulation_with_data_frame(self, tax_benefit_system, input_data_frame, period, builder):
@@ -890,6 +889,7 @@ class AbstractSurveyScenario(object):
 
         elif source_type == 'input_data_frame_by_entity_by_period':
             for period, input_data_frame_by_entity in source.items():
+                period = periods.period(period)
                 for entity in tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
@@ -901,6 +901,7 @@ class AbstractSurveyScenario(object):
                 for entity in tax_benefit_system.entities:
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
+                        log.debug("No input_data_frame found for entity {} at period {}".format(entity, period))
                         continue
                     self.init_entity_data(entity, input_data_frame, period, simulation)
 

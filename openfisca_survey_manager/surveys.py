@@ -168,7 +168,7 @@ Contains the following tables : \n""".format(self.name, self.label)
                         break
             return list(data_frame.columns)
         else:
-            print('table {} was not found in {}'.format(table, store.filename))
+            log.info('table {} was not found in {}'.format(table, store.filename))
             return list()
 
     def get_value(self, variable = None, table = None):
