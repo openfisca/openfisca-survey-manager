@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.24.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+## 0.24.0 [#127](https://github.com/openfisca/openfisca-survey-manager/pull/127)
 
 * Fix a bug in create_data_frame_by_entity
 
