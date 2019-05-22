@@ -4,7 +4,6 @@ from __future__ import division
 
 from typing import Dict, List
 
-import copy
 import logging
 import os
 import numpy as np
@@ -233,7 +232,7 @@ class AbstractSurveyScenario(object):
             for variable in expression_variables:
                 variables.add(variable)
 
-        for variable in variables|set(values):
+        for variable in variables | set(values):
             if variable in tax_benefit_system.variables:
                 assert tax_benefit_system.variables[variable].entity.key == entity_key, \
                     'The variable {} does not belong to entity {}'.format(
@@ -272,12 +271,12 @@ class AbstractSurveyScenario(object):
         if use_baseline_for_columns is not None:
             use_baseline_df = use_baseline_for_columns
         data_frame2 = self.create_data_frame_by_entity(
-                    variables = variables,
-                    period = period,
-                    # use baseline if explicited or when computing difference
-                    use_baseline = use_baseline_df,
-                    index = False
-                    )[entity_key]
+            variables = variables,
+            period = period,
+            # use baseline if explicited or when computing difference
+            use_baseline = use_baseline_df,
+            index = False
+            )[entity_key]
 
         for expression in expressions:
             data_frame2[expression] = data_frame2.eval(expression)
@@ -327,7 +326,6 @@ class AbstractSurveyScenario(object):
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
-
 
     def calculate_variable(self, variable = None, period = None, use_baseline = False):
         """
