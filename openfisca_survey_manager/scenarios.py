@@ -167,6 +167,34 @@ class AbstractSurveyScenario(object):
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
             missing_variable_default_value = np.nan, concat_axis = None):
+        """Compute a pivot table of agregated values casted along specified index and columns
+
+        :param aggfunc: Aggregation function, defaults to 'mean'
+        :type aggfunc: str, optional
+        :param columns: Variable(s) in columns, defaults to None
+        :type columns: list, optional
+        :param difference: Compute difference, defaults to False
+        :type difference: bool, optional
+        :param filter_by: Boolean variable to filter by, defaults to None
+        :type filter_by: str, optional
+        :param index: Variable(s) in index (lines), defaults to None
+        :type index: list, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Compute for baseline, defaults to False
+        :type use_baseline: bool, optional
+        :param use_baseline_for_columns: Use columns from baseline columns values, defaults to None
+        :type use_baseline_for_columns: bool, optional
+        :param values: Aggregated variable(s) within cells, defaults to None
+        :type values: list, optional
+        :param missing_variable_default_value: Default value for missing variables, defaults to np.nan
+        :type missing_variable_default_value: float, optional
+        :param concat_axis: Axis to concatenate along (index = 0, columns = 1), defaults to None
+        :type concat_axis: int, optional
+        :return: Pivot table
+        :rtype: DataFrame
+        """
+
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
@@ -227,8 +255,8 @@ class AbstractSurveyScenario(object):
 
         for expression in expressions:
             expression_variables = get_words(expression)
-            entity_key_expression = assert_variables_in_same_entity(self, expression_variables)
-            assert entity_key_expression == entity_key
+            expression_entity_key = assert_variables_in_same_entity(self, expression_variables)
+            assert expression_entity_key == entity_key
             for variable in expression_variables:
                 variables.add(variable)
 
@@ -267,31 +295,34 @@ class AbstractSurveyScenario(object):
             else:
                 data_frame = None
 
-        use_baseline_df = use_baseline or difference
+        use_baseline_data = use_baseline or difference
         if use_baseline_for_columns is not None:
-            use_baseline_df = use_baseline_for_columns
-        data_frame2 = self.create_data_frame_by_entity(
+            use_baseline_data = use_baseline_for_columns
+
+        baseline_vars_data_frame = self.create_data_frame_by_entity(
             variables = variables,
             period = period,
             # use baseline if explicited or when computing difference
-            use_baseline = use_baseline_df,
+            use_baseline = use_baseline_data,
             index = False
             )[entity_key]
 
         for expression in expressions:
-            data_frame2[expression] = data_frame2.eval(expression)
+            baseline_vars_data_frame[expression] = baseline_vars_data_frame.eval(expression)
         if filter_by is not None:
-            filter_dummy = data_frame2[filter_by]
+            filter_dummy = baseline_vars_data_frame[filter_by]
         if weight is None:
             weight = 'weight'
-            data_frame2[weight] = 1.0
-        data_frame2[weight] = data_frame2[weight] * filter_dummy
-        for column in data_frame2.columns:
-            if column in values:
-                data_frame2.drop(columns = [column], inplace = True)
+            baseline_vars_data_frame[weight] = 1.0
+        baseline_vars_data_frame[weight] = baseline_vars_data_frame[weight] * filter_dummy
+        # We drop variables that are in values in baseline_vars_data_frame
+        dropped_columns = [
+            column for column in baseline_vars_data_frame.columns if column in values
+            ]
+        baseline_vars_data_frame.drop(columns = dropped_columns, inplace = True)
 
         data_frame = pd.concat(
-            [data_frame2, data_frame],
+            [baseline_vars_data_frame, data_frame],
             axis = 1,
             )
 
@@ -327,9 +358,17 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
-    def calculate_variable(self, variable = None, period = None, use_baseline = False):
-        """
-        Compute and return the variable values for period and baseline or reform tax_benefit_system
+    def calculate_variable(self, variable, period = None, use_baseline = False):
+        """Compute variable values for period and baseline or reform tax benefit and system
+
+        :param variable: Variable to compute
+        :type variable: str, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Use baseline tax and benefit system, defaults to False
+        :type use_baseline: bool, optional
+        :return: Variable values
+        :rtype: numpy.ndarray
         """
         if use_baseline:
             assert self.baseline_simulation is not None, "self.baseline_simulation is None"
