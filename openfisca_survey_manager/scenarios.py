@@ -178,10 +178,10 @@ class AbstractSurveyScenario(object):
             entity_key = tax_benefit_system.variables[variable].entity.key
             filter_by_entity_key = tax_benefit_system.variables[filter_by_variable].entity.key
             assert filter_by_entity_key == entity_key, \
-                ("You tried to compute agregates for variable '{}', of entity {}"
-                " filtering by variable '{}', of entity {}. This is not possible."
-                " Please choose a filter-by variable of same entity as '{}'."
-                .format(variable, entity_key, filter_by_variable, filter_by_entity_key, variable))
+                ("You tried to compute agregates for variable '{0}', of entity {1}"
+                " filtering by variable '{2}', of entity {3}. This is not possible."
+                " Please choose a filter-by variable of same entity as '{0}'."
+                .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
         if self.weight_variable_by_entity:
             weight_variable_by_entity = self.weight_variable_by_entity
@@ -207,13 +207,17 @@ class AbstractSurveyScenario(object):
             filter_dummy = pd.DataFrame({'{}'.format(filter_by_variable): filter_dummy}).eval(filter_by)
 
         if aggfunc == 'sum':
-            return (value * weight * filter_dummy).sum()
+            aggregate = (value * weight * filter_dummy).sum()
         elif aggfunc == 'mean':
-            return (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
+            aggregate = (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
         elif aggfunc == 'count':
-            return (weight * filter_dummy).sum()
+            aggregate = (weight * filter_dummy).sum()
         elif aggfunc == 'count_non_zero':
-            return (weight * (value != 0) * filter_dummy).sum()
+            aggregate = (weight * (value != 0) * filter_dummy).sum()
+        else:
+            aggregate = None
+
+        return aggregate
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
@@ -584,8 +588,7 @@ class AbstractSurveyScenario(object):
                 builder = builder,
                 )
         else:
-            log.info("Invalid period {}".format(period))
-            raise
+            raise ValueError("Invalid period {}".format(period))
 
         return simulation
 
