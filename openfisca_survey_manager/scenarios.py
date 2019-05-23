@@ -415,7 +415,25 @@ class AbstractSurveyScenario(object):
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
+        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
 
+        :param variables: Variable to compute, defaults to None
+        :type variables: list, optional
+        :param expressions: Expressions to compute, defaults to None
+        :type expressions: str, optional
+        :param filter_by: Boolean variable or expression, defaults to None
+        :type filter_by: str, optional
+        :param index: Index by entity id, defaults to False
+        :type index: bool, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Use baseline tax and benefit system, defaults to False
+        :type use_baseline: bool, optional
+        :param merge: Merge all the entities in one data frame, defaults to False
+        :type merge: bool, optional
+        :return: Dictionnary of dataframes by entities or dataframe with all the computed variables
+        :rtype: dict or pandas.DataFrame
+        """
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (
             use_baseline and self.baseline_tax_benefit_system
