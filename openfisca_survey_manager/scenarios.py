@@ -1192,6 +1192,7 @@ class AbstractSurveyScenario(object):
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
                 print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
+                    # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
                     array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
                     array.max(),
