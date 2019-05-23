@@ -1304,19 +1304,6 @@ def assert_variables_in_same_entity(survey_scenario, variables):
             variables, variable_name, entity.key)
     return entity.key
 
-
-def get_entity(survey_scenario, variable):
-    variable_ = survey_scenario.tax_benefit_system.variables.get(variable)
-    assert variable_, 'Variable {} is not part of the tax-benefit-system'.format(variable)
-    return variable_.entity
-
-
-def get_weights(survey_scenario, variable):
-    entity = get_entity(survey_scenario, variable)
-    weight_variable = survey_scenario.weight_variable_by_entity.get(entity.key)
-    return weight_variable
-
-
 def init_variable_in_entity(simulation, entity, variable_name, series, period):
     variable = simulation.tax_benefit_system.variables[variable_name]
     if series.values.dtype != variable.dtype:
