@@ -53,7 +53,7 @@ class AbstractSurveyScenario(object):
     def build_input_data(self, **kwargs):
         NotImplementedError
 
-def calculate_variable(self, variable, period = None, use_baseline = False):
+    def calculate_variable(self, variable, period = None, use_baseline = False):
         """Compute variable values for period and baseline or reform tax benefit and system
 
         :param variable: Variable to compute
