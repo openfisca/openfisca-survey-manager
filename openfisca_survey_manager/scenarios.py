@@ -53,6 +53,57 @@ class AbstractSurveyScenario(object):
     def build_input_data(self, **kwargs):
         NotImplementedError
 
+def calculate_variable(self, variable, period = None, use_baseline = False):
+        """Compute variable values for period and baseline or reform tax benefit and system
+
+        :param variable: Variable to compute
+        :type variable: str, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Use baseline tax and benefit system, defaults to False
+        :type use_baseline: bool, optional
+        :return: Variable values
+        :rtype: numpy.ndarray
+        """
+        if use_baseline:
+            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
+            simulation = self.baseline_simulation
+        else:
+            assert self.simulation is not None
+            simulation = self.simulation
+
+        tax_benefit_system = simulation.tax_benefit_system
+
+        assert period is not None
+        if not isinstance(period, periods.Period):
+            period = periods.period(period)
+        assert simulation is not None
+        assert tax_benefit_system is not None
+
+        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
+        period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
+        definition_period = tax_benefit_system.get_variable(variable).definition_period
+
+        if period_size_independent is False and definition_period != u'eternity':
+            values = simulation.calculate_add(variable, period = period)
+        elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
+            values = simulation.calculate(variable, period = period.first_month)
+        elif period_size_independent is True and definition_period == u'month' and period.size_in_months == 1:
+            values = simulation.calculate(variable, period = period)
+        elif period_size_independent is True and definition_period == u'year' and period.size_in_months > 12:
+            values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
+        elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
+            values = simulation.calculate(variable, period = period)
+        elif period_size_independent is True and definition_period == u'year':
+            values = simulation.calculate(variable, period = period.this_year)
+        elif definition_period == u'eternity':
+            values = simulation.calculate(variable, period = period)
+        else:
+            values = None
+        assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
+
+        return values
+
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self
         calibration = Calibration(survey_scenario)
@@ -357,57 +408,6 @@ class AbstractSurveyScenario(object):
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
-
-    def calculate_variable(self, variable, period = None, use_baseline = False):
-        """Compute variable values for period and baseline or reform tax benefit and system
-
-        :param variable: Variable to compute
-        :type variable: str, optional
-        :param period: Period, defaults to None
-        :type period: Period, optional
-        :param use_baseline: Use baseline tax and benefit system, defaults to False
-        :type use_baseline: bool, optional
-        :return: Variable values
-        :rtype: numpy.ndarray
-        """
-        if use_baseline:
-            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
-            simulation = self.baseline_simulation
-        else:
-            assert self.simulation is not None
-            simulation = self.simulation
-
-        tax_benefit_system = simulation.tax_benefit_system
-
-        assert period is not None
-        if not isinstance(period, periods.Period):
-            period = periods.period(period)
-        assert simulation is not None
-        assert tax_benefit_system is not None
-
-        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
-        period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
-        definition_period = tax_benefit_system.get_variable(variable).definition_period
-
-        if period_size_independent is False and definition_period != u'eternity':
-            values = simulation.calculate_add(variable, period = period)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
-            values = simulation.calculate(variable, period = period.first_month)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months == 1:
-            values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months > 12:
-            values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
-            values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year':
-            values = simulation.calculate(variable, period = period.this_year)
-        elif definition_period == u'eternity':
-            values = simulation.calculate(variable, period = period)
-        else:
-            values = None
-        assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
-
-        return values
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):

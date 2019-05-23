@@ -1,0 +1,1 @@
+Patch à appliquer sur le commit c579a2fccbfbb55445c810461be7b1c1dd3a4e99 de OF-Survey-Manager
