@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
-
 from pandas import DataFrame
-from savReaderWriter import SavReader
+try:
+    from savReaderWriter import SavReader
+except ModuleNotFoundError:
+    pass
 
 
 def read_spss(spss_file_path):
