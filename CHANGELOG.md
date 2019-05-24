@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.0 [#126](https://github.com/openfisca/openfisca-survey-manager/pull/126)
+
+* New features
+- create_data_frame_by_entity is able to handle expressions for filtering (filter_by can be an expression)
+- This allow compute_aggregate and compute_pivot_table to handle expressions as well for filter_by.
+
+* Deprecations
+- Deprecate helper get_entity
+- Deprecate helper get_weights
+
 ## 0.24.0 [#127](https://github.com/openfisca/openfisca-survey-manager/pull/127)
 
 * Fix a bug in create_data_frame_by_entity

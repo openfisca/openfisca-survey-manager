@@ -53,6 +53,57 @@ class AbstractSurveyScenario(object):
     def build_input_data(self, **kwargs):
         NotImplementedError
 
+    def calculate_variable(self, variable, period = None, use_baseline = False):
+        """Compute variable values for period and baseline or reform tax benefit and system
+
+        :param variable: Variable to compute
+        :type variable: str, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Use baseline tax and benefit system, defaults to False
+        :type use_baseline: bool, optional
+        :return: Variable values
+        :rtype: numpy.ndarray
+        """
+        if use_baseline:
+            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
+            simulation = self.baseline_simulation
+        else:
+            assert self.simulation is not None
+            simulation = self.simulation
+
+        tax_benefit_system = simulation.tax_benefit_system
+
+        assert period is not None
+        if not isinstance(period, periods.Period):
+            period = periods.period(period)
+        assert simulation is not None
+        assert tax_benefit_system is not None
+
+        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
+        period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
+        definition_period = tax_benefit_system.get_variable(variable).definition_period
+
+        if period_size_independent is False and definition_period != u'eternity':
+            values = simulation.calculate_add(variable, period = period)
+        elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
+            values = simulation.calculate(variable, period = period.first_month)
+        elif period_size_independent is True and definition_period == u'month' and period.size_in_months == 1:
+            values = simulation.calculate(variable, period = period)
+        elif period_size_independent is True and definition_period == u'year' and period.size_in_months > 12:
+            values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
+        elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
+            values = simulation.calculate(variable, period = period)
+        elif period_size_independent is True and definition_period == u'year':
+            values = simulation.calculate(variable, period = period.this_year)
+        elif definition_period == u'eternity':
+            values = simulation.calculate(variable, period = period)
+        else:
+            values = None
+        assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
+
+        return values
+
     def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
         survey_scenario = self
         calibration = Calibration(survey_scenario)
@@ -107,7 +158,7 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = self.tax_benefit_system
         if filter_by is None and self.filtering_variable_by_entity is not None:
             entity_key = tax_benefit_system.variables[variable].entity.key
-            filter_by = self.filtering_variable_by_entity.get(entity_key)
+            filter_by_variable = self.filtering_variable_by_entity.get(entity_key)
 
         assert variable is not None
         if use_baseline:
@@ -121,8 +172,16 @@ class AbstractSurveyScenario(object):
             period = simulation.period
 
         if filter_by:
-            assert filter_by in self.tax_benefit_system.variables, \
-                "{} is not a variables of the tax benefit system".format(filter_by)
+            filter_by_variable = get_words(filter_by)[0]
+            assert filter_by_variable in self.tax_benefit_system.variables, \
+                "{} is not a variables of the tax benefit system".format(filter_by_variable)
+            entity_key = tax_benefit_system.variables[variable].entity.key
+            filter_by_entity_key = tax_benefit_system.variables[filter_by_variable].entity.key
+            assert filter_by_entity_key == entity_key, \
+                ("You tried to compute agregates for variable '{0}', of entity {1}"
+                " filtering by variable '{2}', of entity {3}. This is not possible."
+                " Please choose a filter-by variable of same entity as '{0}'."
+                .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
         if self.weight_variable_by_entity:
             weight_variable_by_entity = self.weight_variable_by_entity
@@ -143,20 +202,54 @@ class AbstractSurveyScenario(object):
                 ).astype(float)
             if entity_weight else 1.0
             )
-        filter_dummy = self.calculate_variable(variable = filter_by, period = period) if filter_by else 1.0
+        filter_dummy = self.calculate_variable(variable = filter_by_variable, period = period) if filter_by else 1.0
+        if filter_by:
+            filter_dummy = pd.DataFrame({'{}'.format(filter_by_variable): filter_dummy}).eval(filter_by)
 
         if aggfunc == 'sum':
-            return (value * weight * filter_dummy).sum()
+            aggregate = (value * weight * filter_dummy).sum()
         elif aggfunc == 'mean':
-            return (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
+            aggregate = (value * weight * filter_dummy).sum() / (weight * filter_dummy).sum()
         elif aggfunc == 'count':
-            return (weight * filter_dummy).sum()
+            aggregate = (weight * filter_dummy).sum()
         elif aggfunc == 'count_non_zero':
-            return (weight * (value != 0) * filter_dummy).sum()
+            aggregate = (weight * (value != 0) * filter_dummy).sum()
+        else:
+            aggregate = None
+
+        return aggregate
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
             missing_variable_default_value = np.nan, concat_axis = None):
+        """Compute a pivot table of agregated values casted along specified index and columns
+
+        :param aggfunc: Aggregation function, defaults to 'mean'
+        :type aggfunc: str, optional
+        :param columns: Variable(s) in columns, defaults to None
+        :type columns: list, optional
+        :param difference: Compute difference, defaults to False
+        :type difference: bool, optional
+        :param filter_by: Boolean variable to filter by, defaults to None
+        :type filter_by: str, optional
+        :param index: Variable(s) in index (lines), defaults to None
+        :type index: list, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Compute for baseline, defaults to False
+        :type use_baseline: bool, optional
+        :param use_baseline_for_columns: Use columns from baseline columns values, defaults to None
+        :type use_baseline_for_columns: bool, optional
+        :param values: Aggregated variable(s) within cells, defaults to None
+        :type values: list, optional
+        :param missing_variable_default_value: Default value for missing variables, defaults to np.nan
+        :type missing_variable_default_value: float, optional
+        :param concat_axis: Axis to concatenate along (index = 0, columns = 1), defaults to None
+        :type concat_axis: int, optional
+        :return: Pivot table
+        :rtype: DataFrame
+        """
+
         assert aggfunc in ['count', 'mean', 'sum']
         assert columns or index or values
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
@@ -193,7 +286,7 @@ class AbstractSurveyScenario(object):
         if filter_by is None and self.filtering_variable_by_entity is not None:
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
-        variables = set(index + values + columns)
+        variables = set(index + columns)
         # Select the entity weight corresponding to the variables that will provide values
         if self.weight_variable_by_entity is not None:
             weight = self.weight_variable_by_entity[entity_key]
@@ -202,17 +295,33 @@ class AbstractSurveyScenario(object):
             log.debug('There is no weight variable for entity {}'.format(entity_key))
             weight = None
 
+        expressions = []
         if filter_by is not None:
-            variables.add(filter_by)
+            if filter_by in tax_benefit_system.variables:
+                variables.add(filter_by)
+                filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
+                assert filter_entity_key == entity_key
+            else:
+                filter_entity_key = assert_variables_in_same_entity(self, get_words(filter_by))
+                expressions.extend([filter_by])
+                assert filter_entity_key == entity_key
         else:
             filter_dummy = 1.0
 
-        for variable in variables:
-            assert tax_benefit_system.variables[variable].entity.key == entity_key, \
-                'The variable {} is not present or does not belong to entity {}'.format(
-                    variable,
-                    entity_key,
-                    )
+        for expression in expressions:
+            expression_variables = get_words(expression)
+            expression_entity_key = assert_variables_in_same_entity(self, expression_variables)
+            assert expression_entity_key == entity_key
+            for variable in expression_variables:
+                variables.add(variable)
+
+        for variable in variables | set(values):
+            if variable in tax_benefit_system.variables:
+                assert tax_benefit_system.variables[variable].entity.key == entity_key, \
+                    'The variable {} does not belong to entity {}'.format(
+                        variable,
+                        entity_key,
+                        )
 
         if difference:
             reform_data_frame = self.create_data_frame_by_entity(
@@ -230,40 +339,48 @@ class AbstractSurveyScenario(object):
             data_frame = reform_data_frame - baseline_data_frame
 
         else:
-            data_frame = (
-                self.create_data_frame_by_entity(
-                    values, period = period, use_baseline = use_baseline, index = False)[entity_key]
-                )
-        additionnal_variables = []
-        if filter_by is not None:
-            additionnal_variables.append(filter_by)
-        if weight is not None:
-            additionnal_variables.append(weight)
-        reference_variables = set(index + columns + additionnal_variables)
-        use_baseline_df = use_baseline or difference
-        if use_baseline_for_columns is not None:
-            use_baseline_df = use_baseline_for_columns
-        data_frame = pd.concat(
-            [
-                self.create_data_frame_by_entity(
-                    variables = reference_variables,
-                    period = period,
-                    # use baseline if explicited or when computing difference
-                    use_baseline = use_baseline_df,
-                    index = False
-                    )[entity_key],
-                data_frame,
-                ],
-            axis = 1,
-            )
-        if filter_by in data_frame:
-            filter_dummy = data_frame[filter_by]
+            if values:
+                data_frame = (
+                    self.create_data_frame_by_entity(
+                        values, period = period, use_baseline = use_baseline, index = False)[entity_key]
+                    )
+                for value_variable in values:
+                    if value_variable not in data_frame:
+                        data_frame[value_variable] = missing_variable_default_value
+            else:
+                data_frame = None
 
+        use_baseline_data = use_baseline or difference
+        if use_baseline_for_columns is not None:
+            use_baseline_data = use_baseline_for_columns
+
+        baseline_vars_data_frame = self.create_data_frame_by_entity(
+            variables = variables,
+            period = period,
+            # use baseline if explicited or when computing difference
+            use_baseline = use_baseline_data,
+            index = False
+            )[entity_key]
+
+        for expression in expressions:
+            baseline_vars_data_frame[expression] = baseline_vars_data_frame.eval(expression)
+        if filter_by is not None:
+            filter_dummy = baseline_vars_data_frame[filter_by]
         if weight is None:
             weight = 'weight'
-            data_frame[weight] = 1.0
+            baseline_vars_data_frame[weight] = 1.0
+        baseline_vars_data_frame[weight] = baseline_vars_data_frame[weight] * filter_dummy
+        # We drop variables that are in values in baseline_vars_data_frame
+        dropped_columns = [
+            column for column in baseline_vars_data_frame.columns if column in values
+            ]
+        baseline_vars_data_frame.drop(columns = dropped_columns, inplace = True)
 
-        data_frame[weight] = data_frame[weight] * filter_dummy
+        data_frame = pd.concat(
+            [baseline_vars_data_frame, data_frame],
+            axis = 1,
+            )
+
         if values:
             data_frame_by_value = dict()
             for value in values:
@@ -296,52 +413,27 @@ class AbstractSurveyScenario(object):
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
             return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
 
-    def calculate_variable(self, variable = None, period = None, use_baseline = False):
-        """
-        Compute and return the variable values for period and baseline or reform tax_benefit_system
-        """
-        if use_baseline:
-            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
-            simulation = self.baseline_simulation
-        else:
-            assert self.simulation is not None
-            simulation = self.simulation
-
-        tax_benefit_system = simulation.tax_benefit_system
-
-        assert period is not None
-        if not isinstance(period, periods.Period):
-            period = periods.period(period)
-        assert simulation is not None
-        assert tax_benefit_system is not None
-
-        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
-        period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
-        definition_period = tax_benefit_system.get_variable(variable).definition_period
-
-        if period_size_independent is False and definition_period != u'eternity':
-            values = simulation.calculate_add(variable, period = period)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
-            values = simulation.calculate(variable, period = period.first_month)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months == 1:
-            values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months > 12:
-            values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
-            values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year':
-            values = simulation.calculate(variable, period = period.this_year)
-        elif definition_period == u'eternity':
-            values = simulation.calculate(variable, period = period)
-        else:
-            values = None
-        assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
-
-        return values
-
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
+        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
 
+        :param variables: Variable to compute, defaults to None
+        :type variables: list, optional
+        :param expressions: Expressions to compute, defaults to None
+        :type expressions: str, optional
+        :param filter_by: Boolean variable or expression, defaults to None
+        :type filter_by: str, optional
+        :param index: Index by entity id, defaults to False
+        :type index: bool, optional
+        :param period: Period, defaults to None
+        :type period: Period, optional
+        :param use_baseline: Use baseline tax and benefit system, defaults to False
+        :type use_baseline: bool, optional
+        :param merge: Merge all the entities in one data frame, defaults to False
+        :type merge: bool, optional
+        :return: Dictionnary of dataframes by entities or dataframe with all the computed variables
+        :rtype: dict or pandas.DataFrame
+        """
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (
             use_baseline and self.baseline_tax_benefit_system
@@ -514,8 +606,7 @@ class AbstractSurveyScenario(object):
                 builder = builder,
                 )
         else:
-            log.info("Invalid period {}".format(period))
-            raise
+            raise ValueError("Invalid period {}".format(period))
 
         return simulation
 
@@ -1101,10 +1192,11 @@ class AbstractSurveyScenario(object):
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
                 print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
-                    array.mean() if not weighted else np.average(array, weights = weights),
+                    # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
+                    array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
                     array.max(),
-                    np.median(array),
+                    np.median(array.astype(float)),
                     (
                         (array == default_value).sum() / len(array)
                         if not weighted
@@ -1135,10 +1227,10 @@ class AbstractSurveyScenario(object):
 
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,
-                        array.mean() if not weighted else np.average(array, weights = weights),
+                        array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                         array.min(),
                         array.max(),
-                        array.sum() if not weighted else np.sum(array * weights),
+                        array.astype(float).sum() if not weighted else np.sum(array * weights),
                         (
                             (array == default_value).sum() / len(array)
                             if not weighted
@@ -1230,18 +1322,6 @@ def assert_variables_in_same_entity(survey_scenario, variables):
         assert variable.entity == entity, "{} are not from the same entity: {} doesn't belong to {}".format(
             variables, variable_name, entity.key)
     return entity.key
-
-
-def get_entity(survey_scenario, variable):
-    variable_ = survey_scenario.tax_benefit_system.variables.get(variable)
-    assert variable_, 'Variable {} is not part of the tax-benefit-system'.format(variable)
-    return variable_.entity
-
-
-def get_weights(survey_scenario, variable):
-    entity = get_entity(survey_scenario, variable)
-    weight_variable = survey_scenario.weight_variable_by_entity.get(entity.key)
-    return weight_variable
 
 
 def init_variable_in_entity(simulation, entity, variable_name, series, period):
