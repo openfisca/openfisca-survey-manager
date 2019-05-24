@@ -32,8 +32,4 @@ def test_add_survey_to_collection():
         stata_files = []
         )
     ordered_dict = survey_collection.to_json()
-    assert list(ordered_dict['surveys'].keys()) == [survey_name]
-
-
-if __name__ == '__main__':
-    test_add_survey_to_collection()
+    assert survey_name in list(ordered_dict['surveys'].keys())

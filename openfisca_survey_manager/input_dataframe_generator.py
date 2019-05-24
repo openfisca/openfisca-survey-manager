@@ -39,7 +39,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
-        ['household_id', 'household_role_index', 'household_role', 'person_id']
+        ['household_id', 'household_role', 'household_role_index', 'person_id']
         >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
         []
     """
@@ -115,7 +115,9 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
                 )
 
         for entity, input_dataframe in input_dataframe_by_entity.items():
-            set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
+            if collection is not None:
+                set_table_in_survey(input_dataframe, entity, period, collection, survey_name = 'input')
+
             table_by_entity[entity] = entity + '_' + str(period)
 
     return table_by_entity_by_period
@@ -134,7 +136,7 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
         >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
-        ['household_id', 'household_role_index', 'household_role', 'person_id', 'salary']
+        ['household_id', 'household_role', 'household_role_index', 'person_id', 'salary']
         >>> input_dataframe_by_entity['person'].salary.max() <= 50000
         True
         >>> len(input_dataframe_by_entity['person'].salary)

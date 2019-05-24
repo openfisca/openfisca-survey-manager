@@ -1139,15 +1139,19 @@ class AbstractSurveyScenario(object):
             >>> survey_scenario = create_randomly_initialized_survey_scenario()
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
             <BLANKLINE>
-            housing_occupancy_status: 1 periods * 5 cells * item size 2 (<type 'numpy.int16'>, default = HousingOccupancyStatus.tenant) = 10B
+            housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
             Details:
             2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
             >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
             <BLANKLINE>
-            rent: 2 periods * 5 cells * item size 4 (<type 'numpy.float32'>, default = 0) = 40B
+            rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
             Details:
-            2017-01: mean = 562.385070801, min = 156.01864624, max = 950.714294434, mass = 2.81e+03, default = 0.0%, median = 598.658508301
-            2018-01: mean = 562.385070801, min = 156.01864624, max = 950.714294434, mass = 2.81e+03, default = 0.0%, median = 598.658508301
+            2017-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+            2018-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+            >>> survey_scenario.tax_benefit_system.neutralize_variable('age')
+            >>> survey_scenario.summarize_variable(variable = "age")
+            <BLANKLINE>
+            age: neutralized variable (int64, default = 0)
         """
 
         if use_baseline:
@@ -1162,6 +1166,11 @@ class AbstractSurveyScenario(object):
         default_value = variable_instance.default_value
         value_type = variable_instance.value_type
 
+        if variable_instance.is_neutralized:
+            print("")
+            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))
+            return
+
         if weighted:
             weight_variable = self.weight_variable_by_entity[variable_instance.entity.key]
             weights = simulation.calculate(weight_variable, simulation.period)
@@ -1175,12 +1184,13 @@ class AbstractSurveyScenario(object):
             else:
                 print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
                 return
+
         header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
             variable,
             infos['nb_arrays'],
             infos['nb_cells_by_array'],
             infos['cell_size'],
-            infos['dtype'],
+            str(np.dtype(infos['dtype'])),
             default_value,
             humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
             )
