@@ -516,9 +516,14 @@ class AbstractSurveyScenario(object):
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
                     ] = simulation.populations[entity.key].members_entity_id
+                flattened_roles = entity.flattened_roles
+                index_by_role = dict(
+                    (flattened_roles[index], index)
+                    for index in range(len(flattened_roles))
+                    )
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.populations[entity.key].members_role
+                    ] = pd.Series(simulation.populations[entity.key].members_role).map(index_by_role)
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.populations[entity.key].members_position
