@@ -515,13 +515,13 @@ class AbstractSurveyScenario(object):
             for entity in non_person_entities:
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
-                    ] = simulation.entities[entity.key].members_entity_id
+                    ] = simulation.populations[entity.key].members_entity_id
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.entities[entity.key].members_role_index
+                    ] = simulation.populations[entity.key].members_role
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
-                    ] = simulation.entities[entity.key].members_position
+                    ] = simulation.populations[entity.key].members_position
 
         for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
