@@ -71,7 +71,7 @@ setup(
         'configparser',
         'future',
         'humanize',
-        'numpy >= 1.11, < 1.16',  # to work with tables
+        'numpy >= 1.11',
         'openfisca-core >=34.2.2,<35.0.0',
         'pandas >= 0.22',
         'pyxdg',
