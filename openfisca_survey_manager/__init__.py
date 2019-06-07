@@ -14,6 +14,9 @@ try:
     taxipp_location = pkg_resources.get_distribution('taxipp').location
     default_config_files_directory = os.path.join(taxipp_location, '.config', 'openfisca-survey-manager')
 except pkg_resources.DistributionNotFound:
+    taxipp_location = None
+
+if taxipp_location is None or not os.path.exists(default_config_files_directory):
     default_config_files_directory = None
 
 # Travis tests

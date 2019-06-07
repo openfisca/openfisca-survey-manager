@@ -12,7 +12,7 @@ class Config(configparser.SafeConfigParser):
         configparser.SafeConfigParser.__init__(self)
         if config_files_directory is not None:
             config_ini = os.path.join(config_files_directory, 'config.ini')
-            assert os.path.exists(config_ini), "{} is not a valid path"
+            assert os.path.exists(config_ini), "{} is not a valid path".format(config_ini)
             self.config_ini = config_ini
             self.read([config_ini])
 

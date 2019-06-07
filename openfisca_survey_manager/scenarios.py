@@ -808,7 +808,7 @@ class AbstractSurveyScenario(object):
         used_as_input_variables = self.used_as_input_variables_by_entity[entity.key]
         diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
         input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
-        
+
         for column_name, column_serie in input_data_frame.iteritems():
             variable_instance = self.tax_benefit_system.variables.get(column_name)
             if variable_instance is None:
