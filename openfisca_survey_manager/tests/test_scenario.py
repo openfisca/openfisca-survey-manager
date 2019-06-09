@@ -64,6 +64,7 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
     survey_scenario.year = 2017
     survey_scenario.collection = collection
     data = {
+        'survey': 'input',
         'input_data_table_by_entity_by_period': table_by_entity_by_period
         }
     survey_scenario.init_from_data(data = data)
