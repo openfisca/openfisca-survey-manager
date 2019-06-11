@@ -5,14 +5,14 @@ import os
 import configparser
 
 
-class Config(configparser.SafeConfigParser):
+class Config(configparser.ConfigParser):
     config_ini = None
 
     def __init__(self, config_files_directory = None):
-        configparser.SafeConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         if config_files_directory is not None:
             config_ini = os.path.join(config_files_directory, 'config.ini')
-            assert os.path.exists(config_ini), "{} is not a valid path"
+            assert os.path.exists(config_ini), "{} is not a valid path".format(config_ini)
             self.config_ini = config_ini
             self.read([config_ini])
 

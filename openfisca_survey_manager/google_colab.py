@@ -9,7 +9,7 @@ from openfisca_survey_manager import default_config_files_directory as config_fi
 
 
 def create_raw_data_ini(value_by_option_by_section = None):
-    config_parser = configparser.SafeConfigParser()
+    config_parser = configparser.ConfigParser()
 
     if value_by_option_by_section is not None:
         for section, value_by_option in value_by_option_by_section.items():

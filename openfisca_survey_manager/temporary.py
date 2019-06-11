@@ -5,7 +5,7 @@ import gc
 import os
 import logging
 
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from pandas import HDFStore
 
 from openfisca_survey_manager import default_config_files_directory
@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):
-    parser = SafeConfigParser()
+    parser = ConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
     read_config_file_name = parser.read([config_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
@@ -47,7 +47,7 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
 
 
 def get_store(config_files_directory = default_config_files_directory, file_name = None):
-    parser = SafeConfigParser()
+    parser = ConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
     parser.read(config_ini)
     tmp_directory = parser.get('data', 'tmp_directory')
@@ -61,7 +61,7 @@ def get_store(config_files_directory = default_config_files_directory, file_name
 def save_hdf_r_readable(data_frame, config_files_directory = default_config_files_directory, file_name = None,
                         file_path = None):
     if file_path is None:
-        parser = SafeConfigParser()
+        parser = ConfigParser()
         config_ini = os.path.join(config_files_directory, 'config.ini')
         parser.read(config_ini)
         tmp_directory = parser.get('data', 'tmp_directory')

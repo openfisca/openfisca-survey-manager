@@ -515,13 +515,18 @@ class AbstractSurveyScenario(object):
             for entity in non_person_entities:
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
-                    ] = simulation.entities[entity.key].members_entity_id
+                    ] = simulation.populations[entity.key].members_entity_id
+                flattened_roles = entity.flattened_roles
+                index_by_role = dict(
+                    (flattened_roles[index], index)
+                    for index in range(len(flattened_roles))
+                    )
                 person_data_frame[
                     "{}_{}".format(entity.key, 'role')
-                    ] = simulation.entities[entity.key].members_role_index
+                    ] = pd.Series(simulation.populations[entity.key].members_role).map(index_by_role)
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
-                    ] = simulation.entities[entity.key].members_position
+                    ] = simulation.populations[entity.key].members_position
 
         for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
@@ -802,6 +807,7 @@ class AbstractSurveyScenario(object):
         """
         used_as_input_variables = self.used_as_input_variables_by_entity[entity.key]
         diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
+        input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
 
         for column_name, column_serie in input_data_frame.iteritems():
             variable_instance = self.tax_benefit_system.variables.get(column_name)
@@ -1009,7 +1015,6 @@ class AbstractSurveyScenario(object):
                         table = input_data_table_by_entity.get(entity.key)
                         if table is None:
                             continue
-                        survey = 'input'
                         input_data_frame = self.load_table(survey = survey, table = table)
                         self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
 
@@ -1019,7 +1024,6 @@ class AbstractSurveyScenario(object):
                     table = input_data_table_by_entity.get(entity.key)
                     if table is None:
                         continue
-                    survey = 'input'
                     input_data_frame = self.load_table(survey = survey, table = table)
                     self.init_entity_data(entity, input_data_frame, period, simulation)
         else:
