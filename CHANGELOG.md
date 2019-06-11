@@ -1,10 +1,14 @@
 # Changelog
 
-## 0.26.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+## 0.26.0 [#132](https://github.com/openfisca/openfisca-survey-manager/pull/132)
 
 * New features
 - Neutralized variables are now correctly handled by summarize_variable
 - Extend testing to doctest
+
+* Technical changes
+- Fix create_data_frame_by_entity
+- Fix some deprecations
 
 ## 0.25.0 [#126](https://github.com/openfisca/openfisca-survey-manager/pull/126)
 
