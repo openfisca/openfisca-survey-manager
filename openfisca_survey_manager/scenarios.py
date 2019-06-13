@@ -791,15 +791,12 @@ class AbstractSurveyScenario(object):
                 _key = group_entity.key
                 _id_variable = self.id_variable_by_entity_key[_key]
                 _role_variable = self.role_variable_by_entity_key[_key]
-                group_population = builder.declare_entity(_key, input_data_frame[_id_variable].unique())
+                group_population = builder.declare_entity(_key, input_data_frame[_id_variable].drop_duplicates().sort_values().values)
                 builder.join_with_persons(
                     group_population,
                     input_data_frame[_id_variable].astype('int').values,
                     input_data_frame[_role_variable].astype('int').values,
                     )
-
-        else:
-            builder.declare_entity(entity.key, ids)
 
     def init_entity_data(self, entity, input_data_frame, period, simulation):
         """
