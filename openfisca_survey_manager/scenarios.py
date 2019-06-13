@@ -1314,7 +1314,7 @@ class AbstractSurveyScenario(object):
             self.used_as_input_variables_by_entity[entity.key] = [
                 variable
                 for variable in self.used_as_input_variables
-                if tax_benefit_system.get_variable(variable).entity == entity
+                if tax_benefit_system.get_variable(variable).entity == entity.key
                 ]
 
         return self.used_as_input_variables_by_entity
