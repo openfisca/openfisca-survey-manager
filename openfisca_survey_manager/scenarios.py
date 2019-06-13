@@ -991,6 +991,7 @@ class AbstractSurveyScenario(object):
                     input_data_frame = input_data_frame_by_entity.get(entity.key)
                     if input_data_frame is None:
                         continue
+                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
 
             simulation = builder.build(tax_benefit_system)
@@ -1000,6 +1001,7 @@ class AbstractSurveyScenario(object):
                     if input_data_frame is None:
                         log.debug("No input_data_frame found for entity {} at period {}".format(entity, period))
                         continue
+                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     self.init_entity_data(entity, input_data_frame, period, simulation)
 
         elif source_type == 'input_data_table_by_entity_by_period':
@@ -1016,6 +1018,7 @@ class AbstractSurveyScenario(object):
                         if table is None:
                             continue
                         input_data_frame = self.load_table(survey = survey, table = table)
+                        self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                         self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
 
                     simulation = builder.build(tax_benefit_system)
@@ -1025,6 +1028,7 @@ class AbstractSurveyScenario(object):
                     if table is None:
                         continue
                     input_data_frame = self.load_table(survey = survey, table = table)
+                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     self.init_entity_data(entity, input_data_frame, period, simulation)
         else:
             pass
