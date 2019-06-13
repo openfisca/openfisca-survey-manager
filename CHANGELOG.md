@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.28.0 [#133](https://github.com/openfisca/openfisca-survey-manager/pull/133)
+
+- Fix _set_used_as_input_variables_by_entity
+- Add missing custom_input_data_frame before initializing the data
+- Fix entity ids setting
+
 ## 0.27.0 [#132](https://github.com/openfisca/openfisca-survey-manager/pull/132)
 
 * Technical changes
