@@ -47,7 +47,7 @@ class AbstractSurveyScenario(object):
     trace = False
     used_as_input_variables = None
     used_as_input_variables_by_entity = None
-    variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
+    variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
     varying_variable = None
     weight_variable_by_entity = None
     year = None
