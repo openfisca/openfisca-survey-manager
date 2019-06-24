@@ -222,6 +222,13 @@ class AbstractSurveyScenario(object):
         return aggregate
 
     def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False):
+        """
+            Compute marginal a rate of a target with respect to a varying variable.
+
+            :param string target_variable: the variable which marginal tax rate is computed
+            :param Period period: the period at which the the marginal tax rate is computed
+            :param bool use_baseline: compute the marginal tax rate for the baseline system
+        """
         varying_variable = self.varying_variable
         if use_baseline:
             simulation = self.baseline_simulation
