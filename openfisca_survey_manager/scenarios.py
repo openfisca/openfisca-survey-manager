@@ -1315,7 +1315,6 @@ class AbstractSurveyScenario(object):
         elif (definition_period == MONTH) and (period.unit == YEAR and period.size_in_months == 12):
             varying_variable_value = simulation.calculate_add(varying_variable, period = period)
             for period_ in [periods.Period(('month', period.start.offset(month, 'month'), 1)) for month in range(12)]:
-                print(period, varying_variable_value / 12)
                 set_variable(varying_variable, varying_variable_value / 12, period_)
         else:
             ValueError()

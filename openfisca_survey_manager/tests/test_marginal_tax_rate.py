@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import shutil
-
-
 import logging
-import os
-import pkg_resources
 
 
 from openfisca_core.tools import assert_near
