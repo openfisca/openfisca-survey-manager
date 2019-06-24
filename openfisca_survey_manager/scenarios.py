@@ -47,6 +47,7 @@ class AbstractSurveyScenario(object):
     trace = False
     used_as_input_variables = None
     used_as_input_variables_by_entity = None
+    variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
     varying_variable = None
     weight_variable_by_entity = None
     year = None
@@ -766,6 +767,9 @@ class AbstractSurveyScenario(object):
         debug = self.debug
         trace = self.trace
 
+        if use_marginal_tax_rate:
+            assert self.varying_variable in self.tax_benefit_system.variables
+
         # Inverting reform and baseline because we are more likely
         # to use baseline input in reform than the other way around
         if self.baseline_tax_benefit_system is not None:
@@ -1289,11 +1293,10 @@ class AbstractSurveyScenario(object):
     def _apply_modification(self, simulation, period):
         period = periods.period(period)
         varying_variable = self.varying_variable
-        assert varying_variable in simulation.tax_benefit_system.variables
         definition_period = simulation.tax_benefit_system.variables[varying_variable].definition_period
 
         def set_variable(varying_variable, varying_variable_value, period_):
-            delta = .03 * varying_variable_value
+            delta = self.variation_factor * varying_variable_value
             new_variable_value = varying_variable_value + delta
             simulation.delete_arrays(varying_variable, period_)
             simulation.set_input(varying_variable, period_, new_variable_value)
@@ -1309,7 +1312,6 @@ class AbstractSurveyScenario(object):
                 set_variable(varying_variable, varying_variable_value / 12, period_)
         else:
             ValueError()
-
 
     def _dump_simulation(self, directory = None, use_baseline = False):
         assert directory is not None
