@@ -47,6 +47,7 @@ class AbstractSurveyScenario(object):
     trace = False
     used_as_input_variables = None
     used_as_input_variables_by_entity = None
+    varying_variable = None
     weight_variable_by_entity = None
     year = None
 
@@ -218,6 +219,25 @@ class AbstractSurveyScenario(object):
             aggregate = None
 
         return aggregate
+
+    def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False):
+        varying_variable = self.varying_variable
+        if use_baseline:
+            simulation = self.baseline_simulation
+            assert self._modified_baseline_simulation is not None
+            modified_simulation = self._modified_baseline_simulation
+        else:
+            assert self._modified_simulation is not None
+            simulation = self.simulation
+            modified_simulation = self._modified_simulation
+
+        assert target_variable in self.tax_benefit_system.variables
+        modified_target = modified_simulation.calculate_add(target_variable, period = period)
+        target = simulation.calculate_add(target_variable, period = period)
+        modified_varying = modified_simulation.calculate_add(varying_variable, period = period)
+        varying = simulation.calculate_add(varying_variable, period = period)
+        marginal_rate = 1 - (modified_target - target) / (modified_varying - varying)
+        return marginal_rate
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
@@ -718,7 +738,7 @@ class AbstractSurveyScenario(object):
                 simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None):
+            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
         '''Initialises a survey scenario from data.
 
         :param rebuild_input_data:  Whether or not to clean, format and save data.
@@ -730,13 +750,6 @@ class AbstractSurveyScenario(object):
         # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
             data_year = data.get("data_year", self.year)
-
-        if calibration_kwargs is not None:
-            assert set(calibration_kwargs.keys()).issubset(set(
-                ['target_margins_by_variable', 'parameters', 'total_population']))
-
-        if inflation_kwargs is not None:
-            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
         self._set_id_variable_by_entity_key()
         self._set_role_variable_by_entity_key()
@@ -758,9 +771,21 @@ class AbstractSurveyScenario(object):
         if self.baseline_tax_benefit_system is not None:
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config,
                 use_baseline = True)
+            if use_marginal_tax_rate:
+                self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config, use_baseline = True,
+                    marginal_tax_rate_only = True)
 
         # Note that I can pass a :class:`pd.DataFrame` directly, if I don't want to rebuild the data.
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
+        if use_marginal_tax_rate:
+            self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config, marginal_tax_rate_only = True)
+
+        if calibration_kwargs is not None:
+            assert set(calibration_kwargs.keys()).issubset(set(
+                ['target_margins_by_variable', 'parameters', 'total_population']))
+
+        if inflation_kwargs is not None:
+            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
@@ -889,7 +914,7 @@ class AbstractSurveyScenario(object):
 
         return simulation
 
-    def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None):
+    def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None, marginal_tax_rate_only = False):
         assert self.tax_benefit_system is not None
         tax_benefit_system = self.tax_benefit_system
         if self.baseline_tax_benefit_system is not None and use_baseline:
@@ -912,11 +937,18 @@ class AbstractSurveyScenario(object):
         simulation.memory_config = memory_config
 
         #
-        if not use_baseline:
-            self.simulation = simulation
+        if marginal_tax_rate_only:
+            self._apply_modification(simulation, period)
+            if not use_baseline:
+                self._modified_simulation = simulation
+            else:
+                self._modified_baseline_simulation = simulation
         else:
-            self.baseline_simulation = simulation
-        #
+            if not use_baseline:
+                self.simulation = simulation
+            else:
+                self.baseline_simulation = simulation
+            #
         if 'custom_initialize' in dir(self):
             self.custom_initialize(simulation)
         #
@@ -1253,6 +1285,31 @@ class AbstractSurveyScenario(object):
                             ),
                         np.median(array),
                         ))
+
+    def _apply_modification(self, simulation, period):
+        period = periods.period(period)
+        varying_variable = self.varying_variable
+        assert varying_variable in simulation.tax_benefit_system.variables
+        definition_period = simulation.tax_benefit_system.variables[varying_variable].definition_period
+
+        def set_variable(varying_variable, varying_variable_value, period_):
+            delta = .03 * varying_variable_value
+            new_variable_value = varying_variable_value + delta
+            simulation.delete_arrays(varying_variable, period_)
+            simulation.set_input(varying_variable, period_, new_variable_value)
+
+        if period.unit == definition_period:
+            varying_variable_value = simulation.calculate(varying_variable, period = period)
+            set_variable(varying_variable, varying_variable_value, period)
+
+        elif (definition_period == MONTH) and (period.unit == YEAR and period.size_in_months == 12):
+            varying_variable_value = simulation.calculate_add(varying_variable, period = period)
+            for period_ in [periods.Period(('month', period.start.offset(month, 'month'), 1)) for month in range(12)]:
+                print(period, varying_variable_value / 12)
+                set_variable(varying_variable, varying_variable_value / 12, period_)
+        else:
+            ValueError()
+
 
     def _dump_simulation(self, directory = None, use_baseline = False):
         assert directory is not None
