@@ -753,6 +753,8 @@ class AbstractSurveyScenario(object):
                                     Take a look at :func:`build_input_data`
 
         :param data:                Contains the data, or metadata needed to know where to find it.
+
+        :param use_marginal_tax_rate: True to go into marginal effective tax rate computation mode
         '''
 
         # When not ``None``, it'll try to get the data for *year*.
