@@ -749,10 +749,12 @@ class AbstractSurveyScenario(object):
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
         '''Initialises a survey scenario from data.
 
-        :param rebuild_input_data:  Whether or not to clean, format and save data.
+        :param bool rebuild_input_data:  Whether or not to clean, format and save data.
                                     Take a look at :func:`build_input_data`
 
-        :param data:                Contains the data, or metadata needed to know where to find it.
+        :param dict data:                Contains the data, or metadata needed to know where to find it.
+
+        :param bool use_marginal_tax_rate: True to go into marginal effective tax rate computation mode.
         '''
 
         # When not ``None``, it'll try to get the data for *year*.
