@@ -754,7 +754,9 @@ class AbstractSurveyScenario(object):
 
         :param data:                Contains the data, or metadata needed to know where to find it.
 
-        :param use_marginal_tax_rate: Bool, True to go into marginal effective tax rate computation mode
+        :param use_marginal_tax_rate: True to go into marginal effective tax rate computation mode.
+
+        :type use_marginal_tax_rate: Bool
         '''
 
         # When not ``None``, it'll try to get the data for *year*.
