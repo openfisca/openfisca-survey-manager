@@ -1,4 +1,9 @@
-# Changelog
+﻿# Changelog
+
+## 0.30.0 [#136](https://github.com/openfisca/openfisca-survey-manager/pull/136)
+
+* Adding description
+Adding function documentation.
 
 ## 0.29.0 [#134](https://github.com/openfisca/openfisca-survey-manager/pull/134)
 
