@@ -28,16 +28,16 @@ tax_benefit_system = CountryTaxBenefitSystem()
 
 
 def create_randomly_initialized_survey_scenario(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000, collection = "test_random_generator"):
+        rent_max_value = 1000, collection = "test_random_generator", use_marginal_tax_rate = False):
     if collection is not None:
         return create_randomly_initialized_survey_scenario_from_table(
-            nb_persons, nb_groups, salary_max_value, rent_max_value, collection)
+            nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate)
     else:
         return create_randomly_initialized_survey_scenario_from_data_frame(
-            nb_persons, nb_groups, salary_max_value, rent_max_value)
+            nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate)
 
 
-def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups, salary_max_value, rent_max_value, collection):
+def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate):
     variable_generators_by_period = {
         periods.period('2017-01'): [
             {
@@ -67,11 +67,12 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
         'survey': 'input',
         'input_data_table_by_entity_by_period': table_by_entity_by_period
         }
-    survey_scenario.init_from_data(data = data)
+    survey_scenario.varying_variable = 'salary'
+    survey_scenario.init_from_data(data = data, use_marginal_tax_rate = use_marginal_tax_rate)
     return survey_scenario
 
 
-def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_groups, salary_max_value, rent_max_value):
+def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate = False):
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
@@ -84,7 +85,8 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
             period: input_data_frame_by_entity
             }
         }
-    survey_scenario.init_from_data(data = data)
+    survey_scenario.varying_variable = 'salary'
+    survey_scenario.init_from_data(data = data, use_marginal_tax_rate = use_marginal_tax_rate)
     return survey_scenario
 
 

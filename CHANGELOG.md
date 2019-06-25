@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.29.0 [#134](https://github.com/openfisca/openfisca-survey-manager/pull/134)
+
+* New features
+- Introduce compute_marginal_tax_rate.
+
 ## 0.28.0 [#133](https://github.com/openfisca/openfisca-survey-manager/pull/133)
 
 - Fix _set_used_as_input_variables_by_entity
