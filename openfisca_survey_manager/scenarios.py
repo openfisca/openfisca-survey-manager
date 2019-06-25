@@ -756,7 +756,7 @@ class AbstractSurveyScenario(object):
 
         :param use_marginal_tax_rate: True to go into marginal effective tax rate computation mode.
 
-        :type use_marginal_tax_rate: Bool
+        :type use_marginal_tax_rate: bool
         '''
 
         # When not ``None``, it'll try to get the data for *year*.
