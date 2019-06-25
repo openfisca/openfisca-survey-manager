@@ -1423,8 +1423,6 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
                 series.isnull().sum(), series.notnull().sum(), variable_name)
 
     array = series.values.astype(variable.dtype)
-    # assert array.size == entity.count, 'Entity {}: bad size for variable {} ({} instead of {})'.format(
-    #     entity.key, variable_name, array.size, entity.count)
     # TODO is the next line needed ?
     # Might be due to values returning also ndarray like objects
     # for instance for categories or
