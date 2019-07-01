@@ -287,10 +287,37 @@ class AbstractSurveyScenario(object):
             modified_simulation = self._modified_simulation
 
         assert target_variable in self.tax_benefit_system.variables
+
+        variables_belong_to_same_entity = (
+            self.tax_benefit_system.variables[varying_variable].entity.key
+            ==  self.tax_benefit_system.variables[target_variable].entity.key
+            )
+        varying_variable_belongs_to_person_entity = self.tax_benefit_system.variables[varying_variable].entity.is_person
+
+        assert variables_belong_to_same_entity or varying_variable_belongs_to_person_entity
+
+        if variables_belong_to_same_entity:
+            modified_varying = modified_simulation.calculate_add(varying_variable, period = period)
+            varying = simulation.calculate_add(varying_variable, period = period)
+        else:
+            target_variable_entity_key = self.tax_benefit_system.variables[target_variable].entity.key
+            def cast_to_target_entity(simulation):
+                population = simulation.populations[target_variable_entity_key]
+                df = (pd.DataFrame(
+                        dict({
+                            'members_entity_id': population._members_entity_id,
+                            varying_variable: simulation.calculate_add(varying_variable, period = period)
+                            })
+                        ).groupby('members_entity_id').sum())
+                varying_variable_for_target_entity = df.loc[population.ids, varying_variable].values
+                return varying_variable_for_target_entity
+
+            modified_varying = cast_to_target_entity(modified_simulation)
+            varying = cast_to_target_entity(simulation)
+
         modified_target = modified_simulation.calculate_add(target_variable, period = period)
         target = simulation.calculate_add(target_variable, period = period)
-        modified_varying = modified_simulation.calculate_add(varying_variable, period = period)
-        varying = simulation.calculate_add(varying_variable, period = period)
+
         marginal_rate = 1 - (modified_target - target) / (modified_varying - varying)
         return marginal_rate
 
