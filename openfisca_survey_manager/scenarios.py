@@ -2,11 +2,14 @@
 
 from typing import Dict, List
 
+
+import re
+
+
 import logging
 import os
 import numpy as np
 import pandas as pd
-import re
 
 
 import humanize
@@ -265,16 +268,16 @@ class AbstractSurveyScenario(object):
 
         return aggregate
 
-    def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False):
-        """Computes marginal a rate of a target with respect to a varying variable.
+    def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False,
+                    value_for_zero_varying_variable = 0):
+        """
+            Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
-        Args:
-          target_variable(str): Variable which marginal tax rate is computed
-          period(Period): Period in which the the marginal tax rate is computed
-          use_baseline(bool): Compute the marginal tax rate for the baseline system (Default value = False)
-
-        Returns:
-          np.array: Marginal rates
+            :param string target_variable: the variable which marginal tax rate is computed
+            :param Period period: the period at which the the marginal tax rate is computed
+            :param bool use_baseline: compute the marginal tax rate for the baseline system
+            :param value_for_zero_varying_variable: value of MTR when the varying variable is zero
+            :type value_for_zero_varying_variable: float, optional
         """
         varying_variable = self.varying_variable
         if use_baseline:
@@ -305,10 +308,10 @@ class AbstractSurveyScenario(object):
             def cast_to_target_entity(simulation):
                 population = simulation.populations[target_variable_entity_key]
                 df = (pd.DataFrame(
-                    dict({
+                    {
                         'members_entity_id': population._members_entity_id,
                         varying_variable: simulation.calculate_add(varying_variable, period = period)
-                        })
+                        }
                     ).groupby('members_entity_id').sum())
                 varying_variable_for_target_entity = df.loc[population.ids, varying_variable].values
                 return varying_variable_for_target_entity
@@ -319,13 +322,21 @@ class AbstractSurveyScenario(object):
         modified_target = modified_simulation.calculate_add(target_variable, period = period)
         target = simulation.calculate_add(target_variable, period = period)
 
-        marginal_rate = 1 - (modified_target - target) / (modified_varying - varying)
+        numerator = modified_target - target
+        denominator = modified_varying - varying
+        marginal_rate = 1 - np.divide(
+            numerator,
+            denominator,
+            out = np.full_like(numerator, value_for_zero_varying_variable, dtype = np.float),
+            where = (denominator != 0)
+            )
+
         return marginal_rate
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
             missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None):
-        """Computes a pivot table of agregated values casted along specified index and columns
+        """Computes a pivot table of agregated values casted along specified index and columns.
 
         Args:
           aggfunc(str, optional): Aggregation function, defaults to 'mean'
