@@ -20,6 +20,8 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
+from numpy import absolute as abs_
+from openfisca_france.model.base import *
 
 from openfisca_survey_manager.calibration import Calibration
 
@@ -1468,6 +1470,7 @@ class AbstractSurveyScenario(object):
 
         def set_variable(varying_variable, varying_variable_value, period_):
             delta = self.variation_factor * varying_variable_value
+            delta = np.where(varying_variable_value == 0.0, delta, np.sign(delta) * max_(1, abs_(delta)))
             new_variable_value = varying_variable_value + delta
             simulation.delete_arrays(varying_variable, period_)
             simulation.set_input(varying_variable, period_, new_variable_value)
