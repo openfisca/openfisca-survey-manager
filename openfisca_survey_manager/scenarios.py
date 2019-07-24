@@ -668,7 +668,8 @@ class AbstractSurveyScenario(object):
                 continue
             if column_name not in variables:
                 unknown_columns.append(column_name)
-                input_data_frame.drop(column_name, axis = 1, inplace = True)
+
+        input_data_frame.drop(unknown_columns, axis = 1, inplace = True)
 
         if unknown_columns:
             log.debug('The following unknown columns {}, are dropped from input table'.format(
@@ -687,10 +688,9 @@ class AbstractSurveyScenario(object):
                     continue
 
                 dropped_columns.append(column_name)
-                input_data_frame.drop(column_name, axis = 1, inplace = True)
-                #
-            #
-        #
+
+        input_data_frame.drop(dropped_columns, axis = 1, inplace = True)
+
         if used_columns:
             log.debug(
                 'These columns are not dropped because present in used_as_input_variables:\n {}'.format(
