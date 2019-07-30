@@ -18,7 +18,7 @@ from openfisca_survey_manager.variables import quantile
 Individu = build_entity(
     key = "individu",
     plural = "individus",
-    label = u'Individu',
+    label = 'Individu',
     is_person = True,
     )
 
@@ -35,7 +35,7 @@ class salaire(Variable):
 class decile_salaire_from_quantile(Variable):
     entity = Individu
     value_type = int
-    label = u"Décile de salaire nouveau calcul"
+    label = "Décile de salaire nouveau calcul"
     definition_period = YEAR
     formula = quantile(q = 10, variable = 'salaire')
 
@@ -43,7 +43,7 @@ class decile_salaire_from_quantile(Variable):
 class decile_salaire(Variable):
     value_type = int
     entity = Individu
-    label = u"Décile de salaire"
+    label = "Décile de salaire"
     definition_period = YEAR
 
     def formula(individu, period):
@@ -62,7 +62,7 @@ class decile_salaire(Variable):
 
 class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
     """PPDLand tax and benefit system"""
-    CURRENCY = u""
+    CURRENCY = ""
 
     def __init__(self):
         super(QuantileTestTaxBenefitSystem, self).__init__(entities)
