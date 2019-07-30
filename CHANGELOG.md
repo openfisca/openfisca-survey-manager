@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 0.32 [#143](https://github.com/openfisca/openfisca-survey-manager/pull/143)
+
+* Remove python 2 unicode marks `u"` and `u'`.
+
 ## 0.31 [#140](https://github.com/openfisca/openfisca-survey-manager/pull/140)
 
 * Group column dropping since DataFrame.drop is expensive.
