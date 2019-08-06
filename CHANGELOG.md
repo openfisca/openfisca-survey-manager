@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.32.1 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.32.1 [#144](https://github.com/openfisca/openfisca-survey-manager/pull/144)
 
 * Fix typo (remove quotes) in inflate
 
