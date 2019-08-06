@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.32.1 [#144](https://github.com/openfisca/openfisca-survey-manager/pull/144)
+
+* Fix typo (remove quotes) in inflate
+
 ## 0.32 [#143](https://github.com/openfisca/openfisca-survey-manager/pull/143)
 
 * Remove python 2 unicode marks `u"` and `u'`.

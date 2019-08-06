@@ -10,6 +10,8 @@ import pkg_resources
 
 from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_core import periods
+from openfisca_core.tools import assert_near
+
 from openfisca_country_template import CountryTaxBenefitSystem
 
 
@@ -212,8 +214,48 @@ def test_dump_survey_scenario():
     assert (df2['person'] == person).all().all()
 
 
+def test_inflate():
+    survey_scenario = create_randomly_initialized_survey_scenario()
+    period = "2017-01"
+    inflator = 2.42
+    inflator_by_variable = {'rent': inflator}
+
+    rent_before_inflate = survey_scenario.compute_aggregate('rent', period = period)
+    survey_scenario.inflate(inflator_by_variable = inflator_by_variable, period = period)
+    rent_after_inflate = survey_scenario.compute_aggregate('rent', period = period)
+
+    assert_near(
+        rent_after_inflate,
+        inflator * rent_before_inflate,
+        relative_error_margin = 1e-6,
+        message = "Failing inflate with inflator_by_variable: rent_after_inflate = {} != {} = rent_before_inflate ({}) x inflator ({})".format(
+            rent_after_inflate,
+            rent_before_inflate * inflator,
+            rent_before_inflate,
+            inflator
+            )
+        )
+
+    target = 3e5
+    target_by_variable = {'salary': target}
+    salary_before_inflate = survey_scenario.compute_aggregate('salary', period = period)
+    survey_scenario.inflate(target_by_variable = target_by_variable, period = period)
+    salary_after_inflate = survey_scenario.compute_aggregate('salary', period = period)
+    assert_near(
+        salary_after_inflate,
+        target,
+        relative_error_margin = 1e-6,
+        message = "Failing inflate with inflator_by_variable: salary_after_inflate = {} != {} = target (salary_before_inflate = {})\n".format(
+            salary_after_inflate,
+            target,
+            salary_before_inflate,
+            )
+        )
+
+
 if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    test_create_data_frame_by_entity()
+    test_inflate()
+    # test_create_data_frame_by_entity()

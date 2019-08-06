@@ -742,7 +742,7 @@ class AbstractSurveyScenario(object):
 
                 array = simulation.calculate_add(variable_name, period = period)
                 assert array is not None
-                simulation.delete_arrays('variable_name', period = period)  # delete existing arrays
+                simulation.delete_arrays(variable_name, period = period)  # delete existing arrays
                 simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
