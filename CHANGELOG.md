@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 0.33 [#145](https://github.com/openfisca/openfisca-survey-manager/pull/145)
+
+* Convert string-like columns to category and save to HDF files in table mode
+
 ### 0.32.1 [#144](https://github.com/openfisca/openfisca-survey-manager/pull/144)
 
 * Fix typo (remove quotes) in inflate

@@ -70,7 +70,6 @@ class Table(object):
 
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
-
         variables = table.variables
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
         store_path = table.name
@@ -85,15 +84,23 @@ class Table(object):
         try:
             data_frame.to_hdf(hdf5_file_path, store_path, append = False)
         except (TypeError, NotImplementedError):
+            log.info("Type problem(s) when creating {} in {}".format(store_path, hdf5_file_path))
             dtypes = data_frame.dtypes
-            converted_dtypes = dtypes.isin(['mixed', 'unicode', 'category'])
-            log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
-            for column in dtypes[converted_dtypes].index:
-                try:
-                    data_frame[column] = data_frame[column].astype(str).copy()
-                except UnicodeEncodeError:
-                    continue
-            data_frame.to_hdf(hdf5_file_path, store_path, append = False)
+            # Checking for strings
+            converted_dtypes = dtypes.isin(['mixed', 'unicode'])
+            if converted_dtypes.any():
+                log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
+                # Conversion to strings
+                for column in dtypes[converted_dtypes].index:
+                    data_frame[column] = data_frame[column].copy().astype(str)
+
+            # Checking for remaining categories
+            dtypes = data_frame.dtypes
+            converted_dtypes = dtypes.isin(['category'])
+            if not converted_dtypes.empty:  # With category table format is needed
+                log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
+                data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table')
+
         gc.collect()
 
     def fill_hdf(self, **kwargs):
