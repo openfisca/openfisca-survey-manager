@@ -94,10 +94,10 @@ class Table(object):
                 for column in dtypes[converted_dtypes].index:
                     data_frame[column] = data_frame[column].copy().astype(str)
 
-            # Checking for remaining categories
+            # Checking for remaining categories
             dtypes = data_frame.dtypes
             converted_dtypes = dtypes.isin(['category'])
-            if not converted_dtypes.empty:  # With category table format is needed
+            if not converted_dtypes.empty:  # With category table format is needed
                 log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
                 data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table')
 
