@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 0.34 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Better handling of categorical variables
+
 ## 0.33 [#145](https://github.com/openfisca/openfisca-survey-manager/pull/145)
 
 * Convert string-like columns to category and save to HDF files in table mode

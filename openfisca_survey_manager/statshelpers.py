@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
 import pandas as pd
 import weighted

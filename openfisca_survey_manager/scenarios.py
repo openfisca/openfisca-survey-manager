@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
 
 from typing import Dict, List
 
@@ -29,17 +28,18 @@ log = logging.getLogger(__name__)
 
 
 class AbstractSurveyScenario(object):
+    baseline_simulation = None
+    baseline_tax_benefit_system = None
+    cache_blacklist = None
+    collection = None
     debug = False
     filtering_variable_by_entity = None
     id_variable_by_entity_key = None
     inflator_by_variable = None  # factor used to inflate variable total
     input_data_frame = None
-    input_data_table_by_period = None
     input_data_table_by_entity_by_period = None
+    input_data_table_by_period = None
     non_neutralizable_variables = None
-    cache_blacklist = None
-    baseline_simulation = None
-    baseline_tax_benefit_system = None
     role_variable_by_entity_key = None
     simulation = None
     target_by_variable = None  # variable total target to inflate to
@@ -1419,7 +1419,8 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
             'Converting {} from dtype {} to {}'.format(
                 variable_name, series.values.dtype, variable.dtype)
             )
-    if np.issubdtype(series.values.dtype, np.floating):
+    # np.issubdtype cannot handles categorical variables
+    if (not pd.api.types.is_categorical_dtype(series)) and np.issubdtype(series.values.dtype, np.floating):
         if series.isnull().any():
             log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name))
