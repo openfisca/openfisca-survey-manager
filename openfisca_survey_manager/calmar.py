@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 import logging
 import operator
 
@@ -228,6 +226,9 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
     # rebuilding a weight vector with the same size of the initial one
     pondfin_out = array(data_in[initial_weight], dtype = float64)
     pondfin_out[is_non_zero_weight] = pondfin
+
+    del infodict, mesg  # TODO better exploit this information
+
     return pondfin_out, lambdasol, margins_new_dict
 
 

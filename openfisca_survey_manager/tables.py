@@ -123,7 +123,9 @@ class Table(object):
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
-                log.info('Exiting without overwriting {} in '.format(self.name, self.survey.hdf5_file_path))
+                log.info(
+                    'Exiting without overwriting {} in {}'.format(
+                        self.name, self.survey.hdf5_file_path))
         else:
             self._check_and_log(data_file)
             try:
@@ -139,8 +141,8 @@ class Table(object):
                 log.info("File {} has been processed in {}".format(
                     data_file, datetime.datetime.now() - start_table_time))
             except ValueError as e:
-                raise e
                 log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
+                raise e
 
     def save_data_frame(self, data_frame, **kwargs):
         data_frame.to_hdf(self.survey.hdf5_file_path, self.name, append = False, **kwargs)

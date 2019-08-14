@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 
 import logging
 import os
@@ -27,7 +25,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
 
         assert last_year == base_year + 1
 
-        for name, sub_parameter in parameters.children.items():
+        for sub_parameter in parameters.children.values():
             if isinstance(sub_parameter, ParameterNode):
                 inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units)
             else:
@@ -55,7 +53,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                     (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
                     ])
 
-                for unit_type, unit in unit_by_type.items():
+                for unit_type in unit_by_type.keys():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
                         inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type)
 
@@ -150,7 +148,7 @@ def parameters_asof(parameters, instant):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
 
-    for name, sub_parameter in parameters.children.items():
+    for sub_parameter in parameters.children.values():
         if isinstance(sub_parameter, ParameterNode):
             parameters_asof(sub_parameter, instant)
         else:
