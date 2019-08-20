@@ -1,0 +1,307 @@
+COICOP, 1998 - Niveau 5 - Liste des postes;
+Code;Libellé
+01.1.1.1.1;Pain
+01.1.1.2.1;Pâtisserie fraîche
+01.1.1.2.2;Viennoiserie
+01.1.1.3.1;Biscottes, triscottes, pains durs
+01.1.1.3.2;Biscuits et gâteaux
+01.1.1.3.3;Pâtisserie de conservation
+01.1.1.4.1;Farines, semoules, céréales
+01.1.1.4.2;Pâtes alimentaires
+01.1.1.4.3;Riz
+01.1.1.4.4;Plats cuisinés à base de céréales
+01.1.2.1.1;Bœuf à rôtir
+01.1.2.1.2;Bœuf à braiser et bouillir
+01.1.2.1.3;Bœuf haché
+01.1.2.2.1;Veau à rôtir
+01.1.2.2.2;Veau à braiser et bouillir
+01.1.2.3.1;Agneau
+01.1.2.3.2;Cheval
+01.1.2.4.1;Porc frais, salé, fumé
+01.1.2.4.2;Jambon
+01.1.2.4.3;Pâté
+01.1.2.4.4;Saucisson
+01.1.2.4.5;Saucisse
+01.1.2.4.6;Autres charcuteries et conserves de viande
+01.1.2.5.1;Poulet
+01.1.2.5.2;Dinde
+01.1.2.5.3;Autres volailles
+01.1.2.6.1;Lapin, gibier
+01.1.2.6.2;Triperie
+01.1.2.6.3;Plats cuisinés à base de viande
+01.1.3.1.1;Poissons frais
+01.1.3.1.2;Crustacés et mollusques frais
+01.1.3.2.1;Poissons en conserves, surgelés, séchés, fumés
+01.1.3.2.2;Plats cuisinés à base de poisson
+01.1.4.1.1;Laits
+01.1.4.1.2;Crèmes fraîches
+01.1.4.2.1;Yaourts
+01.1.4.2.2;Desserts lactés frais
+01.1.4.3.1;Fromages frais
+01.1.4.3.2;Fromages à pâte molle et à pâte persillée
+01.1.4.3.3;Fromages à pâte pressée
+01.1.4.3.4;Fromages de chèvre
+01.1.4.3.5;Fromages fondus
+01.1.4.4.1;Œufs
+01.1.5.1.1;Beurres
+01.1.5.2.1;Huiles alimentaires
+01.1.5.2.2;Margarine végétale et autres graisses
+01.1.6.1.1;Fruits frais
+01.1.6.2.1;Fruits surgelés, appertisés ou secs
+01.1.7.1.1;Légumes frais
+01.1.7.2.1;Légumes surgelés, secs et en conserve
+01.1.7.2.2;Pommes de terre préparées
+01.1.7.2.3;Autres plats cuisinés à base de légumes
+01.1.8.1.1;Sucre
+01.1.8.1.2;Confitures, compotes et miel
+01.1.8.1.3;Confiseries à base de sucre
+01.1.8.2.1;Chocolat en tablettes
+01.1.8.2.2;Confiseries à base de chocolat
+01.1.8.3.1;Crèmes glacées, glaces et sorbets
+01.1.9.1.1;Sels, épices, condiments, vinaigres et sauces
+01.1.9.2.1;Aliments préparés pour bébés
+01.1.9.2.2;Produits diététiques
+01.1.9.3.1;Potages préparés
+01.1.9.3.2;Desserts et produits pour pâtisserie
+01.2.1.1.1;Chocolat en poudre
+01.2.1.2.1;Cafés en grains ou moulu
+01.2.1.2.2;Café soluble et succédanée de café
+01.2.1.3.1;Thés et infusions
+01.2.2.1.1;Eaux minérales et de source
+01.2.2.2.1;Jus de fruits et de légumes
+01.2.2.2.2;Boissons aux fruits non gazeuses, sodas, limonades
+01.2.2.2.3;Sirops et concentrés
+02.1.1.1.1;Apéritifs anisés à base d'alcool
+02.1.1.1.2;Whisky
+02.1.1.2.1;Eaux de vie
+02.1.1.2.2;Liqueurs
+02.1.2.1.1;Vins de consommation courante
+02.1.2.1.2;Vins supérieurs
+02.1.2.1.3;Vins doux naturels et apéritifs à base de vin
+02.1.2.2.1;Champagne et mousseux
+02.1.2.2.2;Cidres
+02.1.3.1.1;Bières
+02.2.1.1.1;Tabac
+03.1.1.1.1;Tissus d'habillement
+03.1.2.1.1;Manteaux, imper. et vêtements en peau pour hommes
+03.1.2.1.2;Costumes pour hommes
+03.1.2.1.3;Vestes pour hommes
+03.1.2.1.4;Pantalons pour hommes
+03.1.2.1.5;Vêtements de travail
+03.1.2.2.1;Manteaux, imper et vêtements en peau pour femmes
+03.1.2.2.2;Tailleurs et ensembles pour femmes
+03.1.2.2.3;Jupes
+03.1.2.2.4;Robes
+03.1.2.2.5;Pantalons pour femmes
+03.1.2.2.6;Vestes pour femmes
+03.1.2.3.1;Manteaux, imperméables et vestes pour enfants
+03.1.2.3.2;Pantalons pour enfants
+03.1.2.3.3;Jupes, robes et ensembles pour enfants
+03.1.2.4.1;Vêtements de sport ou de loisirs pour hommes et garçonnets
+03.1.2.4.2;Vêtements de sport ou de loisir pour femmes et fillettes
+03.1.2.5.1;Chemises pour hommes
+03.1.2.5.2;Sous-vêtements et vêtements de nuit pour hommes
+03.1.2.5.3;Chaussettes pour hommes
+03.1.2.5.4;Tricots et pull-overs pour hommes
+03.1.2.6.1;Chemisiers et tuniques pour femmes
+03.1.2.6.2;Lingerie, vêtements de nuit pour femmes
+03.1.2.6.3;Collants, bas et chaussettes pour femmes
+03.1.2.6.4;Tricots et pull-overs pour femmes
+03.1.2.7.1;Chemises, sous- vêtements et vêtements de nuit enfants
+03.1.2.7.2;Collants et chaussettes pour enfants
+03.1.2.7.3;Tricots et pull-overs pour enfants
+03.1.2.7.4;Layette
+03.1.3.1.1;Accessoires du vêtement et vêtements de travail
+03.1.3.1.2;Laines et mercerie
+03.1.4.1.1;Blanchissage et nettoyage de vêtements
+03.1.4.1.2;Réparations de vêtements
+03.2.1.1.1;Chaussures de ville pour hommes
+03.2.1.1.2;Chaussures de ville pour femmes
+03.2.1.1.3;Chaussures de ville pour enfants
+03.2.1.2.1;Chaussures de sport
+03.2.1.2.2;Autres articles chaussants
+03.2.1.2.3;Réparation de chaussures
+04.1.1.1.1;Loyers des résidences principales
+04.1.1.2.1;Loyers des résidences de vacances et gîtes ruraux
+04.3.1.1.1;Peintures, vernis et papiers peints
+04.3.1.1.2;Art. de quincaillerie, fournitures pour bricolage
+04.3.1.1.3;Articles en bois
+04.3.2.1.1;Pose de revêtement de sols et murs
+04.3.2.2.1;Services d'entretien du logement
+04.4.1.1.1;Distribution d'eau
+04.4.1.2.1;Enlèvement des ordures ménagères
+04.4.1.3.1;Service d'assainissement
+04.4.1.4.1;Ramonage, gardiennage et entretien des ascenseurs
+04.5.1.1.1;Électricité
+04.5.2.1.1;Gaz de ville
+04.5.2.2.1;Gaz liquéfiés
+04.5.3.1.1;Fiouls domestiques
+04.5.4.1.1;Autres combustibles solides
+04.5.5.1.1;Chauffage urbain
+05.1.1.1.1;Chambres d'enfants
+05.1.1.1.2;Chambres d'adultes
+05.1.1.1.3;Sommiers
+05.1.1.2.1;Étagères et éléments modulables
+05.1.1.2.2;Buffets, livings, bahuts, bibliothèques
+05.1.1.2.3;Tables et chaises de salle à manger
+05.1.1.3.1;Mobilier de cuisine et de salle de bains
+05.1.1.4.1;Fauteuils et canapés
+05.1.1.5.1;Luminaires
+05.1.1.5.2;Articles de décoration
+05.1.1.5.3;Meubles de jardin
+05.1.1.5.4;Réparation des meubles
+05.1.2.1.1;Tapis et autres revêtements de sol
+05.2.1.1.1;Linge de lit
+05.2.1.1.2;Couvertures et accessoires de literie
+05.2.1.1.3;Literie
+05.2.1.2.1;Tissus d'ameublement, voilages
+05.2.1.2.2;Linge de toilette et de table, torchons
+05.3.1.1.1;Lave-linge, sèche-linge
+05.3.1.1.2;Lave-vaisselle
+05.3.1.2.1;Appareils de cuisson
+05.3.1.3.1;Réfrigérateurs, congélateurs
+05.3.1.4.1;Aspirateurs et autres gros appareils ménagers
+05.3.1.4.2;Appareils de chauffage
+05.3.2.1.1; petits appareils électroménagers
+05.3.3.1.1;Réparation d'appareils ménagers
+05.4.1.1.1;Faïence et porcelaine
+05.4.1.1.2;Verrerie
+05.4.1.2.1;Couverts et autres ustensiles de cuisine en métal
+05.4.1.2.2;Orfèvrerie
+05.4.1.3.1;Autres ustensiles de ménage
+05.5.1.1.1;Outillage à moteur
+05.5.1.1.2;Piles
+05.5.1.1.3;Lampes et autres petits matériels électriques
+05.5.1.1.4;Outillage à main, ustensiles de jardin
+05.5.1.1.5;Autres petits matériels pour la maison
+05.6.1.1.1;Petits articles pour l'entretien du logement
+05.6.1.1.2;Petits articles de quincaillerie et de couture
+05.6.1.2.1;Savons de ménage et détergents
+05.6.1.2.2;Produits d'entretien de la maison
+05.6.2.1.1;Employé de maison
+05.6.2.2.1;Locations d'appareils de nettoyage et de bricolage
+05.6.2.2.2;Blanchissage et nettoyage d'articles textiles hors vêtements
+06.1.1.1.1;Produits pharmaceutiques
+06.1.1.2.1;Parapharmacie
+06.1.1.3.1;Optique médicale
+06.1.1.3.2;Appareils orthopédiques et prothèses
+06.2.1.1.1;Médecins
+06.2.2.1.1;Dentistes
+06.2.3.1.1;Analyses de laboratoire
+06.2.3.1.2;Auxiliaires médicaux
+06.2.3.1.3;Transports sanitaires
+06.2.3.1.4;Cures thermales privées
+07.1.1.1.1;Automobiles neuves
+07.1.1.2.1;Automobiles d'occasion
+07.1.2.1.1;Motocycles
+07.1.2.1.2;Cycles
+07.2.1.1.1;Pneumatiques
+07.2.1.2.1;Autres grosses pièces de rechange  pour véhicules
+07.2.1.2.2;Accessoires et petites pièces de rechange pour véhicules
+07.2.2.1.1;Supercarburants
+07.2.2.1.2;Gazole et gpl
+07.2.2.2.1;Lubrifiants
+07.2.3.1.1;Entretien de véhicules personnels
+07.2.3.2.1;Réparation de véhicules personnels (heure de m.o.)
+07.2.3.2.2;Réparation de véhicules personnels (forfait pièces et m.o.)
+07.2.4.1.1;Péages
+07.2.4.1.2;Parkings
+07.2.4.2.1;Auto-écoles
+07.2.4.2.2;Locations de véhicules privés
+07.2.4.2.3;Formalités administratives liées au véhicule personnel
+07.3.1.1.1;Transports ferroviaires de voyageurs
+07.3.2.1.1;Transports routiers interurbains de voyageurs
+07.3.2.1.2;Transports routiers urbains et suburbains de voyageurs
+07.3.2.2.1;Taxis
+07.3.3.1.1;Transports aériens de voyageurs
+07.3.5.1.1;Transports combinés urbains et suburbains de voyageurs
+07.3.6.1.1;Déménagement
+07.3.6.1.2;Transports maritimes et fluviaux
+08.1.1.1.1;Services postaux
+08.1.2.1.1;Poste téléphonique
+08.1.2.2.1;Services de télécommunications
+09.1.1.1.1;Matériel vidéo
+09.1.1.1.2;Téléviseurs
+09.1.1.1.3;Autres appareils électro-acoustiques
+09.1.2.1.1;Appareils de photo, inst. d'optique, d'observation
+09.1.2.1.2;Caméscope
+09.1.3.1.1;Matériel de traitement de l'info. yc micro-ordinateurs
+09.1.4.1.1;Disques et cassettes enregistrés
+09.1.4.1.2;Disquettes et cassettes vierges
+09.1.4.1.3;Produits photographiques
+09.1.5.1.1;Réparation d'appareils et d'accessoires récréatifs
+09.2.1.1.1;Caravanes
+09.2.1.1.2;Bateaux et accessoires
+09.2.1.1.3;Instruments de musique et autres articles pour les loisirs
+09.3.1.1.1;Jeux et jouets
+09.3.2.1.1;Articles de sport, armes et munitions
+09.3.2.1.2;Articles de camping
+09.3.3.1.1;Fleurs et plantes
+09.3.3.2.1;Plants et graines yc engrais
+09.3.3.2.2;Compositions  florales
+09.3.4.1.1;Aliments et produits d'hygiène pour animaux
+09.3.4.1.2;Achats d'animaux
+09.3.4.1.3;Soins pour animaux d'agrément
+09.4.1.1.1;Pratique d'un sport
+09.4.1.1.2;Assistance à des manifestations sportives
+09.4.1.1.3;Enseignement artistique et autres services récréatifs
+09.4.2.1.1;Cinémas
+09.4.2.2.1;Théâtres, concerts et music-halls
+09.4.2.2.2;Visite de monument ou musée
+09.4.2.3.1;Redevance et abonnements télévision
+09.4.2.4.1;Travaux photographiques
+09.4.2.4.2;Locations d'articles récréatifs
+09.5.1.1.1;Livres scolaires et parascolaires, dict., encyclo.
+09.5.1.1.2;Ouvrages de littérature générale
+09.5.1.1.3;Livres pour la jeunesse, livres pratiques et autres
+09.5.2.1.1;Journaux
+09.5.2.2.1;Revues
+09.5.3.1.1;Autres articles imprimés
+09.5.3.1.2;Articles de papeterie
+09.5.3.2.1;Stylos, crayons et encres
+09.5.3.2.2;Autres fournitures scolaires et de bureau
+09.6.1.1.1;Voyages organisés
+10.1.1.1.1;Secondaires à financement  privé
+10.1.1.1.2;Supérieurs à financement privé
+10.1.1.1.3;Cours par correspondance
+11.1.1.1.1;Repas traditionnel dans un restaurant
+11.1.1.1.2;Repas en libre service et restauration rapide
+11.1.1.2.1;Cafés et autres boiss. chaudes cons. dans les cafés
+11.1.1.2.2;Vin consommé dans les cafés
+11.1.1.2.3;Bière et cidre consommés dans les cafés
+11.1.1.2.4;Spiritueux consommés dans les cafés
+11.1.1.2.5;Boissons non alcoolisées cons. dans les cafés
+11.1.2.1.1;Repas dans un restaurant scolaire ou universitaire
+11.1.2.2.1;Repas dans un restaurant d'entreprise ou d'admin.
+11.2.1.1.1;Locations de chambres d'hôtel
+11.2.1.1.2;Pensions et demi-pensions dans les hôtels
+11.2.1.2.1;Frais d'internat scol., résidences univers., foyers
+11.2.1.3.1;Hébergements de vacances ou de loisirs
+11.2.1.3.2;Terrains de camping et auberges de jeunesse
+12.1.1.1.1;Coiffeurs pour hommes
+12.1.1.1.2;Coiffeurs pour femmes
+12.1.1.2.1;Autres services d'esthétique corporelle
+12.1.3.1.1;Parfums et eaux de toilette
+12.1.3.1.2;Produits de maquillage et de soin de la peau
+12.1.3.2.1;Savons, dentifrices et produits de toilette
+12.1.3.2.2;Shampooings et produits capillaires divers
+12.1.3.3.1;Autres articles de toilette
+12.1.3.3.2;Articles d'hygiène à base de papier
+12.1.3.3.3;Appareils de toilette électriques
+12.3.1.1.1;Horlogerie
+12.3.1.1.2;Bijouterie, joaillerie
+12.3.2.1.1;Maroquinerie et articles de voyage
+12.3.2.2.1;Articles de puériculture
+12.3.2.2.2;Articles pour fumeurs, articles divers
+12.3.2.2.3;Réparation horlogerie ou bijoux
+12.4.1.1.1;Crèches, assistantes maternelles
+12.4.1.2.1;Maisons de retraite et autres services pour personnes âgées
+12.4.1.3.1;Établissements pour adultes handicapés
+12.5.2.1.1;Assurance habitation
+12.5.3.1.1;Assurance santé complémentaire
+12.5.4.1.1;Assurance automobile
+12.6.1.1.1;Services financiers
+12.7.1.1.1;Services funéraires
+12.7.1.2.1;Formalités administratives
+12.7.1.2.2;Services juridiques
+12.7.1.2.3;Autres services aux ménages
