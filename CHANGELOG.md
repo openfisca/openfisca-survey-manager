@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 0.35 [#148](https://github.com/openfisca/openfisca-survey-manager/pull/148)
+
+* Introduce some functions to deal with coicop nomenclature
+
 ## 0.34 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
 
 * Better handling of categorical variables
