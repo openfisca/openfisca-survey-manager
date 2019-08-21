@@ -4,7 +4,7 @@
 
 * Introduce some functions to deal with coicop nomenclature
 
-## 0.34 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+## 0.34 [#147](https://github.com/openfisca/openfisca-survey-manager/pull/147)
 
 * Better handling of categorical variables
 
