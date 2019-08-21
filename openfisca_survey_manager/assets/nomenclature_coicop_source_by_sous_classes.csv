@@ -1,0 +1,163 @@
+COICOP, 1998 - Niveau 4 - Liste des sous-classes;
+Code;Libellé
+01.1.1.1;Pain
+01.1.1.2;Pâtisserie fraîche et viennoiserie
+01.1.1.3;Gâteaux, pâtisserie de conservation
+01.1.1.4;Céréales
+01.1.2.1;Viande de bœuf
+01.1.2.2;Viande de veau
+01.1.2.3;Viande de mouton, de cheval
+01.1.2.4;Viande de porc et charcuteries
+01.1.2.5;Volaille
+01.1.2.6;Autres viandes et plats cuisinés à base de viande
+01.1.3.1;Poissons et crustacés frais
+01.1.3.2;Poissons et crustacés préparés, en conserves et surgelés
+01.1.4.1;Lait et crème
+01.1.4.2;Yaourts et desserts lactés
+01.1.4.3;Fromages
+01.1.4.4;Œufs
+01.1.5.1;Beurres
+01.1.5.2;Huiles et margarines
+01.1.6.1;Fruits frais
+01.1.6.2;Fruits surgelés, appertisés ou secs
+01.1.7.1;Légumes frais
+01.1.7.2;Légumes préparés, surgelés et en conserve
+01.1.8.1;Produits à base de sucre
+01.1.8.2;Produits à base de chocolat
+01.1.8.3;Crèmes glacées, glaces et sorbets
+01.1.9.1;Condiments et assaisonnements
+01.1.9.2;Aliments préparés pour enfants et produits diététiques
+01.1.9.3;Autres produits alimentaires n.d.a.
+01.2.1.1;Produits chocolatés
+01.2.1.2;Cafés
+01.2.1.3;Thés et infusions
+01.2.2.1;Eaux minérales et de source
+01.2.2.2;Boissons gazeuses, jus et sirops
+02.1.1.1;Apéritifs
+02.1.1.2;Eaux de vie et liqueurs
+02.1.2.1;Vins
+02.1.2.2;Champagne, mousseux et cidres
+02.1.3.1;Bières
+02.2.1.1;Tabac
+03.1.1.1;Tissus d'habillement
+03.1.2.1;Vêtements de dessus pour hommes
+03.1.2.2;Vêtements de dessus pour femmes
+03.1.2.3;Vêtements de dessus pour enfants
+03.1.2.4;Vêtements de sport
+03.1.2.5;Lingerie, bonneterie   pour hommes
+03.1.2.6;Lingerie, bonneterie pour femmes
+03.1.2.7;Lingerie, bonneterie pour enfants
+03.1.3.1;Autres articles vestimentaires et accessoires d'habillement
+03.1.4.1;Nettoyage et réparation de vêtements
+03.2.1.1;Chaussures de ville
+03.2.1.2;Autres chaussures y.c. réparation
+04.1.1.1;Loyers des résidences principales
+04.1.1.2; loyers des résidences de vacances et gîtes ruraux
+04.3.1.1;Produits pour l'entretien et la réparation courante du logement
+04.3.2.1;Pose de revêtements de sols et murs
+04.3.2.2;Autres services d'entretien du logement
+04.4.1.1;Distribution d'eau
+04.4.1.2;Enlèvement des ordures ménagères
+04.4.1.3;Assainissement
+04.4.1.4;Autres services liés au logement n.d.a.
+04.5.1.1;Électricité
+04.5.2.1;Gaz de ville
+04.5.2.2; gaz liquéfiés
+04.5.3.1;Combustibles liquides
+04.5.4.1;Combustibles solides
+04.5.5.1;Eau chaude, vapeur et glace
+05.1.1.1;Mobilier de chambre
+05.1.1.2;Mobilier de séjour
+05.1.1.3;Mobilier de cuisine et salle de bains
+05.1.1.4;Fauteuils et canapés
+05.1.1.5;Accessoires du mobilier, meubles de jardin et réparation de meubles
+05.1.2.1;Tapis et autres revêtements de sol
+05.2.1.1;Articles pour literie
+05.2.1.2;Autres articles textiles
+05.3.1.1;Appareils de lavage
+05.3.1.2;Appareils de cuisson
+05.3.1.3;Réfrigérateurs, congélateurs
+05.3.1.4;Autres appareils
+05.3.2.1;Petits appareils électroménagers
+05.3.3.1;Réparation d'appareils ménagers
+05.4.1.1;Verrerie, faïence et porcelaine
+05.4.1.2;Ustensiles de ménage en métal
+05.4.1.3;Autres articles de ménage
+05.5.1.1;Outillage et autres matériels pour la maison et le jardin
+05.6.1.1;Petits articles pour l'entretien du logement
+05.6.1.2;Savons de ménage et produits d'entretien
+05.6.2.1;Services domestiques
+05.6.2.2;Autres services pour l'habitation
+06.1.1.1;Produits pharmaceutiques
+06.1.1.2;Parapharmacie
+06.1.1.3;Appareils et matériels thérapeutiques
+06.2.1.1;Médecins
+06.2.2.1;Dentistes
+06.2.3.1;Services paramédicaux
+07.1.1.1;Automobiles neuves
+07.1.1.2;Automobiles d'occasion
+07.1.2.1;Motos et cycles
+07.2.1.1;Pneumatiques
+07.2.1.2;Pièces de rechange et accessoires
+07.2.2.1;Carburants
+07.2.2.2;Lubrifiants
+07.2.3.1;Entretien de véhicules personnels
+07.2.3.2;Réparation de véhicules personnels
+07.2.4.1;Péages et parkings
+07.2.4.2;Autres services pour véhicules personnels
+07.3.1.1;Transports ferroviaires de voyageurs
+07.3.2.1;Transports routiers de voyageurs
+07.3.2.2;Taxis
+07.3.3.1;Transports aériens de voyageurs
+07.3.5.1;Transports combinés de voyageurs
+07.3.6.1;Autres achats de services de transport y.c. transports maritimes et fluviaux
+08.1.1.1;Services postaux
+08.1.2.1;Équipement de téléphone et de télécopie
+08.1.2.2;Service de télécommunications
+09.1.1.1;Équipements audio-visuels
+09.1.2.1;Équipements photo et cinéma
+09.1.3.1;Matériels de traitement de l'information y.c. micro-ordinateurs
+09.1.4.1;Supports d'enregistrements de l'image et du son
+09.1.5.1;Réparation de matériel audiovisuel, photographique et de traitement de l'information
+09.2.1.1;Autres biens durables importants pour les loisirs et la culture y.c. réparation
+09.3.1.1;Jeux et jouets
+09.3.2.1;Équipement de sport, de camping et de loisirs de plein air
+09.3.3.1;Fleurs et plantes
+09.3.3.2;Plants et graines
+09.3.4.1;Animaux d'agrément y c. services
+09.4.1.1;Services récréatifs
+09.4.2.1;Cinémas
+09.4.2.2;Autres spectacles culturels et musées
+09.4.2.3;Redevance et abonnements télévision
+09.4.2.4;Autres services culturels
+09.5.1.1;Livres
+09.5.2.1;Journaux
+09.5.2.2;Magazines
+09.5.3.1;Articles à base de papier
+09.5.3.2;Autres articles de bureau
+09.6.1.1;Voyages touristiques tout compris
+10.1.1.1;Services d'éducation
+11.1.1.1;Restauration
+11.1.1.2;Consommation dans les cafés
+11.1.2.1;Repas dans un restaurant scolaire ou universitaire
+11.1.2.2;Repas dans un restaurant d'entreprise ou d'administration
+11.2.1.1;Hôtellerie y.c. pension
+11.2.1.2;Internat scolaire et universitaire
+11.2.1.3;Hébergements de vacances
+12.1.1.1;Coiffure
+12.1.1.2;Autres services d'esthétique
+12.1.3.1;Parfumerie et produits de beauté
+12.1.3.2;Produits de l'hygiène corporelle
+12.1.3.3;Appareils et autres articles de toilette
+12.3.1.1;Horlogerie, bijouterie, joaillerie
+12.3.2.1;Maroquinerie et articles de voyages
+12.3.2.2;Autres effets personnels y.c. réparation
+12.4.1.1;Crèches, assistantes maternelles
+12.4.1.2;Maisons de retraite et autres services pour personnes âgées
+12.4.1.3;Établissements pour adultes handicapés
+12.5.2.1;Assurance habitation
+12.5.3.1;Assurance santé complémentaire
+12.5.4.1;Assurance automobile
+12.6.1.1;Services financiers
+12.7.1.1;Services funéraires
+12.7.1.2;Prestations administratives et privées diverses
