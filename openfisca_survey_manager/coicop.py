@@ -33,7 +33,7 @@ def build_coicop_level_nomenclature(level, keep_code = False, to_csv = False):
 
     data_frame.reset_index(inplace = True)
     data_frame.rename(columns = {0: 'code_coicop', 1: 'label_{}'.format(level[:-1])}, inplace = True)
-    data_frame = data_frame.ix[2:].copy()
+    data_frame = data_frame.iloc[2:].copy()
 
     index, stop = 0, False
     for sub_level in sub_levels:
