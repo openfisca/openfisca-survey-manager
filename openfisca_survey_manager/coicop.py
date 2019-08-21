@@ -86,5 +86,7 @@ def build_raw_coicop_nomenclature():
 
 
 if __name__ == "__main__":
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     raw_coicop_nomenclature = build_raw_coicop_nomenclature()
-    print(raw_coicop_nomenclature)
+    log.info(raw_coicop_nomenclature)
