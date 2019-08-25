@@ -50,7 +50,7 @@ def build_coicop_level_nomenclature(level, keep_code = False, to_csv = False):
             stop = True
 
     if keep_code or level == 'postes':
-        data_frame['code_coicop'] = data_frame['code_coicop'].str[1:].copy()
+        data_frame['code_coicop'] = data_frame['code_coicop'].str.lstrip("0")
     else:
         del data_frame['code_coicop']
 
