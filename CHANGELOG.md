@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.35.2 [#150](https://github.com/openfisca/openfisca-survey-manager/pull/150)
+
+* Technical changes
+- Fix assets inclusion
+
 ### 0.35.1 [#149](https://github.com/openfisca/openfisca-survey-manager/pull/149)
 
 * Technical changes
