@@ -116,8 +116,11 @@ def build_survey_collection(
         source_format = valid_source_format[0]
         log.info("Using the following format: {}".format(source_format))
         collections_directory = survey_collection.config.get('collections', 'collections_directory')
-        assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
-Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
+        if os.path.isdir(collections_directory) is False:
+            log.info(
+                "{} who should be the collections' directory does not exist. Creating directory.".format(
+                    collections_directory))
+            os.mkdir(collections_directory)
         collection_json_path = os.path.join(collections_directory, "{}.json".format(collection_name))
         survey_collection.dump(json_file_path = collection_json_path)
         surveys = [survey for survey in survey_collection.surveys if survey.name.endswith(str(survey_suffix))]
@@ -156,7 +159,7 @@ def check_template_config_files(config_files_directory: str):
             return False
     else:
         os.makedirs(config_files_directory)
-        return check_template_config_files()
+        return check_template_config_files(config_files_directory)
 
     return True
 
