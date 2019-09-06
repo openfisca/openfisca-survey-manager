@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.36.2 [#15X](https://github.com/openfisca/openfisca-survey-manager/pull/15X)
+## 0.36.0 [#152](https://github.com/openfisca/openfisca-survey-manager/pull/152)
 
 * Technical changes
 - Create collections directory when it is missing
