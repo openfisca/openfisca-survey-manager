@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 0.36.3 [#152](https://github.com/openfisca/openfisca-survey-manager/pull/152)
+
+* Technical changes
+- Fix asof for sclaes
+- Use `simulation.get_known_periods` instead of `Holder`'s method in `summariaze_variable`
+
 ## 0.36.0 [#152](https://github.com/openfisca/openfisca-survey-manager/pull/152)
 
 * Technical changes
