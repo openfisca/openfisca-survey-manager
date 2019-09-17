@@ -1216,8 +1216,8 @@ class AbstractSurveyScenario(object):
             simulation = self.simulation
 
         tax_benefit_system = simulation.tax_benefit_system
-        assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
-        variable_instance = tax_benefit_system.variables[variable]
+        variable_instance = tax_benefit_system.variables.get(variable)
+        assert variable_instance is not None, "{} is not a valid variable".format(variable)
 
         default_value = variable_instance.default_value
         value_type = variable_instance.value_type
@@ -1270,7 +1270,7 @@ class AbstractSurveyScenario(object):
                         )
                     ))
             else:
-                for period in sorted(holder.get_known_periods()):
+                for period in sorted(simulation.get_known_periods(variable)):
                     array = holder.get_array(period)
                     if array.shape == ():
                         print("{}: always = {}".format(period, array))
