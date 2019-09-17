@@ -155,9 +155,13 @@ def parameters_asof(parameters, instant):
             if isinstance(sub_parameter, Scale):
                 for bracket in sub_parameter.brackets:
                     threshold = bracket.children['threshold']
-                    rate = bracket.children['rate']
+                    rate = bracket.children.get('rate')
+                    amount = bracket.children.get('amount')
                     leaf_asof(threshold, instant)
-                    leaf_asof(rate, instant)
+                    if rate:
+                        leaf_asof(rate, instant)
+                    if amount:
+                        leaf_asof(amount, instant)
             else:
                 leaf_asof(sub_parameter, instant)
 
