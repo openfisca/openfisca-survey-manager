@@ -1,6 +1,11 @@
 ﻿# Changelog
 
-## 0.36.3 [#152](https://github.com/openfisca/openfisca-survey-manager/pull/152)
+## 0.37.0 [#1XX](https://github.com/openfisca/openfisca-survey-manager/pull/1XX)
+
+* Technical changes
+- Add ignorecase argument to Survey.get_values
+
+### 0.36.3 [#152](https://github.com/openfisca/openfisca-survey-manager/pull/152)
 
 * Technical changes
 - Fix asof for `TaxScale`

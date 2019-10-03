@@ -149,51 +149,53 @@ Contains the following tables : \n""".format(self.name, self.label)
             log.info('table {} was not found in {}'.format(table, store.filename))
             return list()
 
-    def get_value(self, variable = None, table = None):
-        """
-        Get value
+    def get_value(self, variable, table, lowercase = False, ignorecase = False):
+        """Get variable value from a survey table
 
-        Parameters
-        ----------
-        variable : string
-                  name of the variable
-        table : string, default None
-                name of the table hosting the variable
-        Returns
-        -------
-        df : DataFrame, default None
-             A DataFrame containing the variable
+        :param variable: variable to retrieve
+        :param table: name of the table
+        :type table: str
+        :param lowercase: lowercase variable names, defaults to False
+        :type lowercase: bool, optional
+        :param ignorecase: ignore case of table name, defaults to False
+        :type lowercase: bool, optional
+        :return: dataframe containing the variable
+        :rtype: pd.DataFrame
         """
-        assert variable is not None, "A variable is needed"
-        if table not in self.tables:
-            log.error("Table {} is not found in survey tables".format(table))
-        df = self.get_values([variable], table)
-        return df
+        return self.get_values([variable], table)
 
-    def get_values(self, variables = None, table = None, lowercase = False, rename_ident = True):
-        """
-        Get values
+    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True):
+        """Get variables values from a survey table
 
-        Parameters
-        ----------
-        variables : list of strings, default None
-                    list of variables names, if None return the whole table
-        table : string, default None
-                name of the table hosting the variables
-        lowercase : boolean, deflault True
-                    put variables of the table into lowercase
-        rename_ident :  boolean, deflault True
-                        rename variables ident+yr (e.g. ident08) into ident
-        Returns
-        -------
-        df : DataFrame, default None
-             A DataFrame containing the variables
+        :param variables: variables to retrieve, defaults to None (retrieve all variables)
+        :type variables: list, optional
+        :param table: name of the table, defaults to None
+        :type table: str, optional
+        :param ignorecase: ignore case of table name, defaults to False
+        :type lowercase: bool, optional
+        :param lowercase: lowercase variable names, defaults to False
+        :type lowercase: bool, optional
+        :param rename_ident: rename ident+yr (e.g. ident08) into ident, defaults to True
+        :type rename_ident: bool, optional
+        :raises Exception: [description]
+        :return: dataframe containing the variables
+        :rtype: pd.DataFrame
         """
+
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
             self.hdf5_file_path)
         store = pandas.HDFStore(self.hdf5_file_path)
 
+        if ignorecase:
+            keys = store.keys()
+            eligible_tables = []
+            for string in keys:
+                match = re.findall(table, string, re.IGNORECASE)
+                if match:
+                    eligible_tables.append(match[0])
+            assert len(eligible_tables) == 1, "{} is ambiguious since the following tables ara available: {}".format(table, eligible_tables)
+            table = eligible_tables[0]
         try:
             df = store.select(table)
         except KeyError:
