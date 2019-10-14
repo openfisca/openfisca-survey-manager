@@ -187,7 +187,7 @@ def main():
 
     config_parser = configparser.ConfigParser()
     config_parser.read(os.path.join(config_files_directory, 'raw_data.ini'))
-    assert config_parser.has_section(args.collection), 'Unkwnown collection'
+    assert config_parser.has_section(args.collection), '{} is an unkown collection. Please add a section to raw_data.ini configuration file'
     data_directory_path_by_survey_suffix = dict(config_parser.items(args.collection))
     if args.survey is not None:
         assert args.survey in data_directory_path_by_survey_suffix, 'Unknown survey data directory for {}'.format(

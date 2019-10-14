@@ -1,6 +1,11 @@
 ﻿# Changelog
 
-## 0.37.0 [#1XX](https://github.com/openfisca/openfisca-survey-manager/pull/1XX)
+### 0.37.1 [#154](https://github.com/openfisca/openfisca-survey-manager/pull/154)
+
+* Technical changes
+- Improve error mesage in build_collection
+
+## 0.37.0
 
 * Technical changes
 - Add ignorecase argument to Survey.get_values
