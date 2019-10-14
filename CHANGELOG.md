@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.37.1 [#1XX](https://github.com/openfisca/openfisca-survey-manager/pull/1XX)
+
+* Technical changes
+- Improve error mesage in build_collection
+
 ## 0.37.0 [#1XX](https://github.com/openfisca/openfisca-survey-manager/pull/1XX)
 
 * Technical changes
