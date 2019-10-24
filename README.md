@@ -8,19 +8,35 @@
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-survey-manager.svg)](https://pypi.python.org/pypi/openfisca-survey-manager)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-survey-manager.svg?style=flat)](https://pypi.python.org/pypi/openfisca-survey-manager)
 
-[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
+## [EN] Introduction
 
-This package contains the Survey-Manager module, to work with OpenFisca and survey data.
+[OpenFisca](https://openfisca.org) is a versatile microsimulation free software. You can check the [online documentation](https://openfisca.org/doc/) for more details.
 
-It provides an API to access HDF data.
+This repository contains the Survey-Manager module, to work with OpenFisca and survey data.
 
-It also provides a script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the API.
+It provides two main features:
+* A Python API to access data in [Hierarchical Data Format](https://en.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
+* A script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the Python API.
+
+> For France survey data, you might find useful information on the next steps in [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) repository.
+
+## [FR] Introduction
+
+[OpenFisca](https://openfisca.org) est un logiciel libre de micro-simulation. Pour plus d'information, vous pouvez consulter la [documentation officielle](https://openfisca.org/doc/).
+
+Ce dépôt contient le module Survey-Manager. Il facilite l'usage d'OpenFisca avec des données d'enquête.
+
+Il fournit deux fonctionnalités principales:
+* Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
+* Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python.
+
+> Si vous disposez de données d'enquête sur la France, le dépôt [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) pourrait être utiles à vos prochaines étapes de traitement.
 
 ## Environment
 
 OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, but are not tested.
 
-Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
+> Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Usage
 
