@@ -704,6 +704,23 @@ class AbstractSurveyScenario(object):
             sorted(list(input_data_frame.columns))))
         return input_data_frame
 
+    def generate_performance_data(self, output_dir: str):
+        if not self.trace:
+            raise ValueError("Method generate_performance_data cannot be used if trace hasn't been activated.")
+        reform_dir = os.path.join(output_dir, 'reform_perf_log')
+        baseline_dir = os.path.join(output_dir, 'baseline_perf_log')
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        if not os.path.exists(reform_dir):
+            os.mkdir(reform_dir)
+        if not os.path.exists(baseline_dir):
+            os.mkdir(baseline_dir)
+
+        self.simulation.tracer.generate_performance_graph(reform_dir)
+        self.simulation.tracer.generate_performance_tables(reform_dir)
+        self.baseline_simulation.tracer.generate_performance_graph(baseline_dir)
+        self.baseline_simulation.tracer.generate_performance_tables(baseline_dir)
+
     def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
         assert period is not None
