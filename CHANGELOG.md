@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 0.38.0 [#156](https://github.com/openfisca/openfisca-survey-manager/pull/156)
+
+##### New features
+- Introduce `survey_scenario.generate_performance_data(output_dir)`
+  - This generates a performance graph and CSV tables containing details about execution times of OpenFisca formulas
+
 ### 0.37.3 [#157](https://github.com/openfisca/openfisca-survey-manager/pull/157)
 
 * Technical changes
