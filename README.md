@@ -30,7 +30,7 @@ Il fournit deux fonctionnalités principales:
 * Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
 * Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python.
 
-> Si vous disposez de données d'enquête sur la France, le dépôt [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) pourrait être utiles à vos prochaines étapes de traitement.
+> Si vous disposez de données d'enquête sur la France, le dépôt [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) pourrait être utile à vos prochaines étapes de traitement.
 
 ## Environment
 
@@ -42,16 +42,25 @@ OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, b
 
 ### Installation
 
-First, install the package with `pip`:
+If you're developping your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
+To do so, first, install the package with `pip`:
 
 ```bash
 pip install --upgrade pip
 pip install openfisca-survey-manager
 ```
 
+This should not display any error and end with:
+
+`Successfully installed [... openfisca-survey-manager-xx.xx.xx ...]`
+
+> If you want to improve this module, please see the `Development` section below.
+
 ### Getting the config files directory path
 
-To be able to use OpenFisca-Survey-Manager, you have to create two configuration files.
+To be able to use OpenFisca-Survey-Manager, you have to create two configuration files:
+* `raw_data.ini`, 
+* and `config.ini`.
 
 To know where to copy them to, use the folling command:
 
@@ -59,7 +68,7 @@ To know where to copy them to, use the folling command:
 build-collection --help
 ```
 
-Take note of the default config files directory path:
+Take note of the default config files directory path in `-p PATH, --path PATH` option's description:
 
 ```bash
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
@@ -81,9 +90,9 @@ optional arguments:
   -v, --verbose         increase output verbosity
 ```
 
-In your case, it is `/Users/you/.config/openfisca-survey-manager`.
+In your case, it is `/Users/you/.config/openfisca-survey-manager`
 
-> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still expetimental though.
+> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
 
 ### Editing the config files
 
