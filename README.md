@@ -45,7 +45,7 @@ OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, b
 If you're developping your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
 To do so, first, install the package with `pip`:
 
-```bash
+```shell
 pip install --upgrade pip
 pip install openfisca-survey-manager
 ```
@@ -53,6 +53,8 @@ pip install openfisca-survey-manager
 This should not display any error and end with:
 
 `Successfully installed [... openfisca-survey-manager-xx.xx.xx ...]`
+
+It comes with `build-collection` command that we will use in the next steps.
 
 > If you want to improve this module, please see the `Development` section below.
 
@@ -64,13 +66,15 @@ To be able to use OpenFisca-Survey-Manager, you have to create two configuration
 
 To know where to copy them to, use the folling command:
 
-```bash
+```shell
 build-collection --help
 ```
 
+You should get the following result. 
+
 Take note of the default configuration directory path in `-p PATH, --path PATH` option's description:
 
-```bash
+```shell
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
                         [-v]
 
@@ -145,12 +149,18 @@ You can also set multiple surveys as follows:
 
 To initilalise your `config.ini` file:
 
-  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`. 
+  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`.  
   Ex: `/your/path/.config/openfisca-survey-manager/config.ini`.
 
-  2. Define a `collections_directory` path to set your output description.
-  3. Define an `output_directory` where the generated HDF file will be registered.
-  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.
+  2. Define a `collections_directory` path where the SurveyManager will generate your survey inputs and outputs JSON description.  
+  Ex: `/.../openfisca-survey-manager/transformed_housing_survey`  
+  For a `housing_survey`, you will get a `/.../openfisca-survey-manager/transformed_housing_survey/housing_survey.json` file.
+
+  3. Define an `output_directory` where the generated HDF file will be registered.  
+    This directory could be a sub-directory of your `collections_directory`.
+
+  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.  
+    This directory could be a sub-directory of your `collections_directory`.
 
 Your `config.ini` file should look similar to this:
 
@@ -169,15 +179,34 @@ Your `config.ini` file should look similar to this:
 
 ### Building the HDF5 files
 
-To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script:
+This step will read your configuration files and you survey data and generate a HDF5 file (`.h5`) for your survey.
+To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script.
+
+Here is an example for our `housing_survey` that knows only one serie, 2014: 
 
 ```shell
-$ build-collection -c revenue_survey -s 2015 -d -m -v
+build-collection -c housing_survey -d -m -v
 ```
 
-Or if you want to specify a different config files directory path:
+SurveyManager will generate:
+* A `housing_survey.json` listing a `housing_survey_2014` survey with both:
+  * your input `tables` and your input file paths in an `informations` key,
+  * the transformed survey path in a `hdf5_file_path` key.
+* Your transformed survey in a `housing_survey_2014.h5` file.
 
-```bash
+#### build-collection, what else?
+
+As `build-collection --help` shows, other options exist. Here are other usage examples.
+
+If you have multiple series of one survey like the `revenue_survey`, you can run the specific `2015` serie with:
+
+```shell
+build-collection -c revenue_survey -s 2015 -d -m -v
+```
+
+Or if you want to specify a different configuration directory path:
+
+```shell
 build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
 ```
 
@@ -185,11 +214,12 @@ build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
 
 It should work. If it doesn't, please do not hesitate to [open an issue](https://github.com/openfisca/openfisca-survey-manager/issues/new).
 
+
 ## Development
 
 If you want to contribute to OpenFisca-Survey-Manager, please be welcomed! To install it locally in development mode:
 
-```bash
+```shell
 git clone https://github.com/openfisca/openfisca-survey-manager.git
 cd openfisca-survey-manager
 make install
