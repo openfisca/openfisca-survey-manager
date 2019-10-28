@@ -56,7 +56,7 @@ This should not display any error and end with:
 
 > If you want to improve this module, please see the `Development` section below.
 
-### Getting the config files directory path
+### Getting the configuration directory path
 
 To be able to use OpenFisca-Survey-Manager, you have to create two configuration files:
 * `raw_data.ini`, 
@@ -68,7 +68,7 @@ To know where to copy them to, use the folling command:
 build-collection --help
 ```
 
-Take note of the default config files directory path in `-p PATH, --path PATH` option's description:
+Take note of the default configuration directory path in `-p PATH, --path PATH` option's description:
 
 ```bash
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
@@ -90,21 +90,44 @@ optional arguments:
   -v, --verbose         increase output verbosity
 ```
 
-In your case, it is `/Users/you/.config/openfisca-survey-manager`
+In this example, it is `/Users/you/.config/openfisca-survey-manager`.
 
 > If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
 
 ### Editing the config files
 
+Configuration files are INI files (text files).
+
+The `raw_data.ini` lists your input surveys while `config.ini` specifies the paths to SurveyManager outputs.
+
 > `raw_data.ini` and `config.ini` must not be committed (they are already ignored by [`.gitignore`](.gitignore)).
 
-#### raw_data.ini
+#### raw_data.ini, for inputs configuration
 
-Copy [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to `/your/path/.config/openfisca-survey-manager/raw_data.ini` and edit the latter to reference the location of your raw data (SAS, stata, SPSS, CSV files).
+To initialise your `raw_data.ini` file, you can follow these steps:
 
-> For paths in Windows, use `/` instead of `\` to separate folders. You do not need to put quotes, even when the path name contains spaces.
+  1. Copy the template file [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to the configuration directory path you identified in the previous step and rename it to `raw_data.ini`.  
+  Ex: `/your/path/.config/openfisca-survey-manager/raw_data.ini`
 
-It should look similar to this:
+  2. Edit the latter by adding a section title for your survey.
+  For example, if you name your survey `housing_survey`, you should get a line with: 
+  ```ini
+  [housing_survey]
+  ``` 
+
+  3. Add a reference to the location of your raw data **directory** (SAS, stata DTA files, SPSS, CSV files).  
+  For paths in Windows, use `/` instead of `\` to separate folders. 
+  You do not need to put quotes, even when the path name contains spaces.
+
+  Your file should look like this:
+
+  ```ini
+  [housing_survey]
+
+  2014 = /path/to/your/raw/data/HOUSING_2014
+  ```
+
+You can also set multiple surveys as follows:
 
 ```ini
 [revenue_survey]
@@ -118,20 +141,29 @@ It should look similar to this:
 2014 = /path/to/your/raw/data/HOUSING_2014
 ```
 
-#### config.ini
+#### config.ini, for outputs configuration
 
-Copy [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to `/your/path/.config/openfisca-survey-manager/config.ini` and edit its mandatory fields.
+To initilalise your `config.ini` file:
 
-It should look similar to this:
+  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`. 
+  Ex: `/your/path/.config/openfisca-survey-manager/config.ini`.
 
-```ini
-[collections]
-collections_directory = /path/to/your/collections/directory
+  2. Define a `collections_directory` path to set your output description.
+  3. Define an `output_directory` where the generated HDF file will be registered.
+  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.
 
-[data]
-output_directory = /path/to/your/data/output/directory
-tmp_directory = /path/to/your/data/tmp/directory
-```
+Your `config.ini` file should look similar to this:
+
+  ```ini
+  [collections]
+
+  collections_directory = /path/to/your/collections/directory
+
+  [data]
+
+  output_directory = /path/to/your/data/output/directory
+  tmp_directory = /path/to/your/data/tmp/directory
+  ```
 
 > Make sure those directories exist, otherwise the script will fail.
 
@@ -139,8 +171,8 @@ tmp_directory = /path/to/your/data/tmp/directory
 
 To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script:
 
-```bash
-build-collection -c revenue_survey -s 2015 -d -m -v
+```shell
+$ build-collection -c revenue_survey -s 2015 -d -m -v
 ```
 
 Or if you want to specify a different config files directory path:
