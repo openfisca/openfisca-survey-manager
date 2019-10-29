@@ -64,7 +64,7 @@ To be able to use OpenFisca-Survey-Manager, you have to create two configuration
 * `raw_data.ini`, 
 * and `config.ini`.
 
-To know where to copy them to, use the folling command:
+To know where to copy them to, use the following command:
 
 ```shell
 build-collection --help
