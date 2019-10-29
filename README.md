@@ -8,44 +8,73 @@
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-survey-manager.svg)](https://pypi.python.org/pypi/openfisca-survey-manager)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-survey-manager.svg?style=flat)](https://pypi.python.org/pypi/openfisca-survey-manager)
 
-[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
+## [EN] Introduction
 
-This package contains the Survey-Manager module, to work with OpenFisca and survey data.
+[OpenFisca](https://openfisca.org) is a versatile microsimulation free software. You can check the [online documentation](https://openfisca.org/doc/) for more details.
 
-It provides an API to access HDF data.
+This repository contains the Survey-Manager module, to work with OpenFisca and survey data.
 
-It also provides a script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the API.
+It provides two main features:
+* A Python API to access data in [Hierarchical Data Format](https://en.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
+* A script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the Python API.
+
+> For France survey data, you might find useful information on the next steps in [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) repository.
+
+## [FR] Introduction
+
+[OpenFisca](https://openfisca.org) est un logiciel libre de micro-simulation. Pour plus d'information, vous pouvez consulter la [documentation officielle](https://openfisca.org/doc/).
+
+Ce dépôt contient le module Survey-Manager. Il facilite l'usage d'OpenFisca avec des données d'enquête.
+
+Il fournit deux fonctionnalités principales:
+* Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
+* Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python.
+
+> Si vous disposez de données d'enquête sur la France, le dépôt [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) pourrait être utile à vos prochaines étapes de traitement.
 
 ## Environment
 
 OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, but are not tested.
 
-Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
+> Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Usage
 
 ### Installation
 
-First, install the package with `pip`:
+If you're developping your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
+To do so, first, install the package with `pip`:
 
-```bash
+```shell
 pip install --upgrade pip
 pip install openfisca-survey-manager
 ```
 
-### Getting the config files directory path
+This should not display any error and end with:
 
-To be able to use OpenFisca-Survey-Manager, you have to create two configuration files.
+`Successfully installed [... openfisca-survey-manager-xx.xx.xx ...]`
 
-To know where to copy them to, use the folling command:
+It comes with `build-collection` command that we will use in the next steps.
 
-```bash
+> If you want to improve this module, please see the `Development` section below.
+
+### Getting the configuration directory path
+
+To be able to use OpenFisca-Survey-Manager, you have to create two configuration files:
+* `raw_data.ini`, 
+* and `config.ini`.
+
+To know where to copy them to, use the following command:
+
+```shell
 build-collection --help
 ```
 
-Take note of the default config files directory path:
+You should get the following result. 
 
-```bash
+Take note of the default configuration directory path in `-p PATH, --path PATH` option's description:
+
+```shell
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
                         [-v]
 
@@ -65,21 +94,44 @@ optional arguments:
   -v, --verbose         increase output verbosity
 ```
 
-In your case, it is `/Users/you/.config/openfisca-survey-manager`.
+In this example, it is `/Users/you/.config/openfisca-survey-manager`.
 
-> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still expetimental though.
+> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
 
 ### Editing the config files
 
+Configuration files are INI files (text files).
+
+The `raw_data.ini` lists your input surveys while `config.ini` specifies the paths to SurveyManager outputs.
+
 > `raw_data.ini` and `config.ini` must not be committed (they are already ignored by [`.gitignore`](.gitignore)).
 
-#### raw_data.ini
+#### raw_data.ini, for inputs configuration
 
-Copy [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to `/your/path/.config/openfisca-survey-manager/raw_data.ini` and edit the latter to reference the location of your raw data (SAS, stata, SPSS, CSV files).
+To initialise your `raw_data.ini` file, you can follow these steps:
 
-> For paths in Windows, use `/` instead of `\` to separate folders. You do not need to put quotes, even when the path name contains spaces.
+  1. Copy the template file [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to the configuration directory path you identified in the previous step and rename it to `raw_data.ini`.  
+  Ex: `/your/path/.config/openfisca-survey-manager/raw_data.ini`
 
-It should look similar to this:
+  2. Edit the latter by adding a section title for your survey.
+  For example, if you name your survey `housing_survey`, you should get a line with: 
+  ```ini
+  [housing_survey]
+  ``` 
+
+  3. Add a reference to the location of your raw data **directory** (SAS, stata DTA files, SPSS, CSV files).  
+  For paths in Windows, use `/` instead of `\` to separate folders. 
+  You do not need to put quotes, even when the path name contains spaces.
+
+  Your file should look like this:
+
+  ```ini
+  [housing_survey]
+
+  2014 = /path/to/your/raw/data/HOUSING_2014
+  ```
+
+You can also set multiple surveys as follows:
 
 ```ini
 [revenue_survey]
@@ -93,34 +145,68 @@ It should look similar to this:
 2014 = /path/to/your/raw/data/HOUSING_2014
 ```
 
-#### config.ini
+#### config.ini, for outputs configuration
 
-Copy [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to `/your/path/.config/openfisca-survey-manager/config.ini` and edit its mandatory fields.
+To initilalise your `config.ini` file:
 
-It should look similar to this:
+  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`.  
+  Ex: `/your/path/.config/openfisca-survey-manager/config.ini`.
 
-```ini
-[collections]
-collections_directory = /path/to/your/collections/directory
+  2. Define a `collections_directory` path where the SurveyManager will generate your survey inputs and outputs JSON description.  
+  Ex: `/.../openfisca-survey-manager/transformed_housing_survey`  
+  For a `housing_survey`, you will get a `/.../openfisca-survey-manager/transformed_housing_survey/housing_survey.json` file.
 
-[data]
-output_directory = /path/to/your/data/output/directory
-tmp_directory = /path/to/your/data/tmp/directory
-```
+  3. Define an `output_directory` where the generated HDF file will be registered.  
+    This directory could be a sub-directory of your `collections_directory`.
+
+  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.  
+    This directory could be a sub-directory of your `collections_directory`.
+
+Your `config.ini` file should look similar to this:
+
+  ```ini
+  [collections]
+
+  collections_directory = /path/to/your/collections/directory
+
+  [data]
+
+  output_directory = /path/to/your/data/output/directory
+  tmp_directory = /path/to/your/data/tmp/directory
+  ```
 
 > Make sure those directories exist, otherwise the script will fail.
 
 ### Building the HDF5 files
 
-To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script:
+This step will read your configuration files and you survey data and generate a HDF5 file (`.h5`) for your survey.
+To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script.
 
-```bash
+Here is an example for our `housing_survey` that knows only one serie, 2014: 
+
+```shell
+build-collection -c housing_survey -d -m -v
+```
+
+SurveyManager will generate:
+* A `housing_survey.json` listing a `housing_survey_2014` survey with both:
+  * your input `tables` and your input file paths in an `informations` key,
+  * the transformed survey path in a `hdf5_file_path` key.
+* Your transformed survey in a `housing_survey_2014.h5` file.
+
+#### build-collection, what else?
+
+As `build-collection --help` shows, other options exist. Here are other usage examples.
+
+If you have multiple series of one survey like the `revenue_survey`, you can run the specific `2015` serie with:
+
+```shell
 build-collection -c revenue_survey -s 2015 -d -m -v
 ```
 
-Or if you want to specify a different config files directory path:
+Or if you want to specify a different configuration directory path:
 
-```bash
+```shell
 build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
 ```
 
@@ -128,11 +214,12 @@ build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
 
 It should work. If it doesn't, please do not hesitate to [open an issue](https://github.com/openfisca/openfisca-survey-manager/issues/new).
 
+
 ## Development
 
 If you want to contribute to OpenFisca-Survey-Manager, please be welcomed! To install it locally in development mode:
 
-```bash
+```shell
 git clone https://github.com/openfisca/openfisca-survey-manager.git
 cd openfisca-survey-manager
 make install
