@@ -180,13 +180,15 @@ Your `config.ini` file should look similar to this:
 This step will read your configuration files and you survey data and generate a HDF5 file (`.h5`) for your survey.
 To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script.
 
-Here is an example for our `housing_survey` that knows only one serie, 2014: 
+Here is an example for one survey with one serie: our `housing_survey` that knows only 2014 serie. We call our survey as a collection (with `-c` option) and build the HDF5 file with this command: 
 
 ```shell
 build-collection -c housing_survey -d -m -v
 ```
 
-SurveyManager will generate:
+`-d -m` options put you on the safe side as they remove previous outputs if they exist.
+
+It will generate:
 * A `housing_survey.json` listing a `housing_survey_2014` survey with both:
   * your input `tables` and your input file paths in an `informations` key,
   * the transformed survey path in a `hdf5_file_path` key.
