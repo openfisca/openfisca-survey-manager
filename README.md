@@ -72,8 +72,6 @@ build-collection --help
 
 You should get the following result. 
 
-Take note of the default configuration directory path in `-p PATH, --path PATH` option's description:
-
 ```shell
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
                         [-v]
@@ -94,9 +92,9 @@ optional arguments:
   -v, --verbose         increase output verbosity
 ```
 
-In this example, it is `/Users/you/.config/openfisca-survey-manager`.
+Take note of the default configuration directory path in `-p PATH, --path PATH` option's description. This is the directory where you will set your `raw_data.ini` and `config.ini` files. In this example, it is `/Users/you/.config/openfisca-survey-manager`. 
 
-> If you want to use a different path, you can pass pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
+> If you want to use a different path, you can pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
 
 ### Editing the config files
 
