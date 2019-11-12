@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.38.1 [#158](https://github.com/openfisca/openfisca-survey-manager/pull/158)
+
+- Clarify documentation on configuration directory and build-collection command
+
 ## 0.38.0 [#156](https://github.com/openfisca/openfisca-survey-manager/pull/156)
 
 ##### New features
@@ -9,8 +13,8 @@
 ### 0.37.3 [#157](https://github.com/openfisca/openfisca-survey-manager/pull/157)
 
 * Technical changes
-- Add `tables` library to default requirements.
-* Add documentation for users installing, configuring and running the module for the first time.
+- Add `tables` library to default requirements
+* Add documentation for users installing, configuring and running the module for the first time
 
 ### 0.37.2 [#155](https://github.com/openfisca/openfisca-survey-manager/pull/155)
 
