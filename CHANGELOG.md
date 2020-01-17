@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.38.2 [#162](https://github.com/openfisca/openfisca-survey-manager/pull/162)
+
+- Update `pytables` and `numpy` dependencies
+
 ### 0.38.1 [#158](https://github.com/openfisca/openfisca-survey-manager/pull/158)
 
 - Clarify documentation on configuration directory and build-collection command
