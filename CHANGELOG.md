@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.38.3 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+- Fix _set_used_as_input_variables_by_entity
+
 ### 0.38.2 [#162](https://github.com/openfisca/openfisca-survey-manager/pull/162)
 
 - Update `pytables` and `numpy` dependencies
