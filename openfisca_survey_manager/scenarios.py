@@ -1470,7 +1470,7 @@ class AbstractSurveyScenario(object):
 
         def set_variable(varying_variable, varying_variable_value, period_):
             delta = self.variation_factor * varying_variable_value
-            delta = np.where(varying_variable_value == 0.0, delta, np.sign(delta) * max_(100.0, abs_(delta)))
+            delta = np.where(varying_variable_value == 0.0 ,1 , np.sign(delta)) * max_(100.0, abs_(delta))
             new_variable_value = varying_variable_value + delta
             simulation.delete_arrays(varying_variable, period_)
             simulation.set_input(varying_variable, period_, new_variable_value)
