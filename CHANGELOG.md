@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.39.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.39.0 [#170](https://github.com/openfisca/openfisca-survey-manager/pull/170)
 
 - Add statistical helpers to compute top and bottom shares
 
