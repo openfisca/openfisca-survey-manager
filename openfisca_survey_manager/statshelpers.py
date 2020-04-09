@@ -256,8 +256,48 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     return x, y
 
 
-def weighted_quantiles(data, labels, weights, return_quantiles = False):
+def bottom_share(values, rank_from_bottom, weights = None):
+    if weights is None:
+        weights = ones(len(values))
 
+    calc = wc.Calculator("weights")
+    data_frame = pd.DataFrame({
+        'weights': weights,
+        'data': values,
+        })
+    quantile = calc.quantile(data_frame, 'data', rank_from_bottom)
+
+    return (
+        (data_frame["data"] < quantile)
+        * data_frame["data"]
+        * data_frame["weights"]
+        ).sum() / (
+            data_frame["data"]
+            * data_frame["weights"]
+            ).sum()
+
+
+def top_share(values, rank_from_top, weights = None):
+    if weights is None:
+        weights = ones(len(values))
+
+    calc = wc.Calculator("weights")
+    data_frame = pd.DataFrame({
+        'weights': weights,
+        'data': values,
+        })
+    quantile = calc.quantile(data_frame, 'data', 1 - rank_from_top)
+    return (
+        (data_frame["data"] >= quantile)
+        * data_frame["data"]
+        * data_frame["weights"]
+        ).sum() / (
+            data_frame["data"]
+            * data_frame["weights"]
+            ).sum()
+
+
+def weighted_quantiles(data, labels, weights, return_quantiles = False):
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
     quantiles = [
