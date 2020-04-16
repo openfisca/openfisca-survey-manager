@@ -71,7 +71,7 @@ setup(
         'configparser',
         'future',
         'humanize',
-        'numpy >= 1.11, < 2.0',
+        'numpy >= 1.11, < 1.18',  # https://github.com/openfisca/openfisca-core/issues/924
         'tables >= 3.4.4, < 4.0.0',
         'openfisca-core >=34.2.2,<35.0.0',
         'pandas >= 0.22',
