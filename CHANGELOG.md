@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.39.0 [#170](https://github.com/openfisca/openfisca-survey-manager/pull/170)
+
+- Add statistical helpers to compute top and bottom shares
+
 ### 0.38.3 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
 
 - Fix _set_used_as_input_variables_by_entity
