@@ -189,12 +189,12 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
         j += 1
 
     # Résolution des équations du premier ordre
-    def constraint(l):
-        return dot(d * F(dot(x, l)), x) - xmargins
+    def constraint(lambda_):
+        return dot(d * F(dot(x, lambda_)), x) - xmargins
 
-    def constraint_prime(l):
-        return dot(d * (x.T * F_prime(dot(x, l))), x)
-        # le jacobien ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
+    def constraint_prime(lambda_):
+        return dot(d * (x.T * F_prime(dot(x, lambda_))), x)
+        # le jacobien ci-dessus est constraintprime = @(lambda) x*(d.*Fprime(x'*lambda)*x');
 
     tries, ier = 0, 2
     err_max = 1
