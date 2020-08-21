@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 
 # OpenFisca -- A versatile microsimulation software

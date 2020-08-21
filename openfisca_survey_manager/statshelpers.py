@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 
 from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
