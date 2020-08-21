@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.39.1 [#178](https://github.com/openfisca/openfisca-survey-manager/pull/178)
+
+* Bug fix
+- Fix inflate that inflated twice when baseline_simulation == simulation
+
 ### 0.39.0 [#170](https://github.com/openfisca/openfisca-survey-manager/pull/170)
 
 - Add statistical helpers to compute top and bottom shares
