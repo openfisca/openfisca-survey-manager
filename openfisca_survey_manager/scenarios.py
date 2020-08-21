@@ -731,13 +731,17 @@ class AbstractSurveyScenario(object):
 
         assert self.simulation is not None
         for use_baseline in [False, True]:
-            if use_baseline is True:
+            if use_baseline:
                 simulation = self.baseline_simulation
             else:
                 assert self.simulation is not None
                 simulation = self.simulation
+                if (self.simulation == self.baseline_simulation):  # Avoid inflating two times
+                    continue
+
             if simulation is None:
                 continue
+
             tax_benefit_system = self.tax_benefit_system
             for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
                 assert variable_name in tax_benefit_system.variables, \
@@ -815,7 +819,7 @@ class AbstractSurveyScenario(object):
                 ['target_margins_by_variable', 'parameters', 'total_population']))
 
         if inflation_kwargs is not None:
-            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
+            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable', 'period']))
 
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
