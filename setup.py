@@ -47,7 +47,7 @@ setup(
             ],
         'dev': [
             'autopep8 >= 1.4.0, < 1.5.0',
-            'coveralls >=1.5.0,<2.1.0',
+            'coveralls >=1.5.0,<2.3.0',
             'flake8 >= 3.7.0, < 3.9.0',
             'openfisca-country-template >= 3.6.0, < 4.0.0',
             'pytest >= 4.0.0, < 6.0.0',
