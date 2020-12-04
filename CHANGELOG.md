@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+### 0.40.0 [#184](https://github.com/openfisca/openfisca-survey-manager/pull/184)
+
+* Technical improvement
+- Add weights keywaord argument to `compute_aggregate` and `compute_pivot_table`
+
+* Improve documentation
+- Use googl style in docstring
+- Add some docstring
+
 ### 0.39.1 [#178](https://github.com/openfisca/openfisca-survey-manager/pull/178)
 
 * Bug fix

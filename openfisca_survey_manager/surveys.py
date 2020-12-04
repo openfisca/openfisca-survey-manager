@@ -27,9 +27,7 @@ source_format_by_extension = dict(
 
 
 class Survey(object):
-    """
-    An object to describe survey data
-    """
+    """An object to describe survey data"""
     hdf5_file_path = None
     informations = dict()
     label = None
@@ -149,36 +147,36 @@ Contains the following tables : \n""".format(self.name, self.label)
             return list()
 
     def get_value(self, variable, table, lowercase = False, ignorecase = False):
-        """Get variable value from a survey table
+        """Gets variable value from a survey table
 
-        :param variable: variable to retrieve
-        :param table: name of the table
-        :type table: str
-        :param lowercase: lowercase variable names, defaults to False
-        :type lowercase: bool, optional
-        :param ignorecase: ignore case of table name, defaults to False
-        :type lowercase: bool, optional
-        :return: dataframe containing the variable
-        :rtype: pd.DataFrame
+        Args:
+          variable: variable to retrieve
+          table(str): name of the table
+          lowercase(bool, optional, optional): lowercase variable names, defaults to False
+          ignorecase: ignore case of table name, defaults to False
+
+        Returns:
+          pd.DataFrame: dataframe containing the variable
+
         """
         return self.get_values([variable], table)
 
     def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True):
-        """Get variables values from a survey table
+        """Gets variables values from a survey table
 
-        :param variables: variables to retrieve, defaults to None (retrieve all variables)
-        :type variables: list, optional
-        :param table: name of the table, defaults to None
-        :type table: str, optional
-        :param ignorecase: ignore case of table name, defaults to False
-        :type lowercase: bool, optional
-        :param lowercase: lowercase variable names, defaults to False
-        :type lowercase: bool, optional
-        :param rename_ident: rename ident+yr (e.g. ident08) into ident, defaults to True
-        :type rename_ident: bool, optional
-        :raises Exception: [description]
-        :return: dataframe containing the variables
-        :rtype: pd.DataFrame
+        Args:
+          variables(list, optional, optional): variables to retrieve, defaults to None (retrieve all variables)
+          table(str, optional, optional): name of the table, defaults to None
+          ignorecase: ignore case of table name, defaults to False
+          lowercase(bool, optional, optional): lowercase variable names, defaults to False
+          rename_ident(bool, optional, optional): rename ident+yr (e.g. ident08) into ident, defaults to True
+
+        Returns:
+          pd.DataFrame: dataframe containing the variables
+
+        Raises:
+          Exception: description]
+
         """
 
         assert self.hdf5_file_path is not None
@@ -225,9 +223,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             return df
 
     def insert_table(self, label = None, name = None, **kwargs):
-        """
-        Insert a table in the Survey object
-        """
+        """Inserts a table in the Survey object"""
 
         data_frame = kwargs.pop('data_frame', None)
         if data_frame is None:

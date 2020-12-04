@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 
 
 class AbstractSurveyScenario(object):
+    """Abstract survey scenario"""
     baseline_simulation = None
     baseline_tax_benefit_system = None
     cache_blacklist = None
@@ -52,19 +53,21 @@ class AbstractSurveyScenario(object):
     year = None
 
     def build_input_data(self, **kwargs):
+        """Builds input data
+        """
         NotImplementedError
 
     def calculate_variable(self, variable, period = None, use_baseline = False):
-        """Compute variable values for period and baseline or reform tax benefit and system
+        """Computes variable values for period and baseline or reform tax benefit and system
 
-        :param variable: Variable to compute
-        :type variable: str, optional
-        :param period: Period, defaults to None
-        :type period: Period, optional
-        :param use_baseline: Use baseline tax and benefit system, defaults to False
-        :type use_baseline: bool, optional
-        :return: Variable values
-        :rtype: numpy.ndarray
+        Args:
+          variable(str, optional): Variable to compute
+          period(Period, optional): Period, defaults to None
+          use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
+
+        Returns:
+          numpy.ndarray: Variable values
+
         """
         if use_baseline:
             assert self.baseline_simulation is not None, "self.baseline_simulation is None"
@@ -105,7 +108,14 @@ class AbstractSurveyScenario(object):
 
         return values
 
-    def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
+    def calibrate(self, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
+        """Calibrates the scenario data
+
+        Args:
+            target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
+            parameters (dict, optional): Calibration parameters. Defaults to None.
+            total_population (float, optional): Total population target. Defaults to None.
+        """
         survey_scenario = self
         calibration = Calibration(survey_scenario)
 
@@ -131,7 +141,23 @@ class AbstractSurveyScenario(object):
         self.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
-            difference = False, missing_variable_default_value = np.nan):
+            difference = False, missing_variable_default_value = np.nan, weights = None):
+        """Computes variable aggregate
+
+        Args:
+          variable: Variable (Default value = None)
+          aggfunc: Aggregation function (Default value = 'sum')
+          filter_by: Filtering variable (Default value = None)
+          period: Period in which the variable is computed. If None, simulation.period is chosen (Default value = None)
+          use_baseline: Use baseline simulation (Default value = False)
+          difference:  Compute difference between simulation and baseline (Default value = False)
+          missing_variable_default_value: Value of missing variable (Default value = np.nan)
+          weights: Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None or 1 if any ((Default value = None)
+
+        Returns:
+          float: Aggregate
+
+        """
         assert aggfunc in ['count', 'mean', 'sum', 'count_non_zero']
         assert period is not None
         assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
@@ -145,6 +171,7 @@ class AbstractSurveyScenario(object):
                     period = period,
                     use_baseline = False,
                     missing_variable_default_value = missing_variable_default_value,
+                    weights = weights,
                     )
                 - self.compute_aggregate(
                     variable = variable,
@@ -153,6 +180,7 @@ class AbstractSurveyScenario(object):
                     period = period,
                     use_baseline = True,
                     missing_variable_default_value = missing_variable_default_value,
+                    weights = weights,
                     )
                 )
 
@@ -184,12 +212,26 @@ class AbstractSurveyScenario(object):
                 " Please choose a filter-by variable of same entity as '{0}'."
                 .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
-        if self.weight_variable_by_entity:
-            weight_variable_by_entity = self.weight_variable_by_entity
-            entity_key = tax_benefit_system.variables[variable].entity.key
-            entity_weight = weight_variable_by_entity[entity_key]
-        else:
+        uniform_weight = 1.0
+        if isinstance(weights, str):
+            assert weights in simulation.tax_benefit_system.variables, \
+                "{weights} is not a valid variable of the tax benefit system"
+            entity_weight = weights
+
+        elif weights is None:
+            if self.weight_variable_by_entity:
+                weight_variable_by_entity = self.weight_variable_by_entity
+                entity_key = tax_benefit_system.variables[variable].entity.key
+                entity_weight = weight_variable_by_entity[entity_key]
+            else:
+                entity_weight = None
+
+        elif type(weights) == int or type(weights) == float:
             entity_weight = None
+            uniform_weight = float(weights)
+
+        else:
+            raise ValueError("Wrong value for weights argument")
 
         if variable in simulation.tax_benefit_system.variables:
             value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
@@ -201,7 +243,7 @@ class AbstractSurveyScenario(object):
             self.calculate_variable(
                 variable = entity_weight, period = period, use_baseline = use_baseline
                 ).astype(float)
-            if entity_weight else 1.0
+            if entity_weight else uniform_weight
             )
         filter_dummy = self.calculate_variable(variable = filter_by_variable, period = period) if filter_by else 1.0
         if filter_by:
@@ -221,12 +263,15 @@ class AbstractSurveyScenario(object):
         return aggregate
 
     def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False):
-        """
-            Compute marginal a rate of a target with respect to a varying variable.
+        """Computes marginal a rate of a target with respect to a varying variable.
 
-            :param string target_variable: the variable which marginal tax rate is computed
-            :param Period period: the period at which the the marginal tax rate is computed
-            :param bool use_baseline: compute the marginal tax rate for the baseline system
+        Args:
+          target_variable(str): Variable which marginal tax rate is computed
+          period(Period): Period in which the the marginal tax rate is computed
+          use_baseline(bool): Compute the marginal tax rate for the baseline system (Default value = False)
+
+        Returns:
+          np.array: Marginal rates
         """
         varying_variable = self.varying_variable
         if use_baseline:
@@ -248,33 +293,25 @@ class AbstractSurveyScenario(object):
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
-            missing_variable_default_value = np.nan, concat_axis = None):
-        """Compute a pivot table of agregated values casted along specified index and columns
+            missing_variable_default_value = np.nan, concat_axis = None, weights = None):
+        """Computes a pivot table of agregated values casted along specified index and columns
 
-        :param aggfunc: Aggregation function, defaults to 'mean'
-        :type aggfunc: str, optional
-        :param columns: Variable(s) in columns, defaults to None
-        :type columns: list, optional
-        :param difference: Compute difference, defaults to False
-        :type difference: bool, optional
-        :param filter_by: Boolean variable to filter by, defaults to None
-        :type filter_by: str, optional
-        :param index: Variable(s) in index (lines), defaults to None
-        :type index: list, optional
-        :param period: Period, defaults to None
-        :type period: Period, optional
-        :param use_baseline: Compute for baseline, defaults to False
-        :type use_baseline: bool, optional
-        :param use_baseline_for_columns: Use columns from baseline columns values, defaults to None
-        :type use_baseline_for_columns: bool, optional
-        :param values: Aggregated variable(s) within cells, defaults to None
-        :type values: list, optional
-        :param missing_variable_default_value: Default value for missing variables, defaults to np.nan
-        :type missing_variable_default_value: float, optional
-        :param concat_axis: Axis to concatenate along (index = 0, columns = 1), defaults to None
-        :type concat_axis: int, optional
-        :return: Pivot table
-        :rtype: DataFrame
+        Args:
+          aggfunc(str, optional): Aggregation function, defaults to 'mean'
+          columns(list, optional): Variable(s) in columns, defaults to None
+          difference(bool, optional): Compute difference, defaults to False
+          filter_by(str, optional): Boolean variable to filter by, defaults to None
+          index(list, optional): Variable(s) in index (lines), defaults to None
+          period(Period, optional): Period, defaults to None
+          use_baseline(bool, optional): Compute for baseline, defaults to False
+          use_baseline_for_columns(bool, optional): Use columns from baseline columns values, defaults to None
+          values(list, optional): Aggregated variable(s) within cells, defaults to None
+          missing_variable_default_value(float, optional): Default value for missing variables, defaults to np.nan
+          concat_axis(int, optional): Axis to concatenate along (index = 0, columns = 1), defaults to None
+
+        Returns:
+          pd.DataFrame: Pivot table
+
         """
 
         assert aggfunc in ['count', 'mean', 'sum']
@@ -314,13 +351,29 @@ class AbstractSurveyScenario(object):
             filter_by = self.filtering_variable_by_entity.get(entity_key)
 
         variables = set(index + columns)
+
         # Select the entity weight corresponding to the variables that will provide values
-        if self.weight_variable_by_entity is not None:
-            weight = self.weight_variable_by_entity[entity_key]
-            variables.add(weight)
+
+        uniform_weight = 1.0
+        if isinstance(weights, str):
+            assert weights in tax_benefit_system.variables, \
+                "{weights} is not a valid variable of the tax benefit system"
+            weight_variable = weights
+
+        elif weights is None:
+            if self.weight_variable_by_entity:
+                weight_variable = self.weight_variable_by_entity[entity_key]
+                variables.add(weight_variable)
+            else:
+                log.debug('There is no weight variable for entity {}'.format(entity_key))
+                weight_variable = None
+
+        elif type(weights) == int or type(weights) == float:
+            weight_variable = None
+            uniform_weight = float(weights)
+
         else:
-            log.debug('There is no weight variable for entity {}'.format(entity_key))
-            weight = None
+            raise ValueError("Wrong value for weights argument")
 
         expressions = []
         if filter_by is not None:
@@ -393,10 +446,10 @@ class AbstractSurveyScenario(object):
             baseline_vars_data_frame[expression] = baseline_vars_data_frame.eval(expression)
         if filter_by is not None:
             filter_dummy = baseline_vars_data_frame[filter_by]
-        if weight is None:
-            weight = 'weight'
-            baseline_vars_data_frame[weight] = 1.0
-        baseline_vars_data_frame[weight] = baseline_vars_data_frame[weight] * filter_dummy
+        if weight_variable is None:
+            weight_variable = 'weight'
+            baseline_vars_data_frame[weight_variable] = uniform_weight
+        baseline_vars_data_frame[weight_variable] = baseline_vars_data_frame[weight_variable] * filter_dummy
         # We drop variables that are in values in baseline_vars_data_frame
         dropped_columns = [
             column for column in baseline_vars_data_frame.columns if column in values
@@ -411,13 +464,13 @@ class AbstractSurveyScenario(object):
         if values:
             data_frame_by_value = dict()
             for value in values:
-                data_frame[value] = data_frame[value] * data_frame[weight]
+                data_frame[value] = data_frame[value] * data_frame[weight_variable]
                 data_frame[value].fillna(missing_variable_default_value, inplace = True)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
-                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
+                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
                 if aggfunc == 'mean':
                     try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
-                        result = (pivot_sum / pivot_mass.loc[weight])
+                        result = (pivot_sum / pivot_mass.loc[weight_variable])
                     except KeyError:
                         result = (pivot_sum / pivot_mass)
                 elif aggfunc == 'sum':
@@ -438,28 +491,24 @@ class AbstractSurveyScenario(object):
 
         else:
             assert aggfunc == 'count', "Can only use count for aggfunc if no values"
-            return data_frame.pivot_table(index = index, columns = columns, values = weight, aggfunc = 'sum')
+            return data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
         """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
 
-        :param variables: Variable to compute, defaults to None
-        :type variables: list, optional
-        :param expressions: Expressions to compute, defaults to None
-        :type expressions: str, optional
-        :param filter_by: Boolean variable or expression, defaults to None
-        :type filter_by: str, optional
-        :param index: Index by entity id, defaults to False
-        :type index: bool, optional
-        :param period: Period, defaults to None
-        :type period: Period, optional
-        :param use_baseline: Use baseline tax and benefit system, defaults to False
-        :type use_baseline: bool, optional
-        :param merge: Merge all the entities in one data frame, defaults to False
-        :type merge: bool, optional
-        :return: Dictionnary of dataframes by entities or dataframe with all the computed variables
-        :rtype: dict or pandas.DataFrame
+        Args:
+          variables(list, optional): Variable to compute, defaults to None
+          expressions(str, optional): Expressions to compute, defaults to None
+          filter_by(str, optional): Boolean variable or expression, defaults to None
+          index(bool, optional): Index by entity id, defaults to False
+          period(Period, optional): Period, defaults to None
+          use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
+          merge(bool, optional): Merge all the entities in one data frame, defaults to False
+
+        Returns:
+          dict or pandas.DataFrame: Dictionnary of dataframes by entities or dataframe with all the computed variables
+
         """
         simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
         tax_benefit_system = self.baseline_tax_benefit_system if (
@@ -582,6 +631,15 @@ class AbstractSurveyScenario(object):
             return person_data_frame
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
+        """
+
+        Args:
+          input_data_frame:
+          **kwargs:
+
+        Returns:
+
+        """
         pass
 
     def dump_data_frame_by_entity(self, variables = None, survey_collection = None, survey_name = None):
@@ -643,8 +701,14 @@ class AbstractSurveyScenario(object):
         return simulation
 
     def filter_input_variables(self, input_data_frame = None):
-        """
-        Filter the input data frame from variables that won't be used or are set to be computed
+        """Filters the input data frame from variables that won't be used or are set to be computed
+
+        Args:
+          input_data_frame: Input dataframe (Default value = None)
+
+        Returns:
+          pd.DataFrame: filtered dataframe
+
         """
         assert input_data_frame is not None
         id_variable_by_entity_key = self.id_variable_by_entity_key
@@ -767,15 +831,18 @@ class AbstractSurveyScenario(object):
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
-        '''Initialises a survey scenario from data.
+        """Initialises a survey scenario from data.
 
-        :param bool rebuild_input_data:  Whether or not to clean, format and save data.
-                                    Take a look at :func:`build_input_data`
+        Args:
+          rebuild_input_data(bool):  Whether or not to clean, format and save data. Take a look at :func:`build_input_data`
+          data(dict): Contains the data, or metadata needed to know where to find it.
+          use_marginal_tax_rate(bool): True to go into marginal effective tax rate computation mode.
+          calibration_kwargs(dict):  Calibration options (Default value = None)
+          inflation_kwargs(dict): Inflations options (Default value = None)
+          rebuild_input_data(bool): Wether to rebuild the data (Default value = False)
+          rebuild_kwargs:  Rebuild options (Default value = None)
 
-        :param dict data:                Contains the data, or metadata needed to know where to find it.
-
-        :param bool use_marginal_tax_rate: True to go into marginal effective tax rate computation mode.
-        '''
+        """
 
         # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
@@ -827,8 +894,14 @@ class AbstractSurveyScenario(object):
             self.inflate(**inflation_kwargs)
 
     def init_entity_structure(self, tax_benefit_system, entity, input_data_frame, builder):
-        """
-        Initialize the simulation with tax_benefit_system entities and input_data_frame
+        """Initializes sthe simulation with tax_benefit_system entities and input_data_frame
+
+        Args:
+          tax_benefit_system(TaxBenfitSystem): The TaxBenefitSystem to get the structure from
+          entity(Entity): The entity to initialize structure
+          input_data_frame(pd.DataFrame): The input
+          builder(Builder): The builder
+
         """
         id_variables = [
             self.id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
@@ -857,9 +930,6 @@ class AbstractSurveyScenario(object):
                     )
 
     def init_entity_data(self, entity, input_data_frame, period, simulation):
-        """
-        Initialize the simulation period with current input_data_frame
-        """
         used_as_input_variables = self.used_as_input_variables_by_entity[entity.key]
         diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
         input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
@@ -876,8 +946,7 @@ class AbstractSurveyScenario(object):
             init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
     def init_simulation_with_data_frame(self, tax_benefit_system, input_data_frame, period, builder):
-        """
-        Initialize the simulation period with current input_data_frame for an entity if specified
+        """Initializes the simulation period with current input_data_frame for an entity if specified
         """
         used_as_input_variables = self.used_as_input_variables
         id_variable_by_entity_key = self.id_variable_by_entity_key
@@ -891,16 +960,6 @@ class AbstractSurveyScenario(object):
             role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
         for id_variable in id_variables + role_variables:
-            # entity_key = entity.key if entity is not None else None
-            # if (entity_key is not None) and (not simulation.entities[entity].is_person):
-            #     assert id_variable in [id_variable_by_entity_key[entity], role_variable_by_entity_key[entity]], \
-            #         "variable {} for entity {} is not valid (not {} nor {})".format(
-            #             id_variable,
-            #             entity_key,
-            #             id_variable_by_entity_key[entity_key],
-            #             role_variable_by_entity_key[entity_key],
-            #             )
-            #     continue
             assert id_variable in input_data_frame.columns, \
                 "Variable {} is not present in input dataframe".format(id_variable)
 
@@ -913,17 +972,8 @@ class AbstractSurveyScenario(object):
 
             if entity.is_person:
                 continue
-                #     entity.count = entity.step_size = len(input_data_frame)
-            else:
-                #     entity.count = entity.step_size = \
-                #         (input_data_frame[role_variable_by_entity_key[key]] == 0).sum()
-                #     unique_ids_count = len(input_data_frame[id_variable_by_entity_key[key]].unique())
-                #     assert entity.count == unique_ids_count, \
-                #         "There are {0} person of role 0 in {1} but {2} {1}".format(
-                #             entity.count, entity.key, unique_ids_count)
 
-                #     entity.members_entity_id = input_data_frame[id_variable_by_entity_key[key]].astype('int').values
-                #     entity.members_role_index = input_data_frame[role_variable_by_entity_key[key]].astype('int').values
+            else:
                 index_by_entity_key[entity.key] = input_data_frame.loc[
                     input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
                     id_variable_by_entity_key[entity.key]
@@ -1151,8 +1201,11 @@ class AbstractSurveyScenario(object):
             print(line.rjust(100))
 
     def neutralize_variables(self, tax_benefit_system):
-        """
-        Neutralizing input variables not in input dataframe and keep some crucial variables
+        """Neutralizes input variables not in input dataframe and keep some crucial variables
+
+        Args:
+          tax_benefit_system: The TaxBenefitSystem variables belongs to
+
         """
         for variable_name, variable in tax_benefit_system.variables.items():
             if variable.formulas:
@@ -1167,6 +1220,13 @@ class AbstractSurveyScenario(object):
             tax_benefit_system.neutralize_variable(variable_name)
 
     def restore_simulations(self, directory, **kwargs):
+        """Restores SurveyScenario's simulations
+
+        Args:
+          directory: Directory to restore simulations from
+          **kwargs: Restoration options
+
+        """
         assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
 
         use_sub_directories = os.path.exists(os.path.join(directory, 'baseline'))
@@ -1186,11 +1246,20 @@ class AbstractSurveyScenario(object):
                 )
 
     def set_input_data_frame(self, input_data_frame):
+        """Sets the input dataframe
+
+        Args:
+          input_data_frame (pd.DataFrame): Input data frame
+
+        """
         self.input_data_frame = input_data_frame
 
     def set_tax_benefit_systems(self, tax_benefit_system = None, baseline_tax_benefit_system = None):
-        """
-        Set the tax and benefit system and eventually the baseline tax and benefit system
+        """Sets the tax and benefit system and eventually the baseline tax and benefit system
+
+        Args:
+          tax_benefit_system: The main tax benefit system (Default value = None)
+          baseline_tax_benefit_system: The baseline tax benefit system (Default value = None)
         """
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
@@ -1202,15 +1271,15 @@ class AbstractSurveyScenario(object):
                 self.baseline_tax_benefit_system.cache_blacklist = self.cache_blacklist
 
     def summarize_variable(self, variable = None, use_baseline = False, weighted = False, force_compute = False):
-        """
-            Prints a summary of a variable including its memory usage.
+        """Prints a summary of a variable including its memory usage.
 
-            :param string variable: the variable being summarized
-            :param bool use_baseline: the tax-benefit-system considered
-            :param bool weighted: whether the produced statistics should be weigthted or not
-            :param bool force_compute: whether the computation of the variable should be forced
+        Args:
+          variable(string): The variable being summarized
+          use_baseline(bool): The tax-benefit-system considered
+          weighted(bool): Whether the produced statistics should be weigthted or not
+          force_compute(bool): Whether the computation of the variable should be forced
 
-            Example:
+        Example:
             >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
             >>> survey_scenario = create_randomly_initialized_survey_scenario()
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
@@ -1374,7 +1443,7 @@ class AbstractSurveyScenario(object):
                 )
 
     def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
-        '''Identify and set the good ids for the different entities'''
+        """Identifies and sets the correct ids for the different entities"""
         if self.id_variable_by_entity_key is None:
             log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
@@ -1383,7 +1452,7 @@ class AbstractSurveyScenario(object):
         return self.id_variable_by_entity_key
 
     def _set_role_variable_by_entity_key(self) -> Dict[str, str]:
-        '''Identify and set the good roles for the different entities'''
+        """Identifies and sets the correct roles for the different entities"""
         if self.role_variable_by_entity_key is None:
             self.role_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_role_index') for entity in self.tax_benefit_system.entities)
@@ -1391,7 +1460,7 @@ class AbstractSurveyScenario(object):
         return self.role_variable_by_entity_key
 
     def _set_used_as_input_variables_by_entity(self) -> Dict[str, List[str]]:
-        '''Identify and set the good input variables for the different entities'''
+        """Identifies and sets the correct input variables for the different entities"""
         if self.used_as_input_variables_by_entity is not None:
             return
 
@@ -1421,6 +1490,16 @@ def get_words(text):
 
 
 def assert_variables_in_same_entity(survey_scenario, variables):
+    """Asserts taht variables are in the same entity
+
+    Args:
+      survey_scenario: Host SurveyScenario
+      variables: Variables to check presence
+
+    Returns:
+      str: Unique entity key if variables all belongs to it
+
+    """
     entity = None
     for variable_name in variables:
         variable = survey_scenario.tax_benefit_system.variables.get(variable_name)
@@ -1473,6 +1552,13 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
 
 
 def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
+    """Diagnoses variables mismatch
+
+    Args:
+      used_as_input_variables(lsit): List of variable to test presence
+      input_data_frame: DataFrame in which to test variables presence
+
+    """
     variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
     if variables_mismatch:
         log.info(

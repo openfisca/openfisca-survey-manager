@@ -6,9 +6,8 @@ import weighted
 import weightedcalcs as wc
 
 
-def gini(values, weights = None, bin_size = None):
-    """
-    Gini coefficient (normalized to 1)
+def gini(values, weights = None):
+    """Computes Gini coefficient (normalized to 1)
     Using fastgini formula :
 
 
@@ -24,6 +23,13 @@ def gini(values, weights = None, bin_size = None):
         where observations are sorted in ascending order of X.
 
     From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+
+    Args:
+      values: Vector of values
+      weights: Weights vector (Default value = None)
+
+    Returns:
+        float: Gini
     """
     if weights is None:
         weights = ones(len(values))
@@ -43,19 +49,20 @@ def gini(values, weights = None, bin_size = None):
 
 
 def kakwani(values, ineq_axis, weights = None):
-    """
-    Computes the Kakwani index
+    """Computes the Kakwani index
+
+    Args:
+      values: Vector of values
+      ineq_axis: Inequality axis
+      weights: Weights vector (Default value = None)
+
+    Returns:
+        float: Kakwani index
     """
     from scipy.integrate import simps
 
     if weights is None:
         weights = ones(len(values))
-
-#    sign = -1
-#    if tax == True:
-#        sign = -1
-#    else:
-#        sign = 1
 
     PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
     LCx, LCy = lorenz(ineq_axis, weights)
@@ -66,8 +73,14 @@ def kakwani(values, ineq_axis, weights = None):
 
 
 def lorenz(values, weights = None):
-    """
-    Computes Lorenz Curve coordinates
+    """Computes Lorenz curve coordinates (x, y)
+
+    Args:
+      values: Vector of values
+      weights: Weights vector (Default value = None)
+
+    Returns:
+        (np.array, np.array): Lorenz curve coordinates
     """
     if weights is None:
         weights = ones(len(values))
@@ -83,6 +96,18 @@ def lorenz(values, weights = None):
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
+    """
+
+    Args:
+      a:
+      labels:
+      weights:
+      method:
+      return_quantiles:  (Default value = False)
+
+    Returns:
+
+    """
     # from http://pastebin.com/KTLip9ee
     # a is an input array of values.
     # weights is an input array of weights, so weights[i] goes with a[i]
@@ -240,8 +265,15 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
 
 def pseudo_lorenz(values, ineq_axis, weights = None):
-    """
-        Computes The pseudo Lorenz Curve coordinates
+    """Computes The pseudo Lorenz Curve coordinates
+
+    Args:
+      values:
+      ineq_axis:
+      weights:  (Default value = None)
+
+    Returns:
+
     """
     if weights is None:
         weights = ones(len(values))
@@ -256,6 +288,16 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
 
 
 def bottom_share(values, rank_from_bottom, weights = None):
+    """
+
+    Args:
+      values(np.array): Vector of values
+      rank_from_bottom(float): Rank from bottom (bottom is 0 and top is 1)
+      weights(np.array): Weights vector (Default value = None)
+
+    Returns:
+
+    """
     if weights is None:
         weights = ones(len(values))
 
@@ -277,6 +319,16 @@ def bottom_share(values, rank_from_bottom, weights = None):
 
 
 def top_share(values, rank_from_top, weights = None):
+    """
+
+    Args:
+      values(np.array): Vector of values
+      rank_from_top(float): Rank from top (bottom is 1 and top is 0)
+      weights(np.array): Weights vector (Default value = None)
+
+    Returns:
+
+    """
     if weights is None:
         weights = ones(len(values))
 

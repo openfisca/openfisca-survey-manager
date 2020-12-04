@@ -64,6 +64,7 @@ def build_coicop_level_nomenclature(level, keep_code = False, to_csv = False):
 
 
 def build_raw_coicop_nomenclature():
+    """Builds raw COICOP nomenclature"""
     for index in range(len(sub_levels) - 1):
         level = sub_levels[index]
         next_level = sub_levels[index + 1]

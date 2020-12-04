@@ -10,27 +10,79 @@ log = logging.getLogger(__name__)
 
 
 def linear(u):
+    """
+
+    Args:
+      u:
+
+    Returns:
+
+    """
     return 1 + u
 
 
 def linear_prime(u):
+    """
+
+    Args:
+      u:
+
+    Returns:
+
+    """
     return ones(u.shape, dtype = float)
 
 
 def raking_ratio(u):
+    """
+
+    Args:
+      u:
+
+    Returns:
+
+    """
     return exp(u)
 
 
 def raking_ratio_prime(u):
+    """
+
+    Args:
+      u:
+
+    Returns:
+
+    """
     return exp(u)
 
 
 def logit(u, low, up):
+    """
+
+    Args:
+      u:
+      low:
+      up:
+
+    Returns:
+
+    """
     a = (up - low) / ((1 - low) * (up - 1))
     return (low * (up - 1) + up * (1 - low) * exp(a * u)) / (up - 1 + (1 - low) * exp(a * u))
 
 
 def logit_prime(u, low, up):
+    """
+
+    Args:
+      u:
+      low:
+      up:
+
+    Returns:
+
+    """
     a = (up - low) / ((1 - low) * (up - 1))
     return (
         (a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u))
@@ -40,7 +92,13 @@ def logit_prime(u, low, up):
 
 def build_dummies_dict(data):
     """
-        Return a dict with unique values as keys and vectors as values
+
+    Args:
+      data:
+
+    Returns:
+
+
     """
     unique_val_list = unique(data)
     output = {}
@@ -51,24 +109,32 @@ def build_dummies_dict(data):
 
 def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
         xtol = 1.49012e-08, maxfev = 256):
+    """Calibrates weights to satisfy margins constraints
+
+    Args:
+        data_in (pd.DataFrame): The observations data
+        margins (dict): Margins is a dictionnary containing for each variable as key the following values
+          - a scalar for numeric variables
+          - a dictionnary with categories as key and populations as values
+          - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
+        initial_weight (str, optional): Initial weight variable. Defaults to 'wprm_init'.
+        method (str, optional): Calibration method. Should be 'linear', 'raking ratio' or 'logit'. Defaults to 'linear'.
+        lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method. Should be < 1. Defaults to None.
+        up (float, optional): Upper bound on weights ratio. Mandatory when using logit method. Should be > 1. Defaults to None.
+        use_proportions (bool, optional): When True use proportions if total population from margins doesn't match total population. Defaults to False.
+        xtol (float, optional): Relative precision on lagrangian multipliers.  Defaults to 1.49012e-08 (fsolve xtol).
+        maxfev (int, optional): Maximum number of function evaluation. Defaults to 256.
+
+    Raises:
+        Exception: [description]
+        Exception: [description]
+        Exception: [description]
+
+    Returns:
+        np.array: Margins adjusting weights
+        float: Lagrangian parameter
+        dict: Updated margins
     """
-        Calibrate weights to satisfy some margin constraints
-
-        :param dataframe data_in: The observations data
-        :param str initial_weight: The initial weight variable name
-        :param dict margins: Margins is a dictionnary containing for each variable as key the following values
-            - a scalar for numeric variables
-            - a dictionnary with categories as key and populations as values
-            - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
-
-        :param str method: Should be 'linear', 'raking ratio' or 'logit'
-        :param float lo: lower bound on weights ratio. Mandatory when using logit method. Should be < 1.
-        :param float up: upper bound on weights ratio. Mandatory when using logit method. Should be > 1.
-        :param bool use_proportions: default to False. if True use proportions if total population from margins doesn't match total population
-        :param xtol: relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
-        :param maxfev: maximum number of function evaluation default to 256
-    """
-
     from scipy.optimize import fsolve
 
     # remove null weights and keep original data
@@ -232,6 +298,19 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
 
 
 def check_calmar(data_in, margins, initial_weight='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
+    """
+
+    Args:
+      data_in:
+      margins:
+      initial_weight:  (Default value = 'wprm_init')
+      pondfin_out:  (Default value = None)
+      lambdasol:  (Default value = None)
+      margins_new_dict:  (Default value = None)
+
+    Returns:
+
+    """
     for variable, margin in margins.items():
         if variable != 'total_population':
             print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))
