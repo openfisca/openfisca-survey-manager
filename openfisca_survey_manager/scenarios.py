@@ -108,13 +108,13 @@ class AbstractSurveyScenario(object):
 
         return values
 
-    def calibrate(self, target_margins_by_variable:dict = None, parameters:dict = None, total_population = None):
+    def calibrate(self, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
         """Calibrates the scenario data
 
         Args:
             target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
             parameters (dict, optional): Calibration parameters. Defaults to None.
-            total_population ([type], optional): Total population target. Defaults to None.
+            total_population (float, optional): Total population target. Defaults to None.
         """
         survey_scenario = self
         calibration = Calibration(survey_scenario)
@@ -141,7 +141,7 @@ class AbstractSurveyScenario(object):
         self.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
-            difference = False, missing_variable_default_value = np.nan, weight = None):
+            difference = False, missing_variable_default_value = np.nan, weights = None):
         """Computes variable aggregate
 
         Args:
@@ -293,7 +293,7 @@ class AbstractSurveyScenario(object):
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
-            missing_variable_default_value = np.nan, concat_axis = None, weight = None):
+            missing_variable_default_value = np.nan, concat_axis = None, weights = None):
         """Computes a pivot table of agregated values casted along specified index and columns
 
         Args:
@@ -356,7 +356,7 @@ class AbstractSurveyScenario(object):
 
         uniform_weight = 1.0
         if isinstance(weights, str):
-            assert weights in simulation.tax_benefit_system.variables, \
+            assert weights in tax_benefit_system.variables, \
                 "{weights} is not a valid variable of the tax benefit system"
             weight_variable = weights
 
@@ -374,7 +374,6 @@ class AbstractSurveyScenario(object):
 
         else:
             raise ValueError("Wrong value for weights argument")
-
 
         expressions = []
         if filter_by is not None:
