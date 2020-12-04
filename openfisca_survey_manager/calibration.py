@@ -14,9 +14,7 @@ log = logging.getLogger(__name__)
 
 
 class Calibration(object):
-    """
-        An object to calibrate survey data of a SurveySimulation
-    """
+    """An object to calibrate survey data of a SurveySimulation"""
     filter_by_name = None
     initial_total_population = None
     initial_weight_name = None
@@ -42,18 +40,16 @@ class Calibration(object):
         self._set_survey_scenario(survey_scenario)
 
     def reset(self):
-        """
-            Reset the calibration to it initial state
-        """
+        """Reset the calibration to it initial state"""
         simulation = self.survey_scenario.simulation
         holder = simulation.get_holder(self.weight_name)
         holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
 
     def _set_survey_scenario(self, survey_scenario):
-        """
-            Set survey scenario
+        """Sets the survey scenario
 
-            :param survey_scenario: the survey scenario
+        Args:
+          survey_scenario: the survey scenario
         """
         self.survey_scenario = survey_scenario
         # TODO deal with baseline if reform is present
@@ -71,11 +67,11 @@ class Calibration(object):
         self.weight = survey_scenario.calculate_variable(variable = weight_name, period = period)
 
     def set_parameters(self, parameter, value):
-        """
-            Set parameters value
+        """Sets a parameter value
 
-            :param parameter: the parameter to be set
-            :param value: the valeu used to set the parameter
+        Args:
+          parameter: the parameter to be set
+          value: the valeu used to set the parameter
         """
         if parameter == 'lo':
             self.parameters['lo'] = 1 / value
@@ -113,7 +109,13 @@ class Calibration(object):
 #            else:
 #                self.add_var2(var, margins[var], source = source)
 
-    def get_parameters(self):
+    def get_parameters(self) -> dict:
+        """Gets the parameters
+
+        Returns:
+            dict: Parameters
+        """
+
         p = {}
         p['method'] = self.parameters.get('method', 'linear')
         if self.parameters.get('invlo') is not None:
@@ -127,10 +129,13 @@ class Calibration(object):
         p['initial_weight'] = self.weight_name + ""
         return p
 
-    def _build_calmar_data(self):
+    def _build_calmar_data(self) -> pd.DataFrame:
+        """Builds the data dictionnary used as calmar input argument
+
+        Returns:
+            pd.DataFrame: Data used bu calmar
         """
-            Builds the data dictionnary used as calmar input argument
-        """
+
         # Select only filtered entities
         assert self.initial_weight_name is not None
         data = pd.DataFrame()
@@ -145,8 +150,15 @@ class Calibration(object):
         return data
 
     def _update_weights(self, margins, parameters = {}):
-        """
-            Run calmar, stores new weights and returns adjusted margins
+        """Runs calmar, stores new weights and returns adjusted margins
+
+        Args:
+          margins: margins
+          parameters:  Parameters (Default value = {})
+
+        Returns:
+            dict: Updated margins
+
         """
         data = self._build_calmar_data()
         assert self.initial_weight_name is not None
@@ -158,6 +170,8 @@ class Calibration(object):
         return updated_margins
 
     def calibrate(self):
+        """Apllies the calibrations by updating weights and margins
+        """
         margins_by_variable = self.margins_by_variable
         parameters = self.get_parameters()
 
@@ -175,9 +189,7 @@ class Calibration(object):
         self._update_margins()
 
     def set_calibrated_weights(self):
-        """
-            Modify the weights to use the calibrated weights
-        """
+        """Modify the weights to use the calibrated weights"""
         period = self.period
         survey_scenario = self.survey_scenario
         assert survey_scenario.simulation is not None
@@ -187,11 +199,22 @@ class Calibration(object):
             simulation.set_input(self.weight_name, period, self.weight)
             # TODO: propagation to other weights
 
-    def set_target_margins(self, target_margin_by_variable):
+    def set_target_margins(self, target_margin_by_variable: dict):
+        """[summary]
+
+        Args:
+            target_margin_by_variable (dict): Targets margins
+        """
         for variable, target in target_margin_by_variable.items():
             self.set_target_margin(variable, target)
 
     def set_target_margin(self, variable, target):
+        """Sets variable target margin
+
+        Args:
+          variable: Targett variable
+          target: Target value
+        """
         survey_scenario = self.survey_scenario
         period = self.period
         assert variable in survey_scenario.tax_benefit_system.variables
@@ -218,6 +241,8 @@ class Calibration(object):
         self._update_margins()
 
     def _update_margins(self):
+        """Updates margins
+        """
         for variable in self.margins_by_variable:
             survey_scenario = self.survey_scenario
             period = self.period

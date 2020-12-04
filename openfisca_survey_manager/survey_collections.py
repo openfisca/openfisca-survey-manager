@@ -16,9 +16,7 @@ log = logging.getLogger(__name__)
 
 
 class SurveyCollection(object):
-    """
-    A collection of Surveys
-    """
+    """A collection of Surveys"""
     config = None
     json_file_path = None
     label = None

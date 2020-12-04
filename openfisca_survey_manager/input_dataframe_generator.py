@@ -22,16 +22,17 @@ log = logging.getLogger(__name__)
 
 
 def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
-    """
-        Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
+    """Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
 
-        :param TaxBenefitSystem tax_benefit_system: the tax_benefit_system to use
-        :param int nb_persons: the number of persons in the system
-        :param int nb_groups: the number of collective entities in the system
+    Args:
+      tax_benefit_system(TaxBenefitSystem): the tax_benefit_system to use
+      nb_persons(int): the number of persons in the system
+      nb_groups(int): the number of collective entities in the system
 
-        :returns: A dictionary whose keys are entities and values the corresponding data frames
+    Returns:
+      A dictionary whose keys are entities and values the corresponding data frames
 
-        Example:
+      Example:
 
         >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
         >>> from openfisca_country_template import CountryTaxBenefitSystem
@@ -84,17 +85,23 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
 
 
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection = None):
-    """
+    """Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
 
-    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
+    Args:
+      TaxBenefitSystem: tax_benefit_system: the tax_benefit_system to use
+      int: nb_persons: the number of persons in the system
+      int: nb_groups: the number of collective entities in the system
+      dict: variable_generators_by_period: the specification of the periods and values of the generated variables
+      string: collection: the collection storing the produced data
+      tax_benefit_system:
+      nb_persons:
+      nb_groups:
+      variable_generators_by_period:
+      collection:  (Default value = None)
 
-    :param TaxBenefitSystem tax_benefit_system: the tax_benefit_system to use
-    :param int nb_persons: the number of persons in the system
-    :param int nb_groups: the number of collective entities in the system
-    :param dict variable_generators_by_period: the specification of the periods and values of the generated variables
-    :param string collection: the collection storing the produced data
+    Returns:
+      A dictionnary of the entities tables by period
 
-    :returns: A dictionnary of the entities tables by period
     """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
@@ -123,12 +130,18 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
 
 
 def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition = None, seed = None):
-    """
-        Initialise a variable with random values (from 0 to max_value).
+    """Initialises a variable with random values (from 0 to max_value).
         If a condition vector is provided, only set the value of persons or groups for which condition is True.
 
-        Exemple:
+    Args:
+      tax_benefit_system(TaxBenefitSystem): A tax benefit system
+      input_dataframe_by_entity(dict): A dictionnary of entity dataframes
+      variable_name: The name of the variable to initialize
+      max_value: Maximum value of the variable
+      condition: Boolean vector of obersvations to modify (Default value = None)
+      seed: Random seed used whe ndrawing the values (Default value = None)
 
+    Examples
         >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
         >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
@@ -149,7 +162,7 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
         True
         >>> len(input_dataframe_by_entity['household'].rent)
         100
-        """
+    """
 
     variable = tax_benefit_system.variables[variable_name]
     entity = variable.entity
@@ -224,9 +237,6 @@ Fix the option collections_directory in the collections section of your config f
 
 def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, period = None,
         computed_variables = []):
-    #    for axe in test_case_scenario_kwargs['axes'][0]:
-    #        axe['name'] = 'salaire_imposable'
-
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         **test_case_scenario_kwargs
