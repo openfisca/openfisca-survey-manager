@@ -234,7 +234,7 @@ class AbstractSurveyScenario(object):
                     weight_variable = self.weight_variable_by_entity[entity_key]
 
                 else:
-                    raise ValueError('There is no weight variable for entity {} nor alternative weights'.format(entity_key))
+                    log.warn('There is no weight variable for entity {} nor alternative weights. Switch to unweighted'.format(entity_key))
 
         if variable in simulation.tax_benefit_system.variables:
             value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
@@ -377,7 +377,7 @@ class AbstractSurveyScenario(object):
                     variables.add(weight_variable)
 
                 else:
-                    raise ValueError('There is no weight variable for entity {} nor alternative weights'.format(entity_key))
+                    log.warn('There is no weight variable for entity {} nor alternative weights. Switch to unweighted'.format(entity_key))
 
         expressions = []
         if filter_by is not None:
