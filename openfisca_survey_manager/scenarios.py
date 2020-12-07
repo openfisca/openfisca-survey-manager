@@ -141,7 +141,7 @@ class AbstractSurveyScenario(object):
         self.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
-            difference = False, missing_variable_default_value = np.nan, weights = None):
+            difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
         """Computes variable aggregate
 
         Args:
@@ -152,7 +152,8 @@ class AbstractSurveyScenario(object):
           use_baseline: Use baseline simulation (Default value = False)
           difference:  Compute difference between simulation and baseline (Default value = False)
           missing_variable_default_value: Value of missing variable (Default value = np.nan)
-          weights: Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None or 1 if any ((Default value = None)
+          weighted: Whether to weight te aggregates (Default value = True)
+          alternative_weights: Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None, and if the latetr is None uses 1 ((Default value = None)
 
         Returns:
           float: Aggregate
@@ -171,7 +172,8 @@ class AbstractSurveyScenario(object):
                     period = period,
                     use_baseline = False,
                     missing_variable_default_value = missing_variable_default_value,
-                    weights = weights,
+                    weighted = weighted,
+                    alternative_weights = alternative_weights,
                     )
                 - self.compute_aggregate(
                     variable = variable,
@@ -180,7 +182,8 @@ class AbstractSurveyScenario(object):
                     period = period,
                     use_baseline = True,
                     missing_variable_default_value = missing_variable_default_value,
-                    weights = weights,
+                    weighted = weighted,
+                    alternative_weights = alternative_weights,
                     )
                 )
 
@@ -213,25 +216,25 @@ class AbstractSurveyScenario(object):
                 .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
         uniform_weight = 1.0
-        if isinstance(weights, str):
-            assert weights in simulation.tax_benefit_system.variables, \
-                "{weights} is not a valid variable of the tax benefit system"
-            entity_weight = weights
+        weight_variable = None
+        if weighted:
+            if alternative_weights:
+                if isinstance(alternative_weights, str):
+                    assert weights in tax_benefit_system.variables, \
+                        "{weights} is not a valid variable of the tax benefit system"
+                    weight_variable = alternative_weights
 
-        elif weights is None:
-            if self.weight_variable_by_entity:
-                weight_variable_by_entity = self.weight_variable_by_entity
-                entity_key = tax_benefit_system.variables[variable].entity.key
-                entity_weight = weight_variable_by_entity[entity_key]
+                elif type(alternative_weights) == int or type(alternative_weights) == float:
+                    weight_variable = None
+                    uniform_weight = float(alternative_weights)
+
             else:
-                entity_weight = None
+                if self.weight_variable_by_entity:
+                    weight_variable = self.weight_variable_by_entity[entity_key]
+                    variables.add(weight_variable)
 
-        elif type(weights) == int or type(weights) == float:
-            entity_weight = None
-            uniform_weight = float(weights)
-
-        else:
-            raise ValueError("Wrong value for weights argument")
+                else:
+                    raise ValueError('There is no weight variable for entity {} nor alternative weights'.format(entity_key))
 
         if variable in simulation.tax_benefit_system.variables:
             value = self.calculate_variable(variable = variable, period = period, use_baseline = use_baseline)
@@ -293,7 +296,7 @@ class AbstractSurveyScenario(object):
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
-            missing_variable_default_value = np.nan, concat_axis = None, weights = None):
+            missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None):
         """Computes a pivot table of agregated values casted along specified index and columns
 
         Args:
@@ -308,6 +311,8 @@ class AbstractSurveyScenario(object):
           values(list, optional): Aggregated variable(s) within cells, defaults to None
           missing_variable_default_value(float, optional): Default value for missing variables, defaults to np.nan
           concat_axis(int, optional): Axis to concatenate along (index = 0, columns = 1), defaults to None
+          weighted(bool, optional): Whether to weight te aggregates (Default value = True)
+          alternative_weights(str or int or float, optional): Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None, and if the latetr is None uses 1 ((Default value = None)
 
         Returns:
           pd.DataFrame: Pivot table
@@ -353,27 +358,26 @@ class AbstractSurveyScenario(object):
         variables = set(index + columns)
 
         # Select the entity weight corresponding to the variables that will provide values
-
         uniform_weight = 1.0
-        if isinstance(weights, str):
-            assert weights in tax_benefit_system.variables, \
-                "{weights} is not a valid variable of the tax benefit system"
-            weight_variable = weights
+        weight_variable = None
+        if weighted:
+            if alternative_weights:
+                if isinstance(alternative_weights, str):
+                    assert weights in tax_benefit_system.variables, \
+                        "{weights} is not a valid variable of the tax benefit system"
+                    weight_variable = alternative_weights
 
-        elif weights is None:
-            if self.weight_variable_by_entity:
-                weight_variable = self.weight_variable_by_entity[entity_key]
-                variables.add(weight_variable)
+                elif type(alternative_weights) == int or type(alternative_weights) == float:
+                    weight_variable = None
+                    uniform_weight = float(alternative_weights)
+
             else:
-                log.debug('There is no weight variable for entity {}'.format(entity_key))
-                weight_variable = None
+                if self.weight_variable_by_entity:
+                    weight_variable = self.weight_variable_by_entity[entity_key]
+                    variables.add(weight_variable)
 
-        elif type(weights) == int or type(weights) == float:
-            weight_variable = None
-            uniform_weight = float(weights)
-
-        else:
-            raise ValueError("Wrong value for weights argument")
+                else:
+                    raise ValueError('There is no weight variable for entity {} nor alternative weights'.format(entity_key))
 
         expressions = []
         if filter_by is not None:
