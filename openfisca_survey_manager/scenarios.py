@@ -220,8 +220,8 @@ class AbstractSurveyScenario(object):
         if weighted:
             if alternative_weights:
                 if isinstance(alternative_weights, str):
-                    assert weights in tax_benefit_system.variables, \
-                        "{weights} is not a valid variable of the tax benefit system"
+                    assert alternative_weights in tax_benefit_system.variables, \
+                        f"{alternative_weights} is not a valid variable of the tax benefit system"
                     weight_variable = alternative_weights
 
                 elif type(alternative_weights) == int or type(alternative_weights) == float:
@@ -231,7 +231,6 @@ class AbstractSurveyScenario(object):
             else:
                 if self.weight_variable_by_entity:
                     weight_variable = self.weight_variable_by_entity[entity_key]
-                    variables.add(weight_variable)
 
                 else:
                     raise ValueError('There is no weight variable for entity {} nor alternative weights'.format(entity_key))
@@ -244,9 +243,9 @@ class AbstractSurveyScenario(object):
 
         weight = (
             self.calculate_variable(
-                variable = entity_weight, period = period, use_baseline = use_baseline
+                variable = weight_variable, period = period, use_baseline = use_baseline
                 ).astype(float)
-            if entity_weight else uniform_weight
+            if weight_variable else uniform_weight
             )
         filter_dummy = self.calculate_variable(variable = filter_by_variable, period = period) if filter_by else 1.0
         if filter_by:
@@ -363,8 +362,8 @@ class AbstractSurveyScenario(object):
         if weighted:
             if alternative_weights:
                 if isinstance(alternative_weights, str):
-                    assert weights in tax_benefit_system.variables, \
-                        "{weights} is not a valid variable of the tax benefit system"
+                    assert alternative_weights in tax_benefit_system.variables, \
+                        f"{alternative_weights} is not a valid variable of the tax benefit system"
                     weight_variable = alternative_weights
 
                 elif type(alternative_weights) == int or type(alternative_weights) == float:
