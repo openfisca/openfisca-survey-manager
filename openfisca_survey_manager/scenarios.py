@@ -188,8 +188,9 @@ class AbstractSurveyScenario(object):
                 )
 
         tax_benefit_system = self.tax_benefit_system
+        entity_key = tax_benefit_system.variables[variable].entity.key
+
         if filter_by is None and self.filtering_variable_by_entity is not None:
-            entity_key = tax_benefit_system.variables[variable].entity.key
             filter_by_variable = self.filtering_variable_by_entity.get(entity_key)
 
         assert variable is not None
