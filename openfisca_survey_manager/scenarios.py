@@ -301,15 +301,15 @@ class AbstractSurveyScenario(object):
             varying = simulation.calculate_add(varying_variable, period = period)
         else:
             target_variable_entity_key = self.tax_benefit_system.variables[target_variable].entity.key
-            
+
             def cast_to_target_entity(simulation):
                 population = simulation.populations[target_variable_entity_key]
                 df = (pd.DataFrame(
-                        dict({
-                            'members_entity_id': population._members_entity_id,
-                            varying_variable: simulation.calculate_add(varying_variable, period = period)
-                            })
-                        ).groupby('members_entity_id').sum())
+                    dict({
+                        'members_entity_id': population._members_entity_id,
+                        varying_variable: simulation.calculate_add(varying_variable, period = period)
+                        })
+                    ).groupby('members_entity_id').sum())
                 varying_variable_for_target_entity = df.loc[population.ids, varying_variable].values
                 return varying_variable_for_target_entity
 
