@@ -14,7 +14,7 @@ def create_quantile(x, nquantiles, weight_variable, entity_name):
     class quantile(Variable):
         value_type = int
         entity = entity_name
-        label = u"Quantile"
+        label = "Quantile"
         definition_period = YEAR
 
         def formula(entity, period):
