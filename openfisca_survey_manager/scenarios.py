@@ -290,7 +290,7 @@ class AbstractSurveyScenario(object):
 
         variables_belong_to_same_entity = (
             self.tax_benefit_system.variables[varying_variable].entity.key
-            ==  self.tax_benefit_system.variables[target_variable].entity.key
+            == self.tax_benefit_system.variables[target_variable].entity.key
             )
         varying_variable_belongs_to_person_entity = self.tax_benefit_system.variables[varying_variable].entity.is_person
 
@@ -301,6 +301,7 @@ class AbstractSurveyScenario(object):
             varying = simulation.calculate_add(varying_variable, period = period)
         else:
             target_variable_entity_key = self.tax_benefit_system.variables[target_variable].entity.key
+            
             def cast_to_target_entity(simulation):
                 population = simulation.populations[target_variable_entity_key]
                 df = (pd.DataFrame(
