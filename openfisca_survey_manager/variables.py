@@ -1,8 +1,7 @@
 
 from numpy import arange
 
-from openfisca_core.model_api import where
-from openfisca_france.model.base import *
+from openfisca_core.model_api import Variable, where, YEAR
 from openfisca_survey_manager.statshelpers import (
     mark_weighted_percentiles,
     weightedcalcs_quantiles
