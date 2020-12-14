@@ -1,11 +1,33 @@
 
 from numpy import arange
 
-from openfisca_core.model_api import where
+from openfisca_core.model_api import Variable, where, YEAR
 from openfisca_survey_manager.statshelpers import (
     mark_weighted_percentiles,
     weightedcalcs_quantiles
     )
+
+
+def create_quantile(x, nquantiles, weight_variable, entity_name):
+
+    class quantile(Variable):
+        value_type = int
+        entity = entity_name
+        label = "Quantile"
+        definition_period = YEAR
+
+        def formula(entity, period):
+            variable = entity(x, period)
+            weight = entity(weight_variable, period)
+            labels = arange(1, nquantiles + 1)
+            method = 2
+            if len(weight) == 1:
+                return weight * 0
+            quantile, values = mark_weighted_percentiles(variable, labels, weight, method, return_quantiles = True)
+            del values
+            return quantile
+
+    return quantile
 
 
 def quantile(q, variable, weight_variable = None, filter_variable = None):
