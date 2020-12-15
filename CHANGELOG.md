@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.41.1 [#1XX](https://github.com/openfisca/openfisca-survey-manager/pull/1XX)
+### 0.41.1 [#187](https://github.com/openfisca/openfisca-survey-manager/pull/187)
 
 * Update dependencies
 ### 0.41.0 [#185](https://github.com/openfisca/openfisca-survey-manager/pull/186)
