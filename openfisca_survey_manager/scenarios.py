@@ -1545,11 +1545,7 @@ def assert_variables_in_same_entity(survey_scenario, variables):
 
 def init_variable_in_entity(simulation, entity, variable_name, series, period):
     variable = simulation.tax_benefit_system.variables[variable_name]
-    if series.values.dtype != variable.dtype:
-        log.debug(
-            'Converting {} from dtype {} to {}'.format(
-                variable_name, series.values.dtype, variable.dtype)
-            )
+
     # np.issubdtype cannot handles categorical variables
     if (not pd.api.types.is_categorical_dtype(series)) and np.issubdtype(series.values.dtype, np.floating):
         if series.isnull().any():
@@ -1561,6 +1557,20 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
         assert series.notnull().all(), \
             'There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name)
+
+    if variable.value_type == Enum and not np.issubdtype(series.values.dtype, np.integer):
+        possible_values = variable.possible_values
+        index_by_category = dict(zip(
+            possible_values._member_names_,
+            range(len(possible_values._member_names_))
+            ))
+        series.replace(index_by_category, inplace = True)
+
+    if series.values.dtype != variable.dtype:
+        log.debug(
+            'Converting {} from dtype {} to {}'.format(
+                variable_name, series.values.dtype, variable.dtype)
+            )
 
     array = series.values.astype(variable.dtype)
     # TODO is the next line needed ?
