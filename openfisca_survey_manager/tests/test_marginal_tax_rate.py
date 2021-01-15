@@ -21,7 +21,7 @@ def test_compute_marginal_tax_rate():
     assert_near(
         survey_scenario.compute_marginal_tax_rate(target_variable = 'income_tax', period = 2017),
         (1 - .15),
-        relative_error_margin = 1e-6,
+        relative_error_margin = 1e-5,
         )
     survey_scenario.compute_marginal_tax_rate(target_variable = 'disposable_income', period = 2017)
 
