@@ -21,7 +21,6 @@ from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 from numpy import absolute as abs_
-from openfisca_france.model.base import *
 
 from openfisca_survey_manager.calibration import Calibration
 
