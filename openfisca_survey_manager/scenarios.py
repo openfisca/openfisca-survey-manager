@@ -54,6 +54,8 @@ class AbstractSurveyScenario(object):
     used_as_input_variables = None
     used_as_input_variables_by_entity = None
     variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
+    variation_max = 100 # maximal variation value used to estimate marginal tax rate
+    variation_min = 1 # minimal variation value used to estimate marginal tax rate
     varying_variable = None
     weight_variable_by_entity = None
     year = None
@@ -1470,7 +1472,8 @@ class AbstractSurveyScenario(object):
 
         def set_variable(varying_variable, varying_variable_value, period_):
             delta = self.variation_factor * varying_variable_value
-            delta = np.where(varying_variable_value == 0.0 ,1 , np.sign(delta)) * max_(100.0, abs_(delta))
+            delta_max, delta_min = abs_(self.variation_max), abs_(self.variation_min)
+            delta = np.where(varying_variable_value == 0.0 ,delta_min , np.sign(delta)) * max_(delta_max, abs_(delta))
             new_variable_value = varying_variable_value + delta
             simulation.delete_arrays(varying_variable, period_)
             simulation.set_input(varying_variable, period_, new_variable_value)
