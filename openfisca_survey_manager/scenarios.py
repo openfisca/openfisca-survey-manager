@@ -8,6 +8,10 @@ import re
 
 
 import humanize
+from numpy import (
+    absolute as abs_,
+    maximum as max_,
+    )
 
 
 from openfisca_core import periods
@@ -15,7 +19,6 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
-from numpy import absolute as abs_
 
 from openfisca_survey_manager.calibration import Calibration
 
