@@ -70,7 +70,7 @@ setup(
         'configparser',
         'future',
         'humanize',
-        'numpy >= 1.11, < 1.19',
+        'numpy >= 1.11, < 1.21',
         'tables >= 3.4.4, < 4.0.0',
         'openfisca-core >=35.0.0, <36.0.0',
         'pandas >= 0.22',
