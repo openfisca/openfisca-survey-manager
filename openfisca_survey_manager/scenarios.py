@@ -216,7 +216,7 @@ class AbstractSurveyScenario(object):
                 " Please choose a filter-by variable of same entity as '{0}'."
                 .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
-        uniform_weight = 1.0
+        uniform_weight = np.array(1.0)
         weight_variable = None
         if weighted:
             if alternative_weights:
@@ -418,7 +418,7 @@ class AbstractSurveyScenario(object):
                 expressions.extend([filter_by])
                 assert filter_entity_key == entity_key
         else:
-            filter_dummy = 1.0
+            filter_dummy = np.array(1.0)
 
         for expression in expressions:
             expression_variables = get_words(expression)
