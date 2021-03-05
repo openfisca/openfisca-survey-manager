@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.41.2 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Bug fix
+- Enforce us of np.array for weights and filters when computing aggregates
+
 ### 0.41.1 [#187](https://github.com/openfisca/openfisca-survey-manager/pull/187)
 
 * Update dependencies
