@@ -59,7 +59,7 @@ setup(
         'casd': [
             'autopep8 == 1.5.5',
             'flake8 >=3.5.0, <3.9.0',
-            'pycodestyle >=2.3.0, <2.7.0',
+            'pycodestyle >=2.3.0, <2.8.0',
             'pytest >=3.0, <7.0.0',
             'scipy >= 1.2.1, < 2.0.0',
             'tables >= 3.4.4, < 4.0.0',
