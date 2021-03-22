@@ -1,6 +1,11 @@
 ﻿# Changelog
 
-### 0.41.2 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.41.3 [#196](https://github.com/openfisca/openfisca-survey-manager/pull/196)
+
+* Bug fix
+- Enforce HDF store closing when done
+
+### 0.41.2 [#194](https://github.com/openfisca/openfisca-survey-manager/pull/194)
 
 * Bug fix
 - Enforce us of np.array for weights and filters when computing aggregates

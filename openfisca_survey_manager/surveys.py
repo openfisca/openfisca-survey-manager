@@ -141,9 +141,11 @@ Contains the following tables : \n""".format(self.name, self.label)
                         data_frame.rename(columns = {column_name: "ident"}, inplace = True)
                         log.info("{} column have been replaced by ident".format(column_name))
                         break
+            store.close()
             return list(data_frame.columns)
         else:
             log.info('table {} was not found in {}'.format(table, store.filename))
+            store.close()
             return list()
 
     def get_value(self, variable, table, lowercase = False, ignorecase = False):
@@ -201,6 +203,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             store.close()
             raise
 
+        store.close()
         if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)
             df.rename(columns = columns, inplace = True)
