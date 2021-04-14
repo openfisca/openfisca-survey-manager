@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 
 source_format_by_extension = dict(
+    csv = 'csv',
     sas7bdat = "sas",
     dta = 'stata',
     Rdata = 'Rdata',  # TODO: badly named
@@ -91,10 +92,9 @@ Contains the following tables : \n""".format(self.name, self.label)
 
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
-            source_formats = ['stata', 'sas', 'spss', 'Rdata']
+            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata']
         else:
             source_formats = [source_format]
-
         for source_format in source_formats:
             files = "{}_files".format(source_format)
             for data_file in survey.informations.get(files, []):
