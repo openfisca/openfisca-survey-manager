@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+
+### 0.42.1 [#199](https://github.com/openfisca/openfisca-survey-manager/pull/199)
+
+* Fix bug:
+- Let numpy dependence comes from openfisca-core
+
 ### 0.42.0 [#198](https://github.com/openfisca/openfisca-survey-manager/pull/198)
 
 * New feature:
