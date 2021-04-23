@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.42.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.42.0 [#198](https://github.com/openfisca/openfisca-survey-manager/pull/198)
 
 * New feature:
 - Allow to build collections/surveys from csv files
