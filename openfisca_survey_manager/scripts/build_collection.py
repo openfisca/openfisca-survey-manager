@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 
-"""Build or update a collection from raw surveys data/"""
+"""Build or update a collection from raw surveys data."""
 
 
 import argparse
@@ -22,7 +22,7 @@ app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = []):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [], csv_files = []):
     assert survey_collection is not None
     overwrite = True
     label = survey_name
@@ -34,6 +34,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
         survey = Survey(
             name = survey_name,
             label = label,
+            csv_files = csv_files,
             sas_files = sas_files,
             stata_files = stata_files,
             survey_collection = survey_collection,
@@ -42,6 +43,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
         survey = survey_collection.get(survey_name)
         survey.label = label
         survey.informations.update({
+            "csv_files": csv_files,
             "sas_files": sas_files,
             "stata_files": stata_files,
             })
@@ -52,22 +54,24 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
 
 
 def create_data_file_by_format(directory_path = None):
-    """
-    Browse subdirectories to extract stata and sas files
-    """
+    """Browse subdirectories to extract stata and sas files."""
     stata_files = []
     sas_files = []
+    csv_files = []
 
     for root, subdirs, files in os.walk(directory_path):
         for file_name in files:
             file_path = os.path.join(root, file_name)
+            if os.path.basename(file_name).endswith(".csv"):
+                log.info("Found csv file {}".format(file_path))
+                csv_files.append(file_path)
             if os.path.basename(file_name).endswith(".dta"):
                 log.info("Found stata file {}".format(file_path))
                 stata_files.append(file_path)
             if os.path.basename(file_name).endswith(".sas7bdat"):
                 log.info("Found sas file {}".format(file_path))
                 sas_files.append(file_path)
-    return {'stata': stata_files, 'sas': sas_files}
+    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files}
 
 
 def build_survey_collection(
@@ -103,6 +107,7 @@ def build_survey_collection(
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = survey_collection,
+            csv_files = data_file_by_format.get('csv'),
             sas_files = data_file_by_format.get('sas'),
             stata_files = data_file_by_format.get('stata'),
             )

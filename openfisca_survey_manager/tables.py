@@ -21,9 +21,7 @@ log = logging.getLogger(__name__)
 
 
 class Table(object):
-    """
-    An object to describe a table from survey data
-    """
+    """A table of a survey."""
     label = None
     name = None
     source_format = None
@@ -107,12 +105,12 @@ class Table(object):
 
         reader_by_source_format = dict(
             # Rdata = pandas.rpy.common.load_data,
+            csv = pandas.read_csv,
             sas = read_sas.read_sas,
             spss = read_spss,
             stata = pandas.read_stata,
             )
         start_table_time = datetime.datetime.now()
-        reader = reader_by_source_format[source_format]
         data_file = kwargs.pop("data_file")
         overwrite = kwargs.pop('overwrite')
         clean = kwargs.pop("clean")
@@ -129,7 +127,11 @@ class Table(object):
             self._check_and_log(data_file)
             try:
                 try:
-                    data_frame = reader(data_file, **kwargs)
+                    reader = reader_by_source_format[source_format]
+                    if source_format == 'csv':
+                        data_frame = reader(data_file, sep = None, **kwargs)
+                    else:
+                        data_frame = reader(data_file, **kwargs)
                 except ValueError as e:
                     log.info('Error while reading {}'.format(data_file))
                     raise e
@@ -148,11 +150,13 @@ class Table(object):
 
 
 def clean_data_frame(data_frame):
+    data_frame.columns = data_frame.columns.str.lower()
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
     log.info(
         "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
         )
     for column_name in object_column_names:
+        # print(data_frame[column_name].value_counts())
         if data_frame[column_name].isnull().all():  #
             log.info("Drop empty column {}".format(column_name))
             data_frame.drop(column_name, axis = 1, inplace = True)

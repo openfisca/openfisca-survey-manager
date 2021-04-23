@@ -79,7 +79,7 @@ Contains the following surveys :
 
     def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
         if source_format is not None:
-            assert source_format in ["Rdata", "sas", "spss", "stata"], \
+            assert source_format in ["csv", "Rdata", "sas", "spss", "stata"], \
                 "Data source format {} is unknown".format(source_format)
         if surveys is None:
             surveys = self.surveys
