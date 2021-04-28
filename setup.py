@@ -73,6 +73,7 @@ setup(
         'pandas >= 0.22',
         'pyxdg',
         'PyYAML',
+        'tables >= 3.4.4, < 4.0.0',
         'weightedcalcs',
         'wquantiles >= 0.3',
         ],
