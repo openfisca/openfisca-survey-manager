@@ -13,7 +13,3 @@ updates:
   - dependency-name: autopep8
     versions:
     - 1.5.6
-  - dependency-name: numpy
-    versions:
-    - 1.19.0
-    - 1.20.0
