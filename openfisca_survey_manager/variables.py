@@ -1,15 +1,16 @@
-
+import logging
 from numpy import arange
 
-from openfisca_core.model_api import Variable, where, YEAR
+from openfisca_core.model_api import Variable, ADD, where, YEAR
 from openfisca_survey_manager.statshelpers import (
     mark_weighted_percentiles,
     weightedcalcs_quantiles
     )
 
+log = logging.getLogger(__name__)
+
 
 def create_quantile(x, nquantiles, weight_variable, entity_name):
-
     class quantile(Variable):
         value_type = int
         entity = entity_name
@@ -17,7 +18,13 @@ def create_quantile(x, nquantiles, weight_variable, entity_name):
         definition_period = YEAR
 
         def formula(entity, period):
-            variable = entity(x, period)
+            try:
+                variable = entity(x, period)
+            except ValueError as e:
+                log.debug(f"Caught {e}")
+                log.debug(f"Computing on whole period {period} via the ADD option")
+                variable = entity(x, period, options = [ADD])
+
             weight = entity(weight_variable, period)
             labels = arange(1, nquantiles + 1)
             method = 2
