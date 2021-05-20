@@ -57,7 +57,7 @@ setup(
             'tables >= 3.5.1, < 4.0.0',
             ],
         'casd': [
-            'autopep8 == 1.5.5',
+            'autopep8 == 1.5.7',
             'flake8 >=3.5.0, <3.10.0',
             'pycodestyle >=2.3.0, <2.8.0',
             'pytest >=3.0, <7.0.0',
