@@ -1,9 +1,14 @@
 ﻿# Changelog
 
+### 0.42.3 [#189](https://github.com/openfisca/openfisca-survey-manager/pull/189)
+
+* Technical changes
+- Accept categorical columns in input data frames to initialize Enum variables.
+
 ### 0.42.2 [#204](https://github.com/openfisca/openfisca-survey-manager/pull/204)
 
 * Technical changes
-- Add on sub-periods  when creating a quantile on a larger option
+- Add on sub-periods when creating a quantile on a larger period
 
 ### 0.42.1 [#200](https://github.com/openfisca/openfisca-survey-manager/pull/200)
 
