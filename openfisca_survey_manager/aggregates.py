@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import collections
 from datetime import datetime
 import logging
@@ -234,9 +231,9 @@ class AbstractAggregates(object):
         """
         now = datetime.now()
         return pd.DataFrame([
-            u'OpenFisca',
-            u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
-            u'Système socio-fiscal au %s' % self.simulation.period.start.year,
+            'OpenFisca',
+            'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+            'Système socio-fiscal au %s' % self.simulation.period.start.year,
             "Données d'enquêtes de l'année %s" % str(self.data_year),
             ])
 
@@ -249,9 +246,7 @@ class AbstractAggregates(object):
             relative = True,
             table_format = None,
             target = "reform"):
-        """
-        Save the table to csv or excel (default) format
-        """
+        """Saves the table to csv or excel (default) format."""
         assert path is not None
         now = datetime.now()
 
