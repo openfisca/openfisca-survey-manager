@@ -110,9 +110,7 @@ class AbstractAggregates(object):
 
     def compute_difference(self, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
             absolute = True, relative = True):
-        '''
-        Compute and add relative and/or absolute differences to the data_frame
-        '''
+        """Computes and add relative and/or absolute differences to the data_frame."""
         assert relative or absolute
         assert amount or beneficiaries
         base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
@@ -122,19 +120,23 @@ class AbstractAggregates(object):
         quantities += ['amount'] if amount else None
         quantities += ['beneficiaries'] if beneficiaries else None
 
-        for quantity in quantities:
-            difference_data_frame['{}_absolute_difference'.format(quantity)] = (
-                abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                )
-            difference_data_frame['{}_relative_difference'.format(quantity)] = (
-                abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
+        try:
+            for quantity in quantities:
+                difference_data_frame['{}_absolute_difference'.format(quantity)] = (
+                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
+                    )
+                difference_data_frame['{}_relative_difference'.format(quantity)] = (
+                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
+                    ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
+        except KeyError as e:
+            log.debug(e)
+            log.debug("Do not computing differences")
+            return None
+
         return difference_data_frame
 
     def compute_variable_aggregates(self, variable, use_baseline = False, filter_by = None):
-        """
-        Returns aggregate spending, and number of beneficiaries
-        for the relevant entity level
+        """Returns aggregate spending, and number of beneficiaries for the relevant entity level.
 
         Parameters
         ----------
@@ -237,18 +239,16 @@ class AbstractAggregates(object):
             "Données d'enquêtes de l'année %s" % str(self.data_year),
             ])
 
-    def export_table(self,
-            path = None,
-            absolute = True,
-            amount = True,
-            beneficiaries = True,
-            default = 'actual',
-            relative = True,
-            table_format = None,
-            target = "reform"):
-        """Saves the table to csv or excel (default) format."""
+    def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Saves the table to csv."""
         assert path is not None
-        now = datetime.now()
+
+        if os.path.isdir(path):
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".csv"))
+        else:
+            file_path = path
 
         df = self.get_data_frame(
             absolute = absolute,
@@ -259,31 +259,60 @@ class AbstractAggregates(object):
             target = target,
             )
 
+        df.to_csv(file_path, index = False, header = True)
+
+
+    def to_excel(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Saves the table to excel."""
+        assert path is not None
+
         if os.path.isdir(path):
-            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), table_format))
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".xlsx"))
         else:
             file_path = path
 
-        if table_format is None:
-            if path is not None:
-                extension = file_path[-4:]
-                if extension == '.xls':
-                    table_format = 'xls'
-                elif extension == '.csv':
-                    table_format = 'csv'
-            else:
-                table_format = 'xls'
-        try:
-            if table_format == "xls":
-                writer = pd.ExcelWriter(file_path)
-                df.to_excel(writer, "aggregates", index = False, header = True)
-                descr = self.create_description()
-                descr.to_excel(writer, "description", index = False, header = False)
-                writer.save()
-            elif table_format == "csv":
-                df.to_csv(file_path, index = False, header = True)
-        except Exception as e:
-                raise Exception("Aggregates: Error saving file", str(e))
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+
+        writer = pd.ExcelWriter(file_path)
+        df.to_excel(writer, "aggregates", index = False, header = True)
+        descr = self.create_description()
+        descr.to_excel(writer, "description", index = False, header = False)
+        writer.save()
+
+
+    def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Gets or saves the table to markdown format."""
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+
+        if path is not None and os.path.isdir(path):
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".md"))
+        else:
+            file_path = path
+
+        if path is not None:
+            with open(path) as markdown_file:
+                df.to_markdown(markdown_file)
+
+        return df.to_markdown()
+
 
     def get_calibration_coeffcient(self, target = "reform"):
         df = self.compute_aggregates(
@@ -317,6 +346,7 @@ class AbstractAggregates(object):
                 )
         else:
             difference_data_frame = None
+
         # Removing unwanted columns
         if amount is False:
             columns = [column for column in columns if 'amount' not in columns]
@@ -354,20 +384,16 @@ class AbstractAggregates(object):
             'beneficiaries_relative_difference'
             ]
         if difference_data_frame is not None:
-            df = (
-                aggregates_data_frame
-                .merge(difference_data_frame, how = 'left')[columns]
-                .reindex_axis(ordered_columns, axis = 1)
-                .dropna(axis = 1, how = 'all')
-                .rename(columns = self.labels)
-                )
+            df = aggregates_data_frame.merge(difference_data_frame, how = 'left')[columns]
         else:
-            df = (
-                aggregates_data_frame[columns]
-                .reindex_axis(ordered_columns, axis = 1)
-                .dropna(axis = 1, how = 'all')
-                .rename(columns = self.labels)
-                )
+            columns = [column for column in columns if column in aggregates_data_frame.columns]
+            df = aggregates_data_frame[columns]
+
+        df = (df
+            .reindex(columns = ordered_columns)
+            .dropna(axis = 1, how = 'all')
+            .rename(columns = self.labels)
+            )
 
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]

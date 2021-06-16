@@ -74,6 +74,7 @@ setup(
         'pyxdg',
         'PyYAML',
         'tables >= 3.4.4, < 4.0.0',
+        'tabulate',
         'weightedcalcs',
         'wquantiles >= 0.3',
         ],
