@@ -5,6 +5,7 @@ from typing import Dict, List
 import logging
 import os
 import numpy as np
+from numpy.core import numeric
 import pandas as pd
 import re
 
@@ -1558,7 +1559,13 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
             'There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name)
 
-    if variable.value_type == Enum and not np.issubdtype(series.values.dtype, np.integer):
+    if (
+        variable.value_type == Enum
+        and not (
+            np.issubdtype(series.values.dtype, np.integer)
+            or np.issubdtype(series.values.dtype, np.float)
+            )
+        ):
         possible_values = variable.possible_values
         index_by_category = dict(zip(
             possible_values._member_names_,
