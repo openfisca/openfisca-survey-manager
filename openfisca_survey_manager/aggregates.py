@@ -308,7 +308,7 @@ class AbstractAggregates(object):
             file_path = path
 
         if path is not None:
-            with open(path) as markdown_file:
+            with open(path, "w") as markdown_file:
                 df.to_markdown(markdown_file)
 
         return df.to_markdown()
