@@ -1,6 +1,5 @@
 ﻿# Changelog
 
-
 ### 0.44.1 [#207](https://github.com/openfisca/openfisca-survey-manager/pull/207)
 
 * Fix bug:

@@ -306,7 +306,6 @@ class AbstractAggregates(object):
         if file_path is not None:
             with open(file_path, "w") as html_file:
                 df.to_html(html_file)
-
         return df.to_to_html()
 
     def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
