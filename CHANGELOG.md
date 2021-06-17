@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 0.43 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* New feature:
+- Introduce aggregates
+
 ### 0.42.3 [#189](https://github.com/openfisca/openfisca-survey-manager/pull/189)
 
 * Technical changes
