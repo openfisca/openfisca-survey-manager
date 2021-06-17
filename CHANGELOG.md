@@ -5,6 +5,11 @@
 * Fix bug:
 - Fix typo.
 
+### 0.44.1 [#207](https://github.com/openfisca/openfisca-survey-manager/pull/207)
+
+* Fix bug:
+- Fix aggregates export to html.
+
 ## 0.44 [#206](https://github.com/openfisca/openfisca-survey-manager/pull/206)
 
 * New feature:
