@@ -258,9 +258,7 @@ class AbstractAggregates(object):
             relative = relative,
             target = target,
             )
-
         df.to_csv(file_path, index = False, header = True)
-
 
     def to_excel(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
@@ -281,13 +279,11 @@ class AbstractAggregates(object):
             relative = relative,
             target = target,
             )
-
         writer = pd.ExcelWriter(file_path)
         df.to_excel(writer, "aggregates", index = False, header = True)
         descr = self.create_description()
         descr.to_excel(writer, "description", index = False, header = False)
         writer.save()
-
 
     def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
@@ -307,12 +303,11 @@ class AbstractAggregates(object):
         else:
             file_path = path
 
-        if path is not None:
-            with open(path, "w") as markdown_file:
+        if file_path is not None:
+            with open(file_path, "w") as markdown_file:
                 df.to_markdown(markdown_file)
 
         return df.to_markdown()
-
 
     def get_calibration_coeffcient(self, target = "reform"):
         df = self.compute_aggregates(
@@ -398,11 +393,12 @@ class AbstractAggregates(object):
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
             df[relative_columns] = df[relative_columns].applymap(
-                lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan')
-            import numpy as np
+                lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan'
+                )
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
-                    df[column] = (df[column]
+                    df[column] = (
+                        df[column]
                         .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
                         )
         return df

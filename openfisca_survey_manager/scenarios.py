@@ -5,7 +5,6 @@ from typing import Dict, List
 import logging
 import os
 import numpy as np
-from numpy.core import numeric
 import pandas as pd
 import re
 
@@ -1566,6 +1565,7 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
             or np.issubdtype(series.values.dtype, np.float)
             )
         ):
+
         possible_values = variable.possible_values
         index_by_category = dict(zip(
             possible_values._member_names_,
