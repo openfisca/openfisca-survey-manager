@@ -88,19 +88,19 @@ class AbstractSurveyScenario(object):
         period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
         definition_period = tax_benefit_system.get_variable(variable).definition_period
 
-        if period_size_independent is False and definition_period != u'eternity':
+        if period_size_independent is False and definition_period != 'eternity':
             values = simulation.calculate_add(variable, period = period)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months > 1:
+        elif period_size_independent is True and definition_period == 'month' and period.size_in_months > 1:
             values = simulation.calculate(variable, period = period.first_month)
-        elif period_size_independent is True and definition_period == u'month' and period.size_in_months == 1:
+        elif period_size_independent is True and definition_period == 'month' and period.size_in_months == 1:
             values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months > 12:
+        elif period_size_independent is True and definition_period == 'year' and period.size_in_months > 12:
             values = simulation.calculate(variable, period = period.start.offset('first-of', 'year').period('year'))
-        elif period_size_independent is True and definition_period == u'year' and period.size_in_months == 12:
+        elif period_size_independent is True and definition_period == 'year' and period.size_in_months == 12:
             values = simulation.calculate(variable, period = period)
-        elif period_size_independent is True and definition_period == u'year':
+        elif period_size_independent is True and definition_period == 'year':
             values = simulation.calculate(variable, period = period.this_year)
-        elif definition_period == u'eternity':
+        elif definition_period == 'eternity':
             values = simulation.calculate(variable, period = period)
         else:
             values = None
@@ -1558,7 +1558,15 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
             'There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name)
 
-    if variable.value_type == Enum and not np.issubdtype(series.values.dtype, np.integer):
+    enum_variable_imputed_as_enum = (
+        variable.value_type == Enum
+        and not (
+            np.issubdtype(series.values.dtype, np.integer)
+            or np.issubdtype(series.values.dtype, np.float)
+            )
+        )
+
+    if enum_variable_imputed_as_enum:
         possible_values = variable.possible_values
         index_by_category = dict(zip(
             possible_values._member_names_,
