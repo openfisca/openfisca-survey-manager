@@ -285,6 +285,31 @@ class AbstractAggregates(object):
         descr.to_excel(writer, "description", index = False, header = False)
         writer.save()
 
+    def to_html(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Gets or saves the table to html format."""
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+
+        if path is not None and os.path.isdir(path):
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".html"))
+        else:
+            file_path = path
+
+        if file_path is not None:
+            with open(file_path, "w") as html_file:
+                df.to_markdown(html_file)
+
+        return df.to_markdown()
+
+
     def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Gets or saves the table to markdown format."""
