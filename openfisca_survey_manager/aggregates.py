@@ -309,7 +309,6 @@ class AbstractAggregates(object):
 
         return df.to_markdown()
 
-
     def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Gets or saves the table to markdown format."""
