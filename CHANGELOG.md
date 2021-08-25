@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 0.45 [#143](https://github.com/openfisca/openfisca-survey-manager/pull/143)
+
+* Technical changes
+- In compute_marginal_tax_rate allow for automatic aggregation on group entity when target and varying variables entity are not the same and the varying variable entity is a person one.
+
 ### 0.44.2 [#208](https://github.com/openfisca/openfisca-survey-manager/pull/208)
 
 * Fix bug:
