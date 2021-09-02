@@ -977,7 +977,7 @@ class AbstractSurveyScenario(object):
         diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
         input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
 
-        for column_name, column_serie in input_data_frame.iteritems():
+        for column_name, column_serie in input_data_frame.items():
             variable_instance = self.tax_benefit_system.variables.get(column_name)
             if variable_instance is None:
                 continue
@@ -1022,7 +1022,7 @@ class AbstractSurveyScenario(object):
                     id_variable_by_entity_key[entity.key]
                     ].sort_values().index
 
-        for column_name, column_serie in input_data_frame.iteritems():
+        for column_name, column_serie in input_data_frame.items():
             if role_variable_by_entity_key is not None:
                 if column_name in role_variable_by_entity_key.values():
                     continue
@@ -1419,7 +1419,7 @@ class AbstractSurveyScenario(object):
                         df['weights'] = weights if weighted else 1
                         groupby = df.groupby(variable)['weights'].sum()
                         total = groupby.sum()
-                        expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.iteritems()]
+                        expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
                         print("{}:{}.".format(period, ",".join(expr)))
                         continue
 

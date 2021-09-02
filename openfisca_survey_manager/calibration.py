@@ -1,5 +1,3 @@
-
-
 import logging
 
 import numpy
@@ -149,7 +147,7 @@ class Calibration(object):
 
         return data
 
-    def _update_weights(self, margins, parameters = {}):
+    def _update_weights(self, margins, parameters = None):
         """Runs calmar, stores new weights and returns adjusted margins
 
         Args:
@@ -160,6 +158,9 @@ class Calibration(object):
             dict: Updated margins
 
         """
+        if parameters is None:
+            parameters = dict()
+
         data = self._build_calmar_data()
         assert self.initial_weight_name is not None
         parameters['initial_weight'] = self.initial_weight_name

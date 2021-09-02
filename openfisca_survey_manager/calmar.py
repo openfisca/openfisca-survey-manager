@@ -278,7 +278,7 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
 
         pondfin = d * F(dot(x, lambdasol))
         rel_error = {}
-        for var, val in margins_new.items():
+        for var, val in margins_new.items():  # noqa analysis:ignore
             rel_error[var] = abs((data[var] * pondfin).sum() - margins_dict[var]) / margins_dict[var]
         sorted_err = sorted(rel_error.items(), key = operator.itemgetter(1), reverse = True)
 

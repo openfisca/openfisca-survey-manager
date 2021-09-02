@@ -165,12 +165,12 @@ def parameters_asof(parameters, instant):
                 leaf_asof(sub_parameter, instant)
 
 
-def variables_asof(tax_benefit_system, instant, variables_list = []):
+def variables_asof(tax_benefit_system, instant, variables_list = None):
     if isinstance(instant, str):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
 
-    if variables_list == []:
+    if variables_list is None:
         variables_list = tax_benefit_system.variables.keys()
 
     for variable_name, variable in tax_benefit_system.variables.items():

@@ -1,5 +1,3 @@
-
-
 from builtins import range
 
 import configparser
@@ -236,7 +234,9 @@ Fix the option collections_directory in the collections section of your config f
 
 
 def build_input_dataframe_from_test_case(survey_scenario, test_case_scenario_kwargs, period = None,
-        computed_variables = []):
+        computed_variables = None):
+    if computed_variables is None:
+        computed_variables = list()
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         **test_case_scenario_kwargs

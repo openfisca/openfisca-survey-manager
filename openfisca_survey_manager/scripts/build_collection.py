@@ -22,7 +22,14 @@ app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = [], stata_files = [], csv_files = []):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None):
+    if sas_files is None:
+        sas_files = []
+    if stata_files is None:
+        stata_files = []
+    if csv_files is None:
+        csv_files = []
+
     assert survey_collection is not None
     overwrite = True
     label = survey_name
@@ -59,7 +66,7 @@ def create_data_file_by_format(directory_path = None):
     sas_files = []
     csv_files = []
 
-    for root, subdirs, files in os.walk(directory_path):
+    for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
             file_path = os.path.join(root, file_name)
             if os.path.basename(file_name).endswith(".csv"):
