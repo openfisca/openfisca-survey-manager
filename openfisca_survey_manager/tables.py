@@ -126,32 +126,33 @@ class Table(object):
                         self.name, self.survey.hdf5_file_path))
         else:
             self._check_and_log(data_file)
+            reader = reader_by_source_format[source_format]
             try:
-                if source_format == 'csv':
 
+                if source_format == 'csv':
                     try:
                         data_frame = reader(data_file, **kwargs)
                     except Exception:
                         log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
-                        reader = reader_by_source_format[source_format]
-                        detector = UniversalDetector()
+
                         # Detect encoding
+                        detector = UniversalDetector()
                         with open(data_file, 'rb') as csvfile:
                             for line in csvfile:
                                 detector.feed(line)
-                                if detector.done: break
+                                if detector.done:
+                                    break
                             detector.close()
 
-                        result = detector.result
                         encoding = detector.result['encoding']
                         confidence = detector.result['confidence']
 
-                        # Sniff dialect
+                        # Sniff dialect
                         try:
                             with open(data_file, 'r', newline = "", encoding = encoding) as csvfile:
                                 dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
                         except Exception:
-                            # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
+                            # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
                             dialect = None
                             delimiter = ";"
 
