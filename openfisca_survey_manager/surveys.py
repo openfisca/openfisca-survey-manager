@@ -177,10 +177,9 @@ Contains the following tables : \n""".format(self.name, self.label)
           pd.DataFrame: dataframe containing the variables
 
         Raises:
-          Exception: description]
+          Exception:
 
         """
-
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
             self.hdf5_file_path)
@@ -193,13 +192,17 @@ Contains the following tables : \n""".format(self.name, self.label)
                 match = re.findall(table, string, re.IGNORECASE)
                 if match:
                     eligible_tables.append(match[0])
-            assert len(eligible_tables) == 1, "{} is ambiguious since the following tables ara available: {}".format(table, eligible_tables)
-            table = eligible_tables[0]
+            if len(eligible_tables) > 1:
+                raise ValueError(f"{table} is ambiguious since the following tables are available: {eligible_tables}")
+            elif len(eligible_tables) == 0:
+                raise ValueError(f"No eligible available table in {keys}")
+            else:
+                table = eligible_tables[0]
         try:
             df = store.select(table)
         except KeyError:
-            log.error('No table {} in the file {}'.format(table, self.hdf5_file_path))
-            log.error('This could happen because your data were not builded yet. Available tables are: {}'.format(store.keys()))
+            log.error(f'No table {table} in the file {self.hdf5_file_path}')
+            log.error(f'This could happen because your data were not builded yet. Available tables are: {store.keys()}')
             store.close()
             raise
 

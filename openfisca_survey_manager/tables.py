@@ -1,11 +1,12 @@
+"""Tables."""
 
-
+from chardet.universaldetector import UniversalDetector
 import collections
-import os
+import csv
 import datetime
 import gc
 import logging
-
+import os
 import pandas
 
 
@@ -126,22 +127,59 @@ class Table(object):
         else:
             self._check_and_log(data_file)
             try:
-                try:
-                    reader = reader_by_source_format[source_format]
-                    if source_format == 'csv':
-                        data_frame = reader(data_file, sep = None, **kwargs)
-                    else:
+                if source_format == 'csv':
+
+                    try:
                         data_frame = reader(data_file, **kwargs)
-                except ValueError as e:
-                    log.info('Error while reading {}'.format(data_file))
-                    raise e
-                gc.collect()
+                    except Exception:
+                        log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
+                        reader = reader_by_source_format[source_format]
+                        detector = UniversalDetector()
+                        # Detect encoding
+                        with open(data_file, 'rb') as csvfile:
+                            for line in csvfile:
+                                detector.feed(line)
+                                if detector.done: break
+                            detector.close()
+
+                        result = detector.result
+                        encoding = detector.result['encoding']
+                        confidence = detector.result['confidence']
+
+                        # Sniff dialect
+                        try:
+                            with open(data_file, 'r', newline = "", encoding = encoding) as csvfile:
+                                dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
+                        except Exception:
+                            # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
+                            dialect = None
+                            delimiter = ";"
+
+                        log.debug(
+                            f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, encoding = {encoding}, confidence = {confidence}"
+                            )
+                        kwargs['engine'] = "python"
+                        if dialect:
+                            kwargs['dialect'] = dialect
+                        else:
+                            kwargs['delimiter'] = delimiter
+                        kwargs['encoding'] = encoding
+                        data_frame = reader(data_file, **kwargs)
+
+                else:
+                    data_frame = reader(data_file, **kwargs)
+
+            except Exception as e:
+                log.info('Error while reading {}'.format(data_file))
+                raise e
+            gc.collect()
+            try:
                 if clean:
                     clean_data_frame(data_frame)
                 self._save(data_frame = data_frame)
                 log.info("File {} has been processed in {}".format(
                     data_file, datetime.datetime.now() - start_table_time))
-            except ValueError as e:
+            except Exception as e:
                 log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
                 raise e
 

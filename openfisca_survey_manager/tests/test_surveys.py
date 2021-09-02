@@ -32,7 +32,6 @@ def test_survey():
         )
     survey.insert_table(name = 'help')
     survey.fill_hdf(source_format = 'sas')
-    print(survey.tables)
 
 
 if __name__ == '__main__':

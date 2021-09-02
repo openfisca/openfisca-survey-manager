@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 0.46 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Technical changes
+- Hack to deal with encodings and delimiter not detected by pandas.read_csv
+
 ## 0.45 [#143](https://github.com/openfisca/openfisca-survey-manager/pull/143)
 
 * Technical changes
