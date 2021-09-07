@@ -132,6 +132,10 @@ class Table(object):
                 if source_format == 'csv':
                     try:
                         data_frame = reader(data_file, **kwargs)
+
+                        if len(data_frame.columns) == 1 and ";" in len(data_frame.columns[0]):
+                            raise ValueError("A ';' is presennt in the unique column name. Looks like we got the wrong separator.")
+
                     except Exception:
                         log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
 

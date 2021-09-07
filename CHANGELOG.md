@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 0.46.1 [#211](https://github.com/openfisca/openfisca-survey-manager/pull/211)
+
+* Technical changes
+- Improve dialect detection for csv files
+
 ## 0.46 [#210](https://github.com/openfisca/openfisca-survey-manager/pull/210)
 
 * Technical changes
