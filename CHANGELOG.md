@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 0.46.2 [#214](https://github.com/openfisca/openfisca-survey-manager/pull/214)
+
+* New features
+- Introduce AbsstractSurveyScenario.calculate_series
+
 ## 0.46.1 [#211](https://github.com/openfisca/openfisca-survey-manager/pull/211)
 
 * Technical changes
