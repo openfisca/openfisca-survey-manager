@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
 
-"""A tool for managing survey data
+"""A tool for managing survey/administrative data.
 
-Useful to deal with survey data imported in OpenFisca
+Useful to deal with survey/administrative data imported in OpenFisca
 """
 
 
@@ -25,7 +25,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.46.1',
+    version = '0.46.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
