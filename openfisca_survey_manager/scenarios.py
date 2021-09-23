@@ -1,4 +1,4 @@
-
+"""Abstract survey scenario definition."""
 
 from typing import Dict, List
 
@@ -30,7 +30,8 @@ log = logging.getLogger(__name__)
 
 
 class AbstractSurveyScenario(object):
-    """Abstract survey scenario"""
+    """Abstract survey scenario."""
+
     baseline_simulation = None
     baseline_tax_benefit_system = None
     cache_blacklist = None
@@ -56,12 +57,28 @@ class AbstractSurveyScenario(object):
     year = None
 
     def build_input_data(self, **kwargs):
-        """Builds input data
-        """
+        """Build input data."""
         NotImplementedError
 
+    def calculate_series(self, variable, period = None, use_baseline = False):
+        """Compute variable values for period and baseline or reform tax benefit and system.
+
+        Args:
+          variable(str, optional): Variable to compute
+          period(Period, optional): Period, defaults to None
+          use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
+
+        Returns:
+          pandas.Series: Variable values
+
+        """
+        return pd.Series(
+            data = self.calculate_variable(variable, period, use_baseline),
+            name = variable,
+            )
+
     def calculate_variable(self, variable, period = None, use_baseline = False):
-        """Computes variable values for period and baseline or reform tax benefit and system
+        """Compute variable values for period and baseline or reform tax benefit and system.
 
         Args:
           variable(str, optional): Variable to compute
@@ -112,7 +129,7 @@ class AbstractSurveyScenario(object):
         return values
 
     def calibrate(self, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
-        """Calibrates the scenario data
+        """Calibrate the scenario data.
 
         Args:
             target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
@@ -145,7 +162,7 @@ class AbstractSurveyScenario(object):
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
             difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
-        """Computes variable aggregate
+        """Compute variable aggregate.
 
         Args:
           variable: Variable (Default value = None)
@@ -269,15 +286,18 @@ class AbstractSurveyScenario(object):
         return aggregate
 
     def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False,
-                    value_for_zero_varying_variable = 0):
+            value_for_zero_varying_variable = 0.0):
         """
-            Compute marginal a rate of a target (MTR) with respect to a varying variable.
+        Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
-            :param string target_variable: the variable which marginal tax rate is computed
-            :param Period period: the period at which the the marginal tax rate is computed
-            :param bool use_baseline: compute the marginal tax rate for the baseline system
-            :param value_for_zero_varying_variable: value of MTR when the varying variable is zero
-            :type value_for_zero_varying_variable: float, optional
+        Args:
+            target_variable (str): the variable which marginal tax rate is computed
+            period (Period): the period at which the the marginal tax rate is computed
+            use_baseline (bool, optional): compute the marginal tax rate for the baseline system. Defaults to False.
+            value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero. Defaults to 0.
+
+        Returns:
+            numpy.array: Vector of marginal rates
         """
         varying_variable = self.varying_variable
         if use_baseline:
@@ -674,14 +694,11 @@ class AbstractSurveyScenario(object):
             return person_data_frame
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
-        """
+        """Customize input data frame.
 
         Args:
-          input_data_frame:
-          **kwargs:
-
-        Returns:
-
+          input_data_frame: Original input data frame
+          **kwargs: Keyword arguments
         """
         pass
 
@@ -744,7 +761,7 @@ class AbstractSurveyScenario(object):
         return simulation
 
     def filter_input_variables(self, input_data_frame = None):
-        """Filters the input data frame from variables that won't be used or are set to be computed
+        """Filter the input data frame from variables that won't be used or are set to be computed.
 
         Args:
           input_data_frame: Input dataframe (Default value = None)
@@ -874,7 +891,7 @@ class AbstractSurveyScenario(object):
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
-        """Initialises a survey scenario from data.
+        """Initialise a survey scenario from data.
 
         Args:
           rebuild_input_data(bool):  Whether or not to clean, format and save data. Take a look at :func:`build_input_data`
@@ -886,7 +903,6 @@ class AbstractSurveyScenario(object):
           rebuild_kwargs:  Rebuild options (Default value = None)
 
         """
-
         # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
             data_year = data.get("data_year", self.year)
@@ -937,7 +953,7 @@ class AbstractSurveyScenario(object):
             self.inflate(**inflation_kwargs)
 
     def init_entity_structure(self, tax_benefit_system, entity, input_data_frame, builder):
-        """Initializes sthe simulation with tax_benefit_system entities and input_data_frame
+        """Initialize sthe simulation with tax_benefit_system entities and input_data_frame.
 
         Args:
           tax_benefit_system(TaxBenfitSystem): The TaxBenefitSystem to get the structure from
@@ -989,8 +1005,7 @@ class AbstractSurveyScenario(object):
             init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
     def init_simulation_with_data_frame(self, tax_benefit_system, input_data_frame, period, builder):
-        """Initializes the simulation period with current input_data_frame for an entity if specified
-        """
+        """Initialize the simulation period with current input_data_frame for an entity if specified."""
         used_as_input_variables = self.used_as_input_variables
         id_variable_by_entity_key = self.id_variable_by_entity_key
         role_variable_by_entity_key = self.role_variable_by_entity_key
@@ -1613,7 +1628,7 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
 
 
 def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
-    """Diagnoses variables mismatch
+    """Diagnose variables mismatch.
 
     Args:
       used_as_input_variables(lsit): List of variable to test presence
