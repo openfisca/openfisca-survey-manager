@@ -99,7 +99,7 @@ class AbstractSurveyScenario(object):
         tax_benefit_system = simulation.tax_benefit_system
 
         assert period is not None
-        if isinstance(period, int):
+        if isinstance(period, (int, np.integer)):
             period = str(period)
         if not isinstance(period, periods.Period):
             period = periods.period(period)
