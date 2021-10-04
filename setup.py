@@ -51,7 +51,7 @@ setup(
             'flake8 >= 3.7.0, < 3.10.0',
             'openfisca-country-template >= 3.6.0, < 4.0.0',
             'pytest >= 4.0.0, < 7.0.0',
-            'pytest-cov >= 2.0.0, < 3.0.0',
+            'pytest-cov >= 2.0.0, < 4.0.0',
             'SAS7BDAT >= 2.2.2, < 3.0.0',
             'scipy >= 1.2.1, < 2.0.0',
             'tables >= 3.5.1, < 4.0.0',
