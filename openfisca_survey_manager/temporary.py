@@ -35,7 +35,7 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
     file_path = os.path.join(tmp_directory, file_name)
 
     def actual_decorator(func):
-        def func_wrapper(*args, **kwargs):            
+        def func_wrapper(*args, **kwargs):
             just_openned = False
             temporary_store = temporary_store_by_file_path.get(file_path)
             if temporary_store is None:
