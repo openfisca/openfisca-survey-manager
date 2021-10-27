@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 0.46.3 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.46.3 [#217](https://github.com/openfisca/openfisca-survey-manager/pull/217)
 
 * Bug fix
 - Deal with HDF5 file opening strict policy
