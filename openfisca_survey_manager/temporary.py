@@ -13,6 +13,9 @@ from openfisca_survey_manager import default_config_files_directory
 log = logging.getLogger(__name__)
 
 
+temporary_store_by_file_path = dict()
+
+
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):
     parser = ConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
@@ -32,13 +35,24 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
     file_path = os.path.join(tmp_directory, file_name)
 
     def actual_decorator(func):
-        def func_wrapper(*args, **kwargs):
-            temporary_store = HDFStore(file_path)
+        def func_wrapper(*args, **kwargs):            
+            just_openned = False
+            temporary_store = temporary_store_by_file_path.get(file_path)
+            if temporary_store is None:
+                temporary_store = HDFStore(file_path)
+                temporary_store_by_file_path[file_path] = temporary_store
+                just_openned = True
+
             try:
                 return func(*args, temporary_store = temporary_store, **kwargs)
+            except Exception as e:
+                print(e)
+                raise(e)
             finally:
                 gc.collect()
-                temporary_store.close()
+                if just_openned:
+                    temporary_store.close()
+                    del temporary_store_by_file_path[file_path]
 
         return func_wrapper
 
