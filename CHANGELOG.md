@@ -1,11 +1,16 @@
 ﻿# Changelog
 
-## 0.46.2 [#214](https://github.com/openfisca/openfisca-survey-manager/pull/214)
+### 0.46.3 [#217](https://github.com/openfisca/openfisca-survey-manager/pull/217)
+
+* Bug fix
+- Deal with HDF5 file opening strict policy
+
+### 0.46.2 [#214](https://github.com/openfisca/openfisca-survey-manager/pull/214)
 
 * New features
 - Introduce AbsstractSurveyScenario.calculate_series
 
-## 0.46.1 [#211](https://github.com/openfisca/openfisca-survey-manager/pull/211)
+### 0.46.1 [#211](https://github.com/openfisca/openfisca-survey-manager/pull/211)
 
 * Technical changes
 - Improve dialect detection for csv files
