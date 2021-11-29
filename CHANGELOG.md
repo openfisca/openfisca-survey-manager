@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.46.4 [#219](https://github.com/openfisca/openfisca-survey-manager/pull/219)
+
+* Technical changes
+- Better handling of CategoricalDtype in input data
+
 ### 0.46.3 [#217](https://github.com/openfisca/openfisca-survey-manager/pull/217)
 
 * Bug fix
