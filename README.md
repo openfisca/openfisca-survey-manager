@@ -42,7 +42,7 @@ OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, b
 
 ### Installation
 
-If you're developping your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
+If you're developing your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
 To do so, first, install the package with `pip`:
 
 ```shell
