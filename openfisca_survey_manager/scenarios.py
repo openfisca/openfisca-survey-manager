@@ -1588,9 +1588,12 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
 
     enum_variable_imputed_as_enum = (
         variable.value_type == Enum
-        and not (
-            np.issubdtype(series.values.dtype, np.integer)
-            or np.issubdtype(series.values.dtype, np.float)
+        and (
+            pd.api.types.is_categorical_dtype(series)
+            or not (
+                np.issubdtype(series.values.dtype, np.integer)
+                or np.issubdtype(series.values.dtype, np.float)
+                )
             )
         )
 
