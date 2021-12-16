@@ -7,7 +7,7 @@ Useful to deal with survey/administrative data imported in OpenFisca
 """
 
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 classifiers = """\
@@ -25,7 +25,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.46.4',
+    version = '0.46.5',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
