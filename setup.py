@@ -7,7 +7,7 @@ Useful to deal with survey/administrative data imported in OpenFisca
 """
 
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 classifiers = """\

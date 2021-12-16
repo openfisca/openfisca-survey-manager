@@ -225,7 +225,6 @@ def main():
         pdb.post_mortem(sys.exc_info()[2])
         raise e
 
-
     log.info("The program has been executed in {}".format(datetime.datetime.now() - start_time))
 
     return 0
