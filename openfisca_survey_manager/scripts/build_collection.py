@@ -9,6 +9,7 @@ import configparser
 import datetime
 import logging
 import os
+import pdb
 import pkg_resources
 import shutil
 import sys
@@ -210,14 +211,20 @@ def main():
 
     start_time = datetime.datetime.now()
 
-    build_survey_collection(
-        collection_name = args.collection,
-        data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
-        replace_metadata = args.replace_metadata,
-        replace_data = args.replace_data,
-        source_format = 'sas',
-        config_files_directory = config_files_directory,
-        )
+    try:
+        build_survey_collection(
+            collection_name = args.collection,
+            data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
+            replace_metadata = args.replace_metadata,
+            replace_data = args.replace_data,
+            source_format = 'sas',
+            config_files_directory = config_files_directory,
+            )
+    except Exception as e:
+        log.info(e)
+        pdb.post_mortem(sys.exc_info()[2])
+        raise e
+
 
     log.info("The program has been executed in {}".format(datetime.datetime.now() - start_time))
 
