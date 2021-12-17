@@ -22,7 +22,7 @@ source_format_by_extension = dict(
     csv = 'csv',
     sas7bdat = "sas",
     dta = 'stata',
-    Rdata = 'Rdata',  # TODO: badly named
+    Rdata = 'Rdata',
     spss = 'sav'
     )
 

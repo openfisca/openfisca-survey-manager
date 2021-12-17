@@ -124,6 +124,8 @@ class Table(object):
                 log.info(
                     'Exiting without overwriting {} in {}'.format(
                         self.name, self.survey.hdf5_file_path))
+            store.close()
+            return
         else:
             self._check_and_log(data_file)
             reader = reader_by_source_format[source_format]
@@ -199,7 +201,6 @@ def clean_data_frame(data_frame):
         "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
         )
     for column_name in object_column_names:
-        # print(data_frame[column_name].value_counts())
         if data_frame[column_name].isnull().all():  #
             log.info("Drop empty column {}".format(column_name))
             data_frame.drop(column_name, axis = 1, inplace = True)
