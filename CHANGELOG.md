@@ -1,4 +1,8 @@
 ﻿# Changelog
+### 0.46.6 [#22X](https://github.com/openfisca/openfisca-survey-manager/pull/22X)
+
+* Bug fix
+- Using pyreadstat instead of SAS7BDAT which is no more the canonical way to read sas files into pandas dataframes.
 
 ### 0.46.5 [#223](https://github.com/openfisca/openfisca-survey-manager/pull/223)
 

@@ -25,7 +25,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '0.46.5',
+    version = '0.46.6',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -50,6 +50,7 @@ setup(
             'coveralls >=1.5.0,<3.4.0',
             'flake8 >= 3.7.0, < 3.10.0',
             'openfisca-country-template >= 3.6.0, < 4.0.0',
+            'pyreadstat >= 1.1.4, < 2.0.0'
             'pytest >= 4.0.0, < 7.0.0',
             'pytest-cov >= 2.0.0, < 3.0.0',
             'SAS7BDAT >= 2.2.2, < 3.0.0',
@@ -62,12 +63,11 @@ setup(
             'pycodestyle >=2.3.0, <2.9.0',
             'pytest >=3.0, <7.0.0',
             'scipy >= 1.2.1, < 2.0.0',
-            'tables >= 3.4.4, < 4.0.0',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
-        'chardet >= 4.0, <5.0',
+        'chardet >=4.0, <5.0',
         'configparser',
         'humanize',
         'openfisca-core >=35.0.0, <36.0.0',
