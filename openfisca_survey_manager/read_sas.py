@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 def read_sas(sas_file_path, clean = False):
     try:
         import pyreadstat
-        data_frame = pyreadstat.read_sas7bdat(sas_file_path)
+        data_frame, _ = pyreadstat.read_sas7bdat(sas_file_path)
     except ImportError as e1:
         log.info("pyreadstat not available trying SAS7BDAT")
         try:
