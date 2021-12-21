@@ -50,7 +50,7 @@ setup(
             'coveralls >=1.5.0,<3.4.0',
             'flake8 >= 3.7.0, < 3.10.0',
             'openfisca-country-template >= 3.6.0, < 4.0.0',
-            'pyreadstat >= 1.1.4, < 2.0.0'
+            'pyreadstat >= 1.1.4, < 2.0.0',
             'pytest >= 4.0.0, < 7.0.0',
             'pytest-cov >= 2.0.0, < 3.0.0',
             'SAS7BDAT >= 2.2.2, < 3.0.0',
