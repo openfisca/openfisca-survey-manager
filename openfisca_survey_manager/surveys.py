@@ -149,7 +149,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             return list()
 
     def get_value(self, variable, table, lowercase = False, ignorecase = False):
-        """Gets variable value from a survey table
+        """Get variable value from a survey table.
 
         Args:
           variable: variable to retrieve
@@ -164,7 +164,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         return self.get_values([variable], table)
 
     def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True):
-        """Gets variables values from a survey table
+        """Get variables values from a survey table.
 
         Args:
           variables(list, optional, optional): variables to retrieve, defaults to None (retrieve all variables)
