@@ -65,7 +65,7 @@ setup(
         'sas': [
             'pyreadstat >= 1.1.4, < 2.0.0',
             'SAS7BDAT >= 2.2.2, < 3.0.0',
-            ]
+            ],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
