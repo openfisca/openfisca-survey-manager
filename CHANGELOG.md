@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### 0.46.7 [#227](https://github.com/openfisca/openfisca-survey-manager/pull/225)
+
+* Technical changes
+- Handle explicitly SAS related dependecy.
+
+
 ### 0.46.6 [#224](https://github.com/openfisca/openfisca-survey-manager/pull/224)
 
 * Bug fix

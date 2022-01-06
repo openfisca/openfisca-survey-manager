@@ -14,7 +14,7 @@ install: deps
 	@# Install OpenFisca-Survey-Manager for development.
 	@# `make install` installs the editable version of OpenFisca-Survey-Manager.
 	@# This allows contributors to test as they code.
-	pip install --editable .[dev] --upgrade
+	pip install --editable .[dev,sas] --upgrade
 
 check-syntax-errors:
 	python -m compileall -q .
