@@ -4,6 +4,7 @@ from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones,
 import pandas as pd
 import weighted
 import weightedcalcs as wc
+import numpy as np
 
 
 def gini(values, weights = None):
@@ -118,6 +119,8 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
     # The code outputs an array the same shape as 'a', but with
     # labels[i] inserted into spot j if a[j] falls in x-tile i.
     # The number of xtiles requested is inferred from the length of 'labels'.
+
+    np.random.seed(42)
 
     # First method, "vanilla" weights from Wikipedia article.
     if method == 1:

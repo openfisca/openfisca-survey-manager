@@ -1,10 +1,14 @@
 ﻿# Changelog
 
+### 0.46.8 [#226](https://github.com/openfisca/openfisca-survey-manager/pull/226)
+
+* Technical changes
+- Add a set seed in `mark_weighted_percentiles`, so that when a survey scenario with a baseline and a reform is run, variables which use this function take the same value for a given entity between the baseline and the reform.
+
 ### 0.46.7 [#227](https://github.com/openfisca/openfisca-survey-manager/pull/225)
 
 * Technical changes
 - Handle explicitly SAS related dependecy.
-
 
 ### 0.46.6 [#224](https://github.com/openfisca/openfisca-survey-manager/pull/224)
 
