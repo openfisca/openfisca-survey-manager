@@ -65,12 +65,10 @@ class Table(object):
 
     def _save(self, data_frame = None):
         assert data_frame is not None
-
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
         variables = table.variables
         log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
-        store_path = table.name
         if variables:
             stored_variables = list(set(variables).intersection(set(data_frame.columns)))
             log.info('The folloging variables are stored: {}'.format(stored_variables))
@@ -79,26 +77,8 @@ class Table(object):
                     list(set(variables) - set(stored_variables))
                     ))
             data_frame = data_frame[stored_variables].copy()
-        try:
-            data_frame.to_hdf(hdf5_file_path, store_path, append = False)
-        except (TypeError, NotImplementedError):
-            log.info("Type problem(s) when creating {} in {}".format(store_path, hdf5_file_path))
-            dtypes = data_frame.dtypes
-            # Checking for strings
-            converted_dtypes = dtypes.isin(['mixed', 'unicode'])
-            if converted_dtypes.any():
-                log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
-                # Conversion to strings
-                for column in dtypes[converted_dtypes].index:
-                    data_frame[column] = data_frame[column].copy().astype(str)
 
-            # Checking for remaining categories
-            dtypes = data_frame.dtypes
-            converted_dtypes = dtypes.isin(['category'])
-            if not converted_dtypes.empty:  # With category table format is needed
-                log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
-                data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table')
-
+        self.save_data_frame(self, data_frame)
         gc.collect()
 
     def fill_hdf(self, **kwargs):
@@ -191,7 +171,27 @@ class Table(object):
                 raise e
 
     def save_data_frame(self, data_frame, **kwargs):
-        data_frame.to_hdf(self.survey.hdf5_file_path, self.name, append = False, **kwargs)
+        hdf5_file_path = self.survey.hdf5_file_path
+        store_path = self.name
+        try:
+            data_frame.to_hdf(hdf5_file_path, store_path, append = False, **kwargs)
+        except (TypeError, NotImplementedError):
+            log.info("Type problem(s) when creating {} in {}".format(store_path, hdf5_file_path))
+            dtypes = data_frame.dtypes
+            # Checking for strings
+            converted_dtypes = dtypes.isin(['mixed', 'unicode'])
+            if converted_dtypes.any():
+                log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
+                # Conversion to strings
+                for column in dtypes[converted_dtypes].index:
+                    data_frame[column] = data_frame[column].copy().astype(str)
+
+            # Checking for remaining categories
+            dtypes = data_frame.dtypes
+            converted_dtypes = dtypes.isin(['category'])
+            if not converted_dtypes.empty:  # With category table format is needed
+                log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
+                data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table', **kwargs)
 
 
 def clean_data_frame(data_frame):
