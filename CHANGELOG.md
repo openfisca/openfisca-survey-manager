@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+### 0.46.8 [#228](https://github.com/openfisca/openfisca-survey-manager/pull/228)
+
+* Technical changes
+- Refactor tables method to mutualize code
+- Save variables in table survey data
+
+
 ### 0.46.8 [#226](https://github.com/openfisca/openfisca-survey-manager/pull/226)
 
 * Technical changes
