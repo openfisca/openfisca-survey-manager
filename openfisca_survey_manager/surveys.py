@@ -232,7 +232,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         """Inserts a table in the Survey object"""
 
         data_frame = kwargs.pop('data_frame', None)
-        variables =  kwargs.pop('variables', None)
+        variables = kwargs.pop('variables', None)
         if data_frame is None:
             data_frame = kwargs.pop('dataframe', None)
 

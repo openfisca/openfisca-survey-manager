@@ -195,6 +195,7 @@ class Table(object):
 
         self.variables = list(data_frame.columns)
 
+
 def clean_data_frame(data_frame):
     data_frame.columns = data_frame.columns.str.lower()
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
