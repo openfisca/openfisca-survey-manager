@@ -1120,7 +1120,6 @@ class AbstractSurveyScenario(object):
         assert len(source_types) < 2, "There are too many data source types"
         assert len(source_types) >= 1, "There should be one data source type included in {}".format(
             default_source_types)
-
         source_type = source_types[0]
         source = data[source_type]
 

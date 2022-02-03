@@ -193,6 +193,7 @@ class Table(object):
                 log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
                 data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table', **kwargs)
 
+        self.variables = list(data_frame.columns)
 
 def clean_data_frame(data_frame):
     data_frame.columns = data_frame.columns.str.lower()

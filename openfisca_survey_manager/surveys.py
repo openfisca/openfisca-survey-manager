@@ -133,7 +133,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         assert table is not None
         store = pandas.HDFStore(self.hdf5_file_path)
         if table in store:
-            log.info("Building columns index for table {}".format(table))
+            log.debug("Building columns index for table {}".format(table))
             data_frame = store[table]
             if rename_ident is True:
                 for column_name in data_frame:
@@ -232,17 +232,22 @@ Contains the following tables : \n""".format(self.name, self.label)
         """Inserts a table in the Survey object"""
 
         data_frame = kwargs.pop('data_frame', None)
+        variables =  kwargs.pop('variables', None)
         if data_frame is None:
             data_frame = kwargs.pop('dataframe', None)
 
         to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
         if data_frame is not None:
             assert isinstance(data_frame, pandas.DataFrame)
+            if variables is not None:
+                assert set(variables) < set(data_frame.columns)
+            else:
+                variables = list(data_frame.columns)
 
         if data_frame is not None:
             if label is None:
                 label = name
-            table = Table(label = label, name = name, survey = self)
+            table = Table(label = label, name = name, survey = self, variables = variables)
             assert table.survey.hdf5_file_path is not None
             log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
             table.save_data_frame(data_frame, **to_hdf_kwargs)
