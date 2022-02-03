@@ -78,7 +78,7 @@ class Table(object):
                     ))
             data_frame = data_frame[stored_variables].copy()
 
-        self.save_data_frame(self, data_frame)
+        self.save_data_frame(data_frame)
         gc.collect()
 
     def fill_hdf(self, **kwargs):
