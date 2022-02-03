@@ -98,7 +98,7 @@ Contains the following surveys :
     def load(cls, json_file_path = None, collection = None, config_files_directory = default_config_files_directory):
         assert os.path.exists(config_files_directory)
         if json_file_path is None:
-            assert collection is not None
+            assert collection is not None, "A collection is needed"
             config = Config(config_files_directory = config_files_directory)
             try:
                 json_file_path = config.get("collections", collection)
