@@ -78,6 +78,8 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
+      - name: install
+        run: make install
       - name: test
         run: make test
       - name : coverage
