@@ -42,6 +42,8 @@ OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, b
 
 ### Installation
 
+#### Install with PIP
+
 If you're developing your own script or looking to run `OpenFisca-Survey-Manager` without editing it, you don't need to get its source code. It just needs to be known by your environment.
 To do so, first, install the package with `pip`:
 
@@ -58,10 +60,26 @@ It comes with `build-collection` command that we will use in the next steps.
 
 > If you want to improve this module, please see the `Development` section below.
 
+#### Install with Conda
+
+Create an anvironment and install openfisca-survey-manager
+```
+conda create -n survey python=3.8
+conda activate survey
+conda install -c conda-forge -c openfisca openfisca-survey-manager-dev
+```
+
+You are ready to dev !
+
+To exit your environment:
+```
+conda deactivate
+```
+
 ### Getting the configuration directory path
 
 To be able to use OpenFisca-Survey-Manager, you have to create two configuration files:
-* `raw_data.ini`, 
+* `raw_data.ini`,
 * and `config.ini`.
 
 To know where to copy them to, use the following command:
@@ -70,7 +88,7 @@ To know where to copy them to, use the following command:
 build-collection --help
 ```
 
-You should get the following result. 
+You should get the following result.
 
 ```shell
 usage: build-collection [-h] -c COLLECTION [-d] [-m] [-p PATH] [-s SURVEY]
@@ -92,7 +110,7 @@ optional arguments:
   -v, --verbose         increase output verbosity
 ```
 
-Take note of the default configuration directory path in `-p PATH, --path PATH` option's description. This is the directory where you will set your `raw_data.ini` and `config.ini` files. In this example, it is `/Users/you/.config/openfisca-survey-manager`. 
+Take note of the default configuration directory path in `-p PATH, --path PATH` option's description. This is the directory where you will set your `raw_data.ini` and `config.ini` files. In this example, it is `/Users/you/.config/openfisca-survey-manager`.
 
 > If you want to use a different path, you can pass the `--path /another/path` option to `build-collection`. This feature is still experimental though.
 
@@ -108,17 +126,17 @@ The `raw_data.ini` lists your input surveys while `config.ini` specifies the pat
 
 To initialise your `raw_data.ini` file, you can follow these steps:
 
-  1. Copy the template file [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to the configuration directory path you identified in the previous step and rename it to `raw_data.ini`.  
+  1. Copy the template file [raw_data_template.ini](openfisca_survey_manager/config_files_templates/raw_data_template.ini) to the configuration directory path you identified in the previous step and rename it to `raw_data.ini`.
   Ex: `/your/path/.config/openfisca-survey-manager/raw_data.ini`
 
   2. Edit the latter by adding a section title for your survey.
-  For example, if you name your survey `housing_survey`, you should get a line with: 
+  For example, if you name your survey `housing_survey`, you should get a line with:
   ```ini
   [housing_survey]
-  ``` 
+  ```
 
-  3. Add a reference to the location of your raw data **directory** (SAS, stata DTA files, SPSS, CSV files).  
-  For paths in Windows, use `/` instead of `\` to separate folders. 
+  3. Add a reference to the location of your raw data **directory** (SAS, stata DTA files, SPSS, CSV files).
+  For paths in Windows, use `/` instead of `\` to separate folders.
   You do not need to put quotes, even when the path name contains spaces.
 
   Your file should look like this:
@@ -147,17 +165,17 @@ You can also set multiple surveys as follows:
 
 To initilalise your `config.ini` file:
 
-  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`.  
+  1. Copy its template file [config_template.ini](openfisca_survey_manager/config_files_templates/config_template.ini) to your configuration directory and rename it to `config.ini`.
   Ex: `/your/path/.config/openfisca-survey-manager/config.ini`.
 
-  2. Define a `collections_directory` path where the SurveyManager will generate your survey inputs and outputs JSON description.  
-  Ex: `/.../openfisca-survey-manager/transformed_housing_survey`  
+  2. Define a `collections_directory` path where the SurveyManager will generate your survey inputs and outputs JSON description.
+  Ex: `/.../openfisca-survey-manager/transformed_housing_survey`
   For a `housing_survey`, you will get a `/.../openfisca-survey-manager/transformed_housing_survey/housing_survey.json` file.
 
-  3. Define an `output_directory` where the generated HDF file will be registered.  
+  3. Define an `output_directory` where the generated HDF file will be registered.
     This directory could be a sub-directory of your `collections_directory`.
 
-  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.  
+  4. Define a `tmp_directory` that will store temporay calculation results. Its content will be deleted at the end of the calculation.
     This directory could be a sub-directory of your `collections_directory`.
 
 Your `config.ini` file should look similar to this:
@@ -180,7 +198,7 @@ Your `config.ini` file should look similar to this:
 This step will read your configuration files and you survey data and generate a HDF5 file (`.h5`) for your survey.
 To build the HDF5 files, we'll use the [`build-collection`](openfisca_survey_manager/scripts/build_collection.py) script.
 
-Here is an example for one survey with one serie: our `housing_survey` that knows only 2014 serie. We call our survey as a collection (with `-c` option) and build the HDF5 file with this command: 
+Here is an example for one survey with one serie: our `housing_survey` that knows only 2014 serie. We call our survey as a collection (with `-c` option) and build the HDF5 file with this command:
 
 ```shell
 build-collection -c housing_survey -d -m -v

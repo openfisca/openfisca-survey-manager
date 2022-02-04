@@ -196,6 +196,6 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Install with conda
-        run: conda install -c openfisca openfisca-survey-manager-dev
+        run: conda install -c openfisca openfisca-survey-manager
       - name: Buid Collection
         run: build-collection
