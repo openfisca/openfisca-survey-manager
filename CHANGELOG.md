@@ -1,11 +1,16 @@
 ﻿# Changelog
 
-### 0.46.8 [#228](https://github.com/openfisca/openfisca-survey-manager/pull/228)
+### 0.46.10 [#229](https://github.com/openfisca/openfisca-survey-manager/pull/229)
+
+* Technical changes
+- Add tar.gz to PyPi
+- Add display readme to PyPi
+
+### 0.46.9 [#228](https://github.com/openfisca/openfisca-survey-manager/pull/228)
 
 * Technical changes
 - Refactor tables method to mutualize code
 - Save variables in table survey data
-
 
 ### 0.46.8 [#226](https://github.com/openfisca/openfisca-survey-manager/pull/226)
 
