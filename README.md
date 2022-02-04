@@ -66,10 +66,10 @@ Create an anvironment and install openfisca-survey-manager
 ```
 conda create -n survey python=3.8
 conda activate survey
-conda install -c conda-forge -c openfisca openfisca-survey-manager-dev
+conda install -c conda-forge -c openfisca openfisca-survey-manager
 ```
 
-You are ready to dev !
+You are ready to go !
 
 To exit your environment:
 ```
