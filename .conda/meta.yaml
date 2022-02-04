@@ -33,7 +33,7 @@ requirements:
     - pandas >=0.22
     - pyxdg
     - PyYAML
-    - tables >=3.4.4,<4.0.0
+    - pytables >=3.5.1, <4.0.0
     - tabulate
     - weightedcalcs
     - wquantiles>=0.3
@@ -75,7 +75,6 @@ outputs:
         - pytest >=4.0.0,<7.0.0
         - pytest-cov >=2.0.0, <3.0.0
         - scipy >=1.2.1, <2.0.0
-        - tables >=3.5.1, <4.0.0
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
   - name: openfisca-survey-manager-sas
