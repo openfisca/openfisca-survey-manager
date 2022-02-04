@@ -58,36 +58,36 @@ jobs:
       - run: make check-syntax-errors
       - run: make check-style
 
-  test-python:
-    runs-on: ${{ matrix.os }}
-    needs: [ build ]
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.7.9", "3.8.9", "3.9.9"]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
-      - name: install
-        run: make install
-      - name: test
-        run: make test
-      - name : coverage
-        run: coveralls
+  # test-python:
+  #   runs-on: ${{ matrix.os }}
+  #   needs: [ build ]
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
+  #       python-version: ["3.7.9", "3.8.9", "3.9.9"]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #     - name: Cache build
+  #       id: restore-build
+  #       uses: actions/cache@v2
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
+  #     - name: install
+  #       run: make install
+  #     - name: test
+  #       run: make test
+  #     - name : coverage
+  #       run: coveralls
 
   check-version-and-changelog:
     runs-on: ubuntu-latest
-    needs: [ lint-files, test-python ] # Last job to run
+    needs: [ lint-files, build ] # TODO: Replace build by test-python
     steps:
       - uses: actions/checkout@v2
         with:
@@ -153,7 +153,7 @@ jobs:
 
   publish-to-conda:
     runs-on: "ubuntu-latest"
-    needs: [ test-python ]  # TODO : change back to deploy when it works.
+    needs: [ build ]  # TODO : change back to deploy when it works.
     strategy:
       fail-fast: false
     steps:
@@ -197,3 +197,5 @@ jobs:
           fetch-depth: 0 # Fetch all the tags
       - name: Install with conda
         run: conda install -c openfisca openfisca-survey-manager-dev
+      - name: Buid Collection
+        run: build-collection
