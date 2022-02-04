@@ -85,28 +85,29 @@ jobs:
   #     - name : coverage
   #       run: coveralls
 
-  coverage:
-    runs-on: ${{ matrix.os }}
-    needs: [ build ]
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.7.9"]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
-      - name : coverage
-        run: coveralls
+  # Coverage will need GITHUB_TOKEN : "Running on Github Actions but GITHUB_TOKEN is not set."
+  # coverage:
+  #   runs-on: ${{ matrix.os }}
+  #   needs: [ build ]
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
+  #       python-version: ["3.7.9"]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #     - name: Cache build
+  #       id: restore-build
+  #       uses: actions/cache@v2
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
+  #     - name : coverage
+  #       run: coveralls
 
   check-version-and-changelog:
     runs-on: ubuntu-latest
