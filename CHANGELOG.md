@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+### 0.46.11 [#227](https://github.com/openfisca/openfisca-survey-manager/pull/227)
+
+* Technical changes
+- Add build of a tar.gz
+- Add a make entry for build
+- Move CI from Circle CI to GitHub Action (Except `make test` that run only on CircleCI)
+
 ### 0.46.10 [#229](https://github.com/openfisca/openfisca-survey-manager/pull/229)
 
 * Technical changes
