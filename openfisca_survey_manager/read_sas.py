@@ -1,10 +1,10 @@
 import logging
-
+from pandas.core.frame import DataFrame
 
 log = logging.getLogger(__name__)
 
 
-def read_sas(sas_file_path, clean = False):
+def read_sas(sas_file_path, clean = False) -> DataFrame :
     try:
         import pyreadstat
         data_frame, _ = pyreadstat.read_sas7bdat(sas_file_path)
