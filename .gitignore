@@ -94,3 +94,9 @@ docs/_build/
 .tags*
 /tags
 tags
+.venv/pyvenv.cfg
+.venv/share/openfisca/openfisca-core/CHANGELOG.md
+.venv/share/openfisca/openfisca-core/LICENSE
+.venv/share/openfisca/openfisca-core/README.md
+.venv/share/openfisca/openfisca-country-template/CHANGELOG.md
+.venv/share/openfisca/openfisca-country-template/README.md
