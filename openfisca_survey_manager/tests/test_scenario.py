@@ -3,6 +3,7 @@ import shutil
 
 
 import logging
+import copy
 import os
 import pkg_resources
 
@@ -132,6 +133,73 @@ def test_input_dataframe_generator(nb_persons = 10, nb_groups = 5, salary_max_va
     assert (input_dataframe_by_entity['household']['rent'] < rent_max_value).all()
 
 
+# On vérifie que l'attribut `used_as_input_variables` correspond à la liste des variables 
+# qui sont employées dans le calcul des simulations, les autres variables n'étant pas utilisées dans le calcul,
+# étant dans la base en entrée mais pas dans la base en sortie (la base de la simulation)
+def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
+        rent_max_value = 1000):
+
+    # Set up test : the minimum necessary data to perform an `init_from_data`
+    survey_scenario = AbstractSurveyScenario()
+    # Generate some data and its period
+    input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
+        nb_persons, nb_groups, salary_max_value, rent_max_value)
+    period = periods.period('2017-01')
+    # Creating a data object associated to its period, and we give it a name
+    data_in = {
+        'input_data_frame_by_entity_by_period': {
+            period: input_data_frame_by_entity
+            }
+        }
+    data_copy = copy.deepcopy(data_in) # Pour comparer avec la sortie de `init_from_data`
+    print(data_in)
+
+    # We must add a TBS to the scenario to indicate what are the entities
+    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    # We must add the `used_as_input_variables` even though they don't seem necessary
+    survey_scenario.used_as_input_variables = ['salary', 'rent']
+    # We must add the year to initiate a .new_simulation
+    survey_scenario.year = 2017
+    # Then we can input the data+period dict inside the scenario
+    survey_scenario.init_from_data(data = data_in)
+
+
+    # 1 - Has the data object changed ?
+    print('👹', type(data_copy))
+    print(data_copy)
+    print(data_in)
+    assert data_copy == data_in
+
+    # 2 - Is the base inside the scenario the same as the data we put in ?
+    base = survey_scenario.input_data_table_by_period # ?? c'est pas une action !
+    assert base == data_in
+
+    # 2 - Are the elements inside the scenario ?
+    # assert ['salary', 'rent'] is in base
+
+#def test_used_as_input_variables():
+#    # Set up test
+#    #
+#    #
+#
+#    
+#    ## test filter_input_variables OU quelle fct pour tester used_as_input_variables ?  
+#    # 2 - If we filter the input variables, are they still in the database?
+#    survey_scenario.used_as_input_variables = ['rent']
+#    survey_scenario.filter_input_variables()
+#    
+#    assert 'rent' in base
+#    assert 'salary' not base
+#
+#    # 3 - Faut-il recalculer la base?
+#    base2 = survey_scenario.input_data_table_by_period  # ??
+#    assert base2 == base
+#
+#    # 4 - If we perform a simulation, are they still in the database?
+#    survey do simulation
+
+
+
 def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000):
 
@@ -158,10 +226,14 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
         ).all()
 
 
+
 def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000):
+    '''
+        On teste que .init_from_data fait 
+    '''
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
-        nb_persons, nb_groups, salary_max_value, rent_max_value)
+        nb_persons, nb_groups, salary_max_value, rent_max_value) # Un dataframe d'exemple que l'on injecte
     input_data_frame_by_entity['person']['household_id'] = 4 - input_data_frame_by_entity['person']['household_id']
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
