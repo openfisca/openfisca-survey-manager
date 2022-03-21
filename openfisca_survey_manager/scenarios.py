@@ -909,7 +909,7 @@ class AbstractSurveyScenario(object):
           use_marginal_tax_rate(bool): True to go into marginal effective tax rate computation mode.
           calibration_kwargs(dict):  Calibration options (Default value = None)
           inflation_kwargs(dict): Inflations options (Default value = None)
-          rebuild_input_data(bool): Wether to rebuild the data (Default value = False)
+          rebuild_input_data(bool): Whether to rebuild the data (Default value = False)
           rebuild_kwargs:  Rebuild options (Default value = None)
 
         """

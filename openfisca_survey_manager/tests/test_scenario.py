@@ -151,8 +151,10 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
             period: input_data_frame_by_entity
             }
         }
-    data_copy = copy.deepcopy(data_in) # Pour comparer avec la sortie de `init_from_data`
-    print(data_in)
+    # data_in = copy.deepcopy(data_in) # Pour comparer avec la sortie de `init_from_data`
+    table_ind = input_data_frame_by_entity['person'].copy(deep=True)
+    table_men = input_data_frame_by_entity['household'].copy(deep=True)
+    #print(table_ind)
 
     # We must add a TBS to the scenario to indicate what are the entities
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
@@ -163,19 +165,27 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
     # Then we can input the data+period dict inside the scenario
     survey_scenario.init_from_data(data = data_in)
 
+    # We are looking for the dataframes inside the survey_scenario
+    all_var = list(set( list(table_ind.columns) + list(table_men.columns)))
+    #print('Variables', all_var)
+    data_out =  survey_scenario.create_data_frame_by_entity(variables = all_var, period = period, merge = False)
+    # data_out =  survey_scenario.create_data_frame_by_entity(variables = all_var, period = period, merge = True)
 
-    # 1 - Has the data object changed ?
-    print('👹', type(data_copy))
-    print(data_copy)
-    print(data_in)
-    assert data_copy == data_in
+    # 1 - Has the data object changed ? We only compare variables because Id's and others are lost in the process
+    for cols in table_ind:
+        if cols in data_out['person']:
+            pass
+        else:
+            print('Columns lost in person table: ', cols)
+    assert data_out['person']['salary'].equals(table_ind['salary'])
 
-    # 2 - Is the base inside the scenario the same as the data we put in ?
-    base = survey_scenario.input_data_table_by_period # ?? c'est pas une action !
-    assert base == data_in
+    for cols in table_men:
+        if cols in data_out['household']:
+            pass
+        else:
+            print('Columns lost in household table: ', cols)
+    assert data_out['household']['rent'].equals(table_men['rent'])
 
-    # 2 - Are the elements inside the scenario ?
-    # assert ['salary', 'rent'] is in base
 
 #def test_used_as_input_variables():
 #    # Set up test
