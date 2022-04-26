@@ -1597,6 +1597,12 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
         )
 
     if enum_variable_imputed_as_enum:
+        if series.isnull().any():
+            log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
+                series.isnull().sum(), series.notnull().sum(), variable_name))
+            log.debug('We convert these NaN values of variable {} to {} its default value'.format(
+                variable_name, variable.default_value._name_))
+            series.fillna(variable.default_value._name_, inplace = True)
         possible_values = variable.possible_values
         index_by_category = dict(zip(
             possible_values._member_names_,
