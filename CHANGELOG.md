@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.46.12 [#232](https://github.com/openfisca/openfisca-survey-manager/pull/232)
+
+* Technical changes
+- Deal with Nan in Enum variables
+
 ### 0.46.11 [#227](https://github.com/openfisca/openfisca-survey-manager/pull/227)
 
 * Technical changes
