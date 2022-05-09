@@ -144,7 +144,7 @@ class AbstractSurveyScenario(object):
         if period is None:
             assert survey_scenario.year is not None
             period = survey_scenario.year
-  
+
         calibration = Calibration(survey_scenario, period)
 
         if parameters is not None:
