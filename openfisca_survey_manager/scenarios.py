@@ -141,7 +141,7 @@ class AbstractSurveyScenario(object):
         """
         survey_scenario = self
 
-        if period == None:
+        if period is None:
             assert survey_scenario.year is not None
             period = survey_scenario.year
   
