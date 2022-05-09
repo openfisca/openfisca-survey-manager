@@ -29,13 +29,11 @@ class Calibration(object):
     total_population = None
     weight_name = None
 
-    def __init__(self, survey_scenario = None, period = None):
+    def __init__(self, survey_scenario, period):
         # TODO should migrate this to france
         self.filter_by_name = "menage_ordinaire"
-        assert period is not None
-        self.period = period
-        assert survey_scenario is not None
         self._set_survey_scenario(survey_scenario)
+        self.period = period
 
     def reset(self):
         """Reset the calibration to it initial state"""
