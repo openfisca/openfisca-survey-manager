@@ -32,8 +32,8 @@ class Calibration(object):
     def __init__(self, survey_scenario):
         # TODO should migrate this to france
         self.filter_by_name = "menage_ordinaire"
-        self._set_survey_scenario(survey_scenario)
         self.period = survey_scenario.period
+        self._set_survey_scenario(survey_scenario)
 
     def reset(self):
         """Reset the calibration to it initial state"""
