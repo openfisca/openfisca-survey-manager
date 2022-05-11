@@ -36,7 +36,7 @@ class Calibration(object):
         self._set_survey_scenario(survey_scenario)
 
     def reset(self):
-        """Reset the calibration to it initial state"""
+        """Reset the calibration to its initial state"""
         simulation = self.survey_scenario.simulation
         holder = simulation.get_holder(self.weight_name)
         holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
@@ -67,7 +67,7 @@ class Calibration(object):
 
         Args:
           parameter: the parameter to be set
-          value: the valeu used to set the parameter
+          value: the value used to set the parameter
         """
         if parameter == 'lo':
             self.parameters['lo'] = 1 / value
@@ -129,7 +129,7 @@ class Calibration(object):
         """Builds the data dictionnary used as calmar input argument
 
         Returns:
-            pd.DataFrame: Data used bu calmar
+            pd.DataFrame: Data used by calmar
         """
 
         # Select only filtered entities
@@ -169,7 +169,7 @@ class Calibration(object):
         return updated_margins
 
     def calibrate(self):
-        """Apllies the calibrations by updating weights and margins
+        """Applies the calibrations by updating weights and margins
         """
         margins_by_variable = self.margins_by_variable
         parameters = self.get_parameters()

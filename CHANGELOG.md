@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 0.46.13 [#233](https://github.com/openfisca/openfisca-survey-manager/pull/233)
+
+* Technical changes
+- Correcting the code asking for the period before it's instated
+- Checking the new period assignment
 ### 0.46.12 [#232](https://github.com/openfisca/openfisca-survey-manager/pull/232)
 
 * Technical changes
