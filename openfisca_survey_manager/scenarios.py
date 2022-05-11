@@ -130,15 +130,23 @@ class AbstractSurveyScenario(object):
 
         return values
 
-    def calibrate(self, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
+    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
         """Calibrate the scenario data.
 
         Args:
+            period (int, optionnal): Period of calibration. Defaults to scenario.year
             target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
             parameters (dict, optional): Calibration parameters. Defaults to None.
             total_population (float, optional): Total population target. Defaults to None.
         """
         survey_scenario = self
+
+        if period is None:
+            assert survey_scenario.year is not None
+            period = survey_scenario.year
+        survey_scenario.period = period
+        assert survey_scenario.period is not None
+
         calibration = Calibration(survey_scenario)
 
         if parameters is not None:
