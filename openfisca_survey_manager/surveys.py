@@ -215,7 +215,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             for column_name in df:
                 if ident_re.match(str(column_name)) is not None:
                     df.rename(columns = {column_name: "ident"}, inplace = True)
-                    log.info("{} column have been replaced by ident".format(column_name))
+                    log.debug("{} column has been replaced by ident".format(column_name))
                     break
 
         if variables is None:
