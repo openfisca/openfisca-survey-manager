@@ -559,7 +559,7 @@ class AbstractSurveyScenario(object):
             return data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
-            period = None, use_baseline = False, merge = False):
+            period = None, use_baseline = False, use_modified = False, merge = False):
         """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
 
         Args:
@@ -569,13 +569,25 @@ class AbstractSurveyScenario(object):
           index(bool, optional): Index by entity id, defaults to False
           period(Period, optional): Period, defaults to None
           use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
+          use_modified(bool, optional): Use modified tax and benefit system used for marginal tax rate calculation, defaults to False
           merge(bool, optional): Merge all the entities in one data frame, defaults to False
 
         Returns:
           dict or pandas.DataFrame: Dictionnary of dataframes by entities or dataframe with all the computed variables
 
         """
-        simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
+
+        if use_baseline:
+            if use_modified:
+                simulation = self._modified_baseline_simulation
+            else:
+                simulation = self.baseline_simulation
+        else:
+            if use_modified:
+                simulation = self._modified_simulation
+            else:
+                simulation = self.simulation
+
         tax_benefit_system = self.baseline_tax_benefit_system if (
             use_baseline and self.baseline_tax_benefit_system
             ) else self.tax_benefit_system
@@ -1228,11 +1240,18 @@ class AbstractSurveyScenario(object):
         log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
         return survey_.get_values(table = table, variables = variables)
 
-    def memory_usage(self, use_baseline = False):
+    def memory_usage(self, use_baseline = False, use_modified = False):
         if use_baseline:
-            simulation = self.baseline_simulation
+            if use_modified:
+                simulation = self._modified_baseline_simulation
+            else:
+                simulation = self.baseline_simulation
         else:
-            simulation = self.simulation
+            if use_modified:
+                simulation = self._modified_simulation
+            else:
+                simulation = self.simulation
+            
 
         memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
         try:
