@@ -208,7 +208,7 @@ def clean_data_frame(data_frame):
             data_frame.drop(column_name, axis = 1, inplace = True)
             continue
 
-        values = list(data_frame[column_name].value_counts().keys())
+        values = [str(value) for value in data_frame[column_name].value_counts().keys()]
         empty_string_present = "" in values
         if empty_string_present:
             values.remove("")
