@@ -1265,7 +1265,7 @@ class AbstractSurveyScenario(object):
                 ))
         infos_lines.sort()
         for _, _, line in infos_lines:
-            print(line.rjust(100))
+            print(line.rjust(100))  # noqa analysis:ignore
 
     def neutralize_variables(self, tax_benefit_system):
         """Neutralizes input variables not in input dataframe and keep some crucial variables
@@ -1300,7 +1300,7 @@ class AbstractSurveyScenario(object):
         if use_sub_directories:
             for use_baseline in [False, True]:
                 sub_directory = 'baseline' if use_baseline else 'reform'
-                print(os.path.join(directory, sub_directory), use_baseline)
+                print(os.path.join(directory, sub_directory), use_baseline)  # noqa analysis:ignore
                 self._restore_simulation(
                     directory = os.path.join(directory, sub_directory),
                     use_baseline = use_baseline,
@@ -1379,8 +1379,8 @@ class AbstractSurveyScenario(object):
         value_type = variable_instance.value_type
 
         if variable_instance.is_neutralized:
-            print("")
-            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))
+            print("")  # noqa analysis:ignore
+            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))  # noqa analysis:ignore
             return
 
         if weighted:
@@ -1394,7 +1394,7 @@ class AbstractSurveyScenario(object):
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
-                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
+                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))  # noqa analysis:ignore
                 return
 
         header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
@@ -1406,14 +1406,14 @@ class AbstractSurveyScenario(object):
             default_value,
             humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
             )
-        print("")
-        print(header_line)
-        print("Details:")
+        print("")  # noqa analysis:ignore
+        print(header_line)  # noqa analysis:ignore
+        print("Details:")  # noqa analysis:ignore
         holder = simulation.get_holder(variable)
         if holder is not None:
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
-                print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
+                print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(  # noqa analysis:ignore
                     # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
                     array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
@@ -1429,7 +1429,7 @@ class AbstractSurveyScenario(object):
                 for period in sorted(simulation.get_known_periods(variable)):
                     array = holder.get_array(period)
                     if array.shape == ():
-                        print("{}: always = {}".format(period, array))
+                        print("{}: always = {}".format(period, array))  # noqa analysis:ignore
                         continue
 
                     if value_type == Enum:
@@ -1447,7 +1447,7 @@ class AbstractSurveyScenario(object):
                         print("{}:{}.".format(period, ",".join(expr)))
                         continue
 
-                    print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
+                    print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
                         period,
                         array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                         array.min(),
