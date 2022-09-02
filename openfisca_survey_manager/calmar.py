@@ -1,4 +1,4 @@
-
+"""CALMAR: Calibrates weights to satisfy margins constraints."""
 
 import logging
 import operator
@@ -313,4 +313,4 @@ def check_calmar(data_in, margins, initial_weight='wprm_init', pondfin_out = Non
     """
     for variable, margin in margins.items():
         if variable != 'total_population':
-            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))
+            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))  # noqa analysis:ignore
