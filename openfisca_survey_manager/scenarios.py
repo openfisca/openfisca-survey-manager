@@ -568,7 +568,7 @@ class AbstractSurveyScenario(object):
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
-        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
+        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe).
 
         Args:
           variables(list, optional): Variable to compute, defaults to None
@@ -707,8 +707,8 @@ class AbstractSurveyScenario(object):
         """Customize input data frame.
 
         Args:
-          input_data_frame: Original input data frame
-          **kwargs: Keyword arguments
+          input_data_frame: original input data frame.
+          kwargs: keyword arguments.
         """
         pass
 
@@ -1291,7 +1291,7 @@ class AbstractSurveyScenario(object):
 
         Args:
           directory: Directory to restore simulations from
-          **kwargs: Restoration options
+          kwargs: Restoration options
 
         """
         assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
@@ -1444,7 +1444,7 @@ class AbstractSurveyScenario(object):
                         groupby = df.groupby(variable)['weights'].sum()
                         total = groupby.sum()
                         expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
-                        print("{}:{}.".format(period, ",".join(expr)))
+                        print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                         continue
 
                     print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
