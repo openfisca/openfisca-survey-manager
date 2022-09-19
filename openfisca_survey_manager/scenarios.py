@@ -77,24 +77,32 @@ class AbstractSurveyScenario(object):
             name = variable,
             )
 
-    def calculate_variable(self, variable, period = None, use_baseline = False):
+    def calculate_variable(self, variable, period = None, use_baseline = False, use_modified = False):
         """Compute variable values for period and baseline or reform tax benefit and system.
 
         Args:
           variable(str, optional): Variable to compute
           period(Period, optional): Period, defaults to None
           use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
+          use_modified(bool, optional): Use modified tax and benefit system used for marginal tax rate calculation, defaults to False
 
         Returns:
           numpy.ndarray: Variable values
-
         """
         if use_baseline:
-            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
-            simulation = self.baseline_simulation
+            if use_modified:
+                assert self._modified_baseline_simulation is not None, "self._modified_baseline_simulation is None"
+                simulation = self._modified_baseline_simulation
+            else:
+                assert self.baseline_simulation is not None, "self.baseline_simulation is None"
+                simulation = self.baseline_simulation
         else:
-            assert self.simulation is not None
-            simulation = self.simulation
+            if use_modified:
+                assert self._modified_simulation is not None
+                simulation = self._modified_simulation
+            else:
+                assert self.simulation is not None
+                simulation = self.simulation
 
         tax_benefit_system = simulation.tax_benefit_system
 
@@ -312,6 +320,8 @@ class AbstractSurveyScenario(object):
             modified_simulation = self._modified_simulation
 
         assert target_variable in self.tax_benefit_system.variables
+        print("Marginal tax rates of change in {} wrt. {}.\n".format(varying_variable, target_variable))
+        print("Other options in TBS: {}.".format(';'.join([str(v) for v in self.tax_benefit_system.variables])))
 
         variables_belong_to_same_entity = (
             self.tax_benefit_system.variables[varying_variable].entity.key
@@ -569,7 +579,7 @@ class AbstractSurveyScenario(object):
           index(bool, optional): Index by entity id, defaults to False
           period(Period, optional): Period, defaults to None
           use_baseline(bool, optional): Use baseline tax and benefit system, defaults to False
-          use_modified(bool, optional): Use modified tax and benefit system used for marginal tax rate calculation, defaults to False
+          use_modified(bool, optional): Use modified tax and benefit system used for marginal tax rate calculation, defaults to False 
           merge(bool, optional): Merge all the entities in one data frame, defaults to False
 
         Returns:
@@ -652,7 +662,7 @@ class AbstractSurveyScenario(object):
             openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
                 dict(
                     (column_name, self.calculate_variable(
-                        variable = column_name, period = period, use_baseline = use_baseline))
+                        variable = column_name, period = period, use_baseline = use_baseline, use_modified = use_modified))
                     for column_name in column_names
                     )
                 )
