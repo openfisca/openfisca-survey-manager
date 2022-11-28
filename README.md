@@ -254,8 +254,7 @@ make test
 To run the entire test suite with the same config as in CI:
 
 ```sh
-export GITLAB_CI=True
-make test
+CI=True make test
 ```
 
 ## Style

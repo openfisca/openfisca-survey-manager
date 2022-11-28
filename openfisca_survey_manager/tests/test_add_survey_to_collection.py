@@ -7,13 +7,13 @@ import pkg_resources
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 
-is_travis = 'TRAVIS' in os.environ
-is_circleci = 'CIRCLECI' in os.environ
-is_gitlabci = 'GITLAB_CI' in os.environ
+# Travis, Gitlab runner, Gihub Action and circle has env variable "CI" set by default
+if 'CI' in os.environ:
+    is_in_ci = True
 
 
 def test_add_survey_to_collection():
-    if is_travis or is_circleci or is_gitlabci:
+    if is_in_ci:
         return
     name = 'fake'
     survey_name = 'fake_survey'
