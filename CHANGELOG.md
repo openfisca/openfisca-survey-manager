@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
+
+* Technical changes
+- Make tests work in Github Action
+- Add some tests
+
 ### 0.46.14 [#234](https://github.com/openfisca/openfisca-survey-manager/pull/234)
 
 * Technical changes
