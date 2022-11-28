@@ -251,6 +251,13 @@ To run the entire test suite:
 make test
 ```
 
+To run the entire test suite with the same config as in CI:
+
+```sh
+export GITLAB_CI=True
+make test
+```
+
 ## Style
 
 This repository adheres to a certain coding style, and we invite you to follow it for your contributions to be integrated promptly.
