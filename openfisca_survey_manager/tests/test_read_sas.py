@@ -40,7 +40,7 @@ def test():
     data_frame = read_sas(sas_file_path, clean = False)
     data_frame_clean = read_sas(sas_file_path, clean = True)
 
-    assert_frame_equal(data_frame,data_frame_clean)
+    assert_frame_equal(data_frame, data_frame_clean)
 
     assert len(data_frame.columns) == 88
     assert len(data_frame) == 453
