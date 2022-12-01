@@ -86,7 +86,7 @@ jobs:
       - name: test
         run: make test
       - name : coverage
-        run: coveralls  --service=github
+        run: coveralls --service=github
 
   # Coverage will need GITHUB_TOKEN : "Running on Github Actions but GITHUB_TOKEN is not set."
   # coverage:
@@ -144,7 +144,7 @@ jobs:
         with:
           python-version: 3.8.14
       - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi
+        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "{status}={success}"  >> $GITHUB_STATE ; fi
 
   deploy:
     runs-on: ubuntu-latest
