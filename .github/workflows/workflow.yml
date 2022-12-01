@@ -66,6 +66,9 @@ jobs:
       matrix:
         os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
         python-version: ["3.7.15", "3.8.14", "3.9.15"]
+    env:
+      # Needed for coveralls
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
