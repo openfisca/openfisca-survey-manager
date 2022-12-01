@@ -21,6 +21,8 @@ if taxipp_location is None or not os.path.exists(default_config_files_directory)
 # Travis tests
 if 'CI' in os.environ:
     is_in_ci = True
+else:
+    is_in_ci = False
 
 test_config_files_directory = os.path.join(
     pkg_resources.get_distribution('openfisca-survey-manager').location,

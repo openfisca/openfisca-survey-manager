@@ -10,6 +10,8 @@ from openfisca_survey_manager.scripts.build_collection import add_survey_to_coll
 # Travis, Gitlab runner, Gihub Action and circle has env variable "CI" set by default
 if 'CI' in os.environ:
     is_in_ci = True
+else:
+    is_in_ci = False
 
 
 def test_add_survey_to_collection():
