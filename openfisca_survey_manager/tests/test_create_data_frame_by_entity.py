@@ -23,13 +23,13 @@ class TestCreateDataFrameByEntity(unittest.TestCase):
         period = '2017-01'
         data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
             variables = ['salary', 'rent', "person_id", "household_id"],
-            period=period,
-            index=True
+            period = period,
+            index = True
             )
         for entity, input_dataframe in data_frame_by_entity.items():
             print(f"{entity} for {period}")
-            print(input_dataframe.columns)
+            print(input_dataframe.reset_index().columns)
             if entity == "person":
-                self.assertIn("person_id", input_dataframe.columns.to_list())
+                self.assertIn("person_id", input_dataframe.reset_index().columns.to_list())
             if entity == "household":
-                self.assertIn("household_id", input_dataframe.columns.to_list())
+                self.assertIn("household_id", input_dataframe.reset_index().columns.to_list())

@@ -659,9 +659,11 @@ class AbstractSurveyScenario(object):
 
         if index:
             person_data_frame = openfisca_data_frame_by_entity_key.get(person_entity.key)
+            person_data_frame.index.name = self.id_variable_by_entity_key["person"]
             if person_data_frame is None:
                 person_data_frame = pd.DataFrame()
             for entity in non_person_entities:
+                entity_key_id = self.id_variable_by_entity_key[entity.key]
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
                     ] = simulation.populations[entity.key].members_entity_id
@@ -676,6 +678,9 @@ class AbstractSurveyScenario(object):
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.populations[entity.key].members_position
+
+                # Set index names as entity_id
+                openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
 
         for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
