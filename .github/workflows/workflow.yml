@@ -15,14 +15,14 @@ jobs:
         python-version: ["3.7.15", "3.8.14", "3.9.15"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -33,7 +33,7 @@ jobs:
         run: make build
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -42,16 +42,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.8.14
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-latest
@@ -70,14 +70,14 @@ jobs:
       # Needed for coveralls
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -98,14 +98,14 @@ jobs:
   #       os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
   #       python-version: ["3.7.15"]
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v3
   #     - name: Set up Python
-  #       uses: actions/setup-python@v2
+  #       uses: actions/setup-python@v3
   #       with:
   #         python-version: ${{ matrix.python-version }}
   #     - name: Cache build
   #       id: restore-build
-  #       uses: actions/cache@v2
+  #       uses: actions/cache@v3
   #       with:
   #         path: ${{ env.pythonLocation }}
   #         key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -116,11 +116,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ lint-files, build ] # TODO: Replace build by test-python
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.8.14
       - name: Check version number has been properly updated
@@ -136,11 +136,11 @@ jobs:
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.8.14
       - id: stop-early
@@ -154,22 +154,22 @@ jobs:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.7.15
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-latest
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-latest
@@ -191,7 +191,7 @@ jobs:
           # Add conda-forge for OpenFisca-Core
           channels: conda-forge
           activate-environment: true
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Update meta.yaml
@@ -219,7 +219,7 @@ jobs:
           # Add conda-forge for OpenFisca-Core
           channels: conda-forge
           activate-environment: true
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Install with conda
