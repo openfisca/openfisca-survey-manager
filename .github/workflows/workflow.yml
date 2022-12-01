@@ -86,7 +86,7 @@ jobs:
       - name: test
         run: make test
       - name : coverage
-        run: coveralls
+        run: coveralls  --service=github
 
   # Coverage will need GITHUB_TOKEN : "Running on Github Actions but GITHUB_TOKEN is not set."
   # coverage:
