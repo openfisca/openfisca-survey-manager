@@ -28,8 +28,8 @@ class TestCreateDataFrameByEntity(unittest.TestCase):
             )
         for entity, input_dataframe in data_frame_by_entity.items():
             print(f"{entity} for {period}")
-            print(input_dataframe.reset_index().columns)
+            print(input_dataframe.columns)
             if entity == "person":
-                self.assertIn("person_id", input_dataframe.reset_index().columns.to_list())
+                self.assertIn("person_id", input_dataframe.columns.to_list())
             if entity == "household":
-                self.assertIn("household_id", input_dataframe.reset_index().columns.to_list())
+                self.assertIn("household_id", input_dataframe.columns.to_list())

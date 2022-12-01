@@ -681,6 +681,8 @@ class AbstractSurveyScenario(object):
 
                 # Set index names as entity_id
                 openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
+                openfisca_data_frame_by_entity_key[entity.key].reset_index(inplace=True)
+            person_data_frame.reset_index(inplace=True)
 
         for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
