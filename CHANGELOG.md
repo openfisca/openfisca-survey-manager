@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### 0.46.16 [#238](https://github.com/openfisca/openfisca-survey-manager/pull/238)
+
+* Technical changes
+- Fix run of build PyPi
+- Remove CircleCI
+
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
 * Technical changes
