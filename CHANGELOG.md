@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+### 1.0.X [#238](https://github.com/openfisca/openfisca-survey-manager/pull/238)
+
+* Technical changes
+- Fix run of build PyPi
+- Remove CircleCI
+- Add option for config path
+
 ### 1.1.2 [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
 
 * Technical changes

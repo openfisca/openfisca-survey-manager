@@ -115,30 +115,36 @@ jobs:
         with:
           python-version: 3.9.9
       - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has-functional-changes=success"  >> $GITHUB_ENV ; fi
+        #run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has-functional-changes=success"  >> $GITHUB_ENV ; fi
+        run: ${GITHUB_WORKSPACE}/.github/has-functional-changes.sh
+        continue-on-error: true
 
   test-to-revert:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
     steps:
-      - name: IWT
-        run: echo "We run !"
+      - name: outcome
+        run: echo "jobs.check-for-functional-changes.outcome=${{ jobs.check-for-functional-changes.outcome }}"
+      - name: conclusion
+        run: echo "jobs.check-for-functional-changes.conclusion=${{ jobs.check-for-functional-changes.conclusion }}"
+
         
   test-var-to-revert:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
-    if: ${{ env.has-functional-changes }} == 'success'
+    if: jobs.check-for-functional-changes.outcome == 'success' && jobs.check-for-functional-changes.conclusion == 'success'
+    #if: ${{ env.has-functional-changes }} == 'success'
     steps:
       - name: IWT
         run: echo "has-functional-changes=success !"
 
-  test-varnotset-to-revert:
-    runs-on: ubuntu-20.04
-    needs: [ check-for-functional-changes ]
-    if: ${{ env.has-functional-changes }} != 'success'
-    steps:
-      - name: IWT
-        run: echo "has-functional-changes Failed !"
+  # test-varnotset-to-revert:
+  #   runs-on: ubuntu-20.04
+  #   needs: [ check-for-functional-changes ]
+  #   if: ${{ env.has-functional-changes }} != 'success'
+  #   steps:
+  #     - name: IWT
+  #       run: echo "has-functional-changes Failed !"
 
   deploy:
     runs-on: ubuntu-20.04
