@@ -43,8 +43,6 @@ jobs:
     needs: [ build ]
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -70,7 +68,6 @@ jobs:
     env:
       # Needed for coveralls
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -90,33 +87,9 @@ jobs:
       - name : coverage
         run: coveralls --service=github
 
-  # Coverage will need GITHUB_TOKEN : "Running on Github Actions but GITHUB_TOKEN is not set."
-  # coverage:
-  #   runs-on: ${{ matrix.os }}
-  #   needs: [ build ]
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       os: [ "ubuntu-20.04" ]  # On peut ajouter "macos-latest" si besoin
-  #       python-version: ["3.9.9"]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v3
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #     - name: Cache build
-  #       id: restore-build
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ${{ env.pythonLocation }}
-  #         key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
-  #     - name : coverage
-  #       run: coveralls
-
   check-version-and-changelog:
     runs-on: ubuntu-20.04
-    needs: [ lint-files, build ] # TODO: Replace build by test-python
+    needs: [ lint-files, test-python ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -128,12 +101,8 @@ jobs:
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
-  # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
-  # We build a separate job to substitute the halt option.
-  # The `deploy` job is dependent on the output of the `check-for-functional-changes` job.
   check-for-functional-changes:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version-and-changelog ]
     outputs:
       status: ${{ steps.stop-early.outputs.has_functional_changes_status }}
@@ -146,12 +115,35 @@ jobs:
         with:
           python-version: 3.9.9
       - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has_functional_changes_status=detected_functional_changes" >> $GITHUB_OUTPUT ; fi
+        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has-functional-changes=success"  >> $GITHUB_ENV ; fi
+
+  test-to-revert:
+    runs-on: ubuntu-20.04
+    needs: [ check-for-functional-changes ]
+    steps:
+      - name: IWT
+        run: echo "We run !"
+        
+  test-var-to-revert:
+    runs-on: ubuntu-20.04
+    needs: [ check-for-functional-changes ]
+    if: ${{ env.has-functional-changes }} == 'success'
+    steps:
+      - name: IWT
+        run: echo "has-functional-changes=success !"
+
+  test-varnotset-to-revert:
+    runs-on: ubuntu-20.04
+    needs: [ check-for-functional-changes ]
+    if: ${{ env.has-functional-changes }} != 'success'
+    steps:
+      - name: IWT
+        run: echo "has-functional-changes Failed !"
 
   deploy:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
-    if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
+    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
