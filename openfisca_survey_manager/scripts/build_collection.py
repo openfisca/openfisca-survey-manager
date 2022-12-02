@@ -167,7 +167,7 @@ def check_template_config_files(config_files_directory: str):
                         os.path.join(templates_config_files_directory, template_file),
                         os.path.join(config_files_directory, template_file),
                         )
-            print("Rename and fill the template files in {}".format(config_files_directory))
+            print("Rename and fill the template files in {}".format(config_files_directory))  # noqa analysis:ignore
             return False
     else:
         os.makedirs(config_files_directory)

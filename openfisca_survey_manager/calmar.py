@@ -1,4 +1,4 @@
-
+"""CALMAR: Calibrates weights to satisfy margins constraints."""
 
 import logging
 import operator
@@ -109,7 +109,7 @@ def build_dummies_dict(data):
 
 def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
         xtol = 1.49012e-08, maxfev = 256):
-    """Calibrates weights to satisfy margins constraints
+    """Calibrates weights to satisfy margins constraints.
 
     Args:
         data_in (pd.DataFrame): The observations data
@@ -117,6 +117,7 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
           - a scalar for numeric variables
           - a dictionnary with categories as key and populations as values
           - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
+
         initial_weight (str, optional): Initial weight variable. Defaults to 'wprm_init'.
         method (str, optional): Calibration method. Should be 'linear', 'raking ratio' or 'logit'. Defaults to 'linear'.
         lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method. Should be < 1. Defaults to None.
@@ -313,4 +314,4 @@ def check_calmar(data_in, margins, initial_weight='wprm_init', pondfin_out = Non
     """
     for variable, margin in margins.items():
         if variable != 'total_population':
-            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))
+            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))  # noqa analysis:ignore

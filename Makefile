@@ -22,7 +22,7 @@ build: clean deps
 	@# of OpenFisca-Survey-Manager, the same we put in the hands of users and reusers.
 	python -m build
 	pip uninstall --yes OpenFisca-Survey-Manager
-	find dist -name "*.whl" -exec pip install {}[dev] \;
+	find dist -name "*.whl" -exec pip install {}[dev,sas] \;
 
 check-syntax-errors:
 	python -m compileall -q .

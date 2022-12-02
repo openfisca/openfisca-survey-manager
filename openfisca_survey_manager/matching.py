@@ -73,7 +73,7 @@ summary(fused.nnd.m)
         match_vars = match_vars,
         z_variables = z_variables,
         )
-    print(r_script)
+    print(r_script)  # noqa analysis:ignore
 
 
 def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = None,
@@ -107,13 +107,13 @@ def nnd_hotdeck_using_rpy2(receiver = None, donor = None, matching_variables = N
                 # don_class = pd.Series(donor_classes)
                 )
     except Exception as e:
-        print(1)
-        print(receiver)
-        print(2)
-        print(donor)
-        print(3)
-        print(pd.Series(matching_variables))
-        print(e)
+        print(1)  # noqa analysis:ignore
+        print(receiver)  # noqa analysis:ignore
+        print(2)  # noqa analysis:ignore
+        print(donor)  # noqa analysis:ignore
+        print(3)  # noqa analysis:ignore
+        print(pd.Series(matching_variables))  # noqa analysis:ignore
+        print(e)  # noqa analysis:ignore
 
     # create synthetic data.set, without the
     # duplication of the matching variables

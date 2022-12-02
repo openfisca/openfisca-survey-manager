@@ -8,22 +8,17 @@ import numpy as np
 
 
 def gini(values, weights = None):
-    """Computes Gini coefficient (normalized to 1)
-    Using fastgini formula :
-
-
-                      i=N      j=i
-                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
-                      i=1      j=1
-          G = 1 - 2* ----------------------------------
-                           i=N             i=N
-                           SUM W_i*X_i  *  SUM W_i
-                           i=1             i=1
-
-
-        where observations are sorted in ascending order of X.
-
-    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    """Computes Gini coefficient (normalized to 1).
+    # Using fastgini formula :
+    #             i=N      j=i
+    #             SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
+    #             i=1      j=1
+    # G = 1 - 2* ----------------------------------
+    #                 i=N             i=N
+    #                 SUM W_i*X_i  *  SUM W_i
+    #                 i=1             i=1
+    # where observations are sorted in ascending order of X.
+    # From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
 
     Args:
       values: Vector of values

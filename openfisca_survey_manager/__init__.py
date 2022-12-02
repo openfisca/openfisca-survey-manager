@@ -19,8 +19,10 @@ if taxipp_location is None or not os.path.exists(default_config_files_directory)
     default_config_files_directory = None
 
 # Travis tests
-is_travis = 'TRAVIS' in os.environ
-is_circleci = 'CIRCLECI' in os.environ
+if 'CI' in os.environ:
+    is_in_ci = True
+else:
+    is_in_ci = False
 
 test_config_files_directory = os.path.join(
     pkg_resources.get_distribution('openfisca-survey-manager').location,
@@ -35,7 +37,7 @@ config_ini = config_ini.format(location = pkg_resources.get_distribution('openfi
 with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
     file.write(config_ini)
 
-if is_travis or is_circleci:
+if is_in_ci:
     default_config_files_directory = test_config_files_directory
 
 if default_config_files_directory is None:

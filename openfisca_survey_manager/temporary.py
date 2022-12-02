@@ -46,7 +46,6 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
             try:
                 return func(*args, temporary_store = temporary_store, **kwargs)
             except Exception as e:
-                print(e)
                 raise(e)
             finally:
                 gc.collect()

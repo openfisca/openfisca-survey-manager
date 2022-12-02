@@ -568,7 +568,7 @@ class AbstractSurveyScenario(object):
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
-        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe)
+        """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe).
 
         Args:
           variables(list, optional): Variable to compute, defaults to None
@@ -659,9 +659,11 @@ class AbstractSurveyScenario(object):
 
         if index:
             person_data_frame = openfisca_data_frame_by_entity_key.get(person_entity.key)
+            person_data_frame.index.name = self.id_variable_by_entity_key["person"]
             if person_data_frame is None:
                 person_data_frame = pd.DataFrame()
             for entity in non_person_entities:
+                entity_key_id = self.id_variable_by_entity_key[entity.key]
                 person_data_frame[
                     "{}_{}".format(entity.key, 'id')
                     ] = simulation.populations[entity.key].members_entity_id
@@ -676,6 +678,11 @@ class AbstractSurveyScenario(object):
                 person_data_frame[
                     "{}_{}".format(entity.key, 'position')
                     ] = simulation.populations[entity.key].members_position
+
+                # Set index names as entity_id
+                openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
+                openfisca_data_frame_by_entity_key[entity.key].reset_index(inplace=True)
+            person_data_frame.reset_index(inplace=True)
 
         for entity_key, expressions in expressions_by_entity_key.items():
             data_frame = openfisca_data_frame_by_entity_key[entity_key]
@@ -707,8 +714,8 @@ class AbstractSurveyScenario(object):
         """Customize input data frame.
 
         Args:
-          input_data_frame: Original input data frame
-          **kwargs: Keyword arguments
+          input_data_frame: original input data frame.
+          kwargs: keyword arguments.
         """
         pass
 
@@ -909,7 +916,7 @@ class AbstractSurveyScenario(object):
           use_marginal_tax_rate(bool): True to go into marginal effective tax rate computation mode.
           calibration_kwargs(dict):  Calibration options (Default value = None)
           inflation_kwargs(dict): Inflations options (Default value = None)
-          rebuild_input_data(bool): Wether to rebuild the data (Default value = False)
+          rebuild_input_data(bool): Whether to rebuild the data (Default value = False)
           rebuild_kwargs:  Rebuild options (Default value = None)
 
         """
@@ -1265,7 +1272,7 @@ class AbstractSurveyScenario(object):
                 ))
         infos_lines.sort()
         for _, _, line in infos_lines:
-            print(line.rjust(100))
+            print(line.rjust(100))  # noqa analysis:ignore
 
     def neutralize_variables(self, tax_benefit_system):
         """Neutralizes input variables not in input dataframe and keep some crucial variables
@@ -1291,7 +1298,7 @@ class AbstractSurveyScenario(object):
 
         Args:
           directory: Directory to restore simulations from
-          **kwargs: Restoration options
+          kwargs: Restoration options
 
         """
         assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
@@ -1300,7 +1307,7 @@ class AbstractSurveyScenario(object):
         if use_sub_directories:
             for use_baseline in [False, True]:
                 sub_directory = 'baseline' if use_baseline else 'reform'
-                print(os.path.join(directory, sub_directory), use_baseline)
+                print(os.path.join(directory, sub_directory), use_baseline)  # noqa analysis:ignore
                 self._restore_simulation(
                     directory = os.path.join(directory, sub_directory),
                     use_baseline = use_baseline,
@@ -1379,8 +1386,8 @@ class AbstractSurveyScenario(object):
         value_type = variable_instance.value_type
 
         if variable_instance.is_neutralized:
-            print("")
-            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))
+            print("")  # noqa analysis:ignore
+            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))  # noqa analysis:ignore
             return
 
         if weighted:
@@ -1394,7 +1401,7 @@ class AbstractSurveyScenario(object):
                 self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
                 return
             else:
-                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))
+                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))  # noqa analysis:ignore
                 return
 
         header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
@@ -1406,14 +1413,14 @@ class AbstractSurveyScenario(object):
             default_value,
             humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
             )
-        print("")
-        print(header_line)
-        print("Details:")
+        print("")  # noqa analysis:ignore
+        print(header_line)  # noqa analysis:ignore
+        print("Details:")  # noqa analysis:ignore
         holder = simulation.get_holder(variable)
         if holder is not None:
             if holder.variable.definition_period == ETERNITY:
                 array = holder.get_array(ETERNITY)
-                print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
+                print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(  # noqa analysis:ignore
                     # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
                     array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                     array.min(),
@@ -1429,7 +1436,7 @@ class AbstractSurveyScenario(object):
                 for period in sorted(simulation.get_known_periods(variable)):
                     array = holder.get_array(period)
                     if array.shape == ():
-                        print("{}: always = {}".format(period, array))
+                        print("{}: always = {}".format(period, array))  # noqa analysis:ignore
                         continue
 
                     if value_type == Enum:
@@ -1444,10 +1451,10 @@ class AbstractSurveyScenario(object):
                         groupby = df.groupby(variable)['weights'].sum()
                         total = groupby.sum()
                         expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
-                        print("{}:{}.".format(period, ",".join(expr)))
+                        print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                         continue
 
-                    print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
+                    print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
                         period,
                         array.astype(float).mean() if not weighted else np.average(array, weights = weights),
                         array.min(),
