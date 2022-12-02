@@ -3,8 +3,10 @@
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
 * Technical changes
-- Make tests work in Github Action
-- Add some tests
+- Put back test in CI
+- Fix coveralls config fot GitHub Actions
+- Add a test for create_data_frame_by_entity
+- Bump Actions and Python version to fix warnings
 
 ### 0.46.14 [#234](https://github.com/openfisca/openfisca-survey-manager/pull/234)
 
