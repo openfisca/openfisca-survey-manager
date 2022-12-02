@@ -12,7 +12,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest"]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.7.15", "3.8.14", "3.9.15"]
+        python-version: ["3.7.9", "3.8.9", "3.9.9"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -65,10 +65,11 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.7.15", "3.8.14", "3.9.15"]
+        python-version: ["3.7.9", "3.8.9", "3.9.9"]
     env:
       # Needed for coveralls
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -96,7 +97,7 @@ jobs:
   #     fail-fast: true
   #     matrix:
   #       os: [ "ubuntu-latest" ]  # On peut ajouter "macos-latest" si besoin
-  #       python-version: ["3.7.15"]
+  #       python-version: ["3.7.9"]
   #   steps:
   #     - uses: actions/checkout@v3
   #     - name: Set up Python
@@ -160,7 +161,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7.15
+          python-version: 3.7.9
       - name: Cache build
         id: restore-build
         uses: actions/cache@v3
@@ -187,7 +188,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.7.15"
+          python-version: "3.7.9"
           # Add conda-forge for OpenFisca-Core
           channels: conda-forge
           activate-environment: true
