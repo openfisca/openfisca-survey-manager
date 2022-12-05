@@ -3,8 +3,9 @@
 ### 0.46.16 [#238](https://github.com/openfisca/openfisca-survey-manager/pull/238)
 
 * Technical changes
-- Fix run of build PyPi
-- Remove CircleCI
+- Remove CircleCI as GitHub Action did the same tasks.
+- Clean the way to handle has-functional-changes.
+- Change Conda publication to be the same as in OpenFisca-France.
 
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
