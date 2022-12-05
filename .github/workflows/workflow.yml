@@ -164,6 +164,8 @@ jobs:
       github.ref != 'refs/heads/master' &&
       ${{needs.check-for-functional-changes.outputs.is_fonctional_change}} == 'success'
     steps:
+      - name: debug
+        run: echo is_fonctional_change=${{needs.check-for-functional-changes.outputs.is_fonctional_change}}
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
