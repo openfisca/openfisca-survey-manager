@@ -199,8 +199,6 @@ jobs:
           channels: conda-forge
           activate-environment: true
       - uses: actions/checkout@v3
-      - name: Test max path length
-        run: "python3 openfisca_france/scripts/check_path_length.py"
       - name: Get version
         run: |
           # chcp 65001 #set code page to utf-8
