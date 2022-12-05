@@ -123,7 +123,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
     if: |
-      github.ref == 'refs/heads/master' # Only triggered for the `master` branch &&
+      github.ref == 'refs/heads/master' &&
       ${{needs.check-for-functional-changes.outputs.is_fonctional_change}} == 'success'
     env:
       PYPI_USERNAME: openfisca-bot
