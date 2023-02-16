@@ -35,3 +35,12 @@ def test_add_survey_to_collection():
         )
     ordered_dict = survey_collection.to_json()
     assert survey_name in list(ordered_dict['surveys'].keys())
+
+    # Read survey
+    survey_collection = SurveyCollection.load(config_files_directory = data_dir, collection=name)
+    survey = survey_collection.get_survey(survey_name)
+    table = survey.get_values(
+        table="help", ignorecase=True
+        )
+    print(len(table))
+    assert len(table) == 10
