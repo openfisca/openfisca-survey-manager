@@ -180,14 +180,17 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
 
 def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None,
-        table_label = None, table_name = None):
+        table_label = None, table_name = None, config_files_directory = None):
     period = periods.period(period)
     if table_name is None:
         table_name = entity + '_' + str(period)
     if table_label is None:
         table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
-        survey_collection = SurveyCollection.load(collection = collection)
+        if config_files_directory:
+            survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
+        else:
+            survey_collection = SurveyCollection.load(collection = collection)
     except configparser.NoOptionError:
         survey_collection = SurveyCollection(name = collection)
     except configparser.NoSectionError:  # For tests
