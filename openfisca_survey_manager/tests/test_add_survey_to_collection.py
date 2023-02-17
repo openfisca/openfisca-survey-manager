@@ -3,6 +3,7 @@
 import os
 import pkg_resources
 import pandas as pd
+import pytest
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
@@ -38,7 +39,10 @@ def test_add_survey_to_collection():
     assert survey_name in list(ordered_dict['surveys'].keys())
 
 
+@pytest.mark.order(after="test_surveys.py::test_survey")
 def test_set_table_in_survey_first_year():
+    # if is_in_ci:
+    #     return
     data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager/tests/data_files',
@@ -60,7 +64,10 @@ def test_set_table_in_survey_first_year():
     assert table.rfr.sum() == 103000
 
 
+@pytest.mark.order(after="test_set_table_in_survey_first_year")
 def test_set_table_in_survey_second_year():
+    # if is_in_ci:
+    #     return
     data_dir = os.path.join(
         pkg_resources.get_distribution('openfisca-survey-manager').location,
         'openfisca_survey_manager/tests/data_files',
