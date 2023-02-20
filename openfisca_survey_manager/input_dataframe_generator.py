@@ -191,9 +191,11 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
         else:
             survey_collection = SurveyCollection.load(collection = collection)
-    except configparser.NoOptionError:
+    except configparser.NoOptionError as e:
+        log.warning(f"set_table_in_survey configparser.NoOptionError : {e}")
         survey_collection = SurveyCollection(name = collection)
-    except configparser.NoSectionError:  # For tests
+    except configparser.NoSectionError as e:  # For tests
+        log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
         data_dir = os.path.join(
             pkg_resources.get_distribution('openfisca-survey-manager').location,
             'openfisca_survey_manager',
@@ -208,6 +210,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
     try:
         survey = survey_collection.get_survey(survey_name)
     except AssertionError:
+        log.info(f"Survey {survey_name} does not exist, it will be created.")
         survey = Survey(
             name = survey_name,
             label = survey_label or None,
@@ -218,13 +221,14 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
-            log.warn("{} who should be the HDF5 data directory does not exist: we create the directory".format(
+            log.warning("{} who should be the HDF5 data directory does not exist: we create the directory".format(
                 directory_path))
             os.makedirs(directory_path)
         survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
 
     assert survey.hdf5_file_path is not None
     survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe)
+    # If a survey with save name exist it will be overwritten
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
         ]

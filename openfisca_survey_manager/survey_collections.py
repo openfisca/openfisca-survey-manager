@@ -103,13 +103,13 @@ Contains the following surveys :
             try:
                 json_file_path = config.get("collections", collection)
             except Exception as error:
-                log.debug("Looking for congi file in {}".format(config_files_directory))
+                log.debug("Looking for config file in {}".format(config_files_directory))
                 log.error(error)
                 raise
 
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
-            name = self_json.get('name')
+            name = self_json['name']  # Better than .get as it will raise an error if key don't exist.
 
         self = cls(name = name)
         self.config = config
