@@ -1,9 +1,13 @@
 ﻿# Changelog
 
-### 0.46.16 [#242](https://github.com/openfisca/openfisca-survey-manager/pull/242)
+### 0.46.17 [#242](https://github.com/openfisca/openfisca-survey-manager/pull/242)
 
 * Technical changes
 - Fix bug in `SurveyCollection.load`
+
+### 0.46.16
+
+* CI test
 
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
