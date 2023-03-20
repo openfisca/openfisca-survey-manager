@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 0.46.20 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Technical changes
+- Fix `default_config_directory` for use with `openfisca-france-data` in a CI
+
+
 ### 0.46.19 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
 
 * Technical changes
