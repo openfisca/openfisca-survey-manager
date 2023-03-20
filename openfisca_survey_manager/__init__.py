@@ -50,7 +50,7 @@ else:
     is_in_ci = False
 
 
-if is_in_ci:
+if is_in_ci and default_config_files_directory is None:
     default_config_files_directory = test_config_files_directory
 
 if default_config_files_directory is None:
