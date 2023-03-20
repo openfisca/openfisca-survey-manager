@@ -58,7 +58,7 @@ setup(
             'coveralls >=1.5.0,<3.4.0',
             'flake8 >= 4.0.0, < 4.1.0',
             'flake8-bugbear >= 19.3.0, < 20.0.0',
-            'flake8-docstrings == 1.6.0',
+            'flake8-docstrings == 1.7.0',
             'flake8-print >= 3.1.0, < 4.0.0',
             'flake8-rst-docstrings == 0.2.3',
             'openfisca-country-template >= 3.13.2, < 4.0.0',
