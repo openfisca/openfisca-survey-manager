@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 0.46.19 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Technical changes
+- Bump to publish package
 
 ### 0.46.18 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
 
