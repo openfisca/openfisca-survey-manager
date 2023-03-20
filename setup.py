@@ -70,7 +70,7 @@ setup(
         'casd': [
             'autopep8 == 1.5.5',
             'flake8 >=3.5.0, <4.1.0',
-            'pycodestyle >=2.3.0, <2.9.0',
+            'pycodestyle >=2.3.0, <2.11.0',
             'pytest >=3.0, <7.0.0',
             'scipy >= 1.2.1, < 2.0.0',
             ],
