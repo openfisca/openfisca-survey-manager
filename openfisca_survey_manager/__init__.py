@@ -25,7 +25,7 @@ try:
 except pkg_resources.DistributionNotFound:
     france_data_location = None
 
-if fance_data_location is None or not os.path.exists(default_config_files_directory):
+if france_data_location is None or not os.path.exists(default_config_files_directory):
     default_config_files_directory = None
 
 # Run CI when testing openfisca-survey-manager for example GitHub actions
