@@ -659,7 +659,7 @@ class AbstractSurveyScenario(object):
 
         if index:
             person_data_frame = openfisca_data_frame_by_entity_key.get(person_entity.key)
-            person_data_frame.index.name = self.id_variable_by_entity_key["person"]
+            person_data_frame.index.name = self.id_variable_by_entity_key.get("person", "person_id")
             if person_data_frame is None:
                 person_data_frame = pd.DataFrame()
             for entity in non_person_entities:
