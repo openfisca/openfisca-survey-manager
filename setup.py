@@ -63,7 +63,7 @@ setup(
             'flake8-rst-docstrings == 0.2.3',
             'openfisca-country-template >= 3.13.2, < 4.0.0',
             'pytest >= 4.0.0, < 7.0.0',
-            'pytest-cov >= 2.0.0, < 3.0.0',
+            'pytest-cov >= 2.0.0, < 5.0.0',
             'scipy >= 1.2.1, < 2.0.0',
             'tables >= 3.5.1, < 4.0.0',
             ],
