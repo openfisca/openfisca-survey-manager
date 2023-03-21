@@ -1,17 +1,21 @@
 ﻿# Changelog
 
-## 0.47.1 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.47.2 [#247](https://github.com/openfisca/openfisca-survey-manager/pull/247)
 
 * Technical changes
 - Fix `default_config_directory` for use with `openfisca-france-data` in a CI
 
+## 0.47.1 [#246](https://github.com/openfisca/openfisca-survey-manager/pull/246)
 
-### 0.46.19 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+* Technical changes
+- Fix `default_config_directory` for use with `openfisca-france-data` in a CI
+
+### 0.46.19 [#244](https://github.com/openfisca/openfisca-survey-manager/pull/244)
 
 * Technical changes
 - Bump to publish package
 
-### 0.46.18 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+### 0.46.18 [#243](https://github.com/openfisca/openfisca-survey-manager/pull/243)
 
 * Technical changes
 - Bump to publish package
