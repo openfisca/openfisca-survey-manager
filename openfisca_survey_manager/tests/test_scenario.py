@@ -175,14 +175,14 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
         if cols in data_out['person']:
             pass
         else:
-            print('Columns lost in person table: ', cols)
+            print('Columns lost in person table: ', cols)  # noqa T201
     assert data_out['person']['salary'].equals(table_ind['salary'])
 
     for cols in table_men:
         if cols in data_out['household']:
             pass
         else:
-            print('Columns lost in household table: ', cols)
+            print('Columns lost in household table: ', cols)  # noqa T201
     assert data_out['household']['rent'].equals(table_men['rent'])
 
 

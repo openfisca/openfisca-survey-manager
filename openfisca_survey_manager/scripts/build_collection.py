@@ -147,8 +147,8 @@ def check_template_config_files(config_files_directory: str):
     config_template_ini_path = os.path.join(config_files_directory, 'config_template.ini')
 
     if os.path.exists(config_files_directory):
-        config_files_do_not_exist = not(os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path))
-        templates_config_files_do_not_exist = not(
+        config_files_do_not_exist = not (os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path))
+        templates_config_files_do_not_exist = not (
             os.path.exists(raw_data_template_ini_path) and os.path.exists(config_template_ini_path))
 
         if config_files_do_not_exist:
