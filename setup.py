@@ -19,9 +19,9 @@ Development Status :: 2 - Pre-Alpha
 License :: OSI Approved :: GNU Affero General Public License v3
 Operating System :: POSIX
 Programming Language :: Python
-Programming Language :: Python :: 3.7
-Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
+Programming Language :: Python :: 3.10
+Programming Language :: Python :: 3.11
 Topic :: Scientific/Engineering :: Information Analysis
 """
 
@@ -54,44 +54,45 @@ setup(
             'rpy2',
             ],
         'dev': [
-            'autopep8 >= 1.4.0, < 1.5.0',
-            'coveralls >=1.5.0,<3.4.0',
-            'flake8 >= 4.0.0, < 4.1.0',
-            'flake8-bugbear >= 19.3.0, < 20.0.0',
-            'flake8-docstrings == 1.6.0',
-            'flake8-print >= 3.1.0, < 4.0.0',
-            'flake8-rst-docstrings == 0.2.3',
-            'openfisca-country-template >= 3.13.2, < 4.0.0',
-            'pytest >= 4.0.0, < 7.0.0',
-            'pytest-cov >= 2.0.0, < 3.0.0',
-            'scipy >= 1.2.1, < 2.0.0',
-            'tables >= 3.5.1, < 4.0.0',
+            'autopep8',
+            'coveralls',
+            'flake8',
+            'flake8-bugbear',
+            'flake8-docstrings',
+            'flake8-print',
+            'flake8-rst-docstrings',
+            'openfisca-country-template',
+            'pytest',
+            'pytest-cov',
+            'scipy',
+            'tables',
             ],
         'casd': [
-            'autopep8 == 1.5.5',
-            'flake8 >=3.5.0, <4.1.0',
-            'pycodestyle >=2.3.0, <2.9.0',
-            'pytest >=3.0, <7.0.0',
-            'scipy >= 1.2.1, < 2.0.0',
+            'autopep8',
+            'flake8',
+            'pycodestyle',
+            'pytest',
+            'scipy',
             ],
         'sas': [
-            'pyreadstat >= 1.1.4, < 2.0.0',
-            'SAS7BDAT >= 2.2.2, < 3.0.0',
+            'pyreadstat',
+            'SAS7BDAT',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
-        'chardet >=4.0, <5.0',
+        'chardet',
         'configparser',
         'humanize',
-        'openfisca-core >=35.0.0, <36.0.0',
-        'pandas >= 0.22',
+        # 'openfisca-core >=35.0.0, <36.0.0',
+        'OpenFisca-Core @ git+https://github.com/openfisca/openfisca-core.git@version_leap',
+        'pandas',
         'pyxdg',
         'PyYAML',
-        'tables >= 3.4.4, < 4.0.0',
+        'tables',
         'tabulate',
         'weightedcalcs',
-        'wquantiles >= 0.3',
+        'wquantiles',
         ],
     packages = find_packages(),
     zip_safe = False,
