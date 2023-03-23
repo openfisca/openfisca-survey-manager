@@ -357,7 +357,7 @@ class AbstractSurveyScenario(object):
         marginal_rate = 1 - np.divide(
             numerator,
             denominator,
-            out = np.full_like(numerator, value_for_zero_varying_variable, dtype = np.float),
+            out = np.full_like(numerator, value_for_zero_varying_variable, dtype = np.floating),
             where = (denominator != 0)
             )
 
@@ -1606,7 +1606,7 @@ def init_variable_in_entity(simulation, entity, variable_name, series, period):
             pd.api.types.is_categorical_dtype(series)
             or not (
                 np.issubdtype(series.values.dtype, np.integer)
-                or np.issubdtype(series.values.dtype, np.float)
+                or np.issubdtype(series.values.dtype, float)
                 )
             )
         )
