@@ -84,12 +84,7 @@ setup(
         'chardet >= 5.1.0, < 6.0',
         'configparser >= 5.3.0, < 6.0',
         'humanize >= 4.6.0, < 5.0',
-<<<<<<< HEAD
         'openfisca-core >= 40, < 41',
-=======
-        # 'openfisca-core >=, <',
-        'OpenFisca-Core @ git+https://github.com/openfisca/openfisca-core.git@version_leap',
->>>>>>> 4d79462 (Add version numbers to dependencies)
         'pandas >= 1.5.3, < 2.0',
         'pyxdg >= 0.28, < 0.29',
         'PyYAML >= 6.0, < 7.0',
