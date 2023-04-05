@@ -116,6 +116,9 @@ class AbstractAggregates(object):
         base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
 
         difference_data_frame = base_data_frame[['label', 'entity']].copy()
+        # Remove duplicates
+        difference_data_frame = difference_data_frame.loc[:,~difference_data_frame.columns.duplicated()].copy()
+
         quantities = list()
         quantities += ['amount'] if amount else None
         quantities += ['beneficiaries'] if beneficiaries else None
@@ -132,6 +135,7 @@ class AbstractAggregates(object):
             log.debug(e)
             log.debug("Do not computing differences")
             return None
+
 
         return difference_data_frame
 
