@@ -136,7 +136,6 @@ class AbstractAggregates(object):
             log.debug("Do not computing differences")
             return None
 
-
         return difference_data_frame
 
     def compute_variable_aggregates(self, variable, use_baseline = False, filter_by = None):
@@ -406,6 +405,9 @@ class AbstractAggregates(object):
             'beneficiaries_relative_difference'
             ]
         if difference_data_frame is not None:
+            # Remove eventual duplication
+            difference_data_frame = difference_data_frame.loc[:,~difference_data_frame.columns.duplicated()].copy()
+            aggregates_data_frame = aggregates_data_frame.loc[:,~aggregates_data_frame.columns.duplicated()].copy()
             df = aggregates_data_frame.merge(difference_data_frame, how = 'left')[columns]
         else:
             columns = [column for column in columns if column in aggregates_data_frame.columns]
