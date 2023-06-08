@@ -34,9 +34,7 @@ Il fournit deux fonctionnalités principales:
 
 ## Environment
 
-OpenFisca-Survey-Manager runs on Python 3.7. More recent versions should work, but are not tested.
-
-> Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
+OpenFisca-Survey-Manager runs on Python 3.9. More recent versions should work, but are not tested.
 
 ## Usage
 
@@ -64,7 +62,7 @@ It comes with `build-collection` command that we will use in the next steps.
 
 Create an anvironment and install openfisca-survey-manager
 ```
-conda create -n survey python=3.8
+conda create -n survey python=3.9
 conda activate survey
 conda install -c conda-forge -c openfisca openfisca-survey-manager
 ```

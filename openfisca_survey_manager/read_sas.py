@@ -16,6 +16,6 @@ def read_sas(sas_file_path, clean = False) -> DataFrame:
         except ImportError as e2:
             log.info("Neither pyreadstat nor SAS7BDAT are available")
             print(e1)  # noqa analysis:ignore
-            raise(e2)
+            raise e2
 
     return data_frame

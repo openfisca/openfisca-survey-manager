@@ -27,8 +27,8 @@ class TestCreateDataFrameByEntity(unittest.TestCase):
             index = True
             )
         for entity, input_dataframe in data_frame_by_entity.items():
-            print(f"{entity} for {period}")
-            print(input_dataframe.columns)
+            print(f"{entity} for {period}")  # noqa T201
+            print(input_dataframe.columns)  # noqa T201
             if entity == "person":
                 self.assertIn("person_id", input_dataframe.columns.to_list())
             if entity == "household":
