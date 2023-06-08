@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+# 1.0.0 [#252](https://github.com/openfisca/openfisca-survey-manager/pull/252)
+
+* Technical improvement.
+- Impacted periods: all.
+- Impacted areas: all.
+- Details:
+  - Upgrade every dependencies & use their latest versions
+
 ### 0.47.2 [#247](https://github.com/openfisca/openfisca-survey-manager/pull/247)
 
 * Technical changes
