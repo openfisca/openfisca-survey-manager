@@ -60,14 +60,14 @@ class AbstractAggregates(object):
                 ('amount_relative_difference', "Diff. relative\nDépenses"),
                 ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
                 ))
-        self.source_cible = source_cible
 
-    def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
+    def compute_aggregates(self, source_cible, use_baseline = True, reform = True, actual = True):
         """
         Compute aggregate amounts
         """
         filter_by = self.filter_by
-        self.totals_df = self.load_actual_data(year = self.year, source_cible = self.source_cible)
+        #source_cible = self.source_cible
+        self.totals_df = self.load_actual_data(year = self.year, source_cible = source_cible)
 
         simulation_types = list()
         if use_baseline:
@@ -110,12 +110,12 @@ class AbstractAggregates(object):
             ).loc[self.aggregate_variables]
         return self.base_data_frame
 
-    def compute_difference(self, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
+    def compute_difference(self, source_cible, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
             absolute = True, relative = True):
         """Computes and add relative and/or absolute differences to the data_frame."""
         assert relative or absolute
         assert amount or beneficiaries
-        base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
+        base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates(source_cible)
 
         difference_data_frame = base_data_frame[['label', 'entity']].copy()
         # Remove duplicates
@@ -244,7 +244,7 @@ class AbstractAggregates(object):
             "Données d'enquêtes de l'année %s" % str(self.data_year),
             ])
 
-    def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+    def to_csv(self, source_cible, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Saves the table to csv."""
         assert path is not None
@@ -256,6 +256,7 @@ class AbstractAggregates(object):
             file_path = path
 
         df = self.get_data_frame(
+            source_cible = source_cible,
             absolute = absolute,
             amount = amount,
             beneficiaries = beneficiaries,
@@ -265,7 +266,7 @@ class AbstractAggregates(object):
             )
         df.to_csv(file_path, index = False, header = True)
 
-    def to_excel(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+    def to_excel(self, source_cible, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Saves the table to excel."""
         assert path is not None
@@ -277,6 +278,7 @@ class AbstractAggregates(object):
             file_path = path
 
         df = self.get_data_frame(
+            source_cible = source_cible,
             absolute = absolute,
             amount = amount,
             beneficiaries = beneficiaries,
@@ -313,10 +315,11 @@ class AbstractAggregates(object):
                 df.to_html(html_file)
         return df.to_html()
 
-    def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+    def to_markdown(self, source_cible, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Gets or saves the table to markdown format."""
         df = self.get_data_frame(
+            source_cible = source_cible,
             absolute = absolute,
             amount = amount,
             beneficiaries = beneficiaries,
@@ -339,6 +342,7 @@ class AbstractAggregates(object):
 
     def get_calibration_coeffcient(self, target = "reform"):
         df = self.compute_aggregates(
+            source_cible,
             actual = True,
             use_baseline = 'baseline' == target,
             reform = 'reform' == target,
@@ -347,6 +351,7 @@ class AbstractAggregates(object):
 
     def get_data_frame(
             self,
+            source_cible,
             absolute = True,
             amount = True,
             beneficiaries = True,
@@ -360,6 +365,7 @@ class AbstractAggregates(object):
         columns = self.labels.keys()
         if (absolute or relative) and (target != default):
             difference_data_frame = self.compute_difference(
+                source_cible,
                 absolute = absolute,
                 amount = amount,
                 beneficiaries = beneficiaries,
@@ -388,6 +394,7 @@ class AbstractAggregates(object):
                 columns = [column for column in columns if simulation_type not in column]
 
         aggregates_data_frame = self.compute_aggregates(
+            source_cible,
             actual = 'actual' in [target, default],
             use_baseline = 'baseline' in [target, default],
             reform = 'reform' in [target, default],
