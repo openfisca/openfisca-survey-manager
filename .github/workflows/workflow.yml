@@ -55,9 +55,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
-      - run: pip list
-      - run: pip install -e .[dev]
-      - run: pip list
+      - run: pip install -e .[dev]  # Need to install linter
       - run: make check-syntax-errors
       - run: make check-style
 
