@@ -23,6 +23,7 @@ class AbstractAggregates(object):
     filter_by = None
     labels = None
     simulation = None
+    source_cible = None
     survey_scenario = None
     totals_df = None
 
@@ -59,13 +60,14 @@ class AbstractAggregates(object):
                 ('amount_relative_difference', "Diff. relative\nDépenses"),
                 ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
                 ))
+        self.source_cible = source_cible
 
     def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
         """
         Compute aggregate amounts
         """
         filter_by = self.filter_by
-        self.totals_df = self.load_actual_data(year = self.year)
+        self.totals_df = self.load_actual_data(year = self.year, source_cible = self.source_cible)
 
         simulation_types = list()
         if use_baseline:
@@ -428,5 +430,5 @@ class AbstractAggregates(object):
                         )
         return df
 
-    def load_actual_data(self, year = None):
+    def load_actual_data(self, year = None, source_cible = None):
         NotImplementedError
