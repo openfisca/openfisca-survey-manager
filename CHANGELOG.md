@@ -1,6 +1,12 @@
 ﻿# Changelog
 
-### 0.47.2 [#247](https://github.com/openfisca/openfisca-survey-manager/pull/247)
+## 0.48.0 [#253](https://github.com/openfisca/openfisca-survey-manager/pull/253)
+
+* Technical changes
+- Require Python >= 3.9
+- Upgrade dependencies to their latest versions
+
+### 0.47.2 [#247](https://github.com/openfisca/openfisca-survey-manager/pull/253)
 
 * Technical changes
 - Fix `default_config_directory` for use with `openfisca-france-data` in a CI
