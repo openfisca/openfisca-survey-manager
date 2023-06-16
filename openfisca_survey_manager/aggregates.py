@@ -23,7 +23,6 @@ class AbstractAggregates(object):
     filter_by = None
     labels = None
     simulation = None
-    source_cible = None
     survey_scenario = None
     totals_df = None
 
