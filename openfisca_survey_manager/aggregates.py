@@ -65,7 +65,6 @@ class AbstractAggregates(object):
         Compute aggregate amounts
         """
         filter_by = self.filter_by
-        #source_cible = self.source_cible
         self.totals_df = self.load_actual_data(year = self.year, source_cible = source_cible)
 
         simulation_types = list()
@@ -339,7 +338,7 @@ class AbstractAggregates(object):
 
         return df.to_markdown()
 
-    def get_calibration_coeffcient(self, target = "reform"):
+    def get_calibration_coeffcient(self, source_cible, target = "reform"):
         df = self.compute_aggregates(
             source_cible,
             actual = True,
