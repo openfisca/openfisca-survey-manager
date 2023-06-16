@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 1.1.0 [#255](https://github.com/openfisca/openfisca-survey-manager/pull/255)
+
+* Technical changes
+- Add data source option in AbstractAggregates
+
 # 1.0.0 [#252](https://github.com/openfisca/openfisca-survey-manager/pull/252)
 
 * Technical improvement.
