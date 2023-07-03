@@ -327,9 +327,26 @@ def test_inflate():
         )
 
 
+def test_compute_pivot_table():
+    survey_scenario = create_randomly_initialized_survey_scenario()
+    period = "2017-01"
+    pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
+    assert pivot_table.index == "salary"
+    assert pivot_table.values.round() == 26007
+    return pivot_table
+
+
+def test_compute_quantile():
+    survey_scenario = create_randomly_initialized_survey_scenario()
+    period = "2017-01"
+    quintiles = survey_scenario.compute_quantiles(variable = "salary", nquantiles = 5, period = period, weighted = False)
+
+
 if __name__ == "__main__":
     import sys
     log = logging.getLogger(__name__)
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    test_inflate()
+    test_compute_quantile()
+    # pivot_table = test_compute_pivot_table()
+    # test_inflate()
     # test_create_data_frame_by_entity()
