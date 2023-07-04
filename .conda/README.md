@@ -6,12 +6,12 @@ There are two publishing systems for `openfisca-survey-manager` conda packages:
 
 ## Automatic upload
 
-The CI automaticaly builds the conda package from the [PyPi package](https://pypi.org/project/OpenFisca-Survey-Manager/), and uploads it to [anaconda.org](https://anaconda.org/search?q=openfisca-survey-manager). You can check this out in the GitHub Actions CI file `.github/workflow/workflow.yml` and its `publish-to-conda` step.
+The CI automaticaly builds the conda package from the [PyPi package](https://pypi.org/project/OpenFisca-Survey-Manager/), and uploads it to [anaconda.org](https://anaconda.org/search?q=openfisca-survey-manager). You can check this out in the GitHub Actions configuration file `.github/workflow/workflow.yml` and its `publish-to-conda` step.
 
-## Manual actions made to make it works the first time
+## Manual actions made to make it work the first time
 
 - Create an account on https://anaconda.org.
-- Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expire on 2023/01/13.
+- Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expires on 2024/02/07.
 - Put the token in a CI env variable ANACONDA_TOKEN.
 
 ## Manual actions before CI exist
