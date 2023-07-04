@@ -1,12 +1,12 @@
 # Publish to conda
 
-There is two systems to publish to conda:
-- A fully automatic CI that publish to an _openfisca_ channel. See below for more information.
-- A more complex in Conda-Forge CI, that publish to _Conda-Forge_ channel. See https://www.youtube.com/watch?v=N2XwK9BkJpA for an introduction to Conda-Forge. We do not use it for this project.
+There are two publishing systems for `openfisca-survey-manager` conda packages:
+- A fully automatic CI that publishes to an _openfisca_ channel. See below for more information.
+- A more complex CI calling Conda-Forge CI, that publishes to the _Conda-Forge_ channel. See https://www.youtube.com/watch?v=N2XwK9BkJpA for an introduction to Conda-Forge. We do not use it for this project.
 
 ## Automatic upload
 
-The CI automaticaly build the conda from the PyPi package, and upload it to [anaconda.org](https://anaconda.org/search?q=openfisca) see the `.github/workflow/workflow.yml`, step `publish-to-conda`.
+The CI automaticaly builds the conda package from the [PyPi package](https://pypi.org/project/OpenFisca-Survey-Manager/), and uploads it to [anaconda.org](https://anaconda.org/search?q=openfisca-survey-manager). You can check this out in the GitHub Actions CI file `.github/workflow/workflow.yml` and its `publish-to-conda` step.
 
 ## Manual actions made to make it works the first time
 
