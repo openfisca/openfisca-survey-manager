@@ -11,8 +11,10 @@ The CI automaticaly builds the conda package from the [PyPi package](https://pyp
 ## Manual actions made to make it work the first time
 
 - Create an account on https://anaconda.org.
-- Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expires on 2024/02/07.
+- Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_.
 - Put the token in a CI environment variable named `ANACONDA_TOKEN`.
+
+⚠️ Warning, the current token expires on 2025/01/14. Check existing tokens and their expiration dates on Anaconda.org website and its [_Access_ section](https://anaconda.org/openfisca/settings/access).
 
 ## Manual actions before initializing the CI
 
