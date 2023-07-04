@@ -12,19 +12,19 @@ The CI automaticaly builds the conda package from the [PyPi package](https://pyp
 
 - Create an account on https://anaconda.org.
 - Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expires on 2024/02/07.
-- Put the token in a CI env variable ANACONDA_TOKEN.
+- Put the token in a CI environment variable named `ANACONDA_TOKEN`.
 
-## Manual actions before CI exist
+## Manual actions before initializing the CI
 
-To create the package you can do the following in the project root folder:
+To create a conda package for this repository you can do the following in the project root folder:
 
-- Edit `.conda/meta.yaml` and update it if needed:
+- Edit the `.conda/meta.yaml` and update it if needed with:
     - Version number
     - Hash SHA256
     - Package URL on PyPi
 
-- Build & Upload package:
+- Build & Upload the package:
     - `conda install -c anaconda conda-build anaconda-client`
     - `conda build .conda`
     - `anaconda login`
-    - `anaconda upload openfisca-core-<VERSION>-py_0.tar.bz2`
+    - `anaconda upload openfisca-survey-manager-<VERSION>-py_0.tar.bz2`
