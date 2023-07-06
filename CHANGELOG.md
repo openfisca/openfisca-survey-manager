@@ -8,12 +8,17 @@
 - Details:
   - Upgrade every dependencies & use their latest versions
 
-### 0.47.2 [#247](https://github.com/openfisca/openfisca-survey-manager/pull/247)
+### 0.47.2 [#249](https://github.com/openfisca/openfisca-survey-manager/pull/249)
 
 * Technical changes
 - Fix `default_config_directory` for use with `openfisca-france-data` in a CI
 
-## 0.47.1 [#246](https://github.com/openfisca/openfisca-survey-manager/pull/246)
+### 0.47.1 [#246](https://github.com/openfisca/openfisca-survey-manager/pull/246)
+
+* Bug fix
+- Debug france data ci (fixes 0.47.0)
+
+## 0.47.0 [#245](https://github.com/openfisca/openfisca-survey-manager/pull/245)
 
 * Technical changes
 - Fix `default_config_directory` for use with `openfisca-france-data` in a CI
@@ -35,7 +40,7 @@
 
 ### 0.46.16
 
-* CI test
+* CI test (no tag)
 
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
