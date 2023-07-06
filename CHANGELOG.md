@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+### [#257](https://github.com/openfisca/openfisca-survey-manager/pull/257)
+
+* Technical changes
+- In GitHub Actions workflow, fixes the `check-for-functional-changes` → **`deploy`** → `publish-to-conda` jobs sequence
+  - Fix the activation of the `deploy` job by fixing how it gets `check-for-functional-changes` output status
+  - Allow the activation of `publish-to-conda` job that needs the `deploy` job
+- Add conda configuration files to non functional files for CI
+
 # 1.0.0 [#252](https://github.com/openfisca/openfisca-survey-manager/pull/252)
 
 * Technical improvement
@@ -40,7 +48,7 @@
 
 ### 0.46.16
 
-* CI test (no tag)
+* CI test
 
 ### 0.46.15 [#236](https://github.com/openfisca/openfisca-survey-manager/pull/236)
 
