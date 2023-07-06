@@ -204,6 +204,7 @@ jobs:
           conda info
           conda config --set anaconda_upload yes
       - name: Conda build
+        # See .conda/meta.yaml for more information on the built package
         run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
 
   test-on-windows:
