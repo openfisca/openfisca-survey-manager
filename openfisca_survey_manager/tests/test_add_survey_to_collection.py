@@ -58,7 +58,6 @@ def test_set_table_in_survey_first_year():
     table = survey.get_values(
         table="foyer_2020", ignorecase=True
         )
-    print(len(table))
     assert len(table) == 3
     assert table.columns == ["rfr"]
     assert table.rfr.sum() == 103000
@@ -84,7 +83,6 @@ def test_set_table_in_survey_second_year():
     table = survey.get_values(
         table="foyer_2020", ignorecase=True
         )
-    print(len(table))
     assert len(table) == 3
     assert table.columns == ["rfr"]
     assert table.rfr.sum() == 103000
@@ -96,7 +94,6 @@ def test_set_table_in_survey_second_year():
     table = survey.get_values(
         table="foyer_2021", ignorecase=True
         )
-    print(len(table))
     assert len(table) == 3
     assert table.columns == ["rfr"]
     assert table.rfr.sum() == 103063
