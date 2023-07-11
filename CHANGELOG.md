@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### [#257](https://github.com/openfisca/openfisca-survey-manager/pull/257)
+### 1.0.1 [#257](https://github.com/openfisca/openfisca-survey-manager/pull/257)
 
 * Technical changes
 - In GitHub Actions workflow, fixes the `check-for-functional-changes` → **`deploy`** → `publish-to-conda` jobs sequence
