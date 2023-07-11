@@ -47,12 +47,17 @@ outputs:
   - name: openfisca-survey-manager-matching
     build:
       noarch: python
+    commands:
+      - echo {{ data.keys() }}
     requirements:
       host:
         - python
       run:
-        - feather
-        - rpy2
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('matching', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
   - name: openfisca-survey-manager-dev
@@ -62,13 +67,11 @@ outputs:
       host:
         - python
       run:
-        - autopep8 >=1.4.0,<=1.5.7
-        - coveralls >=1.5.0,<3.4.0
-        - flake8 >=3.8.0,<3.10.0
-        - openfisca-country-template >=3.6.0,<4.0.0
-        - pytest >=4.0.0,<7.0.0
-        - pytest-cov >=2.0.0, <3.0.0
-        - scipy >=1.2.1, <2.0.0
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('dev', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
   - name: openfisca-survey-manager-sas
@@ -78,8 +81,11 @@ outputs:
       host:
         - python
       run:
-        - pyreadstat >=1.1.4, <2.0.0
-        - SAS7BDAT >=2.2.2, <3.0.0
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('sas', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
 about:
