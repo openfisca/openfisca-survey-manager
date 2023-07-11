@@ -1,10 +1,12 @@
 ###############################################################################
-## Fichier de description du package pour Anaconda.org
-## Attention, les chaines PYPI_VERSION, PYPI_URL et PYPI_SHA256 sont remplacées
-## par la CI, il faut les conserver.
+## File describing the package for Anaconda.org
+## Warning! PYPI_VERSION, PYPI_URL and PYPI_SHA256 strings are replaced
+## by the CI. They must be kept as they are.
+## It uses Jinja2 templating code to retreive information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Survey-Manager" %}
+{% set data = load_setup_py_data() %}
 {% set version = "PYPI_VERSION" %}
 
 package:
@@ -26,18 +28,9 @@ requirements:
     - python
     - pip
   run:
-    - python >=3.6,<4.0
-    - chardet >=4.0,<5.0
-    - configparser
-    - humanize
-    - openfisca-core >=35.0.0,<36.0.0
-    - pandas >=0.22
-    - pyxdg
-    - PyYAML
-    - pytables >=3.5.1, <4.0.0
-    - tabulate
-    - weightedcalcs
-    - wquantiles>=0.3
+    {% for req in data.get('install_requires', []) %}
+    - {{ req }}
+    {% endfor %}
 
 
 test:
