@@ -1,8 +1,8 @@
 # Publish to conda
 
-There are two publishing systems for `openfisca-survey-manager` conda packages:
-- A fully automatic CI that publishes to an _openfisca_ channel. See below for more information.
-- A more complex CI calling Conda-Forge CI, that publishes to the _Conda-Forge_ channel. See https://www.youtube.com/watch?v=N2XwK9BkJpA for an introduction to Conda-Forge. We do not use it for this project.
+There are two publishing systems for openfisca conda packages:
+- A fully automatic CI that publishes to an _openfisca_ channel. `openfisca-survey-manager` conda package is published to this channel. See below for more information.
+- A more complex CI calling Conda-Forge CI, that publishes to the _Conda-Forge_ channel. See https://www.youtube.com/watch?v=N2XwK9BkJpA for an introduction to Conda-Forge. We do not use it for this repository.
 
 ## Automatic upload
 
