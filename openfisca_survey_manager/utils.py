@@ -12,11 +12,11 @@ from openfisca_core.parameters import ParameterNode, Scale
 log = logging.getLogger(__name__)
 
 
-def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False):
+def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False, start_update_instant = None):
 
     if (last_year is not None) and (last_year > base_year + 1):
         for year in range(base_year + 1, last_year + 1):
-            inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units)
+            inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units, start_update_instant = start_update_instant)
 
     else:
         if last_year is None:
@@ -26,7 +26,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
 
         for sub_parameter in parameters.children.values():
             if isinstance(sub_parameter, ParameterNode):
-                inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units)
+                inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units, start_update_instant = start_update_instant)
             else:
                 acceptable_units = [
                     'rate_unit',
@@ -54,17 +54,16 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
 
                 for unit_type in unit_by_type.keys():
                     if sub_parameter.metadata[unit_type].startswith("currency"):
-                        inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type)
+                        inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type, start_update_instant = start_update_instant)
 
 
-def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit'):
+def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit', start_update_instant = None):
     """
     Inflate a Parameter leaf according to unit type
 
     Basic unit type are supposed by default
     Other admissible unit types are threshold_unit and rate_unit
     """
-
     if isinstance(sub_parameter, Scale):
         if unit_type == 'threshold_unit':
             for bracket in sub_parameter.brackets:
@@ -86,36 +85,48 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
             start = last_admissible_instant_str,
             value = sub_parameter(last_admissible_instant_str)
             )
-        restricted_to_base_year_value_list = [
-            parameter_at_instant for parameter_at_instant in sub_parameter.values_list
-            if periods.instant(parameter_at_instant.instant_str).year == base_year
-            ]
-        # When value is changed in the base year
-        if restricted_to_base_year_value_list:
-            for parameter_at_instant in reversed(restricted_to_base_year_value_list):
-                if parameter_at_instant.instant_str.startswith(str(base_year)):
-                    value = (
-                        parameter_at_instant.value * (1 + inflator)
-                        if parameter_at_instant.value is not None
-                        else None
-                        )
-                    sub_parameter.update(
-                        start = parameter_at_instant.instant_str.replace(
-                            str(base_year), str(base_year + 1)
-                            ),
-                        value = value,
-                        )
-        # Or use the value at that instant even when it is defined earlier tahn the base year
-        else:
+        if start_update_instant is not None:
+            assert periods.instant(start_update_instant).year == (base_year + 1), "Year of start_update_instant should be base_year + 1"     
             value = (
                 sub_parameter("{}-12-31".format(base_year)) * (1 + inflator)
                 if sub_parameter("{}-12-31".format(base_year)) is not None
                 else None
                 )
             sub_parameter.update(
-                start = "{}-01-01".format(base_year + 1),
+                start = start_update_instant,
                 value = value
                 )
+        else:
+            restricted_to_base_year_value_list = [
+                parameter_at_instant for parameter_at_instant in sub_parameter.values_list
+                if periods.instant(parameter_at_instant.instant_str).year == base_year
+                ]
+            # When value is changed in the base year
+            if restricted_to_base_year_value_list:
+                for parameter_at_instant in reversed(restricted_to_base_year_value_list):
+                    if parameter_at_instant.instant_str.startswith(str(base_year)):
+                        value = (
+                            parameter_at_instant.value * (1 + inflator)
+                            if parameter_at_instant.value is not None
+                            else None
+                            )
+                        sub_parameter.update(
+                            start = parameter_at_instant.instant_str.replace(
+                                str(base_year), str(base_year + 1)
+                                ),
+                            value = value,
+                            )
+            # Or use the value at that instant even when it is defined earlier tahn the base year
+            else:
+                value = (
+                    sub_parameter("{}-12-31".format(base_year)) * (1 + inflator)
+                    if sub_parameter("{}-12-31".format(base_year)) is not None
+                    else None
+                    )
+                sub_parameter.update(
+                    start = "{}-01-01".format(base_year + 1),
+                    value = value
+                    )
 
 
 def asof(tax_benefit_system, instant):
