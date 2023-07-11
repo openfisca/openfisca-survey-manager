@@ -136,7 +136,7 @@ jobs:
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version-and-changelog ]
     outputs:
-      status: ${{ steps.stop-early.outputs.status }}
+      status: ${{ steps.stop-early.outputs.has_functional_changes_status }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -146,12 +146,12 @@ jobs:
         with:
           python-version: 3.9.9
       - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "{status}={success}"  >> $GITHUB_STATE ; fi
+        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has_functional_changes_status=detected_functional_changes" >> $GITHUB_OUTPUT ; fi
 
   deploy:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
-    if: needs.check-for-functional-changes.outputs.status == 'success'
+    if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -204,6 +204,7 @@ jobs:
           conda info
           conda config --set anaconda_upload yes
       - name: Conda build
+        # See .conda/meta.yaml for more information on the built package
         run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
 
   test-on-windows:
