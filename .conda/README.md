@@ -16,17 +16,23 @@ The CI automaticaly builds the conda package from the [PyPi package](https://pyp
 
 ⚠️ Warning, the current token expires on 2025/01/14. Check existing tokens and their expiration dates on Anaconda.org website and its [_Access_ section](https://anaconda.org/openfisca/settings/access).
 
-## Manual actions before initializing the CI
+## Manual actions before initializing the CI or to test the conda packaging
+
+Before initializing the CI the conda package was created locally. Now, the conda packaging is done by the CI. Nevertheless, if you want to test it, this section describes how a package is built and uploaded.
 
 To create a conda package for this repository you can do the following in the project root folder:
 
-- Edit the `.conda/meta.yaml` and update it if needed with:
+1. Edit the `.conda/meta.yaml` and update it if needed with:
     - Version number
     - Hash SHA256
     - Package URL on PyPi
+  Or check how it is automated in the `publish-to-conda` step of the GitHub Actions `.github/workflow.yml` and its `Update meta.yaml` step.
 
-- Build & Upload the package:
-    - `conda install -c anaconda conda-build anaconda-client`
+2. Build package:
+    - `conda install -c anaconda conda-build anaconda-client`  
+      (`conda-build` to build the package and [anaconda-client](https://github.com/Anaconda-Platform/anaconda-client) to push the package to anaconda.org)
     - `conda build .conda`
+
+3. Upload the package to Anaconda.org, but DON'T do it if you don't want to publish your locally built package as an official OpenFisca-Survey-Manager library:
     - `anaconda login`
     - `anaconda upload openfisca-survey-manager-<VERSION>-py_0.tar.bz2`
