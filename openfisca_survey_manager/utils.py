@@ -25,39 +25,37 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
             last_year = base_year + 1
 
         assert last_year == base_year + 1
-
-        for sub_parameter in parameters.children.values():
-            if isinstance(sub_parameter, ParameterNode):
+        
+        if isinstance(parameters, ParameterNode):
+            for sub_parameter in parameters.children.values():
                 inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units, 
                                    start_update_instant = start_update_instant, round_ndigits = round_ndigits)
-            else:
-                acceptable_units = [
-                    'rate_unit',
-                    'threshold_unit',
-                    'unit',
-                    ]
-                if ignore_missing_units:
-                    if not hasattr(sub_parameter, 'metadata'):
-                        continue
-                    # Empty intersection: not unit present in metadata
-                    if not bool(set(sub_parameter.metadata.keys()) & set(acceptable_units)):
-                        continue
-
-                assert hasattr(sub_parameter, 'metadata'), "{} doesn't have metadata".format(sub_parameter.name)
-                unit_types = set(sub_parameter.metadata.keys()).intersection(set(acceptable_units))
-                assert unit_types, "No admissible unit in metadata for parameter {}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function.".format(
-                    sub_parameter.name)
-                if len(unit_types) > 1:
-                    assert unit_types == set(['threshold_unit', 'rate_unit']), \
-                        "Too much admissible units in metadata for parameter {}".format(
-                            sub_parameter.name)
-                unit_by_type = dict([
-                    (unit_type, sub_parameter.metadata[unit_type]) for unit_type in unit_types
-                    ])
-
-                for unit_type in unit_by_type.keys():
-                    if sub_parameter.metadata[unit_type].startswith("currency"):
-                        inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = unit_type, start_update_instant = start_update_instant, round_ndigits = round_ndigits)
+        else:
+            acceptable_units = [
+                'rate_unit',
+                'threshold_unit',
+                'unit',
+                ]
+            if ignore_missing_units:
+                if not hasattr(parameters, 'metadata'):
+                    return
+                # Empty intersection: not unit present in metadata
+                if not bool(set(parameters.metadata.keys()) & set(acceptable_units)):
+                    return
+            assert hasattr(parameters, 'metadata'), "{} doesn't have metadata".format(parameters.name)
+            unit_types = set(parameters.metadata.keys()).intersection(set(acceptable_units))
+            assert unit_types, "No admissible unit in metadata for parameter {}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function.".format(
+                parameters.name)
+            if len(unit_types) > 1:
+                assert unit_types == set(['threshold_unit', 'rate_unit']), \
+                    "Too much admissible units in metadata for parameter {}".format(
+                        parameters.name)
+            unit_by_type = dict([
+                (unit_type, parameters.metadata[unit_type]) for unit_type in unit_types
+                ])
+            for unit_type in unit_by_type.keys():
+                if parameters.metadata[unit_type].startswith("currency"):
+                    inflate_parameter_leaf(parameters, base_year, inflator, unit_type = unit_type, start_update_instant = start_update_instant, round_ndigits = round_ndigits)
 
 
 def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit', start_update_instant = None, round_ndigits = 2):
