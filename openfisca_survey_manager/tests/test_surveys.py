@@ -34,5 +34,22 @@ def test_survey():
     survey.fill_hdf(source_format = 'sas')
 
 
+def test_survey_load():
+    survey_name = 'test_set_table_in_survey_2021'
+    collection = 'fake'
+    data_dir = os.path.join(
+        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        'openfisca_survey_manager',
+        'tests',
+        'data_files',
+        )
+    survey_collection = SurveyCollection.load(
+        collection=collection, config_files_directory=data_dir
+        )
+    survey = survey_collection.get_survey(survey_name)
+    for table_name, _ in survey.tables.items():
+        assert table_name == "foyer_2021"
+
+
 if __name__ == '__main__':
     test_survey()
