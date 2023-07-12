@@ -22,7 +22,7 @@ from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 from openfisca_survey_manager.calibration import Calibration
-
+from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
@@ -55,6 +55,7 @@ class AbstractSurveyScenario(object):
     varying_variable = None
     weight_variable_by_entity = None
     year = None
+    config_files_directory = default_config_files_directory
 
     def build_input_data(self, **kwargs):
         """Build input data."""
@@ -907,7 +908,8 @@ class AbstractSurveyScenario(object):
                 simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
+            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False,
+            config_files_directory = default_config_files_directory):
         """Initialise a survey scenario from data.
 
         Args:
@@ -918,7 +920,7 @@ class AbstractSurveyScenario(object):
           inflation_kwargs(dict): Inflations options (Default value = None)
           rebuild_input_data(bool): Whether to rebuild the data (Default value = False)
           rebuild_kwargs:  Rebuild options (Default value = None)
-
+          config_files_directory:  Directory where to find the configuration files (Default value = default_config_files_directory)
         """
         # When not ``None``, it'll try to get the data for *year*.
         if data is not None:
@@ -1233,7 +1235,7 @@ class AbstractSurveyScenario(object):
     def load_table(self, variables = None, collection = None, survey = None,
             table = None):
         collection = collection or self.collection
-        survey_collection = SurveyCollection.load(collection = self.collection)
+        survey_collection = SurveyCollection.load(collection = self.collection, config_files_directory=self.config_files_directory)
         if survey is not None:
             survey = survey
         else:
