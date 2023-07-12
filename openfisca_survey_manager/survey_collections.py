@@ -109,9 +109,9 @@ Contains the following surveys :
 
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
-            name = self_json['name']  # Better than .get as it will raise an error if key don't exist.
+            name = self_json['name']
 
-        self = cls(name = name)
+        self = cls(config_files_directory = config_files_directory, name = name)
         self.config = config
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
@@ -119,7 +119,7 @@ Contains the following surveys :
             self.label = self_json.get('label')
             self.name = self_json.get('name')
 
-        surveys = self_json.get('surveys')
+        surveys = self_json['surveys']
         for survey_name, survey_json in surveys.items():
             survey = Survey(name = survey_name)
             self.surveys.append(survey.create_from_json(survey_json))
