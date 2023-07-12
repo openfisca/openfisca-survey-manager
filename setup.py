@@ -66,6 +66,7 @@ setup(
             'pytest-cov >= 4.0.0, < 5.0',
             'scipy >= 1.10.1, < 2.0',
             'tables >= 3.8.0, < 4.0',
+            'pytest-order >=1.1.0, <2.0',
             ],
         'casd': [
             'autopep8 >= 2.0.2, < 3',
