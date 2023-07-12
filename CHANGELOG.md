@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### 1.0.2 [#259](https://github.com/openfisca/openfisca-survey-manager/pull/259)
+
+* Technical changes
+- A parameter `config_files_directory` exist but it is not used evrywhere, this PR generalize it.
+- Add tests using this parameter.
+
 ### 1.0.1 [#257](https://github.com/openfisca/openfisca-survey-manager/pull/257)
 
 * Technical changes
