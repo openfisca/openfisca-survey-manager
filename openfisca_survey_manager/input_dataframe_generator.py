@@ -14,6 +14,7 @@ import pkg_resources
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager import default_config_files_directory
 
 
 log = logging.getLogger(__name__)
@@ -180,17 +181,14 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
 
 def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None,
-        table_label = None, table_name = None, config_files_directory = None):
+        table_label = None, table_name = None, config_files_directory = default_config_files_directory):
     period = periods.period(period)
     if table_name is None:
         table_name = entity + '_' + str(period)
     if table_label is None:
         table_label = "Input data for entity {} at period {}".format(entity, period)
     try:
-        if config_files_directory:
-            survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
-        else:
-            survey_collection = SurveyCollection.load(collection = collection)
+        survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
     except configparser.NoOptionError as e:
         log.warning(f"set_table_in_survey configparser.NoOptionError : {e}")
         survey_collection = SurveyCollection(name = collection)
