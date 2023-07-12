@@ -12,12 +12,12 @@ from openfisca_core.parameters import ParameterNode, Scale
 log = logging.getLogger(__name__)
 
 
-def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False, 
+def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False,
                        start_update_instant = None, round_ndigits = 2):
 
     if (last_year is not None) and (last_year > base_year + 1):
         for year in range(base_year + 1, last_year + 1):
-            inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units, 
+            inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units,
                                start_update_instant = start_update_instant, round_ndigits = round_ndigits)
 
     else:
@@ -25,10 +25,10 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
             last_year = base_year + 1
 
         assert last_year == base_year + 1
-        
+
         if isinstance(parameters, ParameterNode):
             for sub_parameter in parameters.children.values():
-                inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units, 
+                inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units,
                                    start_update_instant = start_update_instant, round_ndigits = round_ndigits)
         else:
             acceptable_units = [
@@ -87,7 +87,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
             value = sub_parameter(last_admissible_instant_str)
             )
         if start_update_instant is not None:
-            assert periods.instant(start_update_instant).year == (base_year + 1), "Year of start_update_instant should be base_year + 1"     
+            assert periods.instant(start_update_instant).year == (base_year + 1), "Year of start_update_instant should be base_year + 1"
             value = (
                 round(sub_parameter("{}-12-31".format(base_year)) * (1 + inflator), round_ndigits)
                 if sub_parameter("{}-12-31".format(base_year)) is not None
