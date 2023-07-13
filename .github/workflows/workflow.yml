@@ -188,8 +188,8 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.9.9
-          # Add conda-forge for OpenFisca-Core
-          channels: conda-forge
+          # Add openfisca channel for OpenFisca-Core
+          channels: conda-forge, openfisca
           activate-environment: true
       - uses: actions/checkout@v3
         with:
@@ -198,7 +198,7 @@ jobs:
         run: |
           python3 -m pip install requests argparse
           python3 .github/get_pypi_info.py -p OpenFisca-Survey-Manager
-      - name: Conda Config
+      - name: Conda config
         run: |
           conda install conda-build anaconda-client
           conda info
@@ -215,8 +215,8 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.9.9
-          # Add conda-forge for OpenFisca-Core
-          channels: conda-forge
+          # Add openfisca channel for OpenFisca-Core
+          channels: openfisca
           activate-environment: true
       - uses: actions/checkout@v3
         with:

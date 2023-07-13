@@ -31,7 +31,7 @@ To create a conda package for this repository you can do the following in the pr
 2. Build package:
     - `conda install -c anaconda conda-build anaconda-client`  
       (`conda-build` to build the package and [anaconda-client](https://github.com/Anaconda-Platform/anaconda-client) to push the package to anaconda.org)
-    - `conda build .conda`
+    - `conda build .conda --channel openfisca`
 
 3. Upload the package to Anaconda.org, but DON'T do it if you don't want to publish your locally built package as an official OpenFisca-Survey-Manager library:
     - `anaconda login`
