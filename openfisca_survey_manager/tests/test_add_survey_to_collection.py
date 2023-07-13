@@ -9,7 +9,7 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 
-# Travis, Gitlab runner, Gihub Action and circle has env variable "CI" set by default
+# GitLab Runner and GitHub Actions have env variable "CI" set by default
 if 'CI' in os.environ:
     is_in_ci = True
 else:

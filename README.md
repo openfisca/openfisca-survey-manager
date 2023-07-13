@@ -249,7 +249,7 @@ To run the entire test suite:
 make test
 ```
 
-To run the entire test suite with the same config as in CI:
+To run the entire test suite with the same config as in Continuous Integration (CI):
 
 ```sh
 CI=True make test

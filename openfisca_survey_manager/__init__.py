@@ -28,7 +28,7 @@ except pkg_resources.DistributionNotFound:
 if france_data_location is None or not os.path.exists(default_config_files_directory):
     default_config_files_directory = None
 
-# Run CI when testing openfisca-survey-manager for example GitHub actions
+# Run CI when testing openfisca-survey-manager for example GitHub Actions
 test_config_files_directory = os.path.join(
     pkg_resources.get_distribution('openfisca-survey-manager').location,
     'openfisca_survey_manager',
@@ -43,7 +43,7 @@ config_ini = config_ini.format(location = pkg_resources.get_distribution('openfi
 with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
     file.write(config_ini)
 
-# GitHub actions test
+# GitHub Actions test
 if 'CI' in os.environ:
     is_in_ci = True
 else:
