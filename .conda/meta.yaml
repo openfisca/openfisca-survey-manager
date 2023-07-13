@@ -26,7 +26,12 @@ requirements:
     - pip
   run:
     {% for req in data.get('install_requires', []) %}
+    {% if req.startswith('tables') %}
+    #  PyPI 'tables' library is named 'pytables' for conda
+    - {{ req.replace('tables', 'pytables') }}
+    {% else %}
     - {{ req }}
+    {% endif %}
     {% endfor %}
 
 
