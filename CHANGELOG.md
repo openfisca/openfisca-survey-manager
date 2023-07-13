@@ -1,27 +1,36 @@
 ﻿# Changelog
 
+### [#261](https://github.com/openfisca/openfisca-survey-manager/pull/261)
+
+* Technical changes
+  - Fix `Conda build` step in `publish-to-conda` GitHub Actions job  
+    - Define `OpenFisca-Survey-Manager` package dependencies once for `PyPI` and `conda`
+      - Use `setup.py` general requirement and extra requirements for `conda` package
+      - Adapt `tables` library name to `pytables` for `conda`
+  - Build `conda` package from repository sources instead of `PyPI` .tar.gz
+
 ### 1.1.0 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
 
 * New features
-
 - Add options in inflate_parameters and inflate_parameter_leaf:
-  - start_update_instant : Instant of the year when the inflation should start, if different from January 1st
-  - round_ndigits : number of digits in the rounded result
+  - `start_update_instant` : Instant of the year when the inflation should start, if different from January 1st
+  - `round_ndigits` : number of digits in the rounded result
 - Adjustment of inflate_parameters to use it with parameter leaf
+
 
 ### 1.0.2 [#259](https://github.com/openfisca/openfisca-survey-manager/pull/259)
 
 * Technical changes
-- A parameter `config_files_directory` exist but it is not used evrywhere, this PR generalize it.
-- Add tests using this parameter.
+  - A parameter `config_files_directory` exist but it is not used evrywhere, this PR generalize it.
+  - Add tests using this parameter.
 
 ### 1.0.1 [#257](https://github.com/openfisca/openfisca-survey-manager/pull/257)
 
 * Technical changes
-- In GitHub Actions workflow, fixes the `check-for-functional-changes` → **`deploy`** → `publish-to-conda` jobs sequence
-  - Fix the activation of the `deploy` job by fixing how it gets `check-for-functional-changes` output status
-  - Allow the activation of `publish-to-conda` job that needs the `deploy` job
-- Add conda configuration files to non functional files for CI
+  - In GitHub Actions workflow, fixes the `check-for-functional-changes` → **`deploy`** → `publish-to-conda` jobs sequence
+    - Fix the activation of the `deploy` job by fixing how it gets `check-for-functional-changes` output status
+    - Allow the activation of `publish-to-conda` job that needs the `deploy` job
+  - Add conda configuration files to non functional files for CI
 
 # 1.0.0 [#252](https://github.com/openfisca/openfisca-survey-manager/pull/252)
 
