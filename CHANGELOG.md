@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
+
+* Technical changes
+  - Remove old `CircleCI` continuous integration configuration
+  - Set `README` CI badge to current `GitHub Actions` CI
+
 ### 1.1.1 [#261](https://github.com/openfisca/openfisca-survey-manager/pull/261)
 
 * Technical changes
@@ -16,7 +22,6 @@
   - `start_update_instant` : Instant of the year when the inflation should start, if different from January 1st
   - `round_ndigits` : number of digits in the rounded result
 - Adjustment of inflate_parameters to use it with parameter leaf
-
 
 ### 1.0.2 [#259](https://github.com/openfisca/openfisca-survey-manager/pull/259)
 
