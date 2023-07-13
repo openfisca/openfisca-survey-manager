@@ -1,13 +1,11 @@
 ###############################################################################
 ## File describing the package for Anaconda.org
-## Warning! PYPI_VERSION, PYPI_URL and PYPI_SHA256 strings are replaced
-## by the CI. They must be kept as they are.
 ## It uses Jinja2 templating code to retreive information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Survey-Manager" %}
 {% set data = load_setup_py_data() %}
-{% set version = "PYPI_VERSION" %}
+{% set version = data.get('version') %}
 
 package:
   name: {{ name|lower }}
@@ -15,8 +13,7 @@ package:
 
 # openfisca-survey-manager package source
 source:
-  url: PYPI_URL
-  sha256: PYPI_SHA256
+  path: ..
 
 build:
   noarch: python
