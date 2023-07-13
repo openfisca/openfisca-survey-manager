@@ -194,10 +194,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
-      - name: Update meta.yaml
-        run: |
-          python3 -m pip install requests argparse
-          python3 .github/get_pypi_info.py -p OpenFisca-Survey-Manager
       - name: Conda config
         run: |
           conda install conda-build anaconda-client
@@ -205,7 +201,7 @@ jobs:
           conda config --set anaconda_upload yes
       - name: Conda build
         # See .conda/meta.yaml for more information on the built package
-        run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
+        run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca --channel openfisca .conda
 
   test-on-windows:
     runs-on: "windows-latest"
@@ -222,6 +218,6 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Install with conda
-        run: conda install -c openfisca openfisca-survey-manager
+        run: conda install --channel openfisca openfisca-survey-manager
       - name: Buid Collection
         run: build-collection
