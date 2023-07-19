@@ -90,7 +90,7 @@ def test_inflate_start_instant_option():
     """
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
-    parameters_asof(parameters, instant = periods.instant(2022))  # Remove post 2016 legislation changes
+    parameters_asof(parameters, instant = periods.instant(2022))  # Remove post 2022 legislation changes
     inflate_parameters(parameters, inflator = .3, base_year = 2022, last_year = 2023, start_instant="2023-07-01")
     for (threshold_2023_06, threshold_2023_07, threshold_2022) in zip(
             parameters.taxes.social_security_contribution('2023-06').thresholds,
