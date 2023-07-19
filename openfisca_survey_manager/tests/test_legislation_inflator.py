@@ -83,6 +83,26 @@ def test_inflate_scale_with_changing_number_of_brackets():
             threshold_2017, threshold_2016 * 1.3
             )
 
+def test_inflate_start_instant_option():
+    """
+        Test parameters inflator with a specific start_instant
+    """
+    tax_benefit_system = CountryTaxBenefitSystem()
+    parameters = tax_benefit_system.parameters
+    parameters_asof(parameters, instant = periods.instant(2022))  # Remove post 2016 legislation changes
+    inflate_parameters(parameters, inflator = .3, base_year = 2022, last_year = 2023, start_instant="2023-07-01")
+    for (threshold_2023_06, threshold_2023_07, threshold_2022) in zip(
+            parameters.taxes.social_security_contribution('2023-06').thresholds,
+            parameters.taxes.social_security_contribution('2023-07').thresholds,
+            parameters.taxes.social_security_contribution(2022).thresholds
+            ):
+        assert threshold_2023_07 == threshold_2022 * 1.3, "{} != {}".format(
+            threshold_2023_07, threshold_2022 * 1.3
+            )
+        assert threshold_2023_06 == threshold_2022, "{} != {}".format(
+            threshold_2023_06, threshold_2022
+            )
+
 
 if __name__ == '__main__':
     test_inflate_simple_parameter()
@@ -90,3 +110,4 @@ if __name__ == '__main__':
     test_inflate_scale_with_changing_number_of_brackets()
     test_asof_simple_annual_parameter()
     test_asof_scale_parameters()
+    test_inflate_start_instant_option()
