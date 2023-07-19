@@ -82,7 +82,7 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
         if unit_type == 'threshold_unit':
             for bracket in sub_parameter.brackets:
                 threshold = bracket.children['threshold']
-                inflate_parameter_leaf(threshold, base_year, inflator)
+                inflate_parameter_leaf(threshold, base_year, inflator, start_instant = start_instant, round_ndigits = round_ndigits)
             return
     else:
         # Remove new values for year > base_year
