@@ -83,6 +83,7 @@ def test_inflate_scale_with_changing_number_of_brackets():
             threshold_2017, threshold_2016 * 1.3
             )
 
+
 def test_inflate_start_instant_option():
     """
         Test parameters inflator with a specific start_instant
