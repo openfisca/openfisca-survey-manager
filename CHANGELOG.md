@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+### 1.0.3 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
+
+* New features
+
+- Add options in inflate_parameters and inflate_parameter_leaf:
+  - start_update_instant : Instant of the year when the inflation should start, if different from January 1st
+  - round_ndigits : number of digits in the rounded result
+- Adjustment of inflate_parameters to use it with parameter leaf
+
 ### 1.0.2 [#259](https://github.com/openfisca/openfisca-survey-manager/pull/259)
 
 * Technical changes
