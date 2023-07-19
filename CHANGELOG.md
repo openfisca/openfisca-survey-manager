@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 1.0.3 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
+### 1.1.0 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
 
 * New features
 
