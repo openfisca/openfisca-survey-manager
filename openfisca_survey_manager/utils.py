@@ -26,7 +26,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
     """
 
     if (last_year is not None) and (last_year > base_year + 1):
-        for year in range(base_year + 1, last_year + 1): # For each year we inflate with the same inflator rate. Example : base_year + 1 : paramaters = paramaters * inflator ; base_year + 2 : parameters = parameters * inflator * inflator
+        for year in range(base_year + 1, last_year + 1):  # For each year we inflate with the same inflator rate. Example : base_year + 1 : paramaters = paramaters * inflator ; base_year + 2 : parameters = parameters * inflator * inflator
             inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units,
                                start_instant = start_instant, round_ndigits = round_ndigits)
 
