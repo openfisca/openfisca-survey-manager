@@ -13,12 +13,25 @@ log = logging.getLogger(__name__)
 
 
 def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False,
-                       start_update_instant = None, round_ndigits = 2):
+                       start_instant  = None, round_ndigits = 2):
+    """
+    Inflate a Parameter node or a Parameter lead according for the years between base_year and last_year
+    ::parameters:: af Parameter node or a Parameter leaf
+    ::inflator:: rate used to inflate the parameter. The rate is unique for all the years
+    ::base_year:: base year of the parameter
+    ::last_year::  last year of inflation
+    ::ignore_missing_units:: if True, a parameter leaf without unit in metadata will not be inflate 
+    ::start_instant :: Instant of the year when the update should start, if None will be Junuary 1st  
+    ::round_ndigits:: Number of digits to keep in the rounded result
+    """
 
     if (last_year is not None) and (last_year > base_year + 1):
         for year in range(base_year + 1, last_year + 1):
+            # For each year we inflate with the same inflator rate. Example : 
+            # base_year + 1 : paramaters = paramaters * inflator
+            # base_year + 2 : parameters = parameters * inflator * inflator
             inflate_parameters(parameters, inflator, year - 1, last_year = year, ignore_missing_units = ignore_missing_units,
-                               start_update_instant = start_update_instant, round_ndigits = round_ndigits)
+                               start_instant  = start_instant , round_ndigits = round_ndigits)
 
     else:
         if last_year is None:
@@ -29,7 +42,7 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
         if isinstance(parameters, ParameterNode):
             for sub_parameter in parameters.children.values():
                 inflate_parameters(sub_parameter, inflator, base_year, last_year, ignore_missing_units = ignore_missing_units,
-                                   start_update_instant = start_update_instant, round_ndigits = round_ndigits)
+                                   start_instant  = start_instant , round_ndigits = round_ndigits)
         else:
             acceptable_units = [
                 'rate_unit',
@@ -55,15 +68,18 @@ def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore
                 ])
             for unit_type in unit_by_type.keys():
                 if parameters.metadata[unit_type].startswith("currency"):
-                    inflate_parameter_leaf(parameters, base_year, inflator, unit_type = unit_type, start_update_instant = start_update_instant, round_ndigits = round_ndigits)
+                    inflate_parameter_leaf(parameters, base_year, inflator, unit_type = unit_type, start_instant  = start_instant , round_ndigits = round_ndigits)
 
 
-def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit', start_update_instant = None, round_ndigits = 2):
+def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit', start_instant  = None, round_ndigits = 2):
     """
-    Inflate a Parameter leaf according to unit type
-
-    Basic unit type are supposed by default
-    Other admissible unit types are threshold_unit and rate_unit
+    Inflate a Parameter leaf according to unit type for the year after base_year
+    ::sub_parameter:: af Parameter leaf
+    ::base_year:: base year of the parameter 
+    ::inflator:: rate used to inflate the parameter
+    ::unit_type:: unit supposed by default. Other admissible unit types are threshold_unit and rate_unit
+    ::start_instant:: Instant of the year when the update should start, if None will be Junuary 1st  
+    ::round_ndigits:: Number of digits to keep in the rounded result
     """
     if isinstance(sub_parameter, Scale):
         if unit_type == 'threshold_unit':
@@ -86,15 +102,15 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type = 'unit
             start = last_admissible_instant_str,
             value = sub_parameter(last_admissible_instant_str)
             )
-        if start_update_instant is not None:
-            assert periods.instant(start_update_instant).year == (base_year + 1), "Year of start_update_instant should be base_year + 1"
+        if start_instant is not None:
+            assert periods.instant(start_instant).year == (base_year + 1), "Year of start_instant should be base_year + 1"
             value = (
                 round(sub_parameter("{}-12-31".format(base_year)) * (1 + inflator), round_ndigits)
                 if sub_parameter("{}-12-31".format(base_year)) is not None
                 else None
                 )
             sub_parameter.update(
-                start = start_update_instant,
+                start = start_instant,
                 value = value,
                 )
         else:
