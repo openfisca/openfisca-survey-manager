@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### [#261](https://github.com/openfisca/openfisca-survey-manager/pull/261)
+### 1.1.1 [#261](https://github.com/openfisca/openfisca-survey-manager/pull/261)
 
 * Technical changes
   - Fix `Conda build` step in `publish-to-conda` GitHub Actions job  
@@ -9,7 +9,7 @@
       - Adapt `tables` library name to `pytables` for `conda`
   - Build `conda` package from repository sources instead of `PyPI` .tar.gz
 
-### 1.1.0 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
+## 1.1.0 [#260](https://github.com/openfisca/openfisca-survey-manager/pull/260)
 
 * New features
 - Add options in inflate_parameters and inflate_parameter_leaf:
