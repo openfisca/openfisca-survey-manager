@@ -1,11 +1,11 @@
 ###############################################################################
-## Fichier de description du package pour Anaconda.org
-## Attention, les chaines PYPI_VERSION, PYPI_URL et PYPI_SHA256 sont remplacées
-## par la CI, il faut les conserver.
+## File describing the package for Anaconda.org
+## It uses Jinja2 templating code to retreive information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Survey-Manager" %}
-{% set version = "PYPI_VERSION" %}
+{% set data = load_setup_py_data() %}
+{% set version = data.get('version') %}
 
 package:
   name: {{ name|lower }}
@@ -13,8 +13,7 @@ package:
 
 # openfisca-survey-manager package source
 source:
-  url: PYPI_URL
-  sha256: PYPI_SHA256
+  path: ..
 
 build:
   noarch: python
@@ -26,18 +25,14 @@ requirements:
     - python
     - pip
   run:
-    - python >=3.6,<4.0
-    - chardet >=4.0,<5.0
-    - configparser
-    - humanize
-    - openfisca-core >=35.0.0,<36.0.0
-    - pandas >=0.22
-    - pyxdg
-    - PyYAML
-    - pytables >=3.5.1, <4.0.0
-    - tabulate
-    - weightedcalcs
-    - wquantiles>=0.3
+    {% for req in data.get('install_requires', []) %}
+    {% if req.startswith('tables') %}
+    #  PyPI 'tables' library is named 'pytables' for conda
+    - {{ req.replace('tables', 'pytables') }}
+    {% else %}
+    - {{ req }}
+    {% endif %}
+    {% endfor %}
 
 
 test:
@@ -54,12 +49,17 @@ outputs:
   - name: openfisca-survey-manager-matching
     build:
       noarch: python
+    commands:
+      - echo {{ data.keys() }}
     requirements:
       host:
         - python
       run:
-        - feather
-        - rpy2
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('matching', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
   - name: openfisca-survey-manager-dev
@@ -69,13 +69,11 @@ outputs:
       host:
         - python
       run:
-        - autopep8 >=1.4.0,<=1.5.7
-        - coveralls >=1.5.0,<3.4.0
-        - flake8 >=3.8.0,<3.10.0
-        - openfisca-country-template >=3.6.0,<4.0.0
-        - pytest >=4.0.0,<7.0.0
-        - pytest-cov >=2.0.0, <3.0.0
-        - scipy >=1.2.1, <2.0.0
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('dev', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
   - name: openfisca-survey-manager-sas
@@ -85,8 +83,11 @@ outputs:
       host:
         - python
       run:
-        - pyreadstat >=1.1.4, <2.0.0
-        - SAS7BDAT >=2.2.2, <3.0.0
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('sas', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
         - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
 
 about:
