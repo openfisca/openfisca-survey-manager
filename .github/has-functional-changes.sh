@@ -2,7 +2,7 @@
 
 echo "Run has functionnal changes"
 
-IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore .circleci/* .github/* .conda/*"
+IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore .github/* .conda/*"
 
 last_tagged_commit=`git describe --tags --abbrev=0 --first-parent`  # --first-parent ensures we don't follow tags not published in master through an unlikely intermediary merge commit
 
