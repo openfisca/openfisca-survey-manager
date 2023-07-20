@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
+### 1.1.2 [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
 
 * Technical changes
   - Remove old `CircleCI` continuous integration configuration
