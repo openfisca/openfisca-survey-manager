@@ -44,11 +44,7 @@ with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file
     file.write(config_ini)
 
 # GitHub Actions test
-if 'CI' in os.environ:
-    is_in_ci = True
-else:
-    is_in_ci = False
-
+is_in_ci = 'CI' in os.environ
 
 if is_in_ci and default_config_files_directory is None:
     default_config_files_directory = test_config_files_directory

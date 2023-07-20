@@ -10,10 +10,7 @@ from openfisca_survey_manager.scripts.build_collection import add_survey_to_coll
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 
 # GitLab Runner and GitHub Actions have env variable "CI" set by default
-if 'CI' in os.environ:
-    is_in_ci = True
-else:
-    is_in_ci = False
+is_in_ci = 'CI' in os.environ
 
 
 def test_add_survey_to_collection():
