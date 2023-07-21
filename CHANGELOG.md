@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 1.1.3 [#263](https://github.com/openfisca/openfisca-survey-manager/pull/263)
+
+* Technical changes
+- Use importlib instead of pkg_resources to avoid deprecation warnings
+
 ### 1.1.2 [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
 
 * Technical changes
@@ -9,7 +14,7 @@
 ### 1.1.1 [#261](https://github.com/openfisca/openfisca-survey-manager/pull/261)
 
 * Technical changes
-  - Fix `Conda build` step in `publish-to-conda` GitHub Actions job  
+  - Fix `Conda build` step in `publish-to-conda` GitHub Actions job
     - Define `OpenFisca-Survey-Manager` package dependencies once for `PyPI` and `conda`
       - Use `setup.py` general requirement and extra requirements for `conda` package
       - Adapt `tables` library name to `pytables` for `conda`
