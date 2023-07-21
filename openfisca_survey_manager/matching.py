@@ -2,7 +2,7 @@
 
 import logging
 import os
-import pkg_resources
+import importlib
 
 import pandas as pd
 
@@ -10,7 +10,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 config_files_directory = os.path.join(
-    pkg_resources.get_distribution('openfisca-survey-manager').location)
+    importlib.metadata.distribution('openfisca-survey-manager').files[0])
 
 
 def nnd_hotdeck_using_feather(receiver = None, donor = None, matching_variables = None, z_variables = None):

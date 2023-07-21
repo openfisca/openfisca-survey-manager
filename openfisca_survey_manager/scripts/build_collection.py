@@ -10,7 +10,7 @@ import datetime
 import logging
 import os
 import pdb
-import pkg_resources
+import importlib
 import shutil
 import sys
 
@@ -158,7 +158,7 @@ def check_template_config_files(config_files_directory: str):
                     'raw_data_template.ini', 'config_template.ini'
                     ]
                 templates_config_files_directory = os.path.join(
-                    pkg_resources.get_distribution('openfisca-survey-manager').location,
+                    importlib.metadata.distribution('openfisca-survey-manager').files[0],
                     'openfisca_survey_manager',
                     'config_files_templates'
                     )

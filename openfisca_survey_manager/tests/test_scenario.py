@@ -4,7 +4,7 @@ import shutil
 
 import logging
 import os
-import pkg_resources
+import importlib
 
 
 from openfisca_core.model_api import *  # noqa analysis:ignore
@@ -266,7 +266,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
 def test_dump_survey_scenario():
     survey_scenario = create_randomly_initialized_survey_scenario()
     directory = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager',
         'tests',
         'data_files',

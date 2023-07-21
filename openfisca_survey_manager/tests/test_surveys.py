@@ -1,6 +1,6 @@
 
 import os
-import pkg_resources
+import importlib
 
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -10,7 +10,7 @@ from openfisca_survey_manager.surveys import Survey
 def test_survey():
     name = 'fake'
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager',
         'tests',
         'data_files',
@@ -38,7 +38,7 @@ def test_survey_load():
     survey_name = 'test_set_table_in_survey_2021'
     collection = 'fake'
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager',
         'tests',
         'data_files',

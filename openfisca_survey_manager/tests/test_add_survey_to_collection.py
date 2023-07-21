@@ -1,7 +1,7 @@
 
 
 import os
-import pkg_resources
+import importlib
 import pandas as pd
 import pytest
 
@@ -19,7 +19,7 @@ def test_add_survey_to_collection():
     name = 'fake'
     survey_name = 'fake_survey'
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager',
         'tests',
         'data_files',
@@ -41,7 +41,7 @@ def test_set_table_in_survey_first_year():
     # if is_in_ci:
     #     return
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager/tests/data_files',
         )
     input_dataframe = pd.DataFrame({"rfr": [1_000, 2_000, 100_000]})
@@ -65,7 +65,7 @@ def test_set_table_in_survey_second_year():
     # if is_in_ci:
     #     return
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager/tests/data_files',
         )
     input_dataframe = pd.DataFrame({"rfr": [1_021, 2_021, 100_021]})

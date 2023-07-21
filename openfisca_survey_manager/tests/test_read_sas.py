@@ -23,7 +23,7 @@
 
 
 import os
-import pkg_resources
+import importlib
 
 from openfisca_survey_manager.read_sas import read_sas
 from pandas.testing import assert_frame_equal
@@ -31,7 +31,7 @@ from pandas.testing import assert_frame_equal
 
 def test():
     sas_file_path = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        importlib.metadata.distribution('openfisca-survey-manager').files[0],
         'openfisca_survey_manager',
         'tests',
         'data_files',
