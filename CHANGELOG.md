@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 1.1.4 [#264](https://github.com/openfisca/openfisca-survey-manager/pull/264)
+
+* Technical changes
+- Change importlib metadata import to work with all Python version
+
 ### 1.1.3 [#263](https://github.com/openfisca/openfisca-survey-manager/pull/263)
 
 * Technical changes

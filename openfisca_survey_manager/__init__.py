@@ -1,4 +1,4 @@
-import importlib
+from importlib import metadata
 import logging
 import os
 from pathlib import Path
@@ -7,15 +7,15 @@ log = logging.getLogger(__name__)
 
 
 openfisca_survey_manager_location = Path(
-    importlib.metadata.distribution('openfisca-survey-manager').files[0]
+    metadata.distribution('openfisca-survey-manager').files[0]
     ).parent
 
 # Hack for use at the CASD (shared user)
 # Use taxipp/.config/ directory if exists as default_config_files_directory
 try:
-    taxipp_location = importlib.metadata.distribution('taxipp').files[0]
+    taxipp_location = Path(metadata.distribution('taxipp').files[0]).parent
     default_config_files_directory = os.path.join(taxipp_location, '.config', 'openfisca-survey-manager')
-except importlib.metadata.PackageNotFoundError:
+except metadata.PackageNotFoundError:
     taxipp_location = None
 
 if taxipp_location is None or not os.path.exists(default_config_files_directory):
@@ -24,10 +24,10 @@ if taxipp_location is None or not os.path.exists(default_config_files_directory)
 
 # Hack for uising with france-data on a CI or locally
 try:
-    france_data_location = importlib.metadata.distribution('openfisca-france_data').files[0]
+    france_data_location = Path(metadata.distribution('openfisca-france_data').files[0]).parent
     from xdg import BaseDirectory
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
-except importlib.metadata.PackageNotFoundError:
+except metadata.PackageNotFoundError:
     france_data_location = None
 
 if france_data_location is None or not os.path.exists(default_config_files_directory):

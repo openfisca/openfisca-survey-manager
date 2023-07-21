@@ -1,14 +1,15 @@
 import logging
 import os
 import pandas as pd
-import importlib
 
+
+from openfisca_survey_manager import openfisca_survey_manager_location
 
 log = logging.getLogger(__name__)
 
 
 legislation_directory = os.path.join(
-    importlib.metadata.distribution('openfisca_survey_manager').files[0],
+    openfisca_survey_manager_location,
     'openfisca_survey_manager',
     'assets',
     )
