@@ -1,9 +1,14 @@
+import importlib
 import logging
 import os
-import importlib
-
+from pathlib import Path
 
 log = logging.getLogger(__name__)
+
+
+openfisca_survey_manager_location = Path(
+    importlib.metadata.distribution('openfisca-survey-manager').files[0]
+    ).parent
 
 # Hack for use at the CASD (shared user)
 # Use taxipp/.config/ directory if exists as default_config_files_directory
@@ -30,7 +35,7 @@ if france_data_location is None or not os.path.exists(default_config_files_direc
 
 # Run CI when testing openfisca-survey-manager for example GitHub Actions
 test_config_files_directory = os.path.join(
-    importlib.metadata.distribution('openfisca-survey-manager').files[0],
+    openfisca_survey_manager_location,
     'openfisca_survey_manager',
     'tests',
     'data_files',
@@ -39,7 +44,7 @@ test_config_files_directory = os.path.join(
 with open(os.path.join(test_config_files_directory, 'config_template.ini')) as file:
     config_ini = file.read()
 
-config_ini = config_ini.format(location = importlib.metadata.distribution('openfisca-survey-manager').files[0])
+config_ini = config_ini.format(location = openfisca_survey_manager_location)
 with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
     file.write(config_ini)
 

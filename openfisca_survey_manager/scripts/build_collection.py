@@ -10,14 +10,13 @@ import datetime
 import logging
 import os
 import pdb
-import importlib
 import shutil
 import sys
 
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager import default_config_files_directory, openfisca_survey_manager_location
 
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
@@ -158,7 +157,7 @@ def check_template_config_files(config_files_directory: str):
                     'raw_data_template.ini', 'config_template.ini'
                     ]
                 templates_config_files_directory = os.path.join(
-                    importlib.metadata.distribution('openfisca-survey-manager').files[0],
+                    openfisca_survey_manager_location,
                     'openfisca_survey_manager',
                     'config_files_templates'
                     )

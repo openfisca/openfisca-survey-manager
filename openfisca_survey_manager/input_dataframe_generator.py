@@ -8,13 +8,12 @@ import random
 
 import numpy as np
 import pandas as pd
-import importlib
 
 
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager import default_config_files_directory, openfisca_survey_manager_location
 
 
 log = logging.getLogger(__name__)
@@ -195,7 +194,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
     except configparser.NoSectionError as e:  # For tests
         log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
         data_dir = os.path.join(
-            importlib.metadata.distribution('openfisca-survey-manager').files[0],
+            openfisca_survey_manager_location,
             'openfisca_survey_manager',
             'tests',
             'data_files',
