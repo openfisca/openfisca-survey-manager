@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 try:
     taxipp_location = importlib.metadata.distribution('taxipp').files[0]
     default_config_files_directory = os.path.join(taxipp_location, '.config', 'openfisca-survey-manager')
-except pkg_resources.DistributionNotFound:
+except importlib.metadata.PackageNotFoundError:
     taxipp_location = None
 
 if taxipp_location is None or not os.path.exists(default_config_files_directory):
@@ -22,7 +22,7 @@ try:
     france_data_location = importlib.metadata.distribution('openfisca-france_data').files[0]
     from xdg import BaseDirectory
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
-except pkg_resources.DistributionNotFound:
+except importlib.metadata.PackageNotFoundError:
     france_data_location = None
 
 if france_data_location is None or not os.path.exists(default_config_files_directory):
