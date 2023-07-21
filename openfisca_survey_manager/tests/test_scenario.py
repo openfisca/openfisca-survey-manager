@@ -1,10 +1,6 @@
-
 import shutil
-
-
 import logging
 import os
-import pkg_resources
 
 
 from openfisca_core.model_api import *  # noqa analysis:ignore
@@ -13,7 +9,7 @@ from openfisca_core.tools import assert_near
 
 from openfisca_country_template import CountryTaxBenefitSystem
 
-
+from openfisca_survey_manager import openfisca_survey_manager_location
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     random_data_generator,
@@ -266,7 +262,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
 def test_dump_survey_scenario():
     survey_scenario = create_randomly_initialized_survey_scenario()
     directory = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        openfisca_survey_manager_location,
         'openfisca_survey_manager',
         'tests',
         'data_files',

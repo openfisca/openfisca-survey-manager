@@ -1,16 +1,15 @@
-
-
 import logging
 import os
-import pkg_resources
-
 import pandas as pd
 
 
+from openfisca_survey_manager import openfisca_survey_manager_location
+
 log = logging.getLogger(__name__)
 
+
 config_files_directory = os.path.join(
-    pkg_resources.get_distribution('openfisca-survey-manager').location)
+    openfisca_survey_manager_location)
 
 
 def nnd_hotdeck_using_feather(receiver = None, donor = None, matching_variables = None, z_variables = None):

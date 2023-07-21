@@ -1,13 +1,13 @@
-
-
 import os
-import pkg_resources
 import pandas as pd
 import pytest
 
+
+from openfisca_survey_manager import openfisca_survey_manager_location
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
+
 
 # GitLab Runner and GitHub Actions have env variable "CI" set by default
 is_in_ci = 'CI' in os.environ
@@ -19,7 +19,7 @@ def test_add_survey_to_collection():
     name = 'fake'
     survey_name = 'fake_survey'
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        openfisca_survey_manager_location,
         'openfisca_survey_manager',
         'tests',
         'data_files',
@@ -41,7 +41,7 @@ def test_set_table_in_survey_first_year():
     # if is_in_ci:
     #     return
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        openfisca_survey_manager_location,
         'openfisca_survey_manager/tests/data_files',
         )
     input_dataframe = pd.DataFrame({"rfr": [1_000, 2_000, 100_000]})
@@ -65,7 +65,7 @@ def test_set_table_in_survey_second_year():
     # if is_in_ci:
     #     return
     data_dir = os.path.join(
-        pkg_resources.get_distribution('openfisca-survey-manager').location,
+        openfisca_survey_manager_location,
         'openfisca_survey_manager/tests/data_files',
         )
     input_dataframe = pd.DataFrame({"rfr": [1_021, 2_021, 100_021]})

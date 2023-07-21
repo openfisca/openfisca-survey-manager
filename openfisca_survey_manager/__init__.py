@@ -1,16 +1,21 @@
+import importlib
 import logging
 import os
-import pkg_resources
-
+from pathlib import Path
 
 log = logging.getLogger(__name__)
+
+
+openfisca_survey_manager_location = Path(
+    importlib.metadata.distribution('openfisca-survey-manager').files[0]
+    ).parent
 
 # Hack for use at the CASD (shared user)
 # Use taxipp/.config/ directory if exists as default_config_files_directory
 try:
-    taxipp_location = pkg_resources.get_distribution('taxipp').location
+    taxipp_location = importlib.metadata.distribution('taxipp').files[0]
     default_config_files_directory = os.path.join(taxipp_location, '.config', 'openfisca-survey-manager')
-except pkg_resources.DistributionNotFound:
+except importlib.metadata.PackageNotFoundError:
     taxipp_location = None
 
 if taxipp_location is None or not os.path.exists(default_config_files_directory):
@@ -19,10 +24,10 @@ if taxipp_location is None or not os.path.exists(default_config_files_directory)
 
 # Hack for uising with france-data on a CI or locally
 try:
-    france_data_location = pkg_resources.get_distribution('openfisca-france_data').location
+    france_data_location = importlib.metadata.distribution('openfisca-france_data').files[0]
     from xdg import BaseDirectory
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
-except pkg_resources.DistributionNotFound:
+except importlib.metadata.PackageNotFoundError:
     france_data_location = None
 
 if france_data_location is None or not os.path.exists(default_config_files_directory):
@@ -30,7 +35,7 @@ if france_data_location is None or not os.path.exists(default_config_files_direc
 
 # Run CI when testing openfisca-survey-manager for example GitHub Actions
 test_config_files_directory = os.path.join(
-    pkg_resources.get_distribution('openfisca-survey-manager').location,
+    openfisca_survey_manager_location,
     'openfisca_survey_manager',
     'tests',
     'data_files',
@@ -39,7 +44,7 @@ test_config_files_directory = os.path.join(
 with open(os.path.join(test_config_files_directory, 'config_template.ini')) as file:
     config_ini = file.read()
 
-config_ini = config_ini.format(location = pkg_resources.get_distribution('openfisca-survey-manager').location)
+config_ini = config_ini.format(location = openfisca_survey_manager_location)
 with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
     file.write(config_ini)
 
