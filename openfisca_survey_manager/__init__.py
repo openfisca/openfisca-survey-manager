@@ -1,4 +1,3 @@
-from importlib import metadata
 import logging
 import os
 from pathlib import Path
@@ -7,7 +6,6 @@ log = logging.getLogger(__name__)
 
 
 openfisca_survey_manager_location = Path(__file__).parent.parent
-
 
 
 # Hack for use at the CASD (shared user)
