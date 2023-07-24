@@ -7,7 +7,7 @@ Useful to deal with survey/administrative data imported in OpenFisca
 """
 
 
-from setuptools import find_namespace_packages, setup
+from setuptools import find_packages, setup
 from pathlib import Path
 
 # Read the contents of our README file for PyPi
@@ -97,6 +97,6 @@ setup(
         'weightedcalcs >=0.1.2, < 0.2.0',
         'wquantiles >=0.6, < 0.7',
         ],
-    packages = find_namespace_packages(),
+    packages = find_packages(),
     zip_safe = False,
     )
