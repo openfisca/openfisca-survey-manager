@@ -7,7 +7,7 @@ Useful to deal with survey/administrative data imported in OpenFisca
 """
 
 
-from setuptools import find_packages, setup
+from setuptools import find_namespace_packages, setup
 from pathlib import Path
 
 # Read the contents of our README file for PyPi
@@ -30,7 +30,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '1.1.4',
+    version = '1.1.5',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -97,6 +97,6 @@ setup(
         'weightedcalcs >=0.1.2, < 0.2.0',
         'wquantiles >=0.6, < 0.7',
         ],
-    packages = find_packages(),
+    packages = find_namespace_packages(),
     zip_safe = False,
     )

@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+
+### 1.1.5 [#265](https://github.com/openfisca/openfisca-survey-manager/pull/265)
+
+* Technical changes
+- Use `find_namespace_packages` and instead of `find_packages` in `setup.py`
+
 ### 1.1.4 [#264](https://github.com/openfisca/openfisca-survey-manager/pull/264)
 
 * Technical changes
