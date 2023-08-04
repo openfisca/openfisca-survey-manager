@@ -131,7 +131,7 @@ Contains the following tables : \n""".format(self.name, self.label)
 
     def get_columns(self, table = None, rename_ident = True):
         assert table is not None
-        store = pandas.HDFStore(self.hdf5_file_path)
+        store = pandas.HDFStore(self.hdf5_file_path, "r")
         if table in store:
             log.debug("Building columns index for table {}".format(table))
             data_frame = store[table]
@@ -183,7 +183,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         assert self.hdf5_file_path is not None
         assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
             self.hdf5_file_path)
-        store = pandas.HDFStore(self.hdf5_file_path)
+        store = pandas.HDFStore(self.hdf5_file_path, "r")
 
         if ignorecase:
             keys = store.keys()
