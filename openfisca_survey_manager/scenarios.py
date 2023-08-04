@@ -256,7 +256,7 @@ class AbstractSurveyScenario(object):
                         f"{alternative_weights} is not a valid variable of the tax benefit system"
                     weight_variable = alternative_weights
 
-                elif type(alternative_weights) == int or type(alternative_weights) == float:
+                elif isinstance(alternative_weights, int) or isinstance(alternative_weights, float):
                     weight_variable = None
                     uniform_weight = float(alternative_weights)
 
@@ -437,7 +437,7 @@ class AbstractSurveyScenario(object):
                         f"{alternative_weights} is not a valid variable of the tax benefit system"
                     weight_variable = alternative_weights
 
-                elif type(alternative_weights) == int or type(alternative_weights) == float:
+                elif isinstance(alternative_weights, int) or isinstance(alternative_weights, float):
                     weight_variable = None
                     uniform_weight = float(alternative_weights)
 
