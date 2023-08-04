@@ -340,6 +340,7 @@ def test_compute_quantile():
     survey_scenario = create_randomly_initialized_survey_scenario()
     period = "2017-01"
     quintiles = survey_scenario.compute_quantiles(variable = "salary", nquantiles = 5, period = period, weighted = False)
+    return quintiles
 
 
 if __name__ == "__main__":

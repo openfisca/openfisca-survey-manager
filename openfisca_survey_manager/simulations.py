@@ -160,6 +160,7 @@ def compute_quantiles(simulation = None, variable = None, nquantiles = None, per
         filtering_variable_by_entity = None, weight_variable_by_entity = None):
 
     weight_variable = None
+    entity_key = simulation.tax_benefit_system.variables[variable].entity.key
     if weight_variable_by_entity:
         weight_variable = weight_variable_by_entity[entity_key]
 
@@ -169,7 +170,8 @@ def compute_quantiles(simulation = None, variable = None, nquantiles = None, per
     variable_values = simulation.adaptative_calculate_variable(variable, period)
     if weighted:
         assert (alternative_weights is not None) or (weight_variable is not None)
-        weight = (alternative_weights
+        weight = (
+            alternative_weights
             if alternative_weights is not None
             else simulation.calculate(weight_variable, period)
             )
