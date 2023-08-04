@@ -1,20 +1,24 @@
 ﻿# Changelog
 
+### 1.1.6 [#269](https://github.com/openfisca/openfisca-survey-manager/pull/269)
+
+* Technical changes
+  - HDF files are now opened in read-only mode to prevent locking when multiple survey-manager need to access the same file.
 
 ### 1.1.5 [#265](https://github.com/openfisca/openfisca-survey-manager/pull/265)
 
 * Technical changes
-- Use `find_namespace_packages` and instead of `find_packages` in `setup.py`
+  - Use `find_namespace_packages` and instead of `find_packages` in `setup.py`
 
 ### 1.1.4 [#264](https://github.com/openfisca/openfisca-survey-manager/pull/264)
 
 * Technical changes
-- Change importlib metadata import to work with all Python version
+  - Change importlib metadata import to work with all Python version
 
 ### 1.1.3 [#263](https://github.com/openfisca/openfisca-survey-manager/pull/263)
 
 * Technical changes
-- Use importlib instead of pkg_resources to avoid deprecation warnings
+  - Use importlib instead of pkg_resources to avoid deprecation warnings
 
 ### 1.1.2 [#262](https://github.com/openfisca/openfisca-survey-manager/pull/262)
 
