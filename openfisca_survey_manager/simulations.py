@@ -191,6 +191,9 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
         missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None,
         filtering_variable_by_entity = None, weight_variable_by_entity = None):
 
+    admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count']
+    assert aggfunc in admissible_aggfuncs
+
     if baseline_simulation is not None:
         tax_benefit_system = baseline_simulation.tax_benefit_system
     else:
@@ -345,17 +348,22 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
         for value in values:
             data_frame[value] = data_frame[value] * data_frame[weight_variable]
             data_frame[value].fillna(missing_variable_default_value, inplace = True)
-            pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
-            pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
-            if aggfunc == 'mean':
-                try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
-                    result = (pivot_sum / pivot_mass.loc[weight_variable])
-                except KeyError:
-                    result = (pivot_sum / pivot_mass)
-            elif aggfunc == 'sum':
-                result = pivot_sum
-            elif aggfunc == 'count':
-                result = pivot_mass
+
+            if aggfunc in ['mean', 'sum', 'count']:
+                pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
+                pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
+                if aggfunc == 'mean':
+                    try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
+                        result = (pivot_sum / pivot_mass.loc[weight_variable])
+                    except KeyError:
+                        result = (pivot_sum / pivot_mass)
+                elif aggfunc == 'sum':
+                    result = pivot_sum
+                elif aggfunc == 'count':
+                    result = pivot_mass
+
+            elif aggfunc in ["min", "max"]:
+                result = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = aggfunc)
 
             data_frame_by_value[value] = result
 
