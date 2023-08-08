@@ -359,7 +359,7 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
                 elif aggfunc == 'sum':
                     result = pivot_sum
                 elif aggfunc == 'count':
-                    result = pivot_mass
+                    result = pivot_mass.rename(columns = {weight_variable: value}, index = {weight_variable: value})
 
             elif aggfunc in ["min", "max"]:
                 data_frame[value].fillna(missing_variable_default_value, inplace = True)
