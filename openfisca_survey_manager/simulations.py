@@ -346,10 +346,9 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
     if values:
         data_frame_by_value = dict()
         for value in values:
-            data_frame[value] = data_frame[value] * data_frame[weight_variable]
-            data_frame[value].fillna(missing_variable_default_value, inplace = True)
-
             if aggfunc in ['mean', 'sum', 'count']:
+                data_frame[value] = data_frame[value] * data_frame[weight_variable]
+                data_frame[value].fillna(missing_variable_default_value, inplace = True)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
                 if aggfunc == 'mean':
@@ -363,6 +362,7 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
                     result = pivot_mass
 
             elif aggfunc in ["min", "max"]:
+                data_frame[value].fillna(missing_variable_default_value, inplace = True)
                 result = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = aggfunc)
 
             data_frame_by_value[value] = result
