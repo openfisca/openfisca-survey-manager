@@ -363,7 +363,7 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
                     result = pivot_mass
 
             elif aggfunc in ["min", "max"]:
-                result = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = aggfunc)
+                result = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = aggfunc)
 
             data_frame_by_value[value] = result
 
