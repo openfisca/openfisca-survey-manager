@@ -11,6 +11,8 @@ import yaml
 
 
 from .tables import Table
+from tables.exceptions import HDF5ExtError
+from time import sleep
 
 
 ident_re = re.compile(u"(?i)ident\d{2,4}$")  # noqa
@@ -199,7 +201,18 @@ Contains the following tables : \n""".format(self.name, self.label)
             else:
                 table = eligible_tables[0]
         try:
-            df = store.select(table)
+            for i in range(10):
+                try:
+                    df = store.select(table)
+                    break
+                except HDF5ExtError as e:
+                    log.warning(f'HDF5ExtError for {table} in the file {self.hdf5_file_path} : {e}')
+                    # Maybe we have concurent access problem, waiting before retry
+                    sleep(1 + i / 2)
+            else:
+                log.error(f'Too many HDF5ExtError for {table} in the file {self.hdf5_file_path}')
+                store.close()
+                raise
         except KeyError:
             log.error(f'No table {table} in the file {self.hdf5_file_path}')
             log.error(f'This could happen because your data were not builded yet. Available tables are: {store.keys()}')
