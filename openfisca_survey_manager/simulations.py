@@ -164,9 +164,6 @@ def compute_quantiles(simulation = None, variable = None, nquantiles = None, per
     if weight_variable_by_entity:
         weight_variable = weight_variable_by_entity[entity_key]
 
-    if filter_by is not None:
-        NotImplementedError("filter_by option not implemented")
-
     variable_values = simulation.adaptative_calculate_variable(variable, period)
     if weighted:
         assert (alternative_weights is not None) or (weight_variable is not None)
@@ -177,6 +174,18 @@ def compute_quantiles(simulation = None, variable = None, nquantiles = None, per
             )
     else:
         weight = np.ones(len(variable_values))
+
+    if filtering_variable_by_entity is not None:
+        if filter_by is None:
+            filter_by = filtering_variable_by_entity.get(entity_key)
+
+    if filter_by is not None:
+        filter_entity_key = simulation.tax_benefit_system.variables.get(filter_by).entity.key
+        assert filter_entity_key == entity_key
+        filter_dummy = simulation.adaptative_calculate_variable(filter_by, period = period)
+
+        variable_values = variable_values[filter_dummy].copy()
+        weight = weight[filter_dummy].copy()
 
     labels = np.arange(1, nquantiles + 1)
     method = 2
@@ -524,14 +533,21 @@ def compute_winners_loosers(
         ):
 
     entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
+
     after = simulation.adaptative_calculate_variable(variable, period = period)
     before = baseline_simulation.adaptative_calculate_variable(variable, period = period)
 
-    if filter_by:
-        raise NotImplementedError("filter by not implemented for this function")
+    if filtering_variable_by_entity is not None:
+        if filter_by is None:
+            filter_by = filtering_variable_by_entity.get(entity_key)
 
-    if filtering_variable_by_entity:
-        raise NotImplementedError("filtering_variable_by_entity not implemented for this function")
+    if filter_by is not None:
+        filter_entity_key = baseline_simulation.tax_benefit_system.variables.get(filter_by).entity.key
+        assert filter_entity_key == entity_key
+        filter_dummy = baseline_simulation.adaptative_calculate_variable(filter_by, period = period)
+
+        after = after[filter_dummy].copy()
+        before = before[filter_dummy].copy()
 
     weight = np.ones(len(after))
     if weighted:
