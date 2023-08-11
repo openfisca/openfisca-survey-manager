@@ -525,7 +525,7 @@ def compute_winners_loosers(
         period = None,
         absolute_minimal_detected_variation = 0,
         relative_minimal_detected_variation = .01,
-        observations_thershold = None,
+        observations_threshold = None,
         weighted = True,
         alternative_weights = None,
         filtering_variable_by_entity = None,
@@ -589,8 +589,10 @@ def compute_winners_loosers(
         after_value < absolute_minimal_detected_variation
         )[almost_zero_before]
 
-    if observations_thershold is not None:
-        if ((above_after).sum() < observations_thershold) | ((below_after).sum() < observations_thershold):
+    if observations_threshold is not None:
+        not_legit_below = (below_after.sum() < observations_threshold) & (below_after.sum() > 0)
+        not_legit_above = (above_after.sum() < observations_threshold) & (above_after.sum() > 0)
+        if not_legit_below | not_legit_above:
             raise ValueError("Not enough observations involved")
 
     above_after_count = (above_after * weight).sum()

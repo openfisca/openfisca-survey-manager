@@ -356,7 +356,7 @@ class AbstractSurveyScenario(object):
             period = None,
             absolute_minimal_detected_variation = 0,
             relative_minimal_detected_variation = .01,
-            observations_thershold = None,
+            observations_threshold = None,
             weighted = True,
             alternative_weights = None):
 
@@ -370,7 +370,7 @@ class AbstractSurveyScenario(object):
             period = period,
             absolute_minimal_detected_variation = absolute_minimal_detected_variation,
             relative_minimal_detected_variation = relative_minimal_detected_variation,
-            observations_thershold = observations_thershold,
+            observations_threshold = observations_threshold,
             weighted = weighted,
             alternative_weights = alternative_weights,
             filtering_variable_by_entity = self.filtering_variable_by_entity,
