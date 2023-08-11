@@ -508,6 +508,90 @@ def create_data_frame_by_entity(simulation, variables = None, expressions = None
         return person_data_frame
 
 
+
+def compute_winners_loosers(
+        simulation,
+        baseline_simulation,
+        variable = None,
+        filter_by = None,
+        period = None,
+        absolute_minimal_detected_variation = 0,
+        relative_minimal_detected_variation = .01,
+        observations_thershold = None,
+        weighted = True,
+        alternative_weights = None,
+        filtering_variable_by_entity = None,
+        weight_variable_by_entity = None,
+        ):
+
+    entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
+    after = simulation.adaptative_calculate_variable(variable, period = period)
+    before = baseline_simulation.adaptative_calculate_variable(variable, period = period)
+
+    if filter_by:
+        raise NotImplementedError("filter by not implemented for this function")
+
+    if filtering_variable_by_entity:
+        raise NotImplementedError("filtering_variable_by_entity not implemented for this function")
+
+    weight = np.ones(len(after))
+    if weighted:
+        if alternative_weights is not None:
+            weight = alternative_weights
+        elif weight_variable_by_entity is not None:
+            weight_variable = weight_variable_by_entity[entity_key]
+            weight = baseline_simulation.adaptative_calculate_variable(weight_variable, period = period)
+        else:
+            log.warn('There is no weight variable for entity {} nor alternative weights. Switch to unweighted'.format(entity_key))
+
+    value_by_simulation = dict(after = after, before = before)
+
+    stats_by_simulation = dict()
+
+    for simulation_prefix, value in value_by_simulation.items():
+        stats = dict()
+        stats["count_zero"] = (
+            weight
+            * (
+                (-absolute_minimal_detected_variation < value)
+                & (value < absolute_minimal_detected_variation)
+                )
+            ).sum()
+        stats["count_non_zero"] = sum(weight) - stats["count_zero"]
+        stats_by_simulation[simulation_prefix] = stats
+
+    simulation.tax_benefit_system.parameters.taxes.social_security_contribution
+    baseline_simulation.tax_benefit_system.parameters.taxes.social_security_contribution
+
+    after_value = after
+    before_value = before
+
+    above_after = ((after_value - before_value) / before_value) > relative_minimal_detected_variation
+    almost_zero_before = np.abs(before_value) < absolute_minimal_detected_variation
+    above_after[almost_zero_before] = (
+        after_value > absolute_minimal_detected_variation
+        )[almost_zero_before]
+
+    below_after = ((after_value - before_value) / before_value) < relative_minimal_detected_variation
+    below_after[almost_zero_before] = (
+        after_value < absolute_minimal_detected_variation
+        )[almost_zero_before]
+
+    if observations_thershold is not None:
+        if (
+            ((above_after).sum() < observations_thershold)
+            | ((below_after).sum() < observations_thershold)
+            ):
+            raise ValueError("Not enough observations involved")
+
+    above_after_count = (above_after * weight).sum()
+    below_after_count = (below_after * weight).sum()
+    total = sum(weight)
+    neutral = total - above_after_count - below_after_count
+
+    return below_after_count, neutral, above_after_count
+
+
 # Monkey patching
 
 Simulation.adaptative_calculate_variable = adaptative_calculate_variable
@@ -515,3 +599,4 @@ Simulation.compute_aggregate = compute_aggregate
 Simulation.compute_pivot_table = compute_pivot_table
 Simulation.create_data_frame_by_entity = create_data_frame_by_entity
 Simulation.compute_quantiles = compute_quantiles
+Simulation.compute_winners_loosers = compute_winners_loosers

@@ -25,16 +25,16 @@ tax_benefit_system = CountryTaxBenefitSystem()
 
 
 def create_randomly_initialized_survey_scenario(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000, collection = "test_random_generator", use_marginal_tax_rate = False):
+        rent_max_value = 1000, collection = "test_random_generator", use_marginal_tax_rate = False, reform = None):
     if collection is not None:
         return create_randomly_initialized_survey_scenario_from_table(
-            nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate)
+            nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate, reform = reform)
     else:
         return create_randomly_initialized_survey_scenario_from_data_frame(
-            nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate)
+            nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate, reform = reform)
 
 
-def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate):
+def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate, reform = None):
     variable_generators_by_period = {
         periods.period('2017-01'): [
             {
@@ -56,7 +56,14 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
     table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups,
         variable_generators_by_period, collection)
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    if reform is None:
+        survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    else:
+        survey_scenario.set_tax_benefit_systems(
+            tax_benefit_system = reform(tax_benefit_system),
+            baseline_tax_benefit_system = tax_benefit_system,
+            )
+
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'housing_occupancy_status']
     survey_scenario.year = 2017
     survey_scenario.collection = collection
@@ -73,7 +80,13 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    if reform is None:
+        survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    else:
+        survey_scenario.set_tax_benefit_systems(
+            tax_benefit_system = reform(tax_benefit_system),
+            baseline_tax_benefit_system = tax_benefit_system,
+            )
     survey_scenario.year = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     period = periods.period('2017-01')

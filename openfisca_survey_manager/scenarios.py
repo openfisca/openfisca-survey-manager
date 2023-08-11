@@ -351,6 +351,34 @@ class AbstractSurveyScenario(object):
             weight_variable_by_entity = weight_variable_by_entity,
             )
 
+    def compute_winners_loosers(self,
+            variable = None,
+            filter_by = None,
+            period = None,
+            absolute_minimal_detected_variation = 0,
+            relative_minimal_detected_variation = .01,
+            observations_thershold = None,
+            weighted = True,
+            alternative_weights = None,
+            ):
+
+        simulation = self.simulation
+        baseline_simulation = self.baseline_simulation
+
+        return simulation.compute_winners_loosers(
+            baseline_simulation,
+            variable = variable,
+            filter_by = filter_by,
+            period = period,
+            absolute_minimal_detected_variation = absolute_minimal_detected_variation,
+            relative_minimal_detected_variation = relative_minimal_detected_variation,
+            observations_thershold = observations_thershold,
+            weighted = weighted,
+            alternative_weights = alternative_weights,
+            filtering_variable_by_entity = self.filtering_variable_by_entity,
+            weight_variable_by_entity = self.weight_variable_by_entity,
+            )
+
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
             period = None, use_baseline = False, merge = False):
         """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe).
