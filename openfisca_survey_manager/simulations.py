@@ -559,9 +559,6 @@ def compute_winners_loosers(
         stats["count_non_zero"] = sum(weight) - stats["count_zero"]
         stats_by_simulation[simulation_prefix] = stats
 
-    simulation.tax_benefit_system.parameters.taxes.social_security_contribution
-    baseline_simulation.tax_benefit_system.parameters.taxes.social_security_contribution
-
     after_value = after
     before_value = before
 
