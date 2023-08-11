@@ -351,16 +351,14 @@ class AbstractSurveyScenario(object):
             weight_variable_by_entity = weight_variable_by_entity,
             )
 
-    def compute_winners_loosers(self,
-            variable = None,
+    def compute_winners_loosers(self, variable = None,
             filter_by = None,
             period = None,
             absolute_minimal_detected_variation = 0,
             relative_minimal_detected_variation = .01,
             observations_thershold = None,
             weighted = True,
-            alternative_weights = None,
-            ):
+            alternative_weights = None):
 
         simulation = self.simulation
         baseline_simulation = self.baseline_simulation
