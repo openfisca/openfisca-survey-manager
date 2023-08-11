@@ -508,7 +508,6 @@ def create_data_frame_by_entity(simulation, variables = None, expressions = None
         return person_data_frame
 
 
-
 def compute_winners_loosers(
         simulation,
         baseline_simulation,
@@ -578,10 +577,7 @@ def compute_winners_loosers(
         )[almost_zero_before]
 
     if observations_thershold is not None:
-        if (
-            ((above_after).sum() < observations_thershold)
-            | ((below_after).sum() < observations_thershold)
-            ):
+        if ((above_after).sum() < observations_thershold) | ((below_after).sum() < observations_thershold):
             raise ValueError("Not enough observations involved")
 
     above_after_count = (above_after * weight).sum()

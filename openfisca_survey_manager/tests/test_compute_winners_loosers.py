@@ -1,6 +1,3 @@
-import numpy as np
-
-from openfisca_core.reforms import Reform
 from openfisca_country_template.reforms.modify_social_security_taxation import modify_social_security_taxation
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
 
