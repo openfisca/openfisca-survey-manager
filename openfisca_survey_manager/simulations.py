@@ -600,7 +600,16 @@ def compute_winners_loosers(
     total = sum(weight)
     neutral = total - above_after_count - below_after_count
 
-    return below_after_count, neutral, above_after_count
+    return {
+        "total": total,
+        "non_zero_before": stats_by_simulation["before"]["count_non_zero"],
+        "non_zero_after": stats_by_simulation["after"]["count_non_zero"],
+        "above_after": above_after_count,
+        "lower_after": below_after_count,
+        "neutral": neutral,
+        "tolerance_factor_used": relative_minimal_detected_variation,
+        "weight_factor": 1,
+        }
 
 
 # Monkey patching
