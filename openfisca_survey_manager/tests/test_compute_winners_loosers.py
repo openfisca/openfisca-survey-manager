@@ -19,7 +19,7 @@ def test_compute_winners_loosers():
     relative_minimal_detected_variation = .05
     observations_threshold = 1
 
-    below, neutral, above = simulation.compute_winners_loosers(
+    winners_loosers = simulation.compute_winners_loosers(
         baseline_simulation,
         variable,
         period = period,
@@ -28,7 +28,7 @@ def test_compute_winners_loosers():
         observations_threshold = observations_threshold,
         )
 
-    below_scenario, neutral_scenario, above_scenario = survey_scenario.compute_winners_loosers(
+    winners_loosers_scenario = survey_scenario.compute_winners_loosers(
         variable,
         period = period,
         absolute_minimal_detected_variation = absolute_minimal_detected_variation,
@@ -36,5 +36,14 @@ def test_compute_winners_loosers():
         observations_threshold = observations_threshold,
         )
 
-    assert (below, neutral, above) == (1, 0, 9)
-    assert (below, neutral, above) == (below_scenario, neutral_scenario, above_scenario)
+    assert winners_loosers == {
+        'total': 10.0,
+        'non_zero_before': 10.0,
+        'non_zero_after': 9.0,
+        'above_after': 9.0,
+        'lower_after': 1.0,
+        'neutral': 0.0,
+        'tolerance_factor_used': 0.05,
+        'weight_factor': 1,
+        }
+    assert winners_loosers == winners_loosers_scenario
