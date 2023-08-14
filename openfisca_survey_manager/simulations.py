@@ -595,8 +595,8 @@ def compute_winners_loosers(
         if not_legit_below | not_legit_above:
             raise ValueError("Not enough observations involved")
 
-    above_after_count = (above_after * weight).sum()
-    below_after_count = (below_after * weight).sum()
+    above_after_count = (above_after * weight).astype("float64").sum()
+    below_after_count = (below_after * weight).astype("float64").sum()
     total = sum(weight)
     neutral = total - above_after_count - below_after_count
 
