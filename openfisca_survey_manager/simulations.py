@@ -517,6 +517,13 @@ def create_data_frame_by_entity(simulation, variables = None, expressions = None
         return person_data_frame
 
 
+class SecretViolationError(Exception):
+    """
+    Raised if the result of the simulation
+    do not comform with regulators rules.
+    """
+    pass
+
 def compute_winners_loosers(
         simulation,
         baseline_simulation,
@@ -593,7 +600,7 @@ def compute_winners_loosers(
         not_legit_below = (below_after.sum() < observations_threshold) & (below_after.sum() > 0)
         not_legit_above = (above_after.sum() < observations_threshold) & (above_after.sum() > 0)
         if not_legit_below | not_legit_above:
-            raise ValueError("Not enough observations involved")
+            raise SecretViolationError("Not enough observations involved")
 
     above_after_count = (above_after * weight).astype("float64").sum()
     below_after_count = (below_after * weight).astype("float64").sum()

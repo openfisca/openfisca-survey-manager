@@ -1,5 +1,7 @@
+import pytest
 from openfisca_country_template.reforms.modify_social_security_taxation import modify_social_security_taxation
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
+from openfisca_survey_manager.simulations import SecretViolationError
 
 
 def test_compute_winners_loosers():
@@ -47,3 +49,16 @@ def test_compute_winners_loosers():
         'weight_factor': 1,
         }
     assert winners_loosers == winners_loosers_scenario
+
+
+    observations_threshold = 10
+
+    with pytest.raises(SecretViolationError):
+        winners_loosers = simulation.compute_winners_loosers(
+                baseline_simulation,
+                variable,
+                period = period,
+                absolute_minimal_detected_variation = absolute_minimal_detected_variation,
+                relative_minimal_detected_variation = relative_minimal_detected_variation,
+                observations_threshold = observations_threshold,
+                )
