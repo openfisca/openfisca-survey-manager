@@ -54,10 +54,10 @@ def test_compute_winners_loosers():
 
     with pytest.raises(SecretViolationError):
         winners_loosers = simulation.compute_winners_loosers(
-                baseline_simulation,
-                variable,
-                period = period,
-                absolute_minimal_detected_variation = absolute_minimal_detected_variation,
-                relative_minimal_detected_variation = relative_minimal_detected_variation,
-                observations_threshold = observations_threshold,
-                )
+            baseline_simulation,
+            variable,
+            period = period,
+            absolute_minimal_detected_variation = absolute_minimal_detected_variation,
+            relative_minimal_detected_variation = relative_minimal_detected_variation,
+            observations_threshold = observations_threshold,
+            )

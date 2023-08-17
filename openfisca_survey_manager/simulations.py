@@ -524,6 +524,7 @@ class SecretViolationError(Exception):
     """
     pass
 
+
 def compute_winners_loosers(
         simulation,
         baseline_simulation,
