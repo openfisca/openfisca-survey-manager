@@ -50,7 +50,6 @@ def test_compute_winners_loosers():
         }
     assert winners_loosers == winners_loosers_scenario
 
-
     observations_threshold = 10
 
     with pytest.raises(SecretViolationError):
