@@ -107,6 +107,26 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
             " Please choose a filter-by variable of same entity as '{0}'."
             .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
 
+    expressions = []
+    if filter_by is not None:
+        if filter_by in tax_benefit_system.variables:
+            variables.add(filter_by)
+            filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
+            assert filter_entity_key == entity_key, (
+                "You tried to compute agregates for variable '{0}', of entity {1}"
+                " filtering by variable '{2}', of entity {3}. This is not possible."
+                " Please choose a filter-by variable of same entity as '{0}'.".format(
+                    variable, entity_key, filter_by_variable, filter_by_entity_key
+                    )
+                )
+        else:
+            filter_entity_key = assert_variables_in_same_entity(tax_benefit_system, get_words(filter_by))
+            expressions.extend([filter_by])
+            assert filter_entity_key == entity_key
+    else:
+        filter_dummy = np.array(1.0)
+
+
     uniform_weight = np.array(1.0)
     weight_variable = None
     if weighted:
@@ -137,9 +157,19 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
         simulation.adaptative_calculate_variable(variable = weight_variable, period = period).astype(float)
         if weight_variable else uniform_weight
         )
-    filter_dummy = simulation.adaptative_calculate_variable(variable = filter_by_variable, period = period) if filter_by else 1.0
-    if filter_by:
-        filter_dummy = pd.DataFrame({'{}'.format(filter_by_variable): filter_dummy}).eval(filter_by)
+
+    if filter_by is not None:
+        expression_data_frame = simulation.create_data_frame_by_entity(
+            variables = get_words(filter_by),
+            period = period,
+            index = False
+            )[entity_key]
+        for expression in expressions:
+            expression_data_frame[expression] = expression_data_frame.eval(expression)
+
+        filter_dummy = expression_data_frame[filter_by]
+    else:
+        filter_dummy = 1.0
 
     if aggfunc == 'sum':
         aggregate = (value * weight * filter_dummy).sum()
