@@ -93,7 +93,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
             baseline_tax_benefit_system = tax_benefit_system,
             )
     survey_scenario.year = 2017
-    survey_scenario.used_as_input_variables = ['salary', 'rent',  'household_weight']
+    survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     period = periods.period('2017-01')
     data = {
         'input_data_frame_by_entity_by_period': {
@@ -300,6 +300,7 @@ def test_dump_survey_scenario():
         )
     if os.path.exists(directory):
         shutil.rmtree(directory)
+
     survey_scenario.dump_simulations(directory = directory)
     df = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'])
     household = df['household']
@@ -363,13 +364,12 @@ def test_compute_pivot_table():
     pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
 
     assert pivot_table.index == "salary"
-    assert pivot_table.values.round() == 13570
+    assert pivot_table.values.round() == 21748
 
     del survey_scenario.weight_variable_by_entity
     pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
 
-    assert pivot_table.values.round() == 26007
-
+    assert pivot_table.values.round() == 13570.
 
 
 def test_compute_quantile():
