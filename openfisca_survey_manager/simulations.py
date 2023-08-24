@@ -155,7 +155,11 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
         simulation.adaptative_calculate_variable(variable = weight_variable, period = period).astype(float)
         if weight_variable else uniform_weight
         )
-    assert all(weight != 0), "Weights shall not be all zeroes"
+    if weight_variable:
+        assert all(weight != 0), "Weights shall not be all zeroes"
+    else:
+        assert uniform_weight != 0
+
     if filter_by is not None:
         expression_data_frame = simulation.create_data_frame_by_entity(
             variables = get_words(filter_by),

@@ -2,6 +2,7 @@ from openfisca_core.model_api import ETERNITY, Variable, Reform  # noqa analysis
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person, Household
 
+
 class Plugin(Reform):
     def apply(self):
         class person_weight(Variable):
