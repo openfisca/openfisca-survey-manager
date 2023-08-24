@@ -50,6 +50,8 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         })
     input_dataframe_by_entity[person_entity.key].set_index('person_id')
     #
+    seed = 42
+    random.seed(seed)
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
     # A role index is an index that every person within an entity has.
@@ -103,13 +105,13 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
     """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
-    for period, variable_generators in variable_generators_by_period.items():
+    for period, variable_generators in sorted(variable_generators_by_period.items()):
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
         table_by_entity_by_period[period] = table_by_entity = dict()
         for variable_generator in variable_generators:
             variable = variable_generator['variable']
             max_value = variable_generator['max_value']
-            condition = variable_generator.get(None)
+            condition = variable_generator.get("condition", None)
             randomly_init_variable(
                 tax_benefit_system = tax_benefit_system,
                 input_dataframe_by_entity = input_dataframe_by_entity,
@@ -172,7 +174,6 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
     if seed is None:
         seed = 42
-
     np.random.seed(seed)
     count = len(input_dataframe_by_entity[entity.key])
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
