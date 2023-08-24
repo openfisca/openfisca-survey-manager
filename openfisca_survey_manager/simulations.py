@@ -110,7 +110,6 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
     expressions = []
     if filter_by is not None:
         if filter_by in tax_benefit_system.variables:
-            variables.add(filter_by)
             filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
             assert filter_entity_key == entity_key, (
                 "You tried to compute agregates for variable '{0}', of entity {1}"
@@ -125,7 +124,6 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
             assert filter_entity_key == entity_key
     else:
         filter_dummy = np.array(1.0)
-
 
     uniform_weight = np.array(1.0)
     weight_variable = None
@@ -157,7 +155,7 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
         simulation.adaptative_calculate_variable(variable = weight_variable, period = period).astype(float)
         if weight_variable else uniform_weight
         )
-
+    assert all(weight != 0), "Weights shall not be all zeroes"
     if filter_by is not None:
         expression_data_frame = simulation.create_data_frame_by_entity(
             variables = get_words(filter_by),

@@ -12,7 +12,8 @@ log = logging.getLogger(__name__)
 
 
 class Calibration(object):
-    """An object to calibrate survey data of a SurveySimulation"""
+    """An object to calibrate survey data of a SurveySimulation."""
+
     filter_by_name = None
     initial_total_population = None
     initial_weight_name = None
@@ -30,32 +31,29 @@ class Calibration(object):
     weight_name = None
 
     def __init__(self, survey_scenario):
-        # TODO should migrate this to france
-        self.filter_by_name = "menage_ordinaire"
         self.period = survey_scenario.period
         self._set_survey_scenario(survey_scenario)
 
     def reset(self):
-        """Reset the calibration to its initial state"""
+        """Reset the calibration to its initial state."""
         simulation = self.survey_scenario.simulation
         holder = simulation.get_holder(self.weight_name)
         holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
 
     def _set_survey_scenario(self, survey_scenario):
-        """Sets the survey scenario
+        """Set the survey scenario.
 
         Args:
           survey_scenario: the survey scenario
         """
         self.survey_scenario = survey_scenario
+        weight_name = self.weight_name
         # TODO deal with baseline if reform is present
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
         period = self.period
         self.filter_by = filter_by = survey_scenario.calculate_variable(
             variable = self.filter_by_name, period = period)
-        # TODO: shoud not be france specific
-        self.weight_name = weight_name = self.survey_scenario.weight_variable_by_entity['menage']
         self.initial_weight_name = weight_name + "_ini"
         self.initial_weight = initial_weight = survey_scenario.calculate_variable(
             variable = weight_name, period = period)
@@ -63,7 +61,7 @@ class Calibration(object):
         self.weight = survey_scenario.calculate_variable(variable = weight_name, period = period)
 
     def set_parameters(self, parameter, value):
-        """Sets a parameter value
+        """Set a parameter value.
 
         Args:
           parameter: the parameter to be set
@@ -74,44 +72,12 @@ class Calibration(object):
         else:
             self.parameters[parameter] = value
 
-#    def set_margins_target_from_file(self, filename, year, source):
-#        """
-#            Sets margins for inputs variable from file
-#        """
-#        # TODO read from h5 files
-#        with open(filename) as f_tot:
-#            totals = read_csv(f_tot, index_col = (0, 1))
-#        # if data for the configured year is not availbale leave margins empty
-#        year = str(year)
-#        if year not in totals:
-#            return
-#        margins = {}
-#        if source == "input":
-#            self.input_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-#        elif source == 'output':
-#            self.output_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-#
-#        for var, mod in totals.index:
-#            if var not in margins:
-#                margins[var] = {}
-#            margins[var][mod] = totals.get_value((var, mod), year)
-#
-#        for var in margins:
-#            if var == 'total_population':
-#                if source == "input" or source == "config":
-#                    total_population = margins.pop('total_population')[0]
-#                    margins['total_population'] = total_population
-#                    self.total_population = total_population
-#            else:
-#                self.add_var2(var, margins[var], source = source)
-
     def get_parameters(self) -> dict:
-        """Gets the parameters
+        """Get the parameters.
 
         Returns:
             dict: Parameters
         """
-
         p = {}
         p['method'] = self.parameters.get('method', 'linear')
         if self.parameters.get('invlo') is not None:
@@ -126,12 +92,11 @@ class Calibration(object):
         return p
 
     def _build_calmar_data(self) -> pd.DataFrame:
-        """Builds the data dictionnary used as calmar input argument
+        """Build the data dictionnary used as calmar input argument.
 
         Returns:
             pd.DataFrame: Data used by calmar
         """
-
         # Select only filtered entities
         assert self.initial_weight_name is not None
         data = pd.DataFrame()
@@ -146,7 +111,7 @@ class Calibration(object):
         return data
 
     def _update_weights(self, margins, parameters = None):
-        """Runs calmar, stores new weights and returns adjusted margins
+        """Run calmar, stores new weights and returns adjusted margins.
 
         Args:
           margins: margins
@@ -196,10 +161,18 @@ class Calibration(object):
             if simulation is None:
                 continue
             simulation.set_input(self.weight_name, period, self.weight)
-            # TODO: propagation to other weights
+            for weight_name in survey_scenario.weight_variable_by_entity.values():
+                if weight_name == self.weight_name:
+                    continue
+                weight_variable = survey_scenario.variables[weight_name]
+                # Delete other entites already computed weigths
+                # to ensure that this weights a recomputed if they derive from
+                # the calibrated weight variable
+                if weight_variable.formulas:
+                    simulation.delete_arrays(weight_variable, period)
 
     def set_target_margins(self, target_margin_by_variable: dict):
-        """[summary]
+        """Set target margins.
 
         Args:
             target_margin_by_variable (dict): Targets margins
@@ -208,7 +181,7 @@ class Calibration(object):
             self.set_target_margin(variable, target)
 
     def set_target_margin(self, variable, target):
-        """Sets variable target margin
+        """Set variable target margin.
 
         Args:
           variable: Targett variable
@@ -240,8 +213,7 @@ class Calibration(object):
         self._update_margins()
 
     def _update_margins(self):
-        """Updates margins
-        """
+        """Update margins."""
         for variable in self.margins_by_variable:
             survey_scenario = self.survey_scenario
             period = self.period
