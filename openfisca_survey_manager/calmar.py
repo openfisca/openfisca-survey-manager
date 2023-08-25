@@ -107,7 +107,7 @@ def build_dummies_dict(data):
     return output
 
 
-def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo = None, up = None, use_proportions = False,
+def calmar(data_in, margins, initial_weight, method = 'linear', lo = None, up = None, use_proportions = False,
         xtol = 1.49012e-08, maxfev = 256):
     """Calibrates weights to satisfy margins constraints.
 
@@ -118,7 +118,7 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
           - a dictionnary with categories as key and populations as values
           - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
 
-        initial_weight (str, optional): Initial weight variable. Defaults to 'wprm_init'.
+        initial_weight (str): Initial weight variable.
         method (str, optional): Calibration method. Should be 'linear', 'raking ratio' or 'logit'. Defaults to 'linear'.
         lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method. Should be < 1. Defaults to None.
         up (float, optional): Upper bound on weights ratio. Mandatory when using logit method. Should be > 1. Defaults to None.
@@ -298,15 +298,11 @@ def calmar(data_in, margins, initial_weight = 'wprm_init', method = 'linear', lo
     return pondfin_out, lambdasol, margins_new_dict
 
 
-def check_calmar(data_in, margins, initial_weight='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
+def check_calmar(margins, margins_new_dict = None):
     """
 
     Args:
-      data_in:
       margins:
-      initial_weight:  (Default value = 'wprm_init')
-      pondfin_out:  (Default value = None)
-      lambdasol:  (Default value = None)
       margins_new_dict:  (Default value = None)
 
     Returns:
