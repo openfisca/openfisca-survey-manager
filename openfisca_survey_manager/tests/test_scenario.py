@@ -1,6 +1,7 @@
 import shutil
 import logging
 import os
+import pytest
 
 
 from openfisca_core import periods
@@ -319,6 +320,7 @@ def test_dump_survey_scenario():
     assert (df2['person'] == person).all().all()
 
 
+@pytest.mark.order(before="test_add_survey_to_collection.py::test_add_survey_to_collection")
 def test_inflate():
     survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
     period = "2017-01"
@@ -358,6 +360,7 @@ def test_inflate():
         )
 
 
+@pytest.mark.order(before="test_add_survey_to_collection.py::test_add_survey_to_collection")
 def test_compute_pivot_table():
     survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
     period = "2017-01"
