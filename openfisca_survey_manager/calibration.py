@@ -32,7 +32,6 @@ class Calibration(object):
     total_population = None
     weight_name = None
 
-
     def __init__(self, survey_scenario, weight_variable_name = None):
         self.period = survey_scenario.period
         weight_variable_instance = survey_scenario.tax_benefit_system.variables.get(weight_variable_name)
