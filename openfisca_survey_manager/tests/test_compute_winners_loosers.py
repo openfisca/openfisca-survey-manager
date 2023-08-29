@@ -8,7 +8,7 @@ def test_compute_winners_loosers():
     survey_scenario = create_randomly_initialized_survey_scenario(reform = modify_social_security_taxation)
     del survey_scenario.weight_variable_by_entity
     survey_scenario.set_weight_variable_by_entity()
-    period = survey_scenario.year
+    period = survey_scenario.period
     variable = "social_security_contribution"
 
     aggregate_after = survey_scenario.compute_aggregate(variable, period = period)

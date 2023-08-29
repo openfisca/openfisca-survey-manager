@@ -67,7 +67,7 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
             )
 
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'housing_occupancy_status', 'household_weight']
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     survey_scenario.collection = collection
     data = {
         'survey': 'input',
@@ -100,7 +100,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
             tax_benefit_system = reform(tax_benefit_system),
             baseline_tax_benefit_system = tax_benefit_system,
             )
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     period = periods.period('2017-01')
 
@@ -191,7 +191,7 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
     # We must add the `used_as_input_variables` even though they don't seem necessary
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     # We must add the year to initiate a .new_simulation
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     # Then we can input the data+period dict inside the scenario
     survey_scenario.init_from_data(data = data_in)
 
@@ -246,7 +246,7 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     period = periods.period('2017-01')
     data = {
@@ -275,7 +275,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
     input_data_frame_by_entity['person']['household_id'] = 4 - input_data_frame_by_entity['person']['household_id']
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     period = periods.period('2017-01')
     data = {
@@ -307,7 +307,8 @@ def test_dump_survey_scenario():
         shutil.rmtree(directory)
 
     survey_scenario.dump_simulations(directory = directory)
-    df = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'])
+    period = "2017-01"
+    df = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'], period = period)
     household = df['household']
     person = df['person']
     assert not household.empty
@@ -316,7 +317,7 @@ def test_dump_survey_scenario():
     survey_scenario = AbstractSurveyScenario()
     survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     survey_scenario.used_as_input_variables = ['salary', 'rent']
-    survey_scenario.year = 2017
+    survey_scenario.period = 2017
     survey_scenario.restore_simulations(directory = directory)
     df2 = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'], period = '2017-01')
 
@@ -374,6 +375,7 @@ def test_compute_pivot_table():
     assert pivot_table.values.round() == 21748
 
     del survey_scenario.weight_variable_by_entity
+    survey_scenario.set_weight_variable_by_entity()
     pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
 
     assert pivot_table.values.round() == 13570.

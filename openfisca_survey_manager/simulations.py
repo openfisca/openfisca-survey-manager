@@ -488,8 +488,7 @@ def create_data_frame_by_entity(simulation, variables = None, expressions = None
             ]
         openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
             dict(
-                (column_name, simulation.adaptative_calculate_variable(
-                    variable = column_name, period = period))
+                (column_name, simulation.calculate(column_name, period = period))
                 for column_name in column_names
                 )
             )

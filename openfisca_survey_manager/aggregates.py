@@ -28,7 +28,7 @@ class AbstractAggregates(object):
 
     def __init__(self, survey_scenario = None):
         assert survey_scenario is not None
-        self.year = survey_scenario.year
+        self.year = survey_scenario.period[:4]
         self.survey_scenario = survey_scenario
         assert self.simulation is None
 

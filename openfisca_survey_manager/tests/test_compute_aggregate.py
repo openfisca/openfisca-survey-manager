@@ -4,7 +4,7 @@ from openfisca_survey_manager.tests.test_scenario import create_randomly_initial
 
 def test_compute_aggregate():
     survey_scenario = create_randomly_initialized_survey_scenario(reform = modify_social_security_taxation)
-    period = survey_scenario.year
+    period = "2017-01"
     variable = "social_security_contribution"
 
     aggregate_after = survey_scenario.compute_aggregate(variable, period = period)

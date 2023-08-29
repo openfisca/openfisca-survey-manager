@@ -73,11 +73,11 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
 
 class QuantileTestSurveyScenario(AbstractSurveyScenario):
     def __init__(self, input_data_frame = None, tax_benefit_system = None,
-            baseline_tax_benefit_system = None, year = None):
+            baseline_tax_benefit_system = None, period = None):
         super(QuantileTestSurveyScenario, self).__init__()
         assert input_data_frame is not None
-        assert year is not None
-        self.year = year
+        assert period is not None
+        self.period = period
         if tax_benefit_system is None:
             tax_benefit_system = QuantileTestTaxBenefitSystem()
         self.set_tax_benefit_systems(
@@ -114,7 +114,7 @@ def test_quantile():
     survey_scenario = QuantileTestSurveyScenario(
         input_data_frame = input_data_frame,
         tax_benefit_system = QuantileTestTaxBenefitSystem(),
-        year = 2017,
+        period = 2017,
         )
     data = np.linspace(1, 11 - 1e-5, size)
     target = np.floor(data)
