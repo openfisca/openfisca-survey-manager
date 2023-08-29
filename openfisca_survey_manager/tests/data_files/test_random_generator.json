@@ -1,14 +1,72 @@
 {
   "name": "test_random_generator",
   "surveys": {
+    "test_set_table_in_survey_2020": {
+      "hdf5_file_path": "/home/benjello/projets/openfisca-survey-manager/openfisca_survey_manager/tests/data_files/test_set_table_in_survey_2020.h5",
+      "label": null,
+      "name": "test_set_table_in_survey_2020",
+      "tables": {
+        "foyer_2020": {
+          "source_format": null,
+          "variables": [
+            "rfr"
+          ]
+        }
+      },
+      "informations": {}
+    },
+    "test_set_table_in_survey_2021": {
+      "hdf5_file_path": "/home/benjello/projets/openfisca-survey-manager/openfisca_survey_manager/tests/data_files/test_set_table_in_survey_2021.h5",
+      "label": null,
+      "name": "test_set_table_in_survey_2021",
+      "tables": {
+        "foyer_2021": {
+          "source_format": null,
+          "variables": [
+            "rfr"
+          ]
+        }
+      },
+      "informations": {}
+    },
     "input": {
-      "hdf5_file_path": "./openfisca_survey_manager/tests/data_files/input.h5",
+      "hdf5_file_path": "/home/benjello/projets/openfisca-survey-manager/openfisca_survey_manager/tests/data_files/input.h5",
       "label": null,
       "name": "input",
       "tables": {
+        "person_2017-01": {
+          "source_format": null,
+          "variables": [
+            "person_id",
+            "household_id",
+            "household_role_index",
+            "household_role",
+            "salary"
+          ]
+        },
+        "household_2017-01": {
+          "source_format": null,
+          "variables": [
+            "rent",
+            "household_weight"
+          ]
+        },
+        "person_2018-01": {
+          "source_format": null,
+          "variables": [
+            "person_id",
+            "household_id",
+            "household_role_index",
+            "household_role",
+            "salary"
+          ]
+        },
         "household_2018-01": {
           "source_format": null,
-          "variables": null
+          "variables": [
+            "rent",
+            "household_weight"
+          ]
         }
       },
       "informations": {}

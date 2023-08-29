@@ -42,6 +42,7 @@ class AbstractSurveyScenario(object):
     input_data_table_by_entity_by_period = None
     input_data_table_by_period = None
     non_neutralizable_variables = None
+    period = None
     role_variable_by_entity_key = None
     simulation = None
     target_by_variable = None  # variable total target to inflate to
@@ -52,7 +53,6 @@ class AbstractSurveyScenario(object):
     variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
     varying_variable = None
     weight_variable_by_entity = None
-    year = None
     config_files_directory = default_config_files_directory
 
     def build_input_data(self, **kwargs):
@@ -109,10 +109,8 @@ class AbstractSurveyScenario(object):
         survey_scenario = self
 
         if period is None:
-            assert survey_scenario.year is not None
-            period = survey_scenario.year
-        survey_scenario.period = period
-        assert survey_scenario.period is not None
+            assert survey_scenario.period is not None
+            period = survey_scenario.period
 
         if parameters is not None:
             assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
@@ -618,9 +616,9 @@ class AbstractSurveyScenario(object):
           rebuild_kwargs:  Rebuild options (Default value = None)
           config_files_directory:  Directory where to find the configuration files (Default value = default_config_files_directory)
         """
-        # When not ``None``, it'll try to get the data for *year*.
+        # When not ``None``, it'll try to get the data for *period*.
         if data is not None:
-            data_year = data.get("data_year", self.year)
+            data_year = data.get("data_year", self.period)
 
         self._set_id_variable_by_entity_key()
         self._set_role_variable_by_entity_key()
@@ -786,7 +784,7 @@ class AbstractSurveyScenario(object):
                     break
                 tax_benefit_system = baseline_tax_benefit_system
 
-        period = periods.period(self.year)
+        period = periods.period(self.period)
 
         simulation = self.new_simulation_from_tax_benefit_system(
             tax_benefit_system = tax_benefit_system,
@@ -836,7 +834,7 @@ class AbstractSurveyScenario(object):
         builder = SimulationBuilder()
         builder.create_entities(tax_benefit_system)
 
-        data_year = data.get("data_year", self.year)
+        data_year = data.get("data_year", self.period)
         survey = data.get('survey')
 
         default_source_types = [
@@ -945,8 +943,8 @@ class AbstractSurveyScenario(object):
         else:
             pass
 
-        if self.year is not None:
-            simulation.period = periods.period(self.year)
+        if self.period is not None:
+            simulation.period = periods.period(self.period)
 
         simulation.weight_variable_by_entity = self.weight_variable_by_entity
 
@@ -959,7 +957,7 @@ class AbstractSurveyScenario(object):
         if survey is not None:
             survey = survey
         else:
-            survey = "{}_{}".format(self.input_data_survey_prefix, self.year)
+            survey = "{}_{}".format(self.input_data_survey_prefix, str(self.period))
         survey_ = survey_collection.get_survey(survey)
         log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
         return survey_.get_values(table = table, variables = variables)
