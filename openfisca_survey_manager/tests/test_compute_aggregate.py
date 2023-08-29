@@ -3,7 +3,6 @@ from openfisca_survey_manager.tests.test_scenario import create_randomly_initial
 
 
 def test_compute_aggregate():
-
     survey_scenario = create_randomly_initialized_survey_scenario(reform = modify_social_security_taxation)
     period = survey_scenario.year
     variable = "social_security_contribution"
@@ -12,6 +11,9 @@ def test_compute_aggregate():
     aggregate_before = survey_scenario.compute_aggregate(variable, period = period, use_baseline = True)
 
     assert aggregate_after > aggregate_before
+
+    survey_scenario.calculate_variable("social_security_contribution", period = period)
+    survey_scenario.calculate_variable("salary", period = period)
 
     assert 0 == survey_scenario.compute_aggregate(
         "social_security_contribution",
@@ -26,6 +28,7 @@ def test_compute_aggregate():
         ).astype(int)
 
     del survey_scenario.weight_variable_by_entity
+    survey_scenario.set_weight_variable_by_entity()
     assert 576 == survey_scenario.compute_aggregate(
         "social_security_contribution",
         period = period,

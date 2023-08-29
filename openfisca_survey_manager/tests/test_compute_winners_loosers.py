@@ -7,6 +7,7 @@ from openfisca_survey_manager.simulations import SecretViolationError
 def test_compute_winners_loosers():
     survey_scenario = create_randomly_initialized_survey_scenario(reform = modify_social_security_taxation)
     del survey_scenario.weight_variable_by_entity
+    survey_scenario.set_weight_variable_by_entity()
     period = survey_scenario.year
     variable = "social_security_contribution"
 

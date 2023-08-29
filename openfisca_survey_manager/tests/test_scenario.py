@@ -73,12 +73,14 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
         'survey': 'input',
         'input_data_table_by_entity_by_period': table_by_entity_by_period
         }
-    survey_scenario.varying_variable = 'salary'
-    survey_scenario.init_from_data(data = data, use_marginal_tax_rate = use_marginal_tax_rate)
+    if use_marginal_tax_rate:
+        survey_scenario.varying_variable = 'salary'
+
     survey_scenario.weight_variable_by_entity = {
         "person": "person_weight",
         "household": "household_weight",
         }
+    survey_scenario.init_from_data(data = data, use_marginal_tax_rate = use_marginal_tax_rate)
     return survey_scenario
 
 
@@ -86,6 +88,11 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
+    weight_variable_by_entity = {
+        "person": "person_weight",
+        "household": "household_weight",
+        }
+    survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     if reform is None:
         survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
     else:
@@ -96,19 +103,16 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
     survey_scenario.year = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     period = periods.period('2017-01')
+
     data = {
         'input_data_frame_by_entity_by_period': {
             period: input_data_frame_by_entity
             }
         }
-    # survey_scenario.varying_variable = 'salary'
-    survey_scenario.weight_variable_by_entity = {
-        "person": "person_weight",
-        "household": "household_weight",
-        }
+    assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
     survey_scenario.init_from_data(data = data)
+    assert survey_scenario.simulation.weight_variable_by_entity == weight_variable_by_entity
     assert (survey_scenario.calculate_series("household_weight", period) != 0).all()
-    # BIM
     return survey_scenario
 
 
@@ -322,7 +326,7 @@ def test_dump_survey_scenario():
 
 @pytest.mark.order(before="test_add_survey_to_collection.py::test_add_survey_to_collection")
 def test_inflate():
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
     period = "2017-01"
     inflator = 2.42
     inflator_by_variable = {'rent': inflator}
