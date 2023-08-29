@@ -83,8 +83,9 @@ def adaptative_calculate_variable(simulation, variable = None, period = None):
 
 def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = None, period = None,
         missing_variable_default_value = np.nan, weighted = True, alternative_weights = None,
-        filtering_variable_by_entity = None, weight_variable_by_entity = None):
+        filtering_variable_by_entity = None):
 
+    weight_variable_by_entity = simulation.weight_variable_by_entity
     tax_benefit_system = simulation.tax_benefit_system
 
     if period is None:
@@ -189,8 +190,9 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
 
 def compute_quantiles(simulation = None, variable = None, nquantiles = None, period = None, filter_by = None,
         weighted = True, alternative_weights = None,
-        filtering_variable_by_entity = None, weight_variable_by_entity = None):
+        filtering_variable_by_entity = None):
 
+    weight_variable_by_entity = simulation.weight_variable_by_entity
     weight_variable = None
     entity_key = simulation.tax_benefit_system.variables[variable].entity.key
     if weight_variable_by_entity:
@@ -230,8 +232,9 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
         columns = None, difference = False, filter_by = None, index = None,
         period = None, use_baseline_for_columns = None, values = None,
         missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None,
-        filtering_variable_by_entity = None, weight_variable_by_entity = None):
+        filtering_variable_by_entity = None):
 
+    weight_variable_by_entity = simulation.weight_variable_by_entity
     admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count']
     assert aggfunc in admissible_aggfuncs
 
@@ -569,9 +572,9 @@ def compute_winners_loosers(
         weighted = True,
         alternative_weights = None,
         filtering_variable_by_entity = None,
-        weight_variable_by_entity = None,
         ):
 
+    weight_variable_by_entity = simulation.weight_variable_by_entity
     entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
 
     after = simulation.adaptative_calculate_variable(variable, period = period)
@@ -650,6 +653,13 @@ def compute_winners_loosers(
         "tolerance_factor_used": relative_minimal_detected_variation,
         "weight_factor": 1,
         }
+
+
+def set_weight_variable_by_entity(
+        simulation,
+        weight_variable_by_entity,
+        ):
+    simulation.weight_variable_by_entity = weight_variable_by_entity
 
 
 # Monkey patching

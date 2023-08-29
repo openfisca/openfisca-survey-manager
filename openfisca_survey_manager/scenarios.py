@@ -97,7 +97,7 @@ class AbstractSurveyScenario(object):
 
         return simulation.adaptative_calculate_variable(variable, period = period)
 
-    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, total_population: float = None):
+    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, target_entity_count: float = None):
         """Calibrate the scenario data.
 
         Args:
@@ -114,8 +114,6 @@ class AbstractSurveyScenario(object):
         survey_scenario.period = period
         assert survey_scenario.period is not None
 
-        calibration = Calibration(survey_scenario)
-
         if parameters is not None:
             assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
                 "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
@@ -125,17 +123,20 @@ class AbstractSurveyScenario(object):
         else:
             parameters = dict(method = 'logit', up = 3, invlo = 3)
 
-        calibration.parameters.update(parameters)
-
-        if total_population:
-            calibration.total_population = total_population
-
-        if target_margins_by_variable is not None:
-            calibration.set_target_margins(target_margins_by_variable)
-
-        calibration.calibrate()
-        calibration.set_calibrated_weights()
-        self.calibration = calibration
+        # TODO: filtering using filtering_variable_by_entity
+        for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
+            if simulation is None:
+                continue
+            calibration = Calibration(
+                simulation,
+                target_margins_by_variable,
+                period,
+                target_entity_count = target_entity_count,
+                parameters = parameters,
+                # filter_by = self.filter_by,
+                )
+            calibration.calibrate(inplace = True)
+            self.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
             difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
@@ -201,7 +202,6 @@ class AbstractSurveyScenario(object):
             weighted = weighted,
             alternative_weights = alternative_weights,
             filtering_variable_by_entity = self.filtering_variable_by_entity,
-            weight_variable_by_entity = self.weight_variable_by_entity,
             )
 
     def compute_quantiles(self, variable = None, nquantiles = None, period = None, use_baseline = False, filter_by = None,
@@ -222,7 +222,6 @@ class AbstractSurveyScenario(object):
             nquantiles = nquantiles,
             filter_by = filter_by,
             weighted = weighted,
-            weight_variable_by_entity = self.weight_variable_by_entity,
             alternative_weights = alternative_weights,
             )
 
@@ -312,7 +311,7 @@ class AbstractSurveyScenario(object):
             missing_variable_default_value(float, optional): Default value for missing variables, defaults to np.nan
             concat_axis(int, optional): Axis to concatenate along (index = 0, columns = 1), defaults to None
             weighted(bool, optional): Whether to weight te aggregates (Default value = True)
-            alternative_weights(str or int or float, optional): Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None, and if the latetr is None uses 1 ((Default value = None)
+            alternative_weights(str or int or float, optional): Weight variable name or numerical value. Use Simulation's weight_variable_by_entity if None, and if the later is None uses 1 ((Default value = None)
 
         Returns:
             pd.DataFrame: Pivot table
@@ -331,7 +330,6 @@ class AbstractSurveyScenario(object):
             simulation = baseline_simulation = self.baseline_simulation
 
         filtering_variable_by_entity = self.filtering_variable_by_entity
-        weight_variable_by_entity = self.weight_variable_by_entity
 
         return simulation.compute_pivot_table(
             baseline_simulation = baseline_simulation,
@@ -348,7 +346,6 @@ class AbstractSurveyScenario(object):
             weighted = weighted,
             alternative_weights = alternative_weights,
             filtering_variable_by_entity = filtering_variable_by_entity,
-            weight_variable_by_entity = weight_variable_by_entity,
             )
 
     def compute_winners_loosers(self, variable = None,
@@ -374,7 +371,6 @@ class AbstractSurveyScenario(object):
             weighted = weighted,
             alternative_weights = alternative_weights,
             filtering_variable_by_entity = self.filtering_variable_by_entity,
-            weight_variable_by_entity = self.weight_variable_by_entity,
             )
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
@@ -655,8 +651,11 @@ class AbstractSurveyScenario(object):
 
         # Note that I can pass a :class:`pd.DataFrame` directly, if I don't want to rebuild the data.
         self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config)
+
         if use_marginal_tax_rate:
             self.new_simulation(debug = debug, data = data, trace = trace, memory_config = memory_config, marginal_tax_rate_only = True)
+
+        self.set_weight_variable_by_entity()
 
         if calibration_kwargs is not None:
             assert set(calibration_kwargs.keys()).issubset(set(
@@ -949,6 +948,8 @@ class AbstractSurveyScenario(object):
         if self.year is not None:
             simulation.period = periods.period(self.year)
 
+        simulation.weight_variable_by_entity = self.weight_variable_by_entity
+
         return simulation
 
     def load_table(self, variables = None, collection = None, survey = None,
@@ -996,7 +997,7 @@ class AbstractSurveyScenario(object):
             print(line.rjust(100))  # noqa analysis:ignore
 
     def neutralize_variables(self, tax_benefit_system):
-        """Neutralizes input variables not in input dataframe and keep some crucial variables
+        """Neutralizes input variables not in input dataframe and keep some crucial variables.
 
         Args:
           tax_benefit_system: The TaxBenefitSystem variables belongs to
@@ -1015,7 +1016,7 @@ class AbstractSurveyScenario(object):
             tax_benefit_system.neutralize_variable(variable_name)
 
     def restore_simulations(self, directory, **kwargs):
-        """Restores SurveyScenario's simulations
+        """Restores SurveyScenario's simulations.
 
         Args:
           directory: Directory to restore simulations from
@@ -1041,7 +1042,7 @@ class AbstractSurveyScenario(object):
                 )
 
     def set_input_data_frame(self, input_data_frame):
-        """Sets the input dataframe
+        """Set the input dataframe.
 
         Args:
           input_data_frame (pd.DataFrame): Input data frame
@@ -1050,7 +1051,7 @@ class AbstractSurveyScenario(object):
         self.input_data_frame = input_data_frame
 
     def set_tax_benefit_systems(self, tax_benefit_system = None, baseline_tax_benefit_system = None):
-        """Sets the tax and benefit system and eventually the baseline tax and benefit system
+        """Set the tax and benefit system and eventually the baseline tax and benefit system.
 
         Args:
           tax_benefit_system: The main tax benefit system (Default value = None)
@@ -1065,8 +1066,16 @@ class AbstractSurveyScenario(object):
             if self.cache_blacklist is not None:
                 self.baseline_tax_benefit_system.cache_blacklist = self.cache_blacklist
 
+    def set_weight_variable_by_entity(self, weight_variable_by_entity = None):
+        if weight_variable_by_entity is not None:
+            self.weight_variable_by_entity = weight_variable_by_entity
+
+        for simulation in [self.simulation, self.baseline_simulation]:
+            if simulation is not None:
+                simulation.weight_variable_by_entity = self.weight_variable_by_entity
+
     def summarize_variable(self, variable = None, use_baseline = False, weighted = False, force_compute = False):
-        """Prints a summary of a variable including its memory usage.
+        """Print a summary of a variable including its memory usage.
 
         Args:
           variable(string): The variable being summarized
@@ -1093,7 +1102,6 @@ class AbstractSurveyScenario(object):
             <BLANKLINE>
             age: neutralized variable (int64, default = 0)
         """
-
         if use_baseline:
             simulation = self.baseline_simulation
         else:
@@ -1238,7 +1246,7 @@ class AbstractSurveyScenario(object):
                 )
 
     def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
-        """Identifies and sets the correct ids for the different entities"""
+        """Identify and sets the correct ids for the different entities."""
         if self.id_variable_by_entity_key is None:
             log.debug("Use default id_variable names")
             self.id_variable_by_entity_key = dict(
@@ -1247,7 +1255,7 @@ class AbstractSurveyScenario(object):
         return self.id_variable_by_entity_key
 
     def _set_role_variable_by_entity_key(self) -> Dict[str, str]:
-        """Identifies and sets the correct roles for the different entities"""
+        """Identify and sets the correct roles for the different entities."""
         if self.role_variable_by_entity_key is None:
             self.role_variable_by_entity_key = dict(
                 (entity.key, entity.key + '_role_index') for entity in self.tax_benefit_system.entities)
@@ -1255,7 +1263,7 @@ class AbstractSurveyScenario(object):
         return self.role_variable_by_entity_key
 
     def _set_used_as_input_variables_by_entity(self) -> Dict[str, List[str]]:
-        """Identifies and sets the correct input variables for the different entities"""
+        """Identify and sets the correct input variables for the different entities."""
         if self.used_as_input_variables_by_entity is not None:
             return
 
