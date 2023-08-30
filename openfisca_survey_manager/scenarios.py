@@ -134,7 +134,7 @@ class AbstractSurveyScenario(object):
                 # filter_by = self.filter_by,
                 )
             calibration.calibrate(inplace = True)
-            self.calibration = calibration
+            simulation.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
             difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
