@@ -157,7 +157,7 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
         if weight_variable else uniform_weight
         )
     if weight_variable:
-        assert all(weight != 0), "Weights shall not be all zeroes"
+        assert any(weight != 0), "Weights shall not be all zeroes"
     else:
         assert uniform_weight != 0
 
