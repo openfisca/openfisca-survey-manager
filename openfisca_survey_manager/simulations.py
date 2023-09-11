@@ -610,8 +610,7 @@ def compute_winners_loosers(
         stats["count_zero"] = (
             weight
             * (
-                (-absolute_minimal_detected_variation < value)
-                & (value < absolute_minimal_detected_variation)
+                (absolute_minimal_detected_variation > np.abs(value))
                 )
             ).sum()
         stats["count_non_zero"] = sum(weight) - stats["count_zero"]
@@ -628,7 +627,7 @@ def compute_winners_loosers(
 
     below_after = ((after_value - before_value) / before_value) < relative_minimal_detected_variation
     below_after[almost_zero_before] = (
-        after_value < absolute_minimal_detected_variation
+        after_value < -absolute_minimal_detected_variation
         )[almost_zero_before]
 
     if observations_threshold is not None:
