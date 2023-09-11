@@ -153,7 +153,7 @@ def compute_aggregate(simulation, variable = None, aggfunc = 'sum', filter_by = 
         return missing_variable_default_value
 
     weight = (
-        simulation.adaptative_calculate_variable(variable = weight_variable, period = period).astype(float)
+        simulation.calculate(weight_variable, period = period).astype(float)
         if weight_variable else uniform_weight
         )
     if weight_variable:
@@ -216,7 +216,7 @@ def compute_quantiles(simulation = None, variable = None, nquantiles = None, per
     if filter_by is not None:
         filter_entity_key = simulation.tax_benefit_system.variables.get(filter_by).entity.key
         assert filter_entity_key == entity_key
-        filter_dummy = simulation.adaptative_calculate_variable(filter_by, period = period)
+        filter_dummy = simulation.calculate(filter_by, period = period).astype(bool)
 
         variable_values = variable_values[filter_dummy].copy()
         weight = weight[filter_dummy].copy()
@@ -586,7 +586,7 @@ def compute_winners_loosers(
     if filter_by is not None:
         filter_entity_key = baseline_simulation.tax_benefit_system.variables.get(filter_by).entity.key
         assert filter_entity_key == entity_key
-        filter_dummy = baseline_simulation.adaptative_calculate_variable(filter_by, period = period)
+        filter_dummy = baseline_simulation.calculate(filter_by, period = period).astype(bool)
 
         after = after[filter_dummy].copy()
         before = before[filter_dummy].copy()
@@ -597,7 +597,7 @@ def compute_winners_loosers(
             weight = alternative_weights
         elif weight_variable_by_entity is not None:
             weight_variable = weight_variable_by_entity[entity_key]
-            weight = baseline_simulation.adaptative_calculate_variable(weight_variable, period = period)
+            weight = baseline_simulation.calculate(weight_variable, period = period)
         else:
             log.warn('There is no weight variable for entity {} nor alternative weights. Switch to unweighted'.format(entity_key))
 
@@ -608,27 +608,28 @@ def compute_winners_loosers(
     for simulation_prefix, value in value_by_simulation.items():
         stats = dict()
         stats["count_zero"] = (
-            weight
+            weight.astype("float64")
             * (
                 (absolute_minimal_detected_variation > np.abs(value))
                 )
             ).sum()
-        stats["count_non_zero"] = sum(weight) - stats["count_zero"]
+        stats["count_non_zero"] = sum(weight.astype("float64")) - stats["count_zero"]
         stats_by_simulation[simulation_prefix] = stats
+        del stats
 
     after_value = after
     before_value = before
 
-    above_after = ((after_value - before_value) / before_value) > relative_minimal_detected_variation
+    above_after = ((after_value - before_value) / np.abs(before_value)) > relative_minimal_detected_variation
     almost_zero_before = np.abs(before_value) < absolute_minimal_detected_variation
-    above_after[almost_zero_before] = (
-        after_value > absolute_minimal_detected_variation
-        )[almost_zero_before]
+    above_after[almost_zero_before * (after_value >= 0)] = (
+        after_value >= absolute_minimal_detected_variation
+        )[almost_zero_before * (after_value >= 0)]
 
-    below_after = ((after_value - before_value) / before_value) < relative_minimal_detected_variation
-    below_after[almost_zero_before] = (
+    below_after = ((after_value - before_value) / np.abs(before_value)) < -relative_minimal_detected_variation
+    below_after[almost_zero_before * (after_value < 0)] = (
         after_value < -absolute_minimal_detected_variation
-        )[almost_zero_before]
+        )[almost_zero_before * (after_value < 0)]
 
     if observations_threshold is not None:
         not_legit_below = (below_after.sum() < observations_threshold) & (below_after.sum() > 0)
@@ -636,8 +637,8 @@ def compute_winners_loosers(
         if not_legit_below | not_legit_above:
             raise SecretViolationError("Not enough observations involved")
 
-    above_after_count = (above_after * weight).astype("float64").sum()
-    below_after_count = (below_after * weight).astype("float64").sum()
+    above_after_count = (above_after.astype("float64") * weight.astype("float64")).sum()
+    below_after_count = (below_after.astype("float64") * weight.astype("float64")).sum()
     total = sum(weight)
     neutral = total - above_after_count - below_after_count
 
