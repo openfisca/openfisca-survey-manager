@@ -11,7 +11,6 @@ def test_compute_winners_loosers_basics():
     period = survey_scenario.period
     variable = "pension"
 
-    aggregate_after = survey_scenario.compute_aggregate(variable, period = period)
     simulation = survey_scenario.simulation
     baseline_simulation = simulation
 
@@ -28,7 +27,8 @@ def test_compute_winners_loosers_basics():
         relative_minimal_detected_variation = relative_minimal_detected_variation,
         observations_threshold = observations_threshold,
         )
-    assert winners_loosers ==  {'total': 10.0,
+    assert winners_loosers == {
+        'total': 10.0,
         'non_zero_before': 0.0,
         'non_zero_after': 0.0,
         'above_after': 0.0,
