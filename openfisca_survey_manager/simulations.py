@@ -640,14 +640,14 @@ def compute_winners_loosers(
     # Compute the number of entity above or below after
     after_value = after
     before_value = before
-
-    above_after = ((after_value - before_value) / np.abs(before_value)) > relative_minimal_detected_variation
+    with np.errstate(divide="ignore", invalid="ignore"):
+        above_after = ((after_value - before_value) / np.abs(before_value)) > relative_minimal_detected_variation
     almost_zero_before = np.abs(before_value) < absolute_minimal_detected_variation
     above_after[almost_zero_before * (after_value >= 0)] = (
         after_value >= absolute_minimal_detected_variation
         )[almost_zero_before * (after_value >= 0)]
-
-    below_after = ((after_value - before_value) / np.abs(before_value)) < -relative_minimal_detected_variation
+    with np.errstate(divide="ignore", invalid="ignore"):
+        below_after = ((after_value - before_value) / np.abs(before_value)) < -relative_minimal_detected_variation
     below_after[almost_zero_before * (after_value < 0)] = (
         after_value < -absolute_minimal_detected_variation
         )[almost_zero_before * (after_value < 0)]
