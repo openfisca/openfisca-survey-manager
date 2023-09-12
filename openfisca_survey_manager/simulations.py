@@ -563,14 +563,14 @@ class SecretViolationError(Exception):
 def compute_winners_loosers(
         simulation,
         baseline_simulation,
-        variable:str,
+        variable: str,
         filter_by = None,
         period = None,
-        absolute_minimal_detected_variation:float = 0,
-        relative_minimal_detected_variation:float = .01,
-        observations_threshold:int = None,
-        weighted:bool = True,
-        alternative_weights:List = None,
+        absolute_minimal_detected_variation: float = 0,
+        relative_minimal_detected_variation: float = .01,
+        observations_threshold: int = None,
+        weighted: bool = True,
+        alternative_weights: List = None,
         filtering_variable_by_entity = None,
         ) -> Dict[str, int]:
     """
@@ -587,14 +587,14 @@ def compute_winners_loosers(
         weighted: Whether to use weights
         alternative_weights: The weights to be used
         filtering_variable_by_entity: The variable to be used as a filter
-    Returns:
-     A dictionary
 
+    Returns:
+        A dictionary
     """
     weight_variable_by_entity = simulation.weight_variable_by_entity
     entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
 
-    # Get the results of the simulation
+    # Get the results of the simulation
     after = simulation.adaptative_calculate_variable(variable, period = period)
     before = baseline_simulation.adaptative_calculate_variable(variable, period = period)
 
