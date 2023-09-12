@@ -236,7 +236,7 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
         filtering_variable_by_entity = None):
 
     weight_variable_by_entity = simulation.weight_variable_by_entity
-    admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count']
+    admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count', 'sum_abs']
     assert aggfunc in admissible_aggfuncs
 
     if baseline_simulation is not None:
@@ -391,8 +391,12 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
     if values:
         data_frame_by_value = dict()
         for value in values:
-            if aggfunc in ['mean', 'sum', 'count']:
-                data_frame[value] = data_frame[value] * data_frame[weight_variable]
+            if aggfunc in ['mean', 'sum', 'sum_abs', 'count']:
+                data_frame[value] = (
+                    data_frame[value] * data_frame[weight_variable]
+                    if aggfunc != 'sum_abs'
+                    else data_frame[value].abs() * data_frame[weight_variable]
+                    )
                 data_frame[value].fillna(missing_variable_default_value, inplace = True)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
@@ -401,7 +405,7 @@ def compute_pivot_table(simulation = None, baseline_simulation = None, aggfunc =
                         result = (pivot_sum / pivot_mass.loc[weight_variable])
                     except KeyError:
                         result = (pivot_sum / pivot_mass)
-                elif aggfunc == 'sum':
+                elif aggfunc in ['sum', 'sum_abs']:
                     result = pivot_sum
                 elif aggfunc == 'count':
                     result = pivot_mass.rename(columns = {weight_variable: value}, index = {weight_variable: value})
