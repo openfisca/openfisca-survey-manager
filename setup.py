@@ -64,7 +64,7 @@ setup(
             'flake8-docstrings >=1.7.0, < 2.0',
             'flake8-print >=5.0.0, < 6.0',
             'flake8-rst-docstrings >=0.3.0, < 0.4.0',
-            'openfisca-country-template >=6 , <7 ',
+            'openfisca-country-template >=6.0.2 , <7 ',
             'pytest >=7.2.2, < 8.0',
             'pytest-cov >=4.0.0, < 5.0',
             'scipy >=1.10.1, < 2.0',
