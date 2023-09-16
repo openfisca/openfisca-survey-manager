@@ -30,7 +30,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '1.1.6',
+    version = '1.1.7',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -68,7 +68,6 @@ setup(
             'pytest >=7.2.2, < 8.0',
             'pytest-cov >=4.0.0, < 5.0',
             'scipy >=1.10.1, < 2.0',
-            'tables >=3.8.0, < 4.0',
             'pytest-order >=1.1.0, <2.0',
             ],
         'casd': [
