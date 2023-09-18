@@ -1,9 +1,9 @@
 ﻿# Changelog
 
-### 1.1.6 [#269](https://github.com/openfisca/openfisca-survey-manager/pull/269)
+### 1.1.7 [#271](https://github.com/openfisca/openfisca-survey-manager/pull/271)
 
 * Technical changes
-  - HDF files are now opened in read-only mode to prevent locking when multiple survey-manager need to access the same file.
+  - Set pandas dependency to version >= 2.0.3, <3.0.
 
 ### 1.1.5 [#265](https://github.com/openfisca/openfisca-survey-manager/pull/265)
 

@@ -30,7 +30,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '1.1.6',
+    version = '1.1.7',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -64,11 +64,10 @@ setup(
             'flake8-docstrings >=1.7.0, < 2.0',
             'flake8-print >=5.0.0, < 6.0',
             'flake8-rst-docstrings >=0.3.0, < 0.4.0',
-            'openfisca-country-template >=6 , <7 ',
+            'openfisca-country-template >=6.0.2 , <7 ',
             'pytest >=7.2.2, < 8.0',
             'pytest-cov >=4.0.0, < 5.0',
             'scipy >=1.10.1, < 2.0',
-            'tables >=3.8.0, < 4.0',
             'pytest-order >=1.1.0, <2.0',
             ],
         'casd': [
@@ -88,8 +87,8 @@ setup(
         'chardet >=5.1.0, < 6.0',
         'configparser >=5.3.0, < 6.0',
         'humanize >=4.6.0, < 5.0',
-        'openfisca-core >=40, < 41',
-        'pandas >=1.5.3, < 2.0',
+        'openfisca-core >=41, < 42.0',
+        'pandas >=2.0.3, < 3.0',
         'pyxdg >=0.28, < 0.29',
         'PyYAML >=6.0, < 7.0',
         'tables >=3.8.0, < 4.0',
