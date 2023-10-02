@@ -2,7 +2,7 @@
 
 from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
 import pandas as pd
-import weighted
+import wquantiles
 import weightedcalcs as wc
 import numpy as np
 
@@ -350,7 +350,7 @@ def weighted_quantiles(data, labels, weights, return_quantiles = False):
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
     quantiles = [
-        weighted.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
+        wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
         ]
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):
