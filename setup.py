@@ -87,7 +87,7 @@ setup(
         'chardet >=5.1.0, < 6.0',
         'configparser >=5.3.0, < 6.0',
         'humanize >=4.6.0, < 5.0',
-        'openfisca-core >=41, < 42.0',
+        'openfisca-core >=41.0.2, < 42.0',
         'pandas >=2.0.3, < 3.0',
         'pyxdg >=0.28, < 0.29',
         'PyYAML >=6.0, < 7.0',
