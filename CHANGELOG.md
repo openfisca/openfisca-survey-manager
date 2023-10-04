@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 1.1.8 [#272](https://github.com/openfisca/openfisca-survey-manager/pull/272)
+
+* Technical changes
+  - Use `openfisca-core` version >= 41.0.3.
+
 ### 1.1.7 [#271](https://github.com/openfisca/openfisca-survey-manager/pull/271)
 
 * Technical changes
