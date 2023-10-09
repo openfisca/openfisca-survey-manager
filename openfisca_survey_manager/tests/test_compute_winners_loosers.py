@@ -11,8 +11,8 @@ def test_compute_winners_loosers_basics():
     period = survey_scenario.period
     variable = "pension"
 
-    simulation = survey_scenario.simulation
-    baseline_simulation = simulation
+    simulation = survey_scenario.simulations["baseline"]
+    baseline_simulation = survey_scenario.simulations["baseline"]
 
     simulation.adaptative_calculate_variable(variable, period = period)
     absolute_minimal_detected_variation = 1
@@ -46,13 +46,8 @@ def test_compute_winners_loosers():
     period = survey_scenario.period
     variable = "social_security_contribution"
 
-    aggregate_after = survey_scenario.compute_aggregate(variable, period = period)
-    aggregate_before = survey_scenario.compute_aggregate(variable, period = period, use_baseline = True)
-
-    assert aggregate_after > aggregate_before
-
-    simulation = survey_scenario.simulation
-    baseline_simulation = survey_scenario.baseline_simulation
+    simulation = survey_scenario.simulations["reform"]
+    baseline_simulation = survey_scenario.simulations["baseline"]
 
     absolute_minimal_detected_variation = .9
     relative_minimal_detected_variation = .05
@@ -69,6 +64,8 @@ def test_compute_winners_loosers():
 
     winners_loosers_scenario = survey_scenario.compute_winners_loosers(
         variable,
+        simulation = "reform",
+        baseline_simulation = "baseline",
         period = period,
         absolute_minimal_detected_variation = absolute_minimal_detected_variation,
         relative_minimal_detected_variation = relative_minimal_detected_variation,

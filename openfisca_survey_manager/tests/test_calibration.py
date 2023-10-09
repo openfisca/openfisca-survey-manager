@@ -24,7 +24,8 @@ def test_calibration_variable_entity_is_weight_entity():
         parameters = {"method": "raking ratio"},
         )
 
-    assert all(survey_scenario.simulation.calibration.weight != survey_scenario.simulation.calibration.initial_weight)
+    for simulation_name, simulation in survey_scenario.simulations.items():
+        assert all(simulation.calibration.weight != simulation.calibration.initial_weight)
 
     assert_near(survey_scenario.compute_aggregate("rent", period = period), target_rent_aggregate)
 
@@ -55,7 +56,7 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
     period = "2017-01"
     survey_scenario.period = period
-    simulation = survey_scenario.simulation
+    simulation = list(survey_scenario.simulations.values())[0]
     person_weight_before = simulation.calculate("person_weight", period)
 
     # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)

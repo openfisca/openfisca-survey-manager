@@ -10,7 +10,10 @@ class TestCreateDataFrameByEntity(unittest.TestCase):
     def test_create_data_frame_by_entity(self):
         survey_scenario = create_randomly_initialized_survey_scenario()
         period = '2017-01'
-        df_by_entity = survey_scenario.create_data_frame_by_entity(variables = ['salary', 'rent'], period = period)
+        df_by_entity = survey_scenario.create_data_frame_by_entity(
+            variables = ['salary', 'rent'],
+            period = period,
+            )
         salary = survey_scenario.calculate_variable('salary', period = period)
         rent = survey_scenario.calculate_variable('rent', period = period)
         for entity, df in df_by_entity.items():
