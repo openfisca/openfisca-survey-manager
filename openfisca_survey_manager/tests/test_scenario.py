@@ -351,14 +351,14 @@ def test_inflate():
 def test_compute_pivot_table():
     survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
     period = "2017-01"
-    pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
+    pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period, simulation = "baseline")
 
     assert pivot_table.index == "salary"
     assert pivot_table.values.round() == 21748
 
     del survey_scenario.weight_variable_by_entity
     survey_scenario.set_weight_variable_by_entity()
-    pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period)
+    pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period, simulation = "baseline")
 
     assert pivot_table.values.round() == 13570.
 
@@ -366,7 +366,7 @@ def test_compute_pivot_table():
 def test_compute_quantile():
     survey_scenario = create_randomly_initialized_survey_scenario()
     period = "2017-01"
-    quintiles = survey_scenario.compute_quantiles(variable = "salary", nquantiles = 5, period = period, weighted = False)
+    quintiles = survey_scenario.compute_quantiles(variable = "salary", nquantiles = 5, period = period, weighted = False, simulation = "baseline")
     return quintiles
 
 
