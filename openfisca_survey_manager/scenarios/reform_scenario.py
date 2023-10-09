@@ -11,49 +11,27 @@ import pandas as pd
 
 import humanize
 
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+# from openfisca_core import periods
+# from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
+# from openfisca_core.simulation_builder import SimulationBuilder
+# from openfisca_core.indexed_enums import Enum
+# from openfisca_core.periods import MONTH, YEAR, ETERNITY
+# from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
-from openfisca_core import periods
-from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.indexed_enums import Enum
-from openfisca_core.periods import MONTH, YEAR, ETERNITY
-from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
-
-from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager import default_config_files_directory
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+# from openfisca_survey_manager.calibration import Calibration
+# from openfisca_survey_manager import default_config_files_directory
+# from openfisca_survey_manager.survey_collections import SurveyCollection
+# from openfisca_survey_manager.surveys import Survey
 
 log = logging.getLogger(__name__)
 
 
-class AbstractSurveyScenario(object):
-    """Abstract survey scenario."""
+class ReformScenario(AbstractSurveyScenario):
+    """Reform survey scenario."""
 
     baseline_simulation = None
     baseline_tax_benefit_system = None
-    cache_blacklist = None
-    collection = None
-    debug = False
-    filtering_variable_by_entity = None
-    id_variable_by_entity_key = None
-    inflator_by_variable = None  # factor used to inflate variable total
-    input_data_frame = None
-    input_data_table_by_entity_by_period = None
-    input_data_table_by_period = None
-    non_neutralizable_variables = None
-    period = None
-    role_variable_by_entity_key = None
-    simulation = None
-    target_by_variable = None  # variable total target to inflate to
-    tax_benefit_system = None
-    trace = False
-    used_as_input_variables = None
-    used_as_input_variables_by_entity = None
-    variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
-    varying_variable = None
-    weight_variable_by_entity = None
-    config_files_directory = default_config_files_directory
 
     def build_input_data(self, **kwargs):
         """Build input data."""
@@ -424,21 +402,6 @@ class AbstractSurveyScenario(object):
             survey.insert_table(name = entity_key, data_frame = data_frame)
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection = "openfisca")
-
-    def dump_simulations(self, directory = None):
-        assert directory is not None
-        use_sub_directories = True if self.baseline_simulation is not None else False
-
-        if use_sub_directories:
-            for use_baseline in [False, True]:
-                sub_directory = 'baseline' if use_baseline else 'reform'
-                self._dump_simulation(
-                    directory = os.path.join(directory, sub_directory),
-                    use_baseline = use_baseline,
-                    )
-
-        else:
-            self._dump_simulation(directory = directory)
 
     def init_all_entities(self, tax_benefit_system, input_data_frame, builder, period = None):
         assert period is not None
@@ -1216,15 +1179,6 @@ class AbstractSurveyScenario(object):
                 set_variable(varying_variable, varying_variable_value / 12, period_)
         else:
             ValueError()
-
-    def _dump_simulation(self, directory = None, use_baseline = False):
-        assert directory is not None
-        if use_baseline:
-            assert self.baseline_simulation is not None
-            dump_simulation(self.baseline_simulation, directory)
-        else:
-            assert self.simulation is not None
-            dump_simulation(self.simulation, directory)
 
     def _restore_simulation(self, directory = None, use_baseline = False, **kwargs):
         assert directory is not None
