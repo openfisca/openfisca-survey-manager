@@ -6,8 +6,15 @@ import pandas as pd
 import re
 from typing import Dict, List
 
+
+import humanize
+
+
 from openfisca_core import periods
+from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import ETERNITY
 from openfisca_core.simulations import Simulation
+
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 
 log = logging.getLogger(__name__)
@@ -681,11 +688,159 @@ def compute_winners_loosers(
         }
 
 
+def print_memory_usage(simulation):
+    memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
+    try:
+        usage_stats = simulation.tracer.usage_stats
+    except AttributeError:
+        log.warning("The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits).")
+        usage_stats = None
+    infos_lines = list()
+
+    for variable, infos in memory_usage_by_variable.items():
+        hits = usage_stats[variable]['nb_requests'] if usage_stats else None
+        infos_lines.append((
+            infos['total_nb_bytes'],
+            variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits".format(
+                variable,
+                infos['nb_arrays'],
+                infos['nb_cells_by_array'],
+                infos['cell_size'],
+                infos['dtype'],
+                humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
+                hits,
+                )
+            ))
+    infos_lines.sort()
+    for _, _, line in infos_lines:
+        print(line.rjust(100))  # noqa analysis:ignore
+
+
 def set_weight_variable_by_entity(
         simulation,
         weight_variable_by_entity,
         ):
     simulation.weight_variable_by_entity = weight_variable_by_entity
+
+
+def summarize_variable(simulation, variable = None, weighted = False, force_compute = False):
+    """Print a summary of a variable including its memory usage.
+
+    Args:
+        variable(string): The variable being summarized
+        use_baseline(bool): The tax-benefit-system considered
+        weighted(bool): Whether the produced statistics should be weigthted or not
+        force_compute(bool): Whether the computation of the variable should be forced
+
+    # Example:
+    #     >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
+    #     >>> survey_scenario = create_randomly_initialized_survey_scenario()
+    #     >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
+    #     <BLANKLINE>
+    #     housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
+    #     Details:
+    #     2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
+    #     >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
+    #     <BLANKLINE>
+    #     rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
+    #     Details:
+    #     2017-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+    #     2018-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+    #     >>> survey_scenario.tax_benefit_system.neutralize_variable('age')
+    #     >>> survey_scenario.summarize_variable(variable = "age")
+    #     <BLANKLINE>
+    #     age: neutralized variable (int64, default = 0)
+    """
+
+    tax_benefit_system = simulation.tax_benefit_system
+    variable_instance = tax_benefit_system.variables.get(variable)
+    assert variable_instance is not None, "{} is not a valid variable".format(variable)
+
+    default_value = variable_instance.default_value
+    value_type = variable_instance.value_type
+
+    if variable_instance.is_neutralized:
+        print("")  # noqa analysis:ignore
+        print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))  # noqa analysis:ignore
+        return
+
+    if weighted:
+        weight_variable = simulation.weight_variable_by_entity[variable_instance.entity.key]
+        weights = simulation.calculate(weight_variable, simulation.period)
+
+    infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
+    if not infos:
+        if force_compute:
+            simulation.adaptative_calculate_variable(variable = variable, period = simulation.period)
+            simulation.summarize_variable(variable = variable, weighted = weighted)
+            return
+        else:
+            print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))  # noqa analysis:ignore
+            return
+
+    header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
+        variable,
+        infos['nb_arrays'],
+        infos['nb_cells_by_array'],
+        infos['cell_size'],
+        str(np.dtype(infos['dtype'])),
+        default_value,
+        humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
+        )
+    print("")  # noqa analysis:ignore
+    print(header_line)  # noqa analysis:ignore
+    print("Details:")  # noqa analysis:ignore
+    holder = simulation.get_holder(variable)
+    if holder is not None:
+        if holder.variable.definition_period == ETERNITY:
+            array = holder.get_array(ETERNITY)
+            print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(  # noqa analysis:ignore
+                # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
+                array.astype(float).mean() if not weighted else np.average(array, weights = weights),
+                array.min(),
+                array.max(),
+                np.median(array.astype(float)),
+                (
+                    (array == default_value).sum() / len(array)
+                    if not weighted
+                    else ((array == default_value) * weights).sum() / weights.sum()
+                    )
+                ))
+        else:
+            for period in sorted(simulation.get_known_periods(variable)):
+                array = holder.get_array(period)
+                if array.shape == ():
+                    print("{}: always = {}".format(period, array))  # noqa analysis:ignore
+                    continue
+
+                if value_type == Enum:
+                    possible_values = variable_instance.possible_values
+                    categories_by_index = dict(zip(
+                        range(len(possible_values._member_names_)),
+                        possible_values._member_names_
+                        ))
+                    categories_type = pd.api.types.CategoricalDtype(categories = possible_values._member_names_, ordered = True)
+                    df = pd.DataFrame({variable: array}).replace(categories_by_index).astype(categories_type)
+                    df['weights'] = weights if weighted else 1
+                    groupby = df.groupby(variable)['weights'].sum()
+                    total = groupby.sum()
+                    expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
+                    print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
+                    continue
+
+                print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
+                    period,
+                    array.astype(float).mean() if not weighted else np.average(array, weights = weights),
+                    array.min(),
+                    array.max(),
+                    array.astype(float).sum() if not weighted else np.sum(array * weights),
+                    (
+                        (array == default_value).sum() / len(array)
+                        if not weighted
+                        else ((array == default_value) * weights).sum() / weights.sum()
+                        ),
+                    np.median(array),
+                    ))
 
 
 # Monkey patching
@@ -696,3 +851,6 @@ Simulation.compute_pivot_table = compute_pivot_table
 Simulation.create_data_frame_by_entity = create_data_frame_by_entity
 Simulation.compute_quantiles = compute_quantiles
 Simulation.compute_winners_loosers = compute_winners_loosers
+Simulation.print_memory_usage = print_memory_usage
+Simulation.set_weight_variable_by_entity = set_weight_variable_by_entity
+Simulation.summarize_variable = summarize_variable
