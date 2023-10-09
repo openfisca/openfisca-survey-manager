@@ -24,7 +24,7 @@ def test_calibration_variable_entity_is_weight_entity():
         parameters = {"method": "raking ratio"},
         )
 
-    for simulation_name, simulation in survey_scenario.simulations.items():
+    for _, simulation in survey_scenario.simulations.items():
         assert all(simulation.calibration.weight != simulation.calibration.initial_weight)
 
     assert_near(survey_scenario.compute_aggregate("rent", period = period), target_rent_aggregate)
