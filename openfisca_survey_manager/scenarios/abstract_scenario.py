@@ -621,7 +621,7 @@ class AbstractSurveyScenario(object):
         # Inverting reform and baseline because we are more likely
         # to use baseline input in reform than the other way around
         self.simulations = dict()
-        for simulation_name, tax_benefit_system in self.tax_benefit_systems.items():
+        for simulation_name, _ in self.tax_benefit_systems.items():
             self.new_simulation(simulation_name, debug = debug, data = data, trace = trace, memory_config = memory_config)
             if use_marginal_tax_rate:
                 self.new_simulation(simulation_name, debug = debug, data = data, trace = trace, memory_config = memory_config, marginal_tax_rate_only = True)
