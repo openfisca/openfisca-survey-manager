@@ -7,23 +7,25 @@ def test_compute_aggregate():
     period = "2017-01"
     variable = "social_security_contribution"
 
-    aggregate_after = survey_scenario.compute_aggregate(variable, period = period)
-    aggregate_before = survey_scenario.compute_aggregate(variable, period = period, use_baseline = True)
+    aggregate_after = survey_scenario.compute_aggregate(variable, period = period, simulation = "reform")
+    aggregate_before = survey_scenario.compute_aggregate(variable, period = period, simulation = "baseline")
 
     assert aggregate_after > aggregate_before
 
-    survey_scenario.calculate_variable("social_security_contribution", period = period)
-    survey_scenario.calculate_variable("salary", period = period)
+    survey_scenario.calculate_variable("social_security_contribution", period = period, simulation = "reform")
+    survey_scenario.calculate_variable("salary", period = period, simulation = "reform")
 
     assert 0 == survey_scenario.compute_aggregate(
         "social_security_contribution",
         period = period,
+        simulation = "reform",
         filter_by = "salary < 3000",
         )
 
     assert 34489 == survey_scenario.compute_aggregate(
         "social_security_contribution",
         period = period,
+        simulation = "reform",
         filter_by = "3000 < salary < 10000",
         ).astype(int)
 
@@ -32,5 +34,6 @@ def test_compute_aggregate():
     assert 576 == survey_scenario.compute_aggregate(
         "social_security_contribution",
         period = period,
+        simulation = "reform",
         filter_by = "3000 < salary < 10000",
         ).astype(int)

@@ -1,17 +1,11 @@
 """Abstract survey scenario definition."""
 
-from typing import Dict, List
-
-
 import logging
-import os
 import numpy as np
 import pandas as pd
 
 
-import humanize
-
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario, diagnose_variable_mismatch, init_variable_in_entity
 # from openfisca_core import periods
 # from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
 # from openfisca_core.simulation_builder import SimulationBuilder
@@ -20,7 +14,7 @@ from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyS
 # from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 # from openfisca_survey_manager.calibration import Calibration
-# from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager import default_config_files_directory
 # from openfisca_survey_manager.survey_collections import SurveyCollection
 # from openfisca_survey_manager.surveys import Survey
 
@@ -75,44 +69,44 @@ class ReformScenario(AbstractSurveyScenario):
 
         return simulation.adaptative_calculate_variable(variable, period = period)
 
-    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, target_entity_count: float = None):
-        """Calibrate the scenario data.
+    # def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, target_entity_count: float = None):
+    #     """Calibrate the scenario data.
 
-        Args:
-            period (int, optionnal): Period of calibration. Defaults to scenario.year
-            target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
-            parameters (dict, optional): Calibration parameters. Defaults to None.
-            total_population (float, optional): Total population target. Defaults to None.
-        """
-        survey_scenario = self
+    #     Args:
+    #         period (int, optionnal): Period of calibration. Defaults to scenario.year
+    #         target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
+    #         parameters (dict, optional): Calibration parameters. Defaults to None.
+    #         total_population (float, optional): Total population target. Defaults to None.
+    #     """
+    #     survey_scenario = self
 
-        if period is None:
-            assert survey_scenario.period is not None
-            period = survey_scenario.period
+    #     if period is None:
+    #         assert survey_scenario.period is not None
+    #         period = survey_scenario.period
 
-        if parameters is not None:
-            assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
-                "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
-            if parameters['method'] == 'logit':
-                assert parameters['invlo'] is not None
-                assert parameters['up'] is not None
-        else:
-            parameters = dict(method = 'logit', up = 3, invlo = 3)
+    #     if parameters is not None:
+    #         assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
+    #             "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
+    #         if parameters['method'] == 'logit':
+    #             assert parameters['invlo'] is not None
+    #             assert parameters['up'] is not None
+    #     else:
+    #         parameters = dict(method = 'logit', up = 3, invlo = 3)
 
-        # TODO: filtering using filtering_variable_by_entity
-        for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
-            if simulation is None:
-                continue
-            calibration = Calibration(
-                simulation,
-                target_margins_by_variable,
-                period,
-                target_entity_count = target_entity_count,
-                parameters = parameters,
-                # filter_by = self.filter_by,
-                )
-            calibration.calibrate(inplace = True)
-            simulation.calibration = calibration
+    #     # TODO: filtering using filtering_variable_by_entity
+    #     for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
+    #         if simulation is None:
+    #             continue
+    #         calibration = Calibration(
+    #             simulation,
+    #             target_margins_by_variable,
+    #             period,
+    #             target_entity_count = target_entity_count,
+    #             parameters = parameters,
+    #             # filter_by = self.filter_by,
+    #             )
+    #         calibration.calibrate(inplace = True)
+    #         simulation.calibration = calibration
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
             difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
@@ -392,133 +386,6 @@ class ReformScenario(AbstractSurveyScenario):
         """
         pass
 
-    def dump_data_frame_by_entity(self, variables = None, survey_collection = None, survey_name = None):
-        assert survey_collection is not None
-        assert survey_name is not None
-        assert variables is not None
-        openfisca_data_frame_by_entity = self.create_data_frame_by_entity(variables = variables)
-        for entity_key, data_frame in openfisca_data_frame_by_entity.items():
-            survey = Survey(name = survey_name)
-            survey.insert_table(name = entity_key, data_frame = data_frame)
-            survey_collection.surveys.append(survey)
-            survey_collection.dump(collection = "openfisca")
-
-    def init_all_entities(self, tax_benefit_system, input_data_frame, builder, period = None):
-        assert period is not None
-        log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
-
-        if period.unit == YEAR:  # 1. year
-            simulation = self.init_simulation_with_data_frame(
-                tax_benefit_system,
-                input_data_frame = input_data_frame,
-                period = period,
-                builder = builder,
-                )
-        elif period.unit == MONTH and period.size == 3:  # 2. quarter
-            for offset in range(period.size):
-                period_item = period.first_month.offset(offset, MONTH)
-                simulation = self.init_simulation_with_data_frame(
-                    tax_benefit_system,
-                    input_data_frame = input_data_frame,
-                    period = period_item,
-                    builder = builder,
-                    )
-        elif period.unit == MONTH and period.size == 1:  # 3. months
-            simulation = self.init_simulation_with_data_frame(
-                tax_benefit_system,
-                input_data_frame = input_data_frame,
-                period = period,
-                builder = builder,
-                )
-        else:
-            raise ValueError("Invalid period {}".format(period))
-
-        return simulation
-
-    def filter_input_variables(self, input_data_frame = None):
-        """Filter the input data frame from variables that won't be used or are set to be computed.
-
-        Args:
-          input_data_frame: Input dataframe (Default value = None)
-
-        Returns:
-          pd.DataFrame: filtered dataframe
-
-        """
-        assert input_data_frame is not None
-        id_variable_by_entity_key = self.id_variable_by_entity_key
-        role_variable_by_entity_key = self.role_variable_by_entity_key
-        used_as_input_variables = self.used_as_input_variables
-
-        tax_benefit_system = self.tax_benefit_system
-        variables = tax_benefit_system.variables
-
-        id_variables = [
-            id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
-        role_variables = [
-            role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
-
-        log.debug('Variable used_as_input_variables in filter: \n {}'.format(used_as_input_variables))
-
-        unknown_columns = []
-        for column_name in input_data_frame:
-            if column_name in id_variables + role_variables:
-                continue
-            if column_name not in variables:
-                unknown_columns.append(column_name)
-
-        input_data_frame.drop(unknown_columns, axis = 1, inplace = True)
-
-        if unknown_columns:
-            log.debug('The following unknown columns {}, are dropped from input table'.format(
-                sorted(unknown_columns)))
-
-        used_columns = []
-        dropped_columns = []
-        for column_name in input_data_frame:
-            if column_name in id_variables + role_variables:
-                continue
-            variable = variables[column_name]
-            # Keeping the calculated variables that are initialized by the input data
-            if variable.formulas:
-                if column_name in used_as_input_variables:
-                    used_columns.append(column_name)
-                    continue
-
-                dropped_columns.append(column_name)
-
-        input_data_frame.drop(dropped_columns, axis = 1, inplace = True)
-
-        if used_columns:
-            log.debug(
-                'These columns are not dropped because present in used_as_input_variables:\n {}'.format(
-                    sorted(used_columns)))
-        if dropped_columns:
-            log.debug(
-                'These columns in survey are set to be calculated, we drop them from the input table:\n {}'.format(
-                    sorted(dropped_columns)))
-
-        log.info('Keeping the following variables in the input_data_frame:\n {}'.format(
-            sorted(list(input_data_frame.columns))))
-        return input_data_frame
-
-    def generate_performance_data(self, output_dir: str):
-        if not self.trace:
-            raise ValueError("Method generate_performance_data cannot be used if trace hasn't been activated.")
-        reform_dir = os.path.join(output_dir, 'reform_perf_log')
-        baseline_dir = os.path.join(output_dir, 'baseline_perf_log')
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
-        if not os.path.exists(reform_dir):
-            os.mkdir(reform_dir)
-        if not os.path.exists(baseline_dir):
-            os.mkdir(baseline_dir)
-
-        self.simulation.tracer.generate_performance_graph(reform_dir)
-        self.simulation.tracer.generate_performance_tables(reform_dir)
-        self.baseline_simulation.tracer.generate_performance_graph(baseline_dir)
-        self.baseline_simulation.tracer.generate_performance_tables(baseline_dir)
-
     def inflate(self, inflator_by_variable = None, period = None, target_by_variable = None):
         assert inflator_by_variable or target_by_variable
         assert period is not None
@@ -734,273 +601,37 @@ class ReformScenario(AbstractSurveyScenario):
 
         return simulation
 
-    def new_simulation(self, debug = False, use_baseline = False, trace = False, data = None, memory_config = None, marginal_tax_rate_only = False):
-        assert self.tax_benefit_system is not None
-        tax_benefit_system = self.tax_benefit_system
-        if self.baseline_tax_benefit_system is not None and use_baseline:
-            tax_benefit_system = self.baseline_tax_benefit_system
-        elif use_baseline:
-            while True:
-                baseline_tax_benefit_system = tax_benefit_system.baseline
-                if isinstance(use_baseline, bool) and baseline_tax_benefit_system is None \
-                        or baseline_tax_benefit_system == use_baseline:
-                    break
-                tax_benefit_system = baseline_tax_benefit_system
+    # def memory_usage(self, use_baseline = False):
+    #     if use_baseline:
+    #         simulation = self.baseline_simulation
+    #     else:
+    #         simulation = self.simulation
 
-        period = periods.period(self.period)
+    #     memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
+    #     try:
+    #         usage_stats = simulation.tracer.usage_stats
+    #     except AttributeError:
+    #         log.warning("The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits).")
+    #         usage_stats = None
+    #     infos_lines = list()
 
-        simulation = self.new_simulation_from_tax_benefit_system(
-            tax_benefit_system = tax_benefit_system,
-            debug = debug,
-            trace = trace,
-            data = data,
-            memory_config = memory_config,
-            period = period,
-            skip_custom_initialize = marginal_tax_rate_only,  # Done after applying modifcation
-            )
-
-        if marginal_tax_rate_only:
-            self._apply_modification(simulation, period)
-            if not use_baseline:
-                self._modified_simulation = simulation
-            else:
-                self._modified_baseline_simulation = simulation
-
-            if 'custom_initialize' in dir(self):
-                self.custom_initialize(simulation)
-
-        else:
-            if not use_baseline:
-                self.simulation = simulation
-            else:
-                self.baseline_simulation = simulation
-
-        return simulation
-
-    def new_simulation_from_tax_benefit_system(self, tax_benefit_system = None, debug = False, trace = False, data = None, memory_config = None, period = None, skip_custom_initialize = False):
-        assert tax_benefit_system is not None
-        self.neutralize_variables(tax_benefit_system)
-        #
-        simulation = self.init_simulation(tax_benefit_system, period, data)
-        simulation.debug = debug
-        simulation.trace = trace
-        simulation.opt_out_cache = True if self.cache_blacklist is not None else False
-        simulation.memory_config = memory_config
-
-        if (not skip_custom_initialize):
-            if 'custom_initialize' in dir(self):
-                self.custom_initialize(simulation)
-
-        return simulation
-
-    def init_simulation(self, tax_benefit_system, period, data):
-        builder = SimulationBuilder()
-        builder.create_entities(tax_benefit_system)
-
-        data_year = data.get("data_year", self.period)
-        survey = data.get('survey')
-
-        default_source_types = [
-            'input_data_frame',
-            'input_data_table',
-            'input_data_frame_by_entity',
-            'input_data_frame_by_entity_by_period',
-            'input_data_table_by_entity_by_period',
-            'input_data_table_by_period',
-            ]
-        source_types = [
-            source_type_
-            for source_type_ in default_source_types
-            if data.get(source_type_, None) is not None
-            ]
-        assert len(source_types) < 2, "There are too many data source types"
-        assert len(source_types) >= 1, "There should be one data source type included in {}".format(
-            default_source_types)
-        source_type = source_types[0]
-        source = data[source_type]
-
-        if source_type == 'input_data_frame_by_entity':
-            assert data_year is not None
-            source_type = 'input_data_frame_by_entity_by_period'
-            source = {periods.period(data_year): source}
-
-        input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
-
-        if source_type == 'input_data_frame':
-            simulation = self.init_all_entities(tax_benefit_system, source, builder, period)
-
-        if source_type == 'input_data_table':
-            # Case 1: fill simulation with a unique input_data_frame given by the attribute
-            if input_data_survey_prefix is not None:
-                openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-                openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                    input_data_survey_prefix, data_year))
-                input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-            else:
-                NotImplementedError
-
-            self.custom_input_data_frame(input_data_frame, period = period)
-            simulation = self.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
-
-        elif source_type == 'input_data_table_by_period':
-            # Case 2: fill simulation with input_data_frame by period containing all entity variables
-            for period, table in self.input_data_table_by_period.items():
-                period = periods.period(period)
-                log.debug('From survey {} loading table {}'.format(survey, table))
-                input_data_frame = self.load_table(survey = survey, table = table)
-                self.custom_input_data_frame(input_data_frame, period = period)
-                simulation = self.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
-
-        elif source_type == 'input_data_frame_by_entity_by_period':
-            for period, input_data_frame_by_entity in source.items():
-                period = periods.period(period)
-                for entity in tax_benefit_system.entities:
-                    input_data_frame = input_data_frame_by_entity.get(entity.key)
-                    if input_data_frame is None:
-                        continue
-                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                    self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
-
-            simulation = builder.build(tax_benefit_system)
-            for period, input_data_frame_by_entity in source.items():
-                for entity in tax_benefit_system.entities:
-                    input_data_frame = input_data_frame_by_entity.get(entity.key)
-                    if input_data_frame is None:
-                        log.debug("No input_data_frame found for entity {} at period {}".format(entity, period))
-                        continue
-                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                    self.init_entity_data(entity, input_data_frame, period, simulation)
-
-        elif source_type == 'input_data_table_by_entity_by_period':
-            # Case 3: fill simulation with input_data_table by entity_by_period containing a dictionnary
-            # of all periods containing a dictionnary of entity variables
-            input_data_table_by_entity_by_period = source
-            simulation = None
-            for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
-                period = periods.period(period)
-
-                if simulation is None:
-                    for entity in tax_benefit_system.entities:
-                        table = input_data_table_by_entity.get(entity.key)
-                        if table is None:
-                            continue
-                        if survey is not None:
-                            input_data_frame = self.load_table(survey = survey, table = table)
-                        else:
-                            input_data_frame = self.load_table(survey = 'input', table = table)
-                        self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                        self.init_entity_structure(tax_benefit_system, entity, input_data_frame, builder)
-
-                    simulation = builder.build(tax_benefit_system)
-
-                for entity in tax_benefit_system.entities:
-                    table = input_data_table_by_entity.get(entity.key)
-                    if table is None:
-                        continue
-                    if survey is not None:
-                        input_data_frame = self.load_table(survey = survey, table = table)
-                    else:
-                        input_data_frame = self.load_table(survey = 'input', table = table)
-                    self.custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                    self.init_entity_data(entity, input_data_frame, period, simulation)
-        else:
-            pass
-
-        if self.period is not None:
-            simulation.period = periods.period(self.period)
-
-        simulation.weight_variable_by_entity = self.weight_variable_by_entity
-
-        return simulation
-
-    def load_table(self, variables = None, collection = None, survey = None,
-            table = None):
-        collection = collection or self.collection
-        survey_collection = SurveyCollection.load(collection = self.collection, config_files_directory=self.config_files_directory)
-        if survey is not None:
-            survey = survey
-        else:
-            survey = "{}_{}".format(self.input_data_survey_prefix, str(self.period))
-        survey_ = survey_collection.get_survey(survey)
-        log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
-        return survey_.get_values(table = table, variables = variables)
-
-    def memory_usage(self, use_baseline = False):
-        if use_baseline:
-            simulation = self.baseline_simulation
-        else:
-            simulation = self.simulation
-
-        memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
-        try:
-            usage_stats = simulation.tracer.usage_stats
-        except AttributeError:
-            log.warning("The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits).")
-            usage_stats = None
-        infos_lines = list()
-
-        for variable, infos in memory_usage_by_variable.items():
-            hits = usage_stats[variable]['nb_requests'] if usage_stats else None
-            infos_lines.append((
-                infos['total_nb_bytes'],
-                variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits".format(
-                    variable,
-                    infos['nb_arrays'],
-                    infos['nb_cells_by_array'],
-                    infos['cell_size'],
-                    infos['dtype'],
-                    humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
-                    hits,
-                    )
-                ))
-        infos_lines.sort()
-        for _, _, line in infos_lines:
-            print(line.rjust(100))  # noqa analysis:ignore
-
-    def neutralize_variables(self, tax_benefit_system):
-        """Neutralizes input variables not in input dataframe and keep some crucial variables.
-
-        Args:
-          tax_benefit_system: The TaxBenefitSystem variables belongs to
-
-        """
-        for variable_name, variable in tax_benefit_system.variables.items():
-            if variable.formulas:
-                continue
-            if self.used_as_input_variables and (variable_name in self.used_as_input_variables):
-                continue
-            if self.non_neutralizable_variables and (variable_name in self.non_neutralizable_variables):
-                continue
-            if self.weight_variable_by_entity and (variable_name in self.weight_variable_by_entity.values()):
-                continue
-
-            tax_benefit_system.neutralize_variable(variable_name)
-
-    def restore_simulations(self, directory, **kwargs):
-        """Restores SurveyScenario's simulations.
-
-        Args:
-          directory: Directory to restore simulations from
-          kwargs: Restoration options
-
-        """
-        assert os.path.exists(directory), "Cannot restore simulations from non existent directory"
-
-        use_sub_directories = os.path.exists(os.path.join(directory, 'baseline'))
-        if use_sub_directories:
-            for use_baseline in [False, True]:
-                sub_directory = 'baseline' if use_baseline else 'reform'
-                print(os.path.join(directory, sub_directory), use_baseline)  # noqa analysis:ignore
-                self._restore_simulation(
-                    directory = os.path.join(directory, sub_directory),
-                    use_baseline = use_baseline,
-                    **kwargs
-                    )
-        else:
-            self._restore_simulation(
-                directory = directory,
-                **kwargs
-                )
+    #     for variable, infos in memory_usage_by_variable.items():
+    #         hits = usage_stats[variable]['nb_requests'] if usage_stats else None
+    #         infos_lines.append((
+    #             infos['total_nb_bytes'],
+    #             variable, "{}: {} periods * {} cells * item size {} ({}) = {} with {} hits".format(
+    #                 variable,
+    #                 infos['nb_arrays'],
+    #                 infos['nb_cells_by_array'],
+    #                 infos['cell_size'],
+    #                 infos['dtype'],
+    #                 humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
+    #                 hits,
+    #                 )
+    #             ))
+    #     infos_lines.sort()
+    #     for _, _, line in infos_lines:
+    #         print(line.rjust(100))  # noqa analysis:ignore
 
     def set_input_data_frame(self, input_data_frame):
         """Set the input dataframe.
@@ -1011,22 +642,6 @@ class ReformScenario(AbstractSurveyScenario):
         """
         self.input_data_frame = input_data_frame
 
-    def set_tax_benefit_systems(self, tax_benefit_system = None, baseline_tax_benefit_system = None):
-        """Set the tax and benefit system and eventually the baseline tax and benefit system.
-
-        Args:
-          tax_benefit_system: The main tax benefit system (Default value = None)
-          baseline_tax_benefit_system: The baseline tax benefit system (Default value = None)
-        """
-        assert tax_benefit_system is not None
-        self.tax_benefit_system = tax_benefit_system
-        if self.cache_blacklist is not None:
-            self.tax_benefit_system.cache_blacklist = self.cache_blacklist
-        if baseline_tax_benefit_system is not None:
-            self.baseline_tax_benefit_system = baseline_tax_benefit_system
-            if self.cache_blacklist is not None:
-                self.baseline_tax_benefit_system.cache_blacklist = self.cache_blacklist
-
     def set_weight_variable_by_entity(self, weight_variable_by_entity = None):
         if weight_variable_by_entity is not None:
             self.weight_variable_by_entity = weight_variable_by_entity
@@ -1034,294 +649,3 @@ class ReformScenario(AbstractSurveyScenario):
         for simulation in [self.simulation, self.baseline_simulation]:
             if simulation is not None:
                 simulation.weight_variable_by_entity = self.weight_variable_by_entity
-
-    def summarize_variable(self, variable = None, use_baseline = False, weighted = False, force_compute = False):
-        """Print a summary of a variable including its memory usage.
-
-        Args:
-          variable(string): The variable being summarized
-          use_baseline(bool): The tax-benefit-system considered
-          weighted(bool): Whether the produced statistics should be weigthted or not
-          force_compute(bool): Whether the computation of the variable should be forced
-
-        Example:
-            >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
-            >>> survey_scenario = create_randomly_initialized_survey_scenario()
-            >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
-            <BLANKLINE>
-            housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
-            Details:
-            2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
-            >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
-            <BLANKLINE>
-            rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
-            Details:
-            2017-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-            2018-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-            >>> survey_scenario.tax_benefit_system.neutralize_variable('age')
-            >>> survey_scenario.summarize_variable(variable = "age")
-            <BLANKLINE>
-            age: neutralized variable (int64, default = 0)
-        """
-        if use_baseline:
-            simulation = self.baseline_simulation
-        else:
-            simulation = self.simulation
-
-        tax_benefit_system = simulation.tax_benefit_system
-        variable_instance = tax_benefit_system.variables.get(variable)
-        assert variable_instance is not None, "{} is not a valid variable".format(variable)
-
-        default_value = variable_instance.default_value
-        value_type = variable_instance.value_type
-
-        if variable_instance.is_neutralized:
-            print("")  # noqa analysis:ignore
-            print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))  # noqa analysis:ignore
-            return
-
-        if weighted:
-            weight_variable = self.weight_variable_by_entity[variable_instance.entity.key]
-            weights = simulation.calculate(weight_variable, simulation.period)
-
-        infos = simulation.get_memory_usage(variables = [variable])['by_variable'].get(variable)
-        if not infos:
-            if force_compute:
-                self.calculate_variable(variable = variable, period = simulation.period, use_baseline = use_baseline)
-                self.summarize_variable(variable = variable, use_baseline = use_baseline, weighted = weighted)
-                return
-            else:
-                print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))  # noqa analysis:ignore
-                return
-
-        header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
-            variable,
-            infos['nb_arrays'],
-            infos['nb_cells_by_array'],
-            infos['cell_size'],
-            str(np.dtype(infos['dtype'])),
-            default_value,
-            humanize.naturalsize(infos['total_nb_bytes'], gnu = True),
-            )
-        print("")  # noqa analysis:ignore
-        print(header_line)  # noqa analysis:ignore
-        print("Details:")  # noqa analysis:ignore
-        holder = simulation.get_holder(variable)
-        if holder is not None:
-            if holder.variable.definition_period == ETERNITY:
-                array = holder.get_array(ETERNITY)
-                print("permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(  # noqa analysis:ignore
-                    # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
-                    array.astype(float).mean() if not weighted else np.average(array, weights = weights),
-                    array.min(),
-                    array.max(),
-                    np.median(array.astype(float)),
-                    (
-                        (array == default_value).sum() / len(array)
-                        if not weighted
-                        else ((array == default_value) * weights).sum() / weights.sum()
-                        )
-                    ))
-            else:
-                for period in sorted(simulation.get_known_periods(variable)):
-                    array = holder.get_array(period)
-                    if array.shape == ():
-                        print("{}: always = {}".format(period, array))  # noqa analysis:ignore
-                        continue
-
-                    if value_type == Enum:
-                        possible_values = variable_instance.possible_values
-                        categories_by_index = dict(zip(
-                            range(len(possible_values._member_names_)),
-                            possible_values._member_names_
-                            ))
-                        categories_type = pd.api.types.CategoricalDtype(categories = possible_values._member_names_, ordered = True)
-                        df = pd.DataFrame({variable: array}).replace(categories_by_index).astype(categories_type)
-                        df['weights'] = weights if weighted else 1
-                        groupby = df.groupby(variable)['weights'].sum()
-                        total = groupby.sum()
-                        expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
-                        print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
-                        continue
-
-                    print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
-                        period,
-                        array.astype(float).mean() if not weighted else np.average(array, weights = weights),
-                        array.min(),
-                        array.max(),
-                        array.astype(float).sum() if not weighted else np.sum(array * weights),
-                        (
-                            (array == default_value).sum() / len(array)
-                            if not weighted
-                            else ((array == default_value) * weights).sum() / weights.sum()
-                            ),
-                        np.median(array),
-                        ))
-
-    def _apply_modification(self, simulation, period):
-        period = periods.period(period)
-        varying_variable = self.varying_variable
-        definition_period = simulation.tax_benefit_system.variables[varying_variable].definition_period
-
-        def set_variable(varying_variable, varying_variable_value, period_):
-            delta = self.variation_factor * varying_variable_value
-            new_variable_value = varying_variable_value + delta
-            simulation.delete_arrays(varying_variable, period_)
-            simulation.set_input(varying_variable, period_, new_variable_value)
-
-        if period.unit == definition_period:
-            varying_variable_value = simulation.calculate(varying_variable, period = period)
-            set_variable(varying_variable, varying_variable_value, period)
-
-        elif (definition_period == MONTH) and (period.unit == YEAR and period.size_in_months == 12):
-            varying_variable_value = simulation.calculate_add(varying_variable, period = period)
-            for period_ in [periods.Period(('month', period.start.offset(month, 'month'), 1)) for month in range(12)]:
-                set_variable(varying_variable, varying_variable_value / 12, period_)
-        else:
-            ValueError()
-
-    def _restore_simulation(self, directory = None, use_baseline = False, **kwargs):
-        assert directory is not None
-        if use_baseline:
-            assert self.baseline_tax_benefit_system is not None
-            self.baseline_simulation = restore_simulation(
-                directory,
-                self.baseline_tax_benefit_system,
-                **kwargs
-                )
-        else:
-            assert self.tax_benefit_system is not None
-            self.simulation = restore_simulation(
-                directory,
-                self.tax_benefit_system,
-                **kwargs
-                )
-
-    def _set_id_variable_by_entity_key(self) -> Dict[str, str]:
-        """Identify and sets the correct ids for the different entities."""
-        if self.id_variable_by_entity_key is None:
-            log.debug("Use default id_variable names")
-            self.id_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_id') for entity in self.tax_benefit_system.entities)
-
-        return self.id_variable_by_entity_key
-
-    def _set_role_variable_by_entity_key(self) -> Dict[str, str]:
-        """Identify and sets the correct roles for the different entities."""
-        if self.role_variable_by_entity_key is None:
-            self.role_variable_by_entity_key = dict(
-                (entity.key, entity.key + '_role_index') for entity in self.tax_benefit_system.entities)
-
-        return self.role_variable_by_entity_key
-
-    def _set_used_as_input_variables_by_entity(self) -> Dict[str, List[str]]:
-        """Identify and sets the correct input variables for the different entities."""
-        if self.used_as_input_variables_by_entity is not None:
-            return
-
-        tax_benefit_system = self.tax_benefit_system
-
-        assert set(self.used_as_input_variables) <= set(tax_benefit_system.variables.keys()), \
-            "Some variables used as input variables are not part of the tax benefit system:\n {}".format(
-                set(self.used_as_input_variables).difference(set(tax_benefit_system.variables.keys()))
-                )
-
-        self.used_as_input_variables_by_entity = dict()
-
-        for entity in tax_benefit_system.entities:
-            self.used_as_input_variables_by_entity[entity.key] = [
-                variable
-                for variable in self.used_as_input_variables
-                if tax_benefit_system.get_variable(variable).entity.key == entity.key
-                ]
-
-        return self.used_as_input_variables_by_entity
-
-
-# Helpers
-
-def init_variable_in_entity(simulation, entity, variable_name, series, period):
-    variable = simulation.tax_benefit_system.variables[variable_name]
-
-    # np.issubdtype cannot handles categorical variables
-    if (not pd.api.types.is_categorical_dtype(series)) and np.issubdtype(series.values.dtype, np.floating):
-        if series.isnull().any():
-            log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
-                series.isnull().sum(), series.notnull().sum(), variable_name))
-            log.debug('We convert these NaN values of variable {} to {} its default value'.format(
-                variable_name, variable.default_value))
-            series.fillna(variable.default_value, inplace = True)
-        assert series.notnull().all(), \
-            'There are {} NaN values for {} non NaN values in variable {}'.format(
-                series.isnull().sum(), series.notnull().sum(), variable_name)
-
-    enum_variable_imputed_as_enum = (
-        variable.value_type == Enum
-        and (
-            pd.api.types.is_categorical_dtype(series)
-            or not (
-                np.issubdtype(series.values.dtype, np.integer)
-                or np.issubdtype(series.values.dtype, float)
-                )
-            )
-        )
-
-    if enum_variable_imputed_as_enum:
-        if series.isnull().any():
-            log.debug('There are {} NaN values ({}% of the array) in variable {}'.format(
-                series.isnull().sum(), series.isnull().mean() * 100, variable_name))
-            log.debug('We convert these NaN values of variable {} to {} its default value'.format(
-                variable_name, variable.default_value._name_))
-            series.fillna(variable.default_value._name_, inplace = True)
-        possible_values = variable.possible_values
-        index_by_category = dict(zip(
-            possible_values._member_names_,
-            range(len(possible_values._member_names_))
-            ))
-        series.replace(index_by_category, inplace = True)
-
-    if series.values.dtype != variable.dtype:
-        log.debug(
-            'Converting {} from dtype {} to {}'.format(
-                variable_name, series.values.dtype, variable.dtype)
-            )
-
-    array = series.values.astype(variable.dtype)
-    # TODO is the next line needed ?
-    # Might be due to values returning also ndarray like objects
-    # for instance for categories or
-    np_array = np.array(array, dtype = variable.dtype)
-    if variable.definition_period == YEAR and period.unit == MONTH:
-        # Some variables defined for a year are present in month/quarter dataframes
-        # Cleaning the dataframe would probably be better in the long run
-        log.warn('Trying to set a monthly value for variable {}, which is defined on a year. The  montly values you provided will be summed.'
-            .format(variable_name).encode('utf-8'))
-
-        if simulation.get_array(variable_name, period.this_year) is not None:
-            array_sum = simulation.get_array(variable_name, period.this_year) + np_array
-            simulation.set_input(variable_name, period.this_year, array_sum)
-        else:
-            simulation.set_input(variable_name, period.this_year, np_array)
-
-    else:
-        simulation.set_input(variable_name, period, np_array)
-
-
-def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
-    """Diagnose variables mismatch.
-
-    Args:
-      used_as_input_variables(lsit): List of variable to test presence
-      input_data_frame: DataFrame in which to test variables presence
-
-    """
-    variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
-    if variables_mismatch:
-        log.info(
-            'The following variables are used as input variables are not present in the input data frame: \n {}'.format(
-                sorted(variables_mismatch)))
-    if variables_mismatch:
-        log.debug('The following variables are used as input variables: \n {}'.format(
-            sorted(used_as_input_variables)))
-        log.debug('The input_data_frame contains the following variables: \n {}'.format(
-            sorted(list(input_data_frame.columns))))

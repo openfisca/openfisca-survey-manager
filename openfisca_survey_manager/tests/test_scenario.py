@@ -14,7 +14,7 @@ from openfisca_survey_manager.input_dataframe_generator import (
     random_data_generator,
     randomly_init_variable,
     )
-from openfisca_survey_manager.scenarios import AbstractSurveyScenario
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 
 
@@ -59,12 +59,12 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
         variable_generators_by_period, collection)
     survey_scenario = AbstractSurveyScenario()
     if reform is None:
-        survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     else:
-        survey_scenario.set_tax_benefit_systems(
-            tax_benefit_system = reform(tax_benefit_system),
-            baseline_tax_benefit_system = tax_benefit_system,
-            )
+        survey_scenario.set_tax_benefit_systems(dict(
+            reform = reform(tax_benefit_system),
+            baseline = tax_benefit_system,
+            ))
 
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'housing_occupancy_status', 'household_weight']
     survey_scenario.period = 2017
@@ -92,14 +92,13 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
         "person": "person_weight",
         "household": "household_weight",
         }
-    survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     if reform is None:
-        survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     else:
-        survey_scenario.set_tax_benefit_systems(
-            tax_benefit_system = reform(tax_benefit_system),
-            baseline_tax_benefit_system = tax_benefit_system,
-            )
+        survey_scenario.set_tax_benefit_systems(dict(
+            reform = reform(tax_benefit_system),
+            baseline = tax_benefit_system,
+            ))
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     period = periods.period('2017-01')
@@ -109,10 +108,12 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
             period: input_data_frame_by_entity
             }
         }
+    survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
     survey_scenario.init_from_data(data = data)
-    assert survey_scenario.simulation.weight_variable_by_entity == weight_variable_by_entity
-    assert (survey_scenario.calculate_series("household_weight", period) != 0).all()
+    for simulation_name, simulation in survey_scenario.simulations.items():
+        assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
+        assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
     return survey_scenario
 
 
@@ -171,6 +172,7 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
 
     # Set up test : the minimum necessary data to perform an `init_from_data`
     survey_scenario = AbstractSurveyScenario()
+    assert survey_scenario.simulations is None
     # Generate some data and its period
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
@@ -187,19 +189,21 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
     # print(table_ind)
 
     # We must add a TBS to the scenario to indicate what are the entities
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+    assert len(survey_scenario.tax_benefit_systems) == 1
+    assert list(survey_scenario.tax_benefit_systems.keys()) == ["baseline"]
+    assert survey_scenario.simulations is None
     # We must add the `used_as_input_variables` even though they don't seem necessary
     survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
     # We must add the year to initiate a .new_simulation
     survey_scenario.period = 2017
     # Then we can input the data+period dict inside the scenario
     survey_scenario.init_from_data(data = data_in)
-
+    assert len(survey_scenario.simulations) == 1
     # We are looking for the dataframes inside the survey_scenario
     all_var = list(set(list(table_ind.columns) + list(table_men.columns)))
     # print('Variables', all_var)
     data_out = survey_scenario.create_data_frame_by_entity(variables = all_var, period = period, merge = False)
-    # data_out =  survey_scenario.create_data_frame_by_entity(variables = all_var, period = period, merge = True)
 
     # 1 - Has the data object changed ? We only compare variables because Id's and others are lost in the process
     for cols in table_ind:
@@ -217,35 +221,13 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
     assert data_out['household']['rent'].equals(table_men['rent'])
 
 
-# def test_used_as_input_variables():
-#    # Set up test
-#    #
-#    #
-#
-#
-#    ## test filter_input_variables OU quelle fct pour tester used_as_input_variables ?
-#    # 2 - If we filter the input variables, are they still in the database?
-#    survey_scenario.used_as_input_variables = ['rent']
-#    survey_scenario.filter_input_variables()
-#
-#    assert 'rent' in base
-#    assert 'salary' not base
-#
-#    # 3 - Faut-il recalculer la base?
-#    base2 = survey_scenario.input_data_table_by_period  # ??
-#    assert base2 == base
-#
-#    # 4 - If we perform a simulation, are they still in the database?
-#    survey do simulation
-
-
 def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
         rent_max_value = 1000):
 
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     period = periods.period('2017-01')
@@ -256,7 +238,7 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
         }
     survey_scenario.init_from_data(data = data)
 
-    simulation = survey_scenario.simulation
+    simulation = survey_scenario.simulations["baseline"]
     assert (
         simulation.calculate('salary', period) == input_data_frame_by_entity['person']['salary']
         ).all()
@@ -274,7 +256,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
         nb_persons, nb_groups, salary_max_value, rent_max_value)  # Un dataframe d'exemple que l'on injecte
     input_data_frame_by_entity['person']['household_id'] = 4 - input_data_frame_by_entity['person']['household_id']
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     period = periods.period('2017-01')
@@ -284,7 +266,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
             }
         }
     survey_scenario.init_from_data(data = data)
-    simulation = survey_scenario.simulation
+    simulation = survey_scenario.simulations["baseline"]
     period = periods.period('2017-01')
     assert (
         simulation.calculate('salary', period) == input_data_frame_by_entity['person']['salary']
@@ -315,7 +297,7 @@ def test_dump_survey_scenario():
     assert not person.empty
     del survey_scenario
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(tax_benefit_system = tax_benefit_system)
+    survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     survey_scenario.used_as_input_variables = ['salary', 'rent']
     survey_scenario.period = 2017
     survey_scenario.restore_simulations(directory = directory)
