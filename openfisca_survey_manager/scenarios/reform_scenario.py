@@ -6,17 +6,7 @@ import pandas as pd
 
 
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
-# from openfisca_core import periods
-# from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
-# from openfisca_core.simulation_builder import SimulationBuilder
-# from openfisca_core.indexed_enums import Enum
-# from openfisca_core.periods import MONTH, YEAR, ETERNITY
-# from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
-# from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager import default_config_files_directory
-# from openfisca_survey_manager.survey_collections import SurveyCollection
-# from openfisca_survey_manager.surveys import Survey
 
 log = logging.getLogger(__name__)
 
