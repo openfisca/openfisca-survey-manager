@@ -85,23 +85,18 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
 
 
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection = None):
-    """Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
+    """
+    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
 
     Args:
-      TaxBenefitSystem: tax_benefit_system: the tax_benefit_system to use
-      int: nb_persons: the number of persons in the system
-      int: nb_groups: the number of collective entities in the system
-      dict: variable_generators_by_period: the specification of the periods and values of the generated variables
-      string: collection: the collection storing the produced data
-      tax_benefit_system:
-      nb_persons:
-      nb_groups:
-      variable_generators_by_period:
-      collection:  (Default value = None)
+        tax_benefit_system (TaxBenefitSystem): tax_benefit_system: the tax_benefit_system to use
+        nb_persons (int): the number of persons in the data
+        nb_groups (int): the number of collective entities in the data
+        variable_generators_by_period (dict): parameters of the varaibles for every period
+        collection (str, optional): collection where to store the input survey. Defaults to None.
 
     Returns:
-      A dictionnary of the entities tables by period
-
+        dict: The entities tables by period
     """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
