@@ -1,5 +1,3 @@
-
-
 import logging
 import os
 import pandas as pd
@@ -10,6 +8,10 @@ from openfisca_core.parameters import ParameterNode, Scale
 
 
 log = logging.getLogger(__name__)
+
+
+def do_nothing(*args, **kwargs):
+    return None
 
 
 def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False,
