@@ -1,7 +1,8 @@
 import logging
-import unittest
+
 
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
+
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ def test_create_data_frame_by_entity():
         assert not df.empty, "{} dataframe is empty".format(entity)
     assert (df_by_entity['person']['salary'] == salary).all().all()
     assert (df_by_entity['household']['rent'] == rent).all().all()
+
 
 def test_create_data_frame_by_entity_with_index():
     survey_scenario = create_randomly_initialized_survey_scenario()

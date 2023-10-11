@@ -3,7 +3,6 @@ from typing import Dict, List
 
 from openfisca_core.model_api import MONTH, YEAR
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
-from openfisca_survey_manager.utils import do_nothing
 
 
 SimulationBuilder.id_variable_by_entity_key = None
@@ -48,6 +47,7 @@ def _set_id_variable_by_entity_key(builder) -> Dict[str, str]:
 
     return builder.id_variable_by_entity_key
 
+
 def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
     """Identify and sets the correct roles for the different entities."""
     if builder.role_variable_by_entity_key is None:
@@ -55,6 +55,7 @@ def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
             (entity.key, entity.key + '_role_index') for entity in builder.tax_benefit_system.entities)
 
     return builder.role_variable_by_entity_key
+
 
 def _set_used_as_input_variables_by_entity(builder) -> Dict[str, List[str]]:
     """Identify and sets the correct input variables for the different entities."""

@@ -13,7 +13,7 @@ import humanize
 from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
-from openfisca_core.types import Array, Period, Simulation, TaxBenefitSystem
+from openfisca_core.types import Array, Period, TaxBenefitSystem
 from openfisca_core.simulations import Simulation
 from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.simulation_builder import diagnose_variable_mismatch, SimulationBuilder
