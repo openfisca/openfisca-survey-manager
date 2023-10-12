@@ -51,12 +51,29 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
     return entity.key
 
 
-def load_table(variables = None, collection = None, survey = None, input_data_survey_prefix = None, data_year = None, table = None, config_files_directory = default_config_files_directory):
+def load_table(variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
+        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None,
+        config_files_directory = default_config_files_directory) -> pd.DataFrame:
+    """
+    Load values from table from a survey in a collection.
+
+    Args:
+        variables (List, optional): List of the variables to retrieve in the table. Defaults to None to get all the variables.
+        collection (str, optional): Collection. Defaults to None.
+        survey (str, optional): Survey. Defaults to None.
+        input_data_survey_prefix (str, optional): Prefix of the survey to be combined with data year. Defaults to None.
+        data_year (_type_, optional): Year of the survey data. Defaults to None.
+        table (str, optional): Table. Defaults to None.
+        config_files_directory (optional): _description_. Defaults to default_config_files_directory.
+
+    Returns:
+        pandas.DataFrame: A table with the retrieved variables
+    """
     survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
     if survey is not None:
         survey = survey
     else:
-        survey = "{}_{}".format(input_data_survey_prefix, str(data_year))
+        survey = f"{input_data_survey_prefix}_{data_year}"
     survey_ = survey_collection.get_survey(survey)
     log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
     return survey_.get_values(table = table, variables = variables)
@@ -80,14 +97,13 @@ def adaptative_calculate_variable(simulation: Simulation, variable: str, period:
     Returns:
         Array: Values of the variable on the target period
     """
-
     if not isinstance(period, periods.Period):
         period = periods.period(str(period))
 
     tax_benefit_system = simulation.tax_benefit_system
     assert tax_benefit_system is not None
 
-    assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
+    assert variable in tax_benefit_system.variables, "{variable} is not a valid variable"
     period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
     definition_period = tax_benefit_system.get_variable(variable).definition_period
 
@@ -107,14 +123,31 @@ def adaptative_calculate_variable(simulation: Simulation, variable: str, period:
         values = simulation.calculate(variable, period = period)
     else:
         values = None
-    assert values is not None, 'Unspecified calculation period for variable {}'.format(variable)
+    assert values is not None, f"Unspecified calculation period for variable {variable}"
 
     return values
 
 
 def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str = 'sum', filter_by: str = None, period: Optional[Union[int, str, Period]] = None,
         missing_variable_default_value = np.nan, weighted: bool = True, alternative_weights: Optional[Union[str, int, float, Array]] = None,
-        filtering_variable_by_entity: Dict = None):
+        filtering_variable_by_entity: Dict = None) -> Optional[Union[None, float]]:
+    """
+    Compute aggregate of a variable
+
+    Args:
+        simulation (Simulation): Simulation to use for the computation
+        variable (str, optional): Variable to aggregate. Defaults to None.
+        aggfunc (str, optional): Aggregation function. Defaults to 'sum'.
+        filter_by (str, optional): Filter variable or expression to use. Defaults to None.
+        period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+        missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
+        weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
+
+    Returns:
+        float: Aggegate
+    """
 
     weight_variable_by_entity = simulation.weight_variable_by_entity
     tax_benefit_system = simulation.tax_benefit_system
@@ -219,10 +252,25 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
     return aggregate
 
 
-def compute_quantiles(simulation: Simulation = None, variable: Optional[str] = None, nquantiles = None, period: Optional[Union[int, str, Period]] = None, filter_by = None,
-        weighted = True, alternative_weights = None,
-        filtering_variable_by_entity = None):
+def compute_quantiles(simulation: Simulation, variable: str, nquantiles: int = None,
+        period: Optional[Union[int, str, Period]] = None, filter_by = None, weighted: bool = True,
+        alternative_weights = None, filtering_variable_by_entity = None) -> List[float]:
+    """
+    Compute quantiles of a variable.
 
+    Args:
+        simulation (Simulation, optional): Simulation to be used_. Defaults to None.
+        variable (str, optional): Variable which quantiles are computed. Defaults to None.
+        nquantiles (int, optional): Number of quantiles. Defaults to None.
+        period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+        missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
+        weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
+
+    Returns:
+       List(float): The quantiles values
+    """
     weight_variable_by_entity = simulation.weight_variable_by_entity
     weight_variable = None
     entity_key = simulation.tax_benefit_system.variables[variable].entity.key
@@ -254,17 +302,38 @@ def compute_quantiles(simulation: Simulation = None, variable: Optional[str] = N
 
     labels = np.arange(1, nquantiles + 1)
     method = 2
-    quantile, values = mark_weighted_percentiles(variable_values, labels, weight, method, return_quantiles = True)
-    del quantile
+    _, values = mark_weighted_percentiles(variable_values, labels, weight, method, return_quantiles = True)
     return values
 
 
 def compute_pivot_table(simulation: Simulation = None, baseline_simulation = None, aggfunc = 'mean',
         columns = None, difference = False, filter_by = None, index = None,
         period: Optional[Union[int, str, Period]] = None, use_baseline_for_columns = None, values = None,
-        missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None,
+        missing_variable_default_value = np.nan, concat_axis = None, weighted: bool = True, alternative_weights = None,
         filtering_variable_by_entity = None):
+    """
+    _summary_
 
+    Args:
+        simulation (Simulation, optional): _description_. Defaults to None.
+        baseline_simulation (_type_, optional): _description_. Defaults to None.
+        aggfunc (str, optional): _description_. Defaults to 'mean'.
+        columns (_type_, optional): _description_. Defaults to None.
+        difference (bool, optional): _description_. Defaults to False.
+        filter_by (_type_, optional): _description_. Defaults to None.
+        index (_type_, optional): _description_. Defaults to None.
+        period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+        use_baseline_for_columns (_type_, optional): _description_. Defaults to None.
+        values (_type_, optional): _description_. Defaults to None.
+        missing_variable_default_value (optional): _description_. Defaults to np.nan.
+        concat_axis (_type_, optional): _description_. Defaults to None.
+        weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
+
+    Returns:
+        _type_: _description_
+    """
     weight_variable_by_entity = simulation.weight_variable_by_entity
 
     admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count', 'sum_abs']
