@@ -259,7 +259,7 @@ def compute_quantiles(simulation: Simulation, variable: str, nquantiles: int = N
     Compute quantiles of a variable.
 
     Args:
-        simulation (Simulation, optional): Simulation to be used_. Defaults to None.
+        simulation (Simulation, optional): Simulation to be used. Defaults to None.
         variable (str, optional): Variable which quantiles are computed. Defaults to None.
         nquantiles (int, optional): Number of quantiles. Defaults to None.
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
