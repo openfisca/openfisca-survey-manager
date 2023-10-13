@@ -13,7 +13,7 @@ import humanize
 from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
-from openfisca_core.types import Array, Period, TaxBenefitSystem
+from openfisca_core.types import Array, Entity, Period, TaxBenefitSystem
 from openfisca_core.simulations import Simulation
 from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.simulation_builder import diagnose_variable_mismatch, SimulationBuilder
@@ -306,27 +306,27 @@ def compute_quantiles(simulation: Simulation, variable: str, nquantiles: int = N
     return values
 
 
-def compute_pivot_table(simulation: Simulation = None, baseline_simulation = None, aggfunc = 'mean',
-        columns = None, difference = False, filter_by = None, index = None,
-        period: Optional[Union[int, str, Period]] = None, use_baseline_for_columns = None, values = None,
-        missing_variable_default_value = np.nan, concat_axis = None, weighted: bool = True, alternative_weights = None,
+def compute_pivot_table(simulation: Simulation = None, baseline_simulation: Simulation = None, aggfunc = 'mean',
+        columns: Optional[List[str]] = None, difference: bool = False, filter_by = None, index: Optional[List[str]] = None,
+        period: Optional[Union[int, str, Period]] = None, use_baseline_for_columns: bool = None, values: Optional[List[str]] = None,
+        missing_variable_default_value = np.nan, concat_axis: Optional[int] = None, weighted: bool = True, alternative_weights = None,
         filtering_variable_by_entity = None):
     """
-    _summary_
+    Compute pivot table.
 
     Args:
-        simulation (Simulation, optional): _description_. Defaults to None.
-        baseline_simulation (_type_, optional): _description_. Defaults to None.
-        aggfunc (str, optional): _description_. Defaults to 'mean'.
-        columns (_type_, optional): _description_. Defaults to None.
-        difference (bool, optional): _description_. Defaults to False.
-        filter_by (_type_, optional): _description_. Defaults to None.
-        index (_type_, optional): _description_. Defaults to None.
+        simulation (Simulation, optional): Main simulation. Defaults to None.
+        baseline_simulation (Simulation, optional): Baseline simulation. Defaults to None.
+        aggfunc (str, optional): Aggregation function. Defaults to 'mean'.
+        columns (List[str], optional): Variables to use in columns. Defaults to None.
+        difference (bool, optional): Whether to compute the difference with baseline. Defaults to False.
+        filter_by (str, optional): Filter variable or expression to use. Defaults to None.
+        index (List[str], optional): _description_. Defaults to None.
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
-        use_baseline_for_columns (_type_, optional): _description_. Defaults to None.
-        values (_type_, optional): _description_. Defaults to None.
+        use_baseline_for_columns (bool, optional): _description_. Defaults to None.
+        values (List[str], optional): _description_. Defaults to None.
         missing_variable_default_value (optional): _description_. Defaults to np.nan.
-        concat_axis (_type_, optional): _description_. Defaults to None.
+        concat_axis (int, optional): _description_. Defaults to None.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
         alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
@@ -531,9 +531,24 @@ def compute_pivot_table(simulation: Simulation = None, baseline_simulation = Non
         return data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
 
 
-def create_data_frame_by_entity(simulation: Simulation, variables = None, expressions = None, filter_by = None, index = False,
-        period: Optional[Union[int, str, Period]] = None, merge = False):
+def create_data_frame_by_entity(simulation: Simulation, variables: Optional[List] = None, expressions: Optional[List[str]] = None,
+        filter_by = None, index: bool = False, period: Optional[Union[int, str, Period]] = None,
+        merge: bool = False) -> Union[pd.DataFrame, Dict]:
+    """
+    Create dataframe(s) of variables for the whole selected population.
 
+    Args:
+        simulation (Simulation): Simulation to use.
+        variables (Optional[List], optional): Variables to retrieve, None means all. Defaults to None.
+        expressions (Optional[List[str]], optional): _description_. Defaults to None.
+        filter_by (str, optional): Filter variable or expression to use. Defaults to None.
+        index (bool, optional): Whether to use index (id) variables. Defaults to False.
+        period (Optional[Union[int, str, Period]], optional): Period of the computation. Defaults to None.
+        merge (bool, optional): Wheter to merge the datafrales into one. Defaults to False.
+
+    Returns:
+        pd.DataFrame of Dict: Dataframe(s) with the variables values
+    """
     assert simulation is not None
     id_variable_by_entity_key = simulation.id_variable_by_entity_key
     tax_benefit_system = simulation.tax_benefit_system
@@ -659,44 +674,45 @@ def create_data_frame_by_entity(simulation: Simulation, variables = None, expres
 
 
 class SecretViolationError(Exception):
-    """
-    Raised if the result of the simulation
-    do not comform with regulators rules.
-    """
+    """Raised if the result of the simulation do not comform with regulators rules."""
+
     pass
 
 
 def compute_winners_loosers(
-        simulation,
-        baseline_simulation,
+        simulation: Simulation,
+        baseline_simulation: Simulation,
         variable: str,
-        filter_by = None,
+        filter_by: Optional[str] = None,
         period: Optional[Union[int, str, Period]] = None,
         absolute_minimal_detected_variation: float = 0,
         relative_minimal_detected_variation: float = .01,
         observations_threshold: int = None,
         weighted: bool = True,
-        alternative_weights: List = None,
+        alternative_weights = None,
         filtering_variable_by_entity = None,
         ) -> Dict[str, int]:
     """
     Compute the number of winners and loosers for a given variable.
 
     Args:
-        simulation: The OpenFisca simulation object
-        baseline_simulation: The OpenFisca simulation to compare
-        variable: The variable to be compared
-        filter_by: The variable to be used as a filter
-        period: The period of the simulation
-        absolute_minimal_detected_variation: Absolute minimal variation to be detected, in ratio. Ie 0.5 means 5% of variation wont be counted.
-        relative_minimal_detected_variation: Relative minimal variation to be detected, in ratio.
-        observations_threshold: Number of observations needed to avoid a statistical secret violation. Defaults to None.
-        weighted: Whether to use weights
-        alternative_weights: The weights to be used
-        filtering_variable_by_entity: The variable to be used as a filter
+        simulation (_type_): The main simulation.
+        baseline_simulation (_type_): The baseline simulation
+        variable (str): The variable to use.
+        filter_by (str, optional): The variable or expression to be used as a filter. Defaults to None.
+        period (Optional[Union[int, str, Period]], optional): The period of the simulation. Defaults to None.
+        absolute_minimal_detected_variation (float, optional): Absolute minimal variation to be detected, in ratio. Ie 0.5 means 5% of variation wont be counted..
+        relative_minimal_detected_variation (float, optional): Relative minimal variation to be detected, in ratio. Defaults to .01.
+        observations_threshold (int, optional): Number of observations needed to avoid a statistical secret violation. Defaults to None.
+        weighted (bool, optional): Whether to use weights. Defaults to True.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        filtering_variable_by_entity (_type_, optional): The variable to be used as a filter for each entity. Defaults to None.
+
+    Raises:
+        SecretViolationError: Raised when statistical secret is violated.
 
     Returns:
-        A dictionary
+        Dict[str, int]: Statistics about winners and loosers between the main simulation and the baseline.
     """
     weight_variable_by_entity = simulation.weight_variable_by_entity
     entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
@@ -784,7 +800,8 @@ def compute_winners_loosers(
         }
 
 
-def init_entity_data(simulation: Simulation, entity, filtered_input_data_frame, period, used_as_input_variables_by_entity):
+def init_entity_data(simulation: Simulation, entity: Entity, filtered_input_data_frame: pd.DataFrame, period: Period,
+        used_as_input_variables_by_entity: Dict):
     used_as_input_variables = used_as_input_variables_by_entity[entity.key]
     input_data_frame = filtered_input_data_frame
     # input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
