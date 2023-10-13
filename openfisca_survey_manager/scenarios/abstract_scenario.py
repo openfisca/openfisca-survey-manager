@@ -547,6 +547,7 @@ class AbstractSurveyScenario(object):
         return simulation
 
     def memory_usage(self):
+        """Print memory usage."""
         for simulation_name, simulation in self.simulations.items():
             print(f"simulation : {simulation_name}")  # noqa analysis:ignore
             simulation.print_memory_usage()
@@ -614,11 +615,7 @@ class AbstractSurveyScenario(object):
             assert tax_benefit_system is not None
             if self.cache_blacklist is not None:
                 tax_benefit_system.cache_blacklist = self.cache_blacklist
-        self.reference_tax_benefit_system = (
-            list(tax_benefit_systems.values())[0]
-            if reference is None
-            else tax_benefit_systems[reference]
-            )
+
         self.tax_benefit_systems = tax_benefit_systems
 
     def set_weight_variable_by_entity(self, weight_variable_by_entity = None):
