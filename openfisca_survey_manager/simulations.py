@@ -1088,6 +1088,12 @@ def new_from_tax_benefit_system(
 
 
 def print_memory_usage(simulation: Simulation):
+    """
+    _summary_
+
+    Args:
+        simulation (Simulation): _description_
+    """
     memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
     try:
         usage_stats = simulation.tracer.usage_stats
