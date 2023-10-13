@@ -4,13 +4,14 @@ import logging
 import numpy as np
 import pandas as pd
 import re
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 
 import humanize
 
 
 from openfisca_core import periods
+from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
 from openfisca_core.types import Array, Entity, Period, TaxBenefitSystem
@@ -802,6 +803,16 @@ def compute_winners_loosers(
 
 def init_entity_data(simulation: Simulation, entity: Entity, filtered_input_data_frame: pd.DataFrame, period: Period,
         used_as_input_variables_by_entity: Dict):
+    """
+    Initialize entity in simulation at some period with input provided by a dataframe.
+
+    Args:
+        simulation (Simulation): The simulation to initialize.
+        entity (Entity): The entity which variables to initialize.
+        filtered_input_data_frame (pd.DataFrame): The dataframe with the variables values.
+        period (Period): The period to initialize.
+        used_as_input_variables_by_entity (Dict): The variable to be used to initialize each entity.
+    """
     used_as_input_variables = used_as_input_variables_by_entity[entity.key]
     input_data_frame = filtered_input_data_frame
     # input_data_frame = self.filter_input_variables(input_data_frame = input_data_frame)
@@ -820,7 +831,8 @@ def init_entity_data(simulation: Simulation, entity: Entity, filtered_input_data
         init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
 
-def inflate(simulation: Simulation, inflator_by_variable = None, period: Optional[Union[int, str, Period]] = None, target_by_variable = None):
+def inflate(simulation: Simulation, inflator_by_variable: Optional[Dict] = None, period: Optional[Union[int, str, Period]] = None,
+        target_by_variable: Optional[Dict] = None):
     tax_benefit_system = simulation.tax_benefit_system
     for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
         assert variable_name in tax_benefit_system.variables, \
@@ -1039,14 +1051,29 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
 
 
 def new_from_tax_benefit_system(
-        tax_benefit_system,
-        debug = None,
-        trace = None,
-        data = None,
-        memory_config = None,
+        tax_benefit_system: TaxBenefitSystem,
+        debug: bool = False,
+        trace: bool = False,
+        data: Dict = None,
+        memory_config: MemoryConfig = None,
         period: Optional[Union[int, str, Period]] = None,
-        custom_initialize = None,
-        ):
+        custom_initialize: Callable = None,
+        ) -> Simulation:
+    """
+    Create and initialize a simulation from a tax and benefit system and data.
+
+    Args:
+        tax_benefit_system (TaxBenefitSystem): The tax and benefit system
+        debug (bool, optional): Whether to activate debugging. Defaults to False.
+        trace (bool, optional): Whether to activate tracing. Defaults to False.
+        data (Dict, optional): The information about data. Defaults to None.
+        memory_config (MemoryConfig, optional): The memory handling config. Defaults to None.
+        period (Optional[Union[int, str, Period]], optional): The period of the simulation. Defaults to None.
+        custom_initialize (Callable, optional): The post-processing initialization function. Defaults to None.
+
+    Returns:
+        Simulation: The completely initialized function
+    """
 
     simulation = Simulation.init_simulation(tax_benefit_system, period, data)
     simulation.debug = debug
@@ -1089,8 +1116,8 @@ def print_memory_usage(simulation: Simulation):
 
 
 def set_weight_variable_by_entity(
-        simulation,
-        weight_variable_by_entity,
+        simulation: Simulation,
+        weight_variable_by_entity: Dict,
         ):
     simulation.weight_variable_by_entity = weight_variable_by_entity
 
@@ -1123,7 +1150,6 @@ def summarize_variable(simulation: Simulation, variable = None, weighted = False
     #     <BLANKLINE>
     #     age: neutralized variable (int64, default = 0)
     """
-
     tax_benefit_system = simulation.tax_benefit_system
     variable_instance = tax_benefit_system.variables.get(variable)
     assert variable_instance is not None, "{} is not a valid variable".format(variable)
