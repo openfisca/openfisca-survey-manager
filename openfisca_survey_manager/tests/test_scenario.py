@@ -15,6 +15,7 @@ from openfisca_survey_manager.input_dataframe_generator import (
     randomly_init_variable,
     )
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 
 
@@ -57,10 +58,11 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
         }
     table_by_entity_by_period = random_data_generator(tax_benefit_system, nb_persons, nb_groups,
         variable_generators_by_period, collection)
-    survey_scenario = AbstractSurveyScenario()
     if reform is None:
+        survey_scenario = AbstractSurveyScenario()
         survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     else:
+        survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(dict(
             reform = reform(tax_benefit_system),
             baseline = tax_benefit_system,

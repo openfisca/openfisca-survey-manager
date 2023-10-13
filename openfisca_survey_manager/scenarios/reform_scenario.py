@@ -4,6 +4,8 @@ import logging
 import numpy as np
 import pandas as pd
 
+from typing import Optional, Union
+from openfisca_core.types import Array, Period
 
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 
@@ -14,8 +16,22 @@ log = logging.getLogger(__name__)
 class ReformScenario(AbstractSurveyScenario):
     """Reform survey scenario."""
 
-    baseline_simulation = None
-    baseline_tax_benefit_system = None
+    def _get_simulation(self, use_baseline: bool = False):
+        """
+        Get relevant simulation
+
+        Args:
+            use_baseline (bool, optional): Whether to get baseline or reform simulation. Defaults to False.
+        """
+
+        simulation_name = (
+            "baseline"
+            if use_baseline
+            else "reform"
+            )
+        simulation = self.simulations[simulation_name]
+        assert simulation is not None, f"{simulation_name} does not exist"
+        return simulation
 
     def build_input_data(self, **kwargs):
         """Build input data."""
@@ -50,33 +66,28 @@ class ReformScenario(AbstractSurveyScenario):
           numpy.ndarray: Variable values
 
         """
-        if use_baseline:
-            assert self.baseline_simulation is not None, "self.baseline_simulation is None"
-            simulation = self.baseline_simulation
-        else:
-            assert self.simulation is not None
-            simulation = self.simulation
-
+        simulation = self._get_simulation(use_baseline)
         return simulation.adaptative_calculate_variable(variable, period = period)
 
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, use_baseline = False,
-            difference = False, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
+    def compute_aggregate(self, variable: str = None, aggfunc: str = 'sum', filter_by: str = None,
+            period: Optional[Union[int, str, Period]] = None, use_baseline: bool = False,
+            difference: bool = False, missing_variable_default_value = np.nan, weighted: bool = True,
+            alternative_weights: Optional[Union[str, int, float, Array]] = None):
         """Compute variable aggregate.
 
         Args:
-          variable: Variable (Default value = None)
-          aggfunc: Aggregation function (Default value = 'sum')
-          filter_by: Filtering variable (Default value = None)
-          period: Period in which the variable is computed. If None, simulation.period is chosen (Default value = None)
-          use_baseline: Use baseline simulation (Default value = False)
-          difference:  Compute difference between simulation and baseline (Default value = False)
-          missing_variable_default_value: Value of missing variable (Default value = np.nan)
-          weighted: Whether to weight te aggregates (Default value = True)
-          alternative_weights: Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None, and if the latetr is None uses 1 ((Default value = None)
+            variable (str, optional): Variable to aggregate. Defaults to None.
+            aggfunc (str, optional): Aggregation function. Defaults to 'sum'.
+            filter_by (str, optional): Filter variable or expression to use. Defaults to None.
+            period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+            use_baseline: Use baseline simulation. Defaults to False.
+            missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
+            weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
         Returns:
-          float: Aggregate
-
+            float: Aggregate
         """
         assert aggfunc in ['count', 'mean', 'sum', 'count_non_zero']
         assert period is not None
@@ -107,13 +118,7 @@ class ReformScenario(AbstractSurveyScenario):
                 )
 
         assert variable is not None
-        if use_baseline:
-            simulation = self.baseline_simulation
-            assert simulation is not None, "Missing baseline simulation"
-        else:
-            simulation = self.simulation
-            assert simulation is not None, "Missing (reform) simulation"
-
+        simulation = self._get_simulation(use_baseline)
         return simulation.compute_aggregate(
             variable = variable,
             aggfunc = aggfunc,
@@ -125,17 +130,12 @@ class ReformScenario(AbstractSurveyScenario):
             filtering_variable_by_entity = self.filtering_variable_by_entity,
             )
 
-    def compute_quantiles(self, variable = None, nquantiles = None, period = None, use_baseline = False, filter_by = None,
+    def compute_quantiles(self, variable: str = None, nquantiles = None, period = None, use_baseline = False, filter_by = None,
             weighted = True, alternative_weights = None):
 
         assert variable is not None
         assert nquantiles is not None
-        if use_baseline:
-            simulation = self.baseline_simulation
-            assert simulation is not None, "Missing baseline simulation"
-        else:
-            simulation = self.simulation
-            assert simulation is not None, "Missing (reform) simulation"
+        simulation = self._get_simulation(use_baseline)
 
         return simulation.compute_quantiles(
             variable = variable,
@@ -146,127 +146,54 @@ class ReformScenario(AbstractSurveyScenario):
             alternative_weights = alternative_weights,
             )
 
-    def compute_marginal_tax_rate(self, target_variable, period, use_baseline = False,
-            value_for_zero_varying_variable = 0.0):
+    def compute_marginal_tax_rate(self, target_variable: str, period: Optional[Union[int, str, Period]], use_baseline: bool = False,
+            value_for_zero_varying_variable: float = 0.0) -> Array:
         """
         Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
         Args:
             target_variable (str): the variable which marginal tax rate is computed
-            period (Period): the period at which the the marginal tax rate is computed
-            use_baseline (bool, optional): compute the marginal tax rate for the baseline system. Defaults to False.
+            period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+            use_baseline: Use baseline simulation. Defaults to False.
             value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero. Defaults to 0.
 
         Returns:
             numpy.array: Vector of marginal rates
         """
-        varying_variable = self.varying_variable
         if use_baseline:
-            simulation = self.baseline_simulation
-            assert self._modified_baseline_simulation is not None
-            modified_simulation = self._modified_baseline_simulation
+            return super(ReformScenario, self).compute_marginal_tax_rate(
+                target_variable = target_variable,
+                period = period,
+                simulation = "baseline",
+                value_for_zero_varying_variable = value_for_zero_varying_variable,
+                )
         else:
-            assert self._modified_simulation is not None
-            simulation = self.simulation
-            modified_simulation = self._modified_simulation
-
-        assert target_variable in self.tax_benefit_system.variables
-
-        variables_belong_to_same_entity = (
-            self.tax_benefit_system.variables[varying_variable].entity.key
-            == self.tax_benefit_system.variables[target_variable].entity.key
-            )
-        varying_variable_belongs_to_person_entity = self.tax_benefit_system.variables[varying_variable].entity.is_person
-
-        assert variables_belong_to_same_entity or varying_variable_belongs_to_person_entity
-
-        if variables_belong_to_same_entity:
-            modified_varying = modified_simulation.calculate_add(varying_variable, period = period)
-            varying = simulation.calculate_add(varying_variable, period = period)
-        else:
-            target_variable_entity_key = self.tax_benefit_system.variables[target_variable].entity.key
-
-            def cast_to_target_entity(simulation):
-                population = simulation.populations[target_variable_entity_key]
-                df = (pd.DataFrame(
-                    {
-                        'members_entity_id': population._members_entity_id,
-                        varying_variable: simulation.calculate_add(varying_variable, period = period)
-                        }
-                    ).groupby('members_entity_id').sum())
-                varying_variable_for_target_entity = df.loc[population.ids, varying_variable].values
-                return varying_variable_for_target_entity
-
-            modified_varying = cast_to_target_entity(modified_simulation)
-            varying = cast_to_target_entity(simulation)
-
-        modified_target = modified_simulation.calculate_add(target_variable, period = period)
-        target = simulation.calculate_add(target_variable, period = period)
-
-        numerator = modified_target - target
-        denominator = modified_varying - varying
-        marginal_rate = 1 - np.divide(
-            numerator,
-            denominator,
-            out = np.full_like(numerator, value_for_zero_varying_variable, dtype = np.floating),
-            where = (denominator != 0)
-            )
-
-        return marginal_rate
+            return super(ReformScenario, self).compute_marginal_tax_rate(
+                target_variable = target_variable,
+                period = period,
+                simulation = "reform",
+                value_for_zero_varying_variable = value_for_zero_varying_variable,
+                )
 
     def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = False, filter_by = None, index = None,
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
             missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None):
-        """Compute a pivot table of agregated values casted along specified index and columns.
 
-        Args:
-            aggfunc(str, optional): Aggregation function, defaults to 'mean'
-            columns(list, optional): Variable(s) in columns, defaults to None
-            difference(bool, optional): Compute difference, defaults to False
-            filter_by(str, optional): Boolean variable to filter by, defaults to None
-            index(list, optional): Variable(s) in index (lines), defaults to None
-            period(Period, optional): Period, defaults to None
-            use_baseline(bool, optional): Compute for baseline, defaults to False
-            use_baseline_for_columns(bool, optional): Use columns from baseline columns values, defaults to None
-            values(list, optional): Aggregated variable(s) within cells, defaults to None
-            missing_variable_default_value(float, optional): Default value for missing variables, defaults to np.nan
-            concat_axis(int, optional): Axis to concatenate along (index = 0, columns = 1), defaults to None
-            weighted(bool, optional): Whether to weight te aggregates (Default value = True)
-            alternative_weights(str or int or float, optional): Weight variable name or numerical value. Use Simulation's weight_variable_by_entity if None, and if the later is None uses 1 ((Default value = None)
-
-        Returns:
-            pd.DataFrame: Pivot table
-
-        """
-        assert aggfunc in ['count', 'mean', 'sum']
-        assert columns or index or values
-        assert not (difference and use_baseline), "Can't have difference and use_baseline both set to True"
-
-        simulation = self.simulation
-        baseline_simulation = None
-        if difference:
-            baseline_simulation = self.baseline_simulation
-
-        if use_baseline:
-            simulation = baseline_simulation = self.baseline_simulation
-
-        filtering_variable_by_entity = self.filtering_variable_by_entity
-
-        return simulation.compute_pivot_table(
-            baseline_simulation = baseline_simulation,
+        return super(ReformScenario, self).compute_pivot_table(
             aggfunc = aggfunc,
             columns = columns,
-            difference = difference,
+            baseline_simulation = self._get_simulation(use_baseline = True),
             filter_by = filter_by,
             index = index,
             period = period,
+            simulation = self._get_simulation(use_baseline),
+            difference = difference,
             use_baseline_for_columns = use_baseline_for_columns,
             values = values,
-            missing_variable_default_value = missing_variable_default_value,
+            missing_variable_default_value = missing_variable_default_value.nan,
             concat_axis = concat_axis,
             weighted = weighted,
             alternative_weights = alternative_weights,
-            filtering_variable_by_entity = filtering_variable_by_entity,
             )
 
     def compute_winners_loosers(self, variable = None,
@@ -278,11 +205,9 @@ class ReformScenario(AbstractSurveyScenario):
             weighted = True,
             alternative_weights = None):
 
-        simulation = self.simulation
-        baseline_simulation = self.baseline_simulation
-
-        return simulation.compute_winners_loosers(
-            baseline_simulation,
+        return super(ReformScenario, self).compute_winners_loosers(
+            simulation = "reform",
+            baseline_simulation = "baseline",
             variable = variable,
             filter_by = filter_by,
             period = period,
@@ -291,7 +216,6 @@ class ReformScenario(AbstractSurveyScenario):
             observations_threshold = observations_threshold,
             weighted = weighted,
             alternative_weights = alternative_weights,
-            filtering_variable_by_entity = self.filtering_variable_by_entity,
             )
 
     def create_data_frame_by_entity(self, variables = None, expressions = None, filter_by = None, index = False,
@@ -311,19 +235,12 @@ class ReformScenario(AbstractSurveyScenario):
           dict or pandas.DataFrame: Dictionnary of dataframes by entities or dataframe with all the computed variables
 
         """
-        simulation = self.baseline_simulation if (use_baseline and self.baseline_simulation) else self.simulation
-        # tax_benefit_system = self.baseline_tax_benefit_system if (
-        #     use_baseline and self.baseline_tax_benefit_system
-        #     ) else self.tax_benefit_system
-
-        id_variable_by_entity_key = self.id_variable_by_entity_key
-
-        return simulation.create_data_frame_by_entity(
+        return super(ReformScenario, self).create_data_frame_by_entity(
             variables = variables,
             expressions = expressions,
             filter_by = filter_by,
             index = index,
+            simulation = self._get_simulation(use_baseline),
             period = period,
             merge = merge,
-            id_variable_by_entity_key = id_variable_by_entity_key,
             )

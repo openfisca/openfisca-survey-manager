@@ -4,12 +4,15 @@ import logging
 import os
 import numpy as np
 import pandas as pd
+from typing import List, Optional, Union
 
 
 from openfisca_core import periods
+from openfisca_core.types import Array, Period
 from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
 from openfisca_core.periods import MONTH, YEAR
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
+
 
 from openfisca_survey_manager.calibration import Calibration
 from openfisca_survey_manager import default_config_files_directory
@@ -124,24 +127,26 @@ class AbstractSurveyScenario(object):
             calibration.calibrate(inplace = True)
             simulation.calibration = calibration
 
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, simulation = None,
-            baseline_simulation = None, missing_variable_default_value = np.nan, weighted = True, alternative_weights = None):
+    def compute_aggregate(self, variable: str = None, aggfunc: str = 'sum', filter_by: str = None,
+            period: Optional[Union[int, str, Period]] = None,
+            simulation: str = None, baseline_simulation: str = None, missing_variable_default_value = np.nan,
+            weighted: bool = True, alternative_weights: Optional[Union[str, int, float, Array]] = None):
         """Compute variable aggregate.
 
         Args:
-          variable: Variable (Default value = None)
-          aggfunc: Aggregation function (Default value = 'sum')
-          filter_by: Filtering variable (Default value = None)
-          period: Period in which the variable is computed. If None, simulation.period is chosen (Default value = None)
-          simulation(str, optional): Simulation to use
-          baseline_simulation(str, optional): Baseline simulation to use when computing a difference
-          missing_variable_default_value: Value of missing variable (Default value = np.nan)
-          weighted: Whether to weight te aggregates (Default value = True)
-          alternative_weights: Weight variable name or numerical value. Use SurveyScenario's weight_variable_by_entity if None, and if the latetr is None uses 1 ((Default value = None)
+            variable (str, optional): Variable to aggregate. Defaults to None.
+            aggfunc (str, optional): Aggregation function. Defaults to 'sum'.
+            filter_by (str, optional): Filter variable or expression to use. Defaults to None.
+            period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+            simulation(str, optional): Simulation to use
+            baseline_simulation(str, optional): Baseline simulation to use when computing a difference
+            missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
+            weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
         Returns:
-          float: Aggregate
-
+            float: Aggregate
         """
         assert aggfunc in ['count', 'mean', 'sum', 'count_non_zero']
         assert period is not None
@@ -190,9 +195,25 @@ class AbstractSurveyScenario(object):
             filtering_variable_by_entity = self.filtering_variable_by_entity,
             )
 
-    def compute_quantiles(self, variable = None, nquantiles = None, period = None, simulation = None, filter_by = None,
-            weighted = True, alternative_weights = None):
+    def compute_quantiles(self, simulation: Simulation, variable: str, nquantiles: int = None,
+            period: Optional[Union[int, str, Period]] = None, filter_by = None, weighted: bool = True,
+            alternative_weights = None, filtering_variable_by_entity = None) -> List[float]:
+        """
+        Compute quantiles of a variable.
 
+        Args:
+            simulation (Simulation, optional): Simulation to be used. Defaults to None.
+            variable (str, optional): Variable which quantiles are computed. Defaults to None.
+            nquantiles (int, optional): Number of quantiles. Defaults to None.
+            period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
+            missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
+            weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
+
+        Returns:
+        List(float): The quantiles values
+        """
         assert variable is not None
         assert nquantiles is not None
         simulation = self.simulations[simulation]
@@ -207,14 +228,14 @@ class AbstractSurveyScenario(object):
             alternative_weights = alternative_weights,
             )
 
-    def compute_marginal_tax_rate(self, target_variable, period, simulation = None,
-            value_for_zero_varying_variable = 0.0):
+    def compute_marginal_tax_rate(self, target_variable: str, period: Optional[Union[int, str, Period]], simulation: str = None,
+            value_for_zero_varying_variable: float = 0.0) -> Array:
         """
         Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
         Args:
             target_variable (str): the variable which marginal tax rate is computed
-            period (Period): the period at which the the marginal tax rate is computed
+            period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
             simulation(str, optional): Simulation to use
             value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero. Defaults to 0.
 
