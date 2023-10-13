@@ -151,6 +151,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 def init_all_entities(builder, tax_benefit_system, input_data_frame, period = None):
     assert period is not None
     log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
+    assert builder.id_variable_by_entity_key is not None
 
     if period.unit == YEAR:  # 1. year
         simulation = builder.init_simulation_with_data_frame(
@@ -176,7 +177,6 @@ def init_all_entities(builder, tax_benefit_system, input_data_frame, period = No
     else:
         raise ValueError("Invalid period {}".format(period))
 
-    assert builder.id_variable_by_entity_key is not None
     simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key
     return simulation
 

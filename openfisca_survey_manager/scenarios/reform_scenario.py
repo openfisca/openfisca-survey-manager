@@ -24,6 +24,9 @@ class ReformScenario(AbstractSurveyScenario):
             use_baseline (bool, optional): Whether to get baseline or reform simulation. Defaults to False.
         """
 
+        if len(self.simulations) == 1:
+            return list(self.simulations.values())[0]
+
         simulation_name = (
             "baseline"
             if use_baseline

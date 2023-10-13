@@ -88,7 +88,8 @@ class AbstractSurveyScenario(object):
         assert simulation is not None
         return simulation.adaptative_calculate_variable(variable, period = period)
 
-    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None, target_entity_count: float = None):
+    def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None,
+            target_entity_count: float = None, entity: str = None):
         """Calibrate the scenario data.
 
         Args:
@@ -121,6 +122,7 @@ class AbstractSurveyScenario(object):
                 target_margins_by_variable,
                 period,
                 target_entity_count = target_entity_count,
+                entity = entity,
                 parameters = parameters,
                 # filter_by = self.filter_by,
                 )
@@ -539,8 +541,10 @@ class AbstractSurveyScenario(object):
         else:
             custom_initialize = None
 
-        data["used_as_input_variables"] = self.used_as_input_variables
         data["collection"] = self.collection
+        data["id_variable_by_entity_key"] = self.id_variable_by_entity_key
+        data["role_variable_by_entity_key"] = self.role_variable_by_entity_key
+        data["used_as_input_variables"] = self.used_as_input_variables
 
         simulation = Simulation.new_from_tax_benefit_system(
             tax_benefit_system = tax_benefit_system,
