@@ -866,6 +866,8 @@ def init_simulation(tax_benefit_system, period, data):
     data_year = data.get("data_year")
     survey = data.get('survey')
     builder.used_as_input_variables = data.get("used_as_input_variables")
+    builder.id_variable_by_entity_key = data.get("id_variable_by_entity_key")
+    builder.role_variable_by_entity_key = data.get("role_variable_by_entity_key")
 
     default_source_types = [
         'input_data_frame',

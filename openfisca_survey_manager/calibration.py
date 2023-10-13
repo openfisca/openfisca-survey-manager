@@ -33,20 +33,32 @@ class Calibration(object):
     target_entity_count = None
     weight_name = None
 
-    def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None, filter_by = None):
+    def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
+            filter_by = None, entity = None):
         self.period = period
         self.simulation = simulation
-        margin_variables = list(target_margins.keys())
+        if target_margins:
+            margin_variables = list(target_margins.keys())
+        else:
+            margin_variables = []
+
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
         entities = set(
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
 
-        if len(entities) > 1:
+        if len(entities) == 0:
+            assert target_entity_count != 0
+            assert entity in [
+                entity.key
+                for entity in simulation.tax_benefit_system.entities
+                ]
+        elif len(entities) > 1:
             raise NotImplementedError("Cannot hande multiple entites")
+        else:
+            entity = list(entities)[0]
 
-        entity = list(entities)[0]
         assert simulation.weight_variable_by_entity is not None
 
         weight_variable_name = simulation.weight_variable_by_entity.get(entity)
@@ -73,8 +85,9 @@ class Calibration(object):
         for entity, weight_variable in simulation.weight_variable_by_entity.items():
             self.initial_weight_by_entity[entity] = simulation.calculate(weight_variable, period = period)
 
-        for variable, target in target_margins.items():
-            self.set_target_margin(variable, target)
+        if target_margins:
+            for variable, target in target_margins.items():
+                self.set_target_margin(variable, target)
 
         self.parameters = parameters
 
@@ -267,7 +280,7 @@ class Calibration(object):
             parameters = dict()
 
         margin_variables = list(margins.keys())
-        entity = self.simulation.tax_benefit_system.variables[margin_variables[0]].entity.key
+        entity = self.entity
         weight_variable = self.simulation.weight_variable_by_entity[entity]
 
         if self.weight_name != weight_variable:
