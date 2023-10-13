@@ -133,7 +133,7 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
         missing_variable_default_value = np.nan, weighted: bool = True, alternative_weights: Optional[Union[str, int, float, Array]] = None,
         filtering_variable_by_entity: Dict = None) -> Optional[Union[None, float]]:
     """
-    Compute aggregate of a variable
+    Compute aggregate of a variable.
 
     Args:
         simulation (Simulation): Simulation to use for the computation
@@ -147,9 +147,8 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
-        float: Aggegate
+        float: Aggregate
     """
-
     weight_variable_by_entity = simulation.weight_variable_by_entity
     tax_benefit_system = simulation.tax_benefit_system
 

@@ -64,8 +64,6 @@ def test_compute_winners_loosers():
 
     winners_loosers_scenario = survey_scenario.compute_winners_loosers(
         variable,
-        simulation = "reform",
-        baseline_simulation = "baseline",
         period = period,
         absolute_minimal_detected_variation = absolute_minimal_detected_variation,
         relative_minimal_detected_variation = relative_minimal_detected_variation,
