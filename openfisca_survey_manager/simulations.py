@@ -1089,10 +1089,10 @@ def new_from_tax_benefit_system(
 
 def print_memory_usage(simulation: Simulation):
     """
-    _summary_
+    Print memory usage.
 
     Args:
-        simulation (Simulation): _description_
+        simulation (Simulation): The simulation which memory usage is to be printed
     """
     memory_usage_by_variable = simulation.get_memory_usage()['by_variable']
     try:
@@ -1125,6 +1125,13 @@ def set_weight_variable_by_entity(
         simulation: Simulation,
         weight_variable_by_entity: Dict,
         ):
+    """
+    Set weight variable for each entity.
+
+    Args:
+        simulation (Simulation): The simulation concerned.
+        weight_variable_by_entity (Dict): The weight variable for each entity.
+    """
     simulation.weight_variable_by_entity = weight_variable_by_entity
 
 
