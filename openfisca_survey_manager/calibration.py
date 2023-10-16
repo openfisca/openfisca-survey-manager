@@ -279,7 +279,6 @@ class Calibration(object):
         if parameters is None:
             parameters = dict()
 
-        margin_variables = list(margins.keys())
         entity = self.entity
         weight_variable = self.simulation.weight_variable_by_entity[entity]
 
