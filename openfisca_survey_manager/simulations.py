@@ -868,6 +868,7 @@ def init_simulation(tax_benefit_system, period, data):
     builder.used_as_input_variables = data.get("used_as_input_variables")
     builder.id_variable_by_entity_key = data.get("id_variable_by_entity_key")
     builder.role_variable_by_entity_key = data.get("role_variable_by_entity_key")
+    builder.tax_benefit_system = tax_benefit_system
 
     default_source_types = [
         'input_data_frame',
@@ -896,7 +897,7 @@ def init_simulation(tax_benefit_system, period, data):
     input_data_survey_prefix = data.get("input_data_survey_prefix") if data is not None else None
 
     if source_type == 'input_data_frame':
-        simulation = builder.init_all_entities(tax_benefit_system, source, period)
+        simulation = builder.init_all_entities(source, period)
 
     if source_type == 'input_data_table':
         # Case 1: fill simulation with a unique input_data_frame given by the attribute
@@ -909,7 +910,7 @@ def init_simulation(tax_benefit_system, period, data):
             NotImplementedError
 
         custom_input_data_frame(input_data_frame, period = period)
-        simulation = builder.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
+        simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
     elif source_type == 'input_data_table_by_period':
         # Case 2: fill simulation with input_data_frame by period containing all entity variables
@@ -919,7 +920,7 @@ def init_simulation(tax_benefit_system, period, data):
             log.debug('From survey {} loading table {}'.format(survey, table))
             input_data_frame = load_table(collection = collection, survey = survey, input_data_survey_prefix = input_data_survey_prefix, table = table)
             custom_input_data_frame(input_data_frame, period = period)
-            simulation = builder.init_all_entities(tax_benefit_system, input_data_frame, builder, period)  # monolithic dataframes
+            simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
     elif source_type == 'input_data_frame_by_entity_by_period':
         for period, input_data_frame_by_entity in source.items():
@@ -929,7 +930,7 @@ def init_simulation(tax_benefit_system, period, data):
                 if input_data_frame is None:
                     continue
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                builder.init_entity_structure(tax_benefit_system, entity, input_data_frame)  # TODO complete args
+                builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
 
         simulation = builder.build(tax_benefit_system)
         simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
@@ -961,7 +962,7 @@ def init_simulation(tax_benefit_system, period, data):
                     else:
                         input_data_frame = load_table(collection = collection, survey = 'input', table = table)
                     custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                    builder.init_entity_structure(tax_benefit_system, entity, input_data_frame)  # TODO complete args
+                    builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
 
                 simulation = builder.build(tax_benefit_system)
                 simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build

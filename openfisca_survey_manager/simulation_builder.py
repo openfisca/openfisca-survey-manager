@@ -148,14 +148,14 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
     return input_data_frame
 
 
-def init_all_entities(builder, tax_benefit_system, input_data_frame, period = None):
+def init_all_entities(builder, input_data_frame, period = None):
     assert period is not None
     log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
-    assert builder.id_variable_by_entity_key is not None
+    builder._set_id_variable_by_entity_key()
+    builder._set_role_variable_by_entity_key()
 
     if period.unit == YEAR:  # 1. year
         simulation = builder.init_simulation_with_data_frame(
-            tax_benefit_system,
             input_data_frame = input_data_frame,
             period = period,
             )
@@ -163,14 +163,11 @@ def init_all_entities(builder, tax_benefit_system, input_data_frame, period = No
         for offset in range(period.size):
             period_item = period.first_month.offset(offset, MONTH)
             simulation = builder.init_simulation_with_data_frame(
-                tax_benefit_system,
                 input_data_frame = input_data_frame,
                 period = period_item,
-                builder = builder,
                 )
     elif period.unit == MONTH and period.size == 1:  # 3. months
         simulation = builder.init_simulation_with_data_frame(
-            tax_benefit_system,
             input_data_frame = input_data_frame,
             period = period,
             )
@@ -181,7 +178,7 @@ def init_all_entities(builder, tax_benefit_system, input_data_frame, period = No
     return simulation
 
 
-def init_entity_structure(builder, tax_benefit_system, entity, input_data_frame):
+def init_entity_structure(builder, entity, input_data_frame):
     """Initialize sthe simulation with tax_benefit_system entities and input_data_frame.
 
     Args:
@@ -191,7 +188,7 @@ def init_entity_structure(builder, tax_benefit_system, entity, input_data_frame)
         builder(Builder): The builder
 
     """
-    builder.tax_benefit_system = tax_benefit_system
+    tax_benefit_system = builder.tax_benefit_system
     builder._set_id_variable_by_entity_key()
     builder._set_role_variable_by_entity_key()
     builder._set_used_as_input_variables_by_entity()
@@ -223,11 +220,13 @@ def init_entity_structure(builder, tax_benefit_system, entity, input_data_frame)
                 )
 
 
-def init_simulation_with_data_frame(builder, tax_benefit_system, input_data_frame, period):
+def init_simulation_with_data_frame(builder, input_data_frame, period):
     """Initialize the simulation period with current input_data_frame for an entity if specified."""
     used_as_input_variables = builder.used_as_input_variables
     id_variable_by_entity_key = builder.id_variable_by_entity_key
     role_variable_by_entity_key = builder.role_variable_by_entity_key
+    tax_benefit_system = builder.tax_benefit_system
+    assert tax_benefit_system is not None
 
     diagnose_variable_mismatch(used_as_input_variables, input_data_frame)
 
@@ -245,7 +244,7 @@ def init_simulation_with_data_frame(builder, tax_benefit_system, input_data_fram
     index_by_entity_key = dict()
 
     for entity in tax_benefit_system.entities:
-        builder.init_entity_structure(tax_benefit_system, entity, input_data_frame)
+        builder.init_entity_structure(entity, input_data_frame)
 
         if entity.is_person:
             continue

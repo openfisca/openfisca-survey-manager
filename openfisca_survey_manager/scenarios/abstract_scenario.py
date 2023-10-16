@@ -4,11 +4,11 @@ import logging
 import os
 import numpy as np
 import pandas as pd
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 
 from openfisca_core import periods
-from openfisca_core.types import Array, Period
+from openfisca_core.types import Array, Period, TaxBenefitSystem
 from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
 from openfisca_core.periods import MONTH, YEAR
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
@@ -172,7 +172,7 @@ class AbstractSurveyScenario(object):
                     missing_variable_default_value = missing_variable_default_value,
                     weighted = weighted,
                     alternative_weights = alternative_weights,
-                     filtering_variable_by_entity = self.filtering_variable_by_entity,
+                    filtering_variable_by_entity = self.filtering_variable_by_entity,
                     )
                 - baseline_simulation.compute_aggregate(
                     variable = variable,
@@ -182,7 +182,7 @@ class AbstractSurveyScenario(object):
                     missing_variable_default_value = missing_variable_default_value,
                     weighted = weighted,
                     alternative_weights = alternative_weights,
-                     filtering_variable_by_entity = self.filtering_variable_by_entity,
+                    filtering_variable_by_entity = self.filtering_variable_by_entity,
                     )
                 )
 
@@ -630,17 +630,18 @@ class AbstractSurveyScenario(object):
         """
         self.input_data_frame = input_data_frame
 
-    def set_tax_benefit_systems(self, tax_benefit_systems: dict, reference: str = None):
-        """Set the tax and benefit systems of the scenario.
+    def set_tax_benefit_systems(self, tax_benefit_systems: Dict[str, TaxBenefitSystem]):
+        """
+        Set the tax and benefit systems of the scenario.
 
         Args:
-          tax_benefit_systems:
+            tax_benefit_systems (Dict[str, TaxBenefitSystem]): The tax benefit systems
         """
         for tax_benefit_system in tax_benefit_systems.values():
             assert tax_benefit_system is not None
             if self.cache_blacklist is not None:
                 tax_benefit_system.cache_blacklist = self.cache_blacklist
-
+        #
         self.tax_benefit_systems = tax_benefit_systems
 
     def set_weight_variable_by_entity(self, weight_variable_by_entity = None):
