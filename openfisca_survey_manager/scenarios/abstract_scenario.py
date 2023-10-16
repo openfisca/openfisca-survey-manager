@@ -152,31 +152,6 @@ class AbstractSurveyScenario(object):
         """
         assert aggfunc in ['count', 'mean', 'sum', 'count_non_zero']
         assert period is not None
-
-        if baseline_simulation:
-            return (
-                self.compute_aggregate(
-                    variable = variable,
-                    aggfunc = aggfunc,
-                    filter_by = filter_by,
-                    period = period,
-                    simulation = simulation,
-                    missing_variable_default_value = missing_variable_default_value,
-                    weighted = weighted,
-                    alternative_weights = alternative_weights,
-                    )
-                - self.compute_aggregate(
-                    variable = variable,
-                    aggfunc = aggfunc,
-                    filter_by = filter_by,
-                    period = period,
-                    simulation = baseline_simulation,
-                    missing_variable_default_value = missing_variable_default_value,
-                    weighted = weighted,
-                    alternative_weights = alternative_weights,
-                    )
-                )
-
         assert variable is not None
         if simulation is None:
             assert len(self.simulations.keys()) == 1
@@ -185,6 +160,31 @@ class AbstractSurveyScenario(object):
             simulation = self.simulations[simulation]
 
         assert simulation is not None, f"Missing {simulation} simulation"
+
+        if baseline_simulation:
+            baseline_simulation = self.simulations[baseline_simulation]
+            return (
+                simulation.compute_aggregate(
+                    variable = variable,
+                    aggfunc = aggfunc,
+                    filter_by = filter_by,
+                    period = period,
+                    missing_variable_default_value = missing_variable_default_value,
+                    weighted = weighted,
+                    alternative_weights = alternative_weights,
+                     filtering_variable_by_entity = self.filtering_variable_by_entity,
+                    )
+                - baseline_simulation.compute_aggregate(
+                    variable = variable,
+                    aggfunc = aggfunc,
+                    filter_by = filter_by,
+                    period = period,
+                    missing_variable_default_value = missing_variable_default_value,
+                    weighted = weighted,
+                    alternative_weights = alternative_weights,
+                     filtering_variable_by_entity = self.filtering_variable_by_entity,
+                    )
+                )
 
         return simulation.compute_aggregate(
             variable = variable,
