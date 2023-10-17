@@ -28,18 +28,15 @@ class AbstractAggregates(object):
 
     def __init__(self, survey_scenario = None):
         assert survey_scenario is not None
-        self.year = str(survey_scenario.period.this_year)[:4]
+
+        self.period = survey_scenario.period
         self.survey_scenario = survey_scenario
-        assert self.simulation is None
+        assert len(survey_scenario.simulations) >= 1
 
-        assert survey_scenario.simulation is not None
-        self.simulation = survey_scenario.simulation
+        self.simulations = survey_scenario.simulations
 
-        if survey_scenario.baseline_tax_benefit_system is not None:
-            assert survey_scenario.baseline_simulation is not None
-            self.baseline_simulation = survey_scenario.baseline_simulation
-        else:
-            self.baseline_simulation = None
+        for name in survey_scenario.tax_benefit_systems.keys():
+            assert survey_scenario.simulations[name] is not None
 
         self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         if self.labels is None:
@@ -70,7 +67,7 @@ class AbstractAggregates(object):
 
         simulation_types = list()
         if use_baseline:
-            assert self.baseline_simulation is not None
+            assert self.simulations['baseline'] is not None
             simulation_types.append('baseline')
         if reform:
             simulation_types.append('reform')
@@ -85,6 +82,7 @@ class AbstractAggregates(object):
             else:
                 use_baseline = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
+                assert self.aggregate_variables is not None
                 for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
                         variable, use_baseline = use_baseline, filter_by = filter_by)
@@ -153,9 +151,9 @@ class AbstractAggregates(object):
                     If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
         """
         if use_baseline:
-            simulation = self.baseline_simulation
+            simulation = self.simulations['baseline']
         else:
-            simulation = self.simulation
+            simulation = self.simulations['reform']
 
         variables = simulation.tax_benefit_system.variables
         column = variables.get(variable)
@@ -177,12 +175,12 @@ class AbstractAggregates(object):
         weight = self.weight_variable_by_entity[column.entity.key]
         assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
 
-        weight_array = simulation.calculate(weight, period = self.year).astype('float')
+        weight_array = simulation.calculate(weight, period = self.period).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
             weight, column.entity.key)
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
-        variable_array = simulation.calculate_add(variable, period = self.year).astype('float')
+        variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
         assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
             variable, column.entity.key)
         data = pd.DataFrame({
@@ -195,7 +193,7 @@ class AbstractAggregates(object):
                 if filter_by in variables
                 else self.survey_scenario.filtering_variable_by_entity[column.entity.key]
                 )
-            filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.year)
+            filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.period)
 
         else:
             filter_dummy_array = 1
@@ -429,5 +427,5 @@ class AbstractAggregates(object):
                         )
         return df
 
-    def load_actual_data(self, year = None):
+    def load_actual_data(self, period = None):
         NotImplementedError
