@@ -107,8 +107,8 @@ def build_dummies_dict(data):
     return output
 
 
-def calmar(data_in, margins, initial_weight, method = 'linear', lo = None, up = None, use_proportions = False,
-        xtol = 1.49012e-08, maxfev = 256):
+def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = None, up = None, use_proportions: bool = False,
+        xtol: float = 1.49012e-08, maxfev: int = 256):
     """Calibrates weights to satisfy margins constraints.
 
     Args:
@@ -137,7 +137,6 @@ def calmar(data_in, margins, initial_weight, method = 'linear', lo = None, up = 
         dict: Updated margins
     """
     from scipy.optimize import fsolve
-
     # remove null weights and keep original data
     null_weight_observations = data_in[initial_weight].isnull().sum()
     if null_weight_observations > 0:
@@ -186,6 +185,7 @@ def calmar(data_in, margins, initial_weight, method = 'linear', lo = None, up = 
         def F_prime(x):
             return logit_prime(x, lo, up)
 
+    margins = margins.copy()
     # Construction observations matrix
     if 'total_population' in margins:
         total_population = margins.pop('total_population')

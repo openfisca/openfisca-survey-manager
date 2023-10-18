@@ -101,10 +101,9 @@ class Calibration(object):
         assert self._initial_weight_name is not None
         data = pd.DataFrame()
         data[self._initial_weight_name] = self.initial_weight * self.filter_by
-
+        period = self.period
         for variable in self.margins_by_variable:
             assert variable in self.simulation.tax_benefit_system.variables
-            period = self.period
             data[variable] = self.simulation.calculate(variable, period = period)
 
         return data
@@ -289,8 +288,12 @@ class Calibration(object):
 
         assert self._initial_weight_name is not None
         parameters['initial_weight'] = self._initial_weight_name
+        if self.target_entity_count:
+            margins["total_population"] = self.target_entity_count
+
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
         # Updating only afetr filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
+
         return updated_margins

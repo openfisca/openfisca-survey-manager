@@ -96,7 +96,8 @@ class AbstractSurveyScenario(object):
             period (int, optionnal): Period of calibration. Defaults to scenario.year
             target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
             parameters (dict, optional): Calibration parameters. Defaults to None.
-            total_population (float, optional): Total population target. Defaults to None.
+            target_entity_count (float, optional): Total population target. Defaults to None.
+            entity (str): Entity specified when no variable comes with a target margins but `target_entity_count` is not None.
         """
         survey_scenario = self
 
