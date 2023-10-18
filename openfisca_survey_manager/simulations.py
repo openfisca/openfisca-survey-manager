@@ -155,6 +155,7 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
     if period is None:
         period = simulation.period
 
+    assert variable in tax_benefit_system.variables, f"{variable} is not a variable of the tax benefit system"
     entity_key = tax_benefit_system.variables[variable].entity.key
 
     if filter_by is None and filtering_variable_by_entity is not None:
@@ -162,15 +163,14 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
 
     if filter_by:
         filter_by_variable = get_words(filter_by)[0]
-        assert filter_by_variable in tax_benefit_system.variables, \
-            "{} is not a variables of the tax benefit system".format(filter_by_variable)
+        assert filter_by_variable in tax_benefit_system.variables, f"{filter_by_variable} is not a variable of the tax benefit system"
         entity_key = tax_benefit_system.variables[variable].entity.key
         filter_by_entity_key = tax_benefit_system.variables[filter_by_variable].entity.key
-        assert filter_by_entity_key == entity_key, \
-            ("You tried to compute agregates for variable '{0}', of entity {1}"
-            " filtering by variable '{2}', of entity {3}. This is not possible."
-            " Please choose a filter-by variable of same entity as '{0}'."
-            .format(variable, entity_key, filter_by_variable, filter_by_entity_key))
+        assert filter_by_entity_key == entity_key, (
+            f"You tried to compute agregates for variable '{variable}', of entity {entity_key}"
+            f" filtering by variable '{filter_by_variable}', of entity {filter_by_entity_key}. This is not possible."
+            f" Please choose a filter-by variable of same entity as '{variable}'."
+            )
 
     expressions = []
     if filter_by is not None:

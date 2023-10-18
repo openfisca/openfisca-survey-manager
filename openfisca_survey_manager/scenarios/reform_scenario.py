@@ -238,12 +238,12 @@ class ReformScenario(AbstractSurveyScenario):
           dict or pandas.DataFrame: Dictionnary of dataframes by entities or dataframe with all the computed variables
 
         """
-        return super(ReformScenario, self).create_data_frame_by_entity(
+        simulation = self._get_simulation(use_baseline)
+        return simulation.create_data_frame_by_entity(
             variables = variables,
             expressions = expressions,
             filter_by = filter_by,
             index = index,
-            simulation = self._get_simulation(use_baseline),
             period = period,
             merge = merge,
             )

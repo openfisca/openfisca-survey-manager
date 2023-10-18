@@ -57,10 +57,19 @@ class AbstractAggregates(object):
                 ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
                 ))
 
-    def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
+    def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
         """
         Compute aggregate amounts
+
+        Args:
+            use_baseline (bool, optional): _description_. Defaults to True.
+            reform (bool, optional): _description_. Defaults to True.
+            actual (bool, optional): _description_. Defaults to True.
+
+        Returns:
+            pd.DataFrame: _description_
         """
+
         filter_by = self.filter_by
         if actual:
             self.totals_df = self.load_actual_data(year = self.year)
@@ -137,20 +146,21 @@ class AbstractAggregates(object):
 
         return difference_data_frame
 
-    def compute_variable_aggregates(self, variable, use_baseline = False, filter_by = None):
-        """Returns aggregate spending, and number of beneficiaries for the relevant entity level.
-
-        Parameters
-        ----------
-        variable : string
-                   name of the variable aggregated according to its entity
-        use_baseline : bool
-                    Use the baseline or the reform or the only avalilable simulation when no reform (default)
-        filter_by : string or boolean
-                    If string use it as the name of the variable to filter by
-                    If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
+    def compute_variable_aggregates(self, variable: str, use_baseline: bool = False, filter_by: str = None) -> pd.DataFrame:
         """
-        if use_baseline:
+        Return aggregate spending, and number of beneficiaries for the relevant entity level.
+
+        Args:
+            variable (str): Name of the variable aggregated according to its entity
+            use_baseline (bool, optional): Use the baseline or the reform or the only avalilable simulation when no reform (default). Defaults to False.
+            filter_by (str, optional): The variable to filter by. Defaults to None.
+
+        Returns:
+            pd.DataFrame: The amount and beneficiaries for the variable
+        """
+        if len(self.simulations) == 1:
+            simulation = list(self.simulations.values())[0]
+        elif use_baseline:
             simulation = self.simulations['baseline']
         else:
             simulation = self.simulations['reform']
