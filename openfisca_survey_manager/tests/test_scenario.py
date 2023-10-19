@@ -8,7 +8,7 @@ from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
 
-from openfisca_survey_manager import openfisca_survey_manager_location
+from openfisca_survey_manager import openfisca_survey_manager_location, default_config_files_directory
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     random_data_generator,
@@ -73,7 +73,8 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
     survey_scenario.collection = collection
     data = {
         'survey': 'input',
-        'input_data_table_by_entity_by_period': table_by_entity_by_period
+        'input_data_table_by_entity_by_period': table_by_entity_by_period,
+        'config_files_directory': default_config_files_directory
         }
     if use_marginal_tax_rate:
         survey_scenario.varying_variable = 'salary'
@@ -108,7 +109,8 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
     data = {
         'input_data_frame_by_entity_by_period': {
             period: input_data_frame_by_entity
-            }
+            },
+        'config_files_directory': default_config_files_directory
         }
     survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
@@ -236,7 +238,8 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
     data = {
         'input_data_frame_by_entity_by_period': {
             period: input_data_frame_by_entity
-            }
+            },
+        'config_files_directory': default_config_files_directory
         }
     survey_scenario.init_from_data(data = data)
 
@@ -265,7 +268,8 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
     data = {
         'input_data_frame_by_entity_by_period': {
             period: input_data_frame_by_entity
-            }
+            },
+        'config_files_directory': default_config_files_directory
         }
     survey_scenario.init_from_data(data = data)
     simulation = survey_scenario.simulations["baseline"]

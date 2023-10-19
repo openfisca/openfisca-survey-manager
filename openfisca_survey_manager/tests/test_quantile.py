@@ -10,7 +10,7 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.variables import quantile
-
+from openfisca_survey_manager import default_config_files_directory
 
 Individu = build_entity(
     key = "individu",
@@ -97,7 +97,8 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
                 set(input_data_frame.columns)
                 ))
         data = {
-            'input_data_frame': input_data_frame
+            'input_data_frame': input_data_frame,
+            'config_files_directory': default_config_files_directory
             }
         self.init_from_data(data = data)
 
