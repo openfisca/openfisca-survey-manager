@@ -7,7 +7,6 @@ from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 from typing import List, Optional
 from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager import default_config_files_directory
 
 log = logging.getLogger(__name__)
 
@@ -232,6 +231,7 @@ def stata_files_to_data_frames(data, period = None):
     data['input_data_frame_by_entity_by_period'] = input_data_frame_by_entity_by_period
 
     return variables_from_stata_files
+
 
 def load_table(config_files_directory, variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
         input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None) -> pd.DataFrame:
