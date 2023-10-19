@@ -16,13 +16,12 @@ from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
 from openfisca_core.types import Array, Entity, Period, TaxBenefitSystem
 from openfisca_core.simulations import Simulation
-from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.simulation_builder import diagnose_variable_mismatch, SimulationBuilder
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
-from openfisca_survey_manager.utils import do_nothing
+from openfisca_survey_manager.utils import do_nothing, load_table
 
 
 log = logging.getLogger(__name__)
@@ -50,34 +49,6 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
         assert variable.entity == entity, "{} are not from the same entity: {} doesn't belong to {}".format(
             variables, variable_name, entity.key)
     return entity.key
-
-
-def load_table(variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
-        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None,
-        config_files_directory = default_config_files_directory) -> pd.DataFrame:
-    """
-    Load values from table from a survey in a collection.
-
-    Args:
-        variables (List, optional): List of the variables to retrieve in the table. Defaults to None to get all the variables.
-        collection (str, optional): Collection. Defaults to None.
-        survey (str, optional): Survey. Defaults to None.
-        input_data_survey_prefix (str, optional): Prefix of the survey to be combined with data year. Defaults to None.
-        data_year (_type_, optional): Year of the survey data. Defaults to None.
-        table (str, optional): Table. Defaults to None.
-        config_files_directory (optional): _description_. Defaults to default_config_files_directory.
-
-    Returns:
-        pandas.DataFrame: A table with the retrieved variables
-    """
-    survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
-    if survey is not None:
-        survey = survey
-    else:
-        survey = f"{input_data_survey_prefix}_{data_year}"
-    survey_ = survey_collection.get_survey(survey)
-    log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
-    return survey_.get_values(table = table, variables = variables)
 
 
 def get_words(text: str):
@@ -918,7 +889,7 @@ def init_simulation(tax_benefit_system, period, data):
         for period, table in input_data_table_by_period.items():
             period = periods.period(period)
             log.debug('From survey {} loading table {}'.format(survey, table))
-            input_data_frame = load_table(collection = collection, survey = survey, input_data_survey_prefix = input_data_survey_prefix, table = table)
+            input_data_frame = load_table(collection = collection, survey = survey, input_data_survey_prefix = input_data_survey_prefix, table = table, config_files_directory = data.get("config_files_directory"))
             custom_input_data_frame(input_data_frame, period = period)
             simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
@@ -958,9 +929,9 @@ def init_simulation(tax_benefit_system, period, data):
                     if table is None:
                         continue
                     if survey is not None:
-                        input_data_frame = load_table(collection = collection, survey = survey, table = table)
+                        input_data_frame = load_table(collection = collection, survey = survey, table = table, config_files_directory = data.get("config_files_directory"))
                     else:
-                        input_data_frame = load_table(collection = collection, survey = 'input', table = table)
+                        input_data_frame = load_table(collection = collection, survey = 'input', table = table, config_files_directory = data.get("config_files_directory"))
                     custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
 
@@ -972,9 +943,9 @@ def init_simulation(tax_benefit_system, period, data):
                 if table is None:
                     continue
                 if survey is not None:
-                    input_data_frame = load_table(collection = collection, survey = survey, table = table)
+                    input_data_frame = load_table(collection = collection, survey = survey, table = table, config_files_directory = data.get("config_files_directory"))
                 else:
-                    input_data_frame = load_table(collection = collection, survey = 'input', table = table)
+                    input_data_frame = load_table(collection = collection, survey = 'input', table = table, config_files_directory = data.get("config_files_directory"))
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                 simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
     else:
