@@ -15,7 +15,6 @@ from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simu
 
 
 from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager import default_config_files_directory
 from openfisca_survey_manager.surveys import Survey
 
 log = logging.getLogger(__name__)
@@ -45,7 +44,6 @@ class AbstractSurveyScenario(object):
     variation_factor = .03  # factor used to compute variation when estimating marginal tax rate
     varying_variable = None
     weight_variable_by_entity = None
-    config_files_directory = default_config_files_directory
 
     def build_input_data(self, **kwargs):
         """Build input data."""
@@ -473,8 +471,7 @@ class AbstractSurveyScenario(object):
             simulation.inflate(inflator_by_variable, period, target_by_variable)
 
     def init_from_data(self, calibration_kwargs = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False,
-            config_files_directory = default_config_files_directory):
+            rebuild_input_data = False, rebuild_kwargs = None, data = None, memory_config = None, use_marginal_tax_rate = False):
         """Initialise a survey scenario from data.
 
         Args:
@@ -485,7 +482,6 @@ class AbstractSurveyScenario(object):
           inflation_kwargs(dict): Inflations options (Default value = None)
           rebuild_input_data(bool): Whether to rebuild the data (Default value = False)
           rebuild_kwargs:  Rebuild options (Default value = None)
-          config_files_directory:  Directory where to find the configuration files (Default value = default_config_files_directory)
         """
         # When not ``None``, it'll try to get the data for *period*.
         if data is not None:
