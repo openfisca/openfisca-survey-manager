@@ -233,20 +233,19 @@ def stata_files_to_data_frames(data, period = None):
 
     return variables_from_stata_files
 
-def load_table(variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
-        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None,
-        config_files_directory) -> pd.DataFrame:
+def load_table(config_files_directory, variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
+        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None) -> pd.DataFrame:
     """
     Load values from table from a survey in a collection.
 
     Args:
+        config_files_directory : _description_.
         variables (List, optional): List of the variables to retrieve in the table. Defaults to None to get all the variables.
         collection (str, optional): Collection. Defaults to None.
         survey (str, optional): Survey. Defaults to None.
         input_data_survey_prefix (str, optional): Prefix of the survey to be combined with data year. Defaults to None.
         data_year (_type_, optional): Year of the survey data. Defaults to None.
         table (str, optional): Table. Defaults to None.
-        config_files_directory : _description_.
 
     Returns:
         pandas.DataFrame: A table with the retrieved variables
