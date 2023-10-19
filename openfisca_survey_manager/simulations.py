@@ -836,6 +836,7 @@ def init_simulation(tax_benefit_system, period, data):
     custom_input_data_frame = data.get("custom_input_data_frame", do_nothing)
     data_year = data.get("data_year")
     survey = data.get('survey')
+    config_files_directory = data.get("config_files_directory")
     builder.used_as_input_variables = data.get("used_as_input_variables")
     builder.id_variable_by_entity_key = data.get("id_variable_by_entity_key")
     builder.role_variable_by_entity_key = data.get("role_variable_by_entity_key")
@@ -889,7 +890,7 @@ def init_simulation(tax_benefit_system, period, data):
         for period, table in input_data_table_by_period.items():
             period = periods.period(period)
             log.debug('From survey {} loading table {}'.format(survey, table))
-            input_data_frame = load_table(collection = collection, survey = survey, input_data_survey_prefix = input_data_survey_prefix, table = table, config_files_directory = data.get("config_files_directory"))
+            input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, input_data_survey_prefix = input_data_survey_prefix, table = table)
             custom_input_data_frame(input_data_frame, period = period)
             simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
 
@@ -929,9 +930,9 @@ def init_simulation(tax_benefit_system, period, data):
                     if table is None:
                         continue
                     if survey is not None:
-                        input_data_frame = load_table(collection = collection, survey = survey, table = table, config_files_directory = data.get("config_files_directory"))
+                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table)
                     else:
-                        input_data_frame = load_table(collection = collection, survey = 'input', table = table, config_files_directory = data.get("config_files_directory"))
+                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table)
                     custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
 
@@ -943,9 +944,9 @@ def init_simulation(tax_benefit_system, period, data):
                 if table is None:
                     continue
                 if survey is not None:
-                    input_data_frame = load_table(collection = collection, survey = survey, table = table, config_files_directory = data.get("config_files_directory"))
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table)
                 else:
-                    input_data_frame = load_table(collection = collection, survey = 'input', table = table, config_files_directory = data.get("config_files_directory"))
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table)
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                 simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
     else:
