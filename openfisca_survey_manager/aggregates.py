@@ -65,7 +65,8 @@ class AbstractAggregates(object):
         Compute aggregate amounts
         """
         filter_by = self.filter_by
-        self.totals_df = self.load_actual_data(year = self.year)
+        if actual:
+                self.totals_df = self.load_actual_data(year = self.year)
 
         simulation_types = list()
         if use_baseline:
