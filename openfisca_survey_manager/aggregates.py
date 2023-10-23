@@ -59,7 +59,7 @@ class AbstractAggregates(object):
 
     def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
         """
-        Compute aggregate amounts
+        Compute aggregate amounts.
 
         Args:
             use_baseline (bool, optional): _description_. Defaults to True.
@@ -67,9 +67,8 @@ class AbstractAggregates(object):
             actual (bool, optional): _description_. Defaults to True.
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame: The aggregates
         """
-
         filter_by = self.filter_by
         if actual:
             self.totals_df = self.load_actual_data(year = self.year)
@@ -116,9 +115,22 @@ class AbstractAggregates(object):
             ).loc[self.aggregate_variables]
         return self.base_data_frame
 
-    def compute_difference(self, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
-            absolute = True, relative = True):
-        """Computes and add relative and/or absolute differences to the data_frame."""
+    def compute_difference(self, target: str = "baseline", default: str = 'actual', amount: bool = True,
+            beneficiaries: bool = True, absolute: bool = True, relative: bool = True) -> pd.DataFrame:
+        """
+        Compute and add relative and/or absolute differences to the data_frame.
+
+        Args:
+            target (str, optional): Target simulation. Defaults to "baseline".
+            default (str, optional): Default simulation. Defaults to 'actual'.
+            amount (bool, optional): Provide amounts. Defaults to True.
+            beneficiaries (bool, optional): Provide beneficiaries. Defaults to True.
+            absolute (bool, optional): Return absolute values. Defaults to True.
+            relative (bool, optional): Return relative values. Defaults to True.
+
+        Returns:
+            pd.DataFrame: The differences
+        """
         assert relative or absolute
         assert amount or beneficiaries
         base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
@@ -240,9 +252,7 @@ class AbstractAggregates(object):
         return variable_data_frame
 
     def create_description(self):
-        """
-        Create a description dataframe
-        """
+        """Create a description dataframe."""
         now = datetime.now()
         return pd.DataFrame([
             'OpenFisca',
@@ -274,7 +284,7 @@ class AbstractAggregates(object):
 
     def to_excel(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
-        """Saves the table to excel."""
+        """Save the table to excel."""
         assert path is not None
 
         if os.path.isdir(path):
@@ -299,7 +309,7 @@ class AbstractAggregates(object):
 
     def to_html(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
-        """Gets or saves the table to html format."""
+        """Get or saves the table to html format."""
         df = self.get_data_frame(
             absolute = absolute,
             amount = amount,
@@ -322,7 +332,7 @@ class AbstractAggregates(object):
 
     def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
-        """Gets or saves the table to markdown format."""
+        """Get or saves the table to markdown format."""
         df = self.get_data_frame(
             absolute = absolute,
             amount = amount,
@@ -344,7 +354,7 @@ class AbstractAggregates(object):
 
         return df.to_markdown()
 
-    def get_calibration_coeffcient(self, target = "reform"):
+    def get_calibration_coeffcient(self, target: str = "reform") -> pd.DataFrame:
         df = self.compute_aggregates(
             actual = True,
             use_baseline = 'baseline' == target,
@@ -354,13 +364,13 @@ class AbstractAggregates(object):
 
     def get_data_frame(
             self,
-            absolute = True,
-            amount = True,
-            beneficiaries = True,
-            default = 'actual',
-            formatting = True,
-            relative = True,
-            target = "reform",
+            absolute: bool = True,
+            amount: bool = True,
+            beneficiaries: bool = True,
+            default: str = 'actual',
+            formatting: bool = True,
+            relative: bool = True,
+            target: str = "reform",
             ):
         assert target is None or target in ['reform', 'baseline']
 
