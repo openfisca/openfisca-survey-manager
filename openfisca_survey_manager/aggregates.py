@@ -71,7 +71,7 @@ class AbstractAggregates(object):
         """
         filter_by = self.filter_by
         if actual:
-            self.totals_df = self.load_actual_data(year = self.period)
+            self.totals_df = self.load_actual_data(period = self.period)
 
         simulation_types = list()
         if use_baseline:
