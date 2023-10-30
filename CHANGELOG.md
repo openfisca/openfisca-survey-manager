@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 1.1.9 [#274](https://github.com/openfisca/openfisca-survey-manager/pull/274)
+
+* Technical changes
+  - Adapt config files location to private Ci-runs of LexImpact (hack like everything dealing with config files location definition).
+
 ### 1.1.8 [#272](https://github.com/openfisca/openfisca-survey-manager/pull/272)
 
 * Technical changes
