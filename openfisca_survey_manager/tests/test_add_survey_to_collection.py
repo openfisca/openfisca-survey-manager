@@ -9,13 +9,7 @@ from openfisca_survey_manager.scripts.build_collection import add_survey_to_coll
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 
 
-# GitLab Runner and GitHub Actions have env variable "CI" set by default
-is_in_ci = 'CI' in os.environ
-
-
 def test_add_survey_to_collection():
-    # if is_in_ci:
-    #     return
     name = 'fake'
     survey_name = 'fake_survey'
     data_dir = os.path.join(
@@ -38,8 +32,6 @@ def test_add_survey_to_collection():
 
 @pytest.mark.order(after="test_surveys.py::test_survey")
 def test_set_table_in_survey_first_year():
-    # if is_in_ci:
-    #     return
     data_dir = os.path.join(
         openfisca_survey_manager_location,
         'openfisca_survey_manager/tests/data_files',
@@ -62,8 +54,6 @@ def test_set_table_in_survey_first_year():
 
 @pytest.mark.order(after="test_set_table_in_survey_first_year")
 def test_set_table_in_survey_second_year():
-    # if is_in_ci:
-    #     return
     data_dir = os.path.join(
         openfisca_survey_manager_location,
         'openfisca_survey_manager/tests/data_files',
