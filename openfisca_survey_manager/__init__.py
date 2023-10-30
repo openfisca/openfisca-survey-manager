@@ -55,8 +55,8 @@ private_run_with_data = False
 if is_in_ci and default_config_files_directory is None:
     if "CI_RUNNER_TAGS" in os.environ:
         private_run_with_data = (
-            ("data_in" in os.environ["CI_RUNNER_TAGS"])
-            # or ("data_out" in os.environ["CI_RUNNER_TAGS"])
+            ("data-in" in os.environ["CI_RUNNER_TAGS"])
+            # or ("data-out" in os.environ["CI_RUNNER_TAGS"])
             )
     if not private_run_with_data:
         default_config_files_directory = test_config_files_directory
