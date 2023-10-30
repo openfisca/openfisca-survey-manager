@@ -50,16 +50,16 @@ with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file
 
 # GitHub Actions test
 is_in_ci = 'CI' in os.environ
-
-print(os.environ)
-BOUM
-
-if "CI_RUNNER_TAGS" in os.environ:
-    print(os.environ["CI_RUNNER_TAGS"])
-    BOUM
+private_run_with_data = False
 
 if is_in_ci and default_config_files_directory is None:
-    default_config_files_directory = test_config_files_directory
+    if "CI_RUNNER_TAGS" in os.environ:
+        private_run_with_data = (
+            ("data_in" in os.environ["CI_RUNNER_TAGS"])
+            # or ("data_out" in os.environ["CI_RUNNER_TAGS"])
+            )
+    if not private_run_with_data:
+        default_config_files_directory = test_config_files_directory
 
 if default_config_files_directory is None:
     from xdg import BaseDirectory
