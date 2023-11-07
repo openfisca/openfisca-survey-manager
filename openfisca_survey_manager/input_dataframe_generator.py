@@ -50,6 +50,8 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         })
     input_dataframe_by_entity[person_entity.key].set_index('person_id')
     #
+    seed = 42
+    random.seed(seed)
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
     # A role index is an index that every person within an entity has.
@@ -83,33 +85,28 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
 
 
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection = None):
-    """Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
+    """
+    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
 
     Args:
-      TaxBenefitSystem: tax_benefit_system: the tax_benefit_system to use
-      int: nb_persons: the number of persons in the system
-      int: nb_groups: the number of collective entities in the system
-      dict: variable_generators_by_period: the specification of the periods and values of the generated variables
-      string: collection: the collection storing the produced data
-      tax_benefit_system:
-      nb_persons:
-      nb_groups:
-      variable_generators_by_period:
-      collection:  (Default value = None)
+        tax_benefit_system (TaxBenefitSystem): tax_benefit_system: the tax_benefit_system to use
+        nb_persons (int): the number of persons in the data
+        nb_groups (int): the number of collective entities in the data
+        variable_generators_by_period (dict): parameters of the varaibles for every period
+        collection (str, optional): collection where to store the input survey. Defaults to None.
 
     Returns:
-      A dictionnary of the entities tables by period
-
+        dict: The entities tables by period
     """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
-    for period, variable_generators in variable_generators_by_period.items():
+    for period, variable_generators in sorted(variable_generators_by_period.items()):
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
         table_by_entity_by_period[period] = table_by_entity = dict()
         for variable_generator in variable_generators:
             variable = variable_generator['variable']
             max_value = variable_generator['max_value']
-            condition = variable_generator.get(None)
+            condition = variable_generator.get("condition", None)
             randomly_init_variable(
                 tax_benefit_system = tax_benefit_system,
                 input_dataframe_by_entity = input_dataframe_by_entity,
@@ -172,7 +169,6 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
     if seed is None:
         seed = 42
-
     np.random.seed(seed)
     count = len(input_dataframe_by_entity[entity.key])
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)

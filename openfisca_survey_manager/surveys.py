@@ -13,7 +13,7 @@ import yaml
 from .tables import Table
 
 
-ident_re = re.compile(u"(?i)ident\d{2,4}$")  # noqa
+ident_re = re.compile(r"(?i)ident\d{2,4}$")  # noqa
 
 log = logging.getLogger(__name__)
 

@@ -1,5 +1,34 @@
 ﻿# Changelog
 
+# 2.0.O [#273](https://github.com/openfisca/openfisca-survey-manager/pull/273)
+
+#### Breaking changes
+
+This is a major refactoring of the `AbstractSurveyScenario` object and affects other related objects.
+
+- Refactor `AbstractSurveyScenario`
+- Create `ReformScenario`
+- Monkey patch `openfiscca_core.simulations.Simulation` and `openfisca_core.simulations.simulation_builder.SimulationBuilder`.
+- Adapt `AbstractAggregates` accordingly
+
+#### Rationale
+
+The main goal was to separate the different steps to produce an impact analysis on survey or administrative data
+and to create a more flexible tools to deal with different use case.
+To do so, we performed the following changes:
+- Create a generic `AbstractSurveyScenario` that can hande as many simulations as needed.
+- Move to the appropriate (lower) level the methods to load the data or perform some calculation, mainly:
+  - Monkey patch the `Simulation` objects to deal all loading and calculation using `pandas` that are not available in the original `openfisca_core.simulations.Simulation` object which rely solely on `numpy` (and will not change anytime soon for good reason)
+  - Monkey patch the `SimulationBuilder` to add the needed methods to init the simulation from tabular data.
+- Create a `ReformScenario` that retains the main characteristics of the old `AbstractSurveyScenario`
+- Adapt `AbstractAggregates` to these new scenarios. Might need more refactoring to be more generic, but works with actual use case mainly `openfisca-france-data`.
+
+#### Migration
+
+- Users of `AbstractSurveyScebario` should use `ReformScenario`.
+- Use attribute `period` instead of `year`.
+- The generic simulation initialisation from survey data goes through the method `Simulation.new_from_tax_benefit_system` with a data dict argument with new keys as `collection`, `id_variable_by_entity_key`, `role_variable_by_entity_key`, `used_as_input_variables` to mimic at the simulation level what was done before this PR at the scenario level.
+
 ### 1.1.9 [#274](https://github.com/openfisca/openfisca-survey-manager/pull/274)
 
 * Technical changes

@@ -19,6 +19,7 @@ temporary_store_by_file_path = dict()
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):
     parser = ConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
+    assert os.path.exists(config_ini), "{} is not a valid path".format(config_ini)
     read_config_file_name = parser.read([config_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
     assert tmp_directory is not None, \

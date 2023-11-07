@@ -7,10 +7,10 @@ import pandas as pd
 from openfisca_core.model_api import Variable, YEAR
 from openfisca_core.entities import build_entity
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_survey_manager.scenarios import AbstractSurveyScenario
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.variables import quantile
-
+from openfisca_survey_manager import default_config_files_directory
 
 Individu = build_entity(
     key = "individu",
@@ -73,23 +73,32 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
 
 class QuantileTestSurveyScenario(AbstractSurveyScenario):
     def __init__(self, input_data_frame = None, tax_benefit_system = None,
-            baseline_tax_benefit_system = None, year = None):
+            baseline_tax_benefit_system = None, period = None):
         super(QuantileTestSurveyScenario, self).__init__()
         assert input_data_frame is not None
-        assert year is not None
-        self.year = year
+        assert period is not None
+        self.period = period
         if tax_benefit_system is None:
             tax_benefit_system = QuantileTestTaxBenefitSystem()
-        self.set_tax_benefit_systems(
-            tax_benefit_system = tax_benefit_system,
-            baseline_tax_benefit_system = baseline_tax_benefit_system
+
+        tax_benefit_systems = (
+            dict(
+                reform = tax_benefit_system,
+                baseline = baseline_tax_benefit_system
+                )
+            if baseline_tax_benefit_system
+            else dict(baseline = tax_benefit_system)
             )
+
+        self.set_tax_benefit_systems(tax_benefit_systems)
+
         self.used_as_input_variables = list(
             set(tax_benefit_system.variables.keys()).intersection(
                 set(input_data_frame.columns)
                 ))
         data = {
-            'input_data_frame': input_data_frame
+            'input_data_frame': input_data_frame,
+            'config_files_directory': default_config_files_directory
             }
         self.init_from_data(data = data)
 
@@ -114,12 +123,14 @@ def test_quantile():
     survey_scenario = QuantileTestSurveyScenario(
         input_data_frame = input_data_frame,
         tax_benefit_system = QuantileTestTaxBenefitSystem(),
-        year = 2017,
+        period = 2017,
         )
     data = np.linspace(1, 11 - 1e-5, size)
     target = np.floor(data)
     result = survey_scenario.calculate_variable(
-        variable = 'decile_salaire_from_quantile', period = '2017'
+        variable = 'decile_salaire_from_quantile',
+        period = '2017',
+        simulation = "baseline",
         )
     assert all(
         (result == target) + (abs(result - target + 1) < .001)  # Finite size problem handling

@@ -12,10 +12,14 @@ log = logging.getLogger(__name__)
 
 
 class Calibration(object):
-    """An object to calibrate survey data of a SurveySimulation"""
-    filter_by_name = None
-    initial_total_population = None
-    initial_weight_name = None
+    """An object to calibrate survey data of a SurveyScenario."""
+
+    entity = None
+    filter_by = None
+    initial_entity_count = None
+    _initial_weight_name = None
+    initial_weight_by_entity = dict()
+    target_margins = dict()
     margins_by_variable = dict()
     parameters = {
         'use_proportions': True,
@@ -25,93 +29,122 @@ class Calibration(object):
         'lo': None
         }
     period = None
-    survey_scenario = None
-    total_population = None
+    simulation = None
+    target_entity_count = None
     weight_name = None
 
-    def __init__(self, survey_scenario):
-        # TODO should migrate this to france
-        self.filter_by_name = "menage_ordinaire"
-        self.period = survey_scenario.period
-        self._set_survey_scenario(survey_scenario)
-
-    def reset(self):
-        """Reset the calibration to its initial state"""
-        simulation = self.survey_scenario.simulation
-        holder = simulation.get_holder(self.weight_name)
-        holder.array = numpy.array(self.initial_weight, dtype = holder.variable.dtype)
-
-    def _set_survey_scenario(self, survey_scenario):
-        """Sets the survey scenario
-
-        Args:
-          survey_scenario: the survey scenario
-        """
-        self.survey_scenario = survey_scenario
-        # TODO deal with baseline if reform is present
-        if survey_scenario.simulation is None:
-            survey_scenario.simulation = survey_scenario.new_simulation()
-        period = self.period
-        self.filter_by = filter_by = survey_scenario.calculate_variable(
-            variable = self.filter_by_name, period = period)
-        # TODO: shoud not be france specific
-        self.weight_name = weight_name = self.survey_scenario.weight_variable_by_entity['menage']
-        self.initial_weight_name = weight_name + "_ini"
-        self.initial_weight = initial_weight = survey_scenario.calculate_variable(
-            variable = weight_name, period = period)
-        self.initial_total_population = sum(initial_weight * filter_by)
-        self.weight = survey_scenario.calculate_variable(variable = weight_name, period = period)
-
-    def set_parameters(self, parameter, value):
-        """Sets a parameter value
-
-        Args:
-          parameter: the parameter to be set
-          value: the value used to set the parameter
-        """
-        if parameter == 'lo':
-            self.parameters['lo'] = 1 / value
+    def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
+            filter_by = None, entity = None):
+        self.period = period
+        self.simulation = simulation
+        if target_margins:
+            margin_variables = list(target_margins.keys())
         else:
-            self.parameters[parameter] = value
+            margin_variables = []
 
-#    def set_margins_target_from_file(self, filename, year, source):
-#        """
-#            Sets margins for inputs variable from file
-#        """
-#        # TODO read from h5 files
-#        with open(filename) as f_tot:
-#            totals = read_csv(f_tot, index_col = (0, 1))
-#        # if data for the configured year is not availbale leave margins empty
-#        year = str(year)
-#        if year not in totals:
-#            return
-#        margins = {}
-#        if source == "input":
-#            self.input_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-#        elif source == 'output':
-#            self.output_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-#
-#        for var, mod in totals.index:
-#            if var not in margins:
-#                margins[var] = {}
-#            margins[var][mod] = totals.get_value((var, mod), year)
-#
-#        for var in margins:
-#            if var == 'total_population':
-#                if source == "input" or source == "config":
-#                    total_population = margins.pop('total_population')[0]
-#                    margins['total_population'] = total_population
-#                    self.total_population = total_population
-#            else:
-#                self.add_var2(var, margins[var], source = source)
+        variable_instance_by_variable_name = simulation.tax_benefit_system.variables
+        entities = set(
+            variable_instance_by_variable_name[variable].entity.key
+            for variable in margin_variables
+            )
+
+        if len(entities) == 0:
+            assert target_entity_count != 0
+            assert entity in [
+                entity.key
+                for entity in simulation.tax_benefit_system.entities
+                ]
+        elif len(entities) > 1:
+            raise NotImplementedError("Cannot hande multiple entites")
+        else:
+            entity = list(entities)[0]
+
+        assert simulation.weight_variable_by_entity is not None
+
+        weight_variable_name = simulation.weight_variable_by_entity.get(entity)
+        self.weight_name = weight_name = weight_variable_name
+
+        self.entity = entity
+        period = self.period
+
+        if filter_by:
+            self.filter_by = simulation.calculate(filter_by, period = period)
+        else:
+            self.filter_by = numpy.array(1.0)
+
+        assert weight_name is not None, "A calibration needs a weight variable name to act on"
+        self._initial_weight_name = weight_name + "_ini"
+        self.initial_weight = initial_weight = simulation.calculate(weight_name, period = period)
+
+        self.initial_entity_count = sum(initial_weight * self.filter_by)
+        self.target_entity_count = target_entity_count
+
+        self.weight = initial_weight.copy()
+
+        # TODO does not work
+        for entity, weight_variable in simulation.weight_variable_by_entity.items():
+            self.initial_weight_by_entity[entity] = simulation.calculate(weight_variable, period = period)
+
+        if target_margins:
+            for variable, target in target_margins.items():
+                self.set_target_margin(variable, target)
+
+        self.parameters = parameters
+
+    def _build_calmar_data(self) -> pd.DataFrame:
+        """Build the data dictionnary used as calmar input argument.
+
+        Returns:
+            pd.DataFrame: Data used by calmar
+        """
+        # Select only filtered entities
+        assert self._initial_weight_name is not None
+        data = pd.DataFrame()
+        data[self._initial_weight_name] = self.initial_weight * self.filter_by
+        period = self.period
+        for variable in self.margins_by_variable:
+            assert variable in self.simulation.tax_benefit_system.variables
+            data[variable] = self.simulation.calculate(variable, period = period)
+
+        return data
+
+    def calibrate(self, inplace = False):
+        """Apply the calibrations by updating weights and margins.
+
+        Args:
+            inplace (bool, optional): Whether to return the calibrated or to setthem inplace. Defaults to False.
+
+        Returns:
+            numpy.array: calibrated weights
+        """
+        assert self.margins_by_variable is not None, "Margins by variable should be set"
+        margins_by_variable = self.margins_by_variable
+        parameters = self.get_parameters()
+
+        if margins_by_variable is not None:
+            simple_margins_by_variable = dict([
+                (variable, margins_by_type['target'])
+                for variable, margins_by_type in margins_by_variable.items()])
+        else:
+            simple_margins_by_variable = dict()
+
+        if self.target_entity_count:
+            simple_margins_by_variable['total_population'] = self.target_entity_count
+
+        self._update_weights(simple_margins_by_variable, parameters = parameters)
+        self._update_margins()
+        if inplace:
+            self.set_calibrated_weights()
+            return
+
+        return self.weight
 
     def get_parameters(self) -> dict:
-        """Gets the parameters
+        """Get the parameters.
 
         Returns:
             dict: Parameters
         """
-
         p = {}
         p['method'] = self.parameters.get('method', 'linear')
         if self.parameters.get('invlo') is not None:
@@ -125,28 +158,114 @@ class Calibration(object):
         p['initial_weight'] = self.weight_name + ""
         return p
 
-    def _build_calmar_data(self) -> pd.DataFrame:
-        """Builds the data dictionnary used as calmar input argument
+    def set_target_margin(self, variable, target):
+        """Set variable target margin.
 
-        Returns:
-            pd.DataFrame: Data used by calmar
+        Args:
+          variable: Target variable
+          target: Target value
         """
+        simulation = self.simulation
+        period = self.period
+        assert variable in simulation.tax_benefit_system.variables
+        variable_instance = simulation.tax_benefit_system.variables[variable]
 
-        # Select only filtered entities
-        assert self.initial_weight_name is not None
-        data = pd.DataFrame()
-        data[self.initial_weight_name] = self.initial_weight * self.filter_by
-        for variable in self.margins_by_variable:
-            if variable == 'total_population':
+        filter_by = self.filter_by
+        target_by_category = None
+        categorical_variable = (
+            (variable_instance.value_type in [bool, Enum])
+            or (variable_instance.unit == 'years')
+            or (variable_instance.unit == 'months')
+            )
+        if categorical_variable:
+            value = simulation.calculate(variable, period = period)
+            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
+            categories = numpy.sort(numpy.unique(filtered_value))
+            target_by_category = dict(zip(categories, target))
+
+        if not self.margins_by_variable:
+            self.margins_by_variable = dict()
+        if variable not in self.margins_by_variable:
+            self.margins_by_variable[variable] = dict()
+        self.margins_by_variable[variable]['target'] = target_by_category or target
+        self._update_margins()
+
+    def reset(self):
+        """Reset the calibration to its initial state."""
+        simulation = self.simulation
+        simulation.delete_arrays(self.weight_name, self.period)
+        simulation.set_input(self.weight_name, self.period, numpy.array(self.initial_weight))
+
+    def set_calibrated_weights(self):
+        """Modify the weights to use the calibrated weights."""
+        period = self.period
+        simulation = self.simulation
+        simulation.set_input(self.weight_name, period, self.weight)
+        for weight_name in simulation.weight_variable_by_entity.values():
+            if weight_name == self.weight_name:
                 continue
-            assert variable in self.survey_scenario.tax_benefit_system.variables
-            period = self.period
-            data[variable] = self.survey_scenario.calculate_variable(variable = variable, period = period)
+            # Delete other entites already computed weigths
+            # to ensure that this weights a recomputed if they derive from
+            # the calibrated weight variable
+            weight_variable = simulation.tax_benefit_system.variables[weight_name]
+            if weight_variable.formulas:
+                simulation.delete_arrays(weight_variable.name, period)
 
-        return data
+    def summary(self):
+        """Summarize margins."""
+        margins_df = pd.DataFrame.from_dict(self.margins_by_variable).T
+        margins_df.loc['entity_count', 'actual'] = (self.weight * self.filter_by).sum()
+        margins_df.loc['entity_count', 'initial'] = (self.initial_weight * self.filter_by).sum()
+        margins_df.loc['entity_count', 'target'] = self.target_entity_count
+        return margins_df
+
+    def _update_margins(self):
+        """Update margins."""
+        for variable in self.margins_by_variable:
+            simulation = self.simulation
+            period = self.period
+            entity = self.entity
+
+            # These are the varying weights
+            weight = self.weight
+            filter_by = self.filter_by
+            initial_weight = self.initial_weight
+
+            value = simulation.calculate(variable, period = period)
+            weight_variable = simulation.weight_variable_by_entity[entity]
+
+            # weight = simulation.calculate(weight_variable, period)
+            # initial_weight = self.initial_weight_by_entity[entity]
+
+            if filter_by != 1:
+                if weight_variable != self.weight_name:
+                    NotImplementedError("No filtering possible so far when target varaible is not on the same entity as varying weights")
+
+                weight = weight[filter_by]
+                initial_weight = initial_weight[filter_by]
+                value = value[filter_by]
+
+            margin_items = [
+                ('actual', weight),
+                ('initial', initial_weight),
+                ]
+
+            variable_instance = simulation.tax_benefit_system.get_variable(variable)
+            assert variable_instance is not None
+            if variable_instance.value_type in [bool, Enum]:
+                margin_items.append(('category', value))
+                margins_data_frame = pd.DataFrame.from_items(margin_items)
+                margins_data_frame = margins_data_frame.groupby('category', sort = True).sum()
+                margin_by_type = margins_data_frame.to_dict()
+            else:
+                margin_by_type = dict(
+                    actual = (weight * value).sum(),
+                    initial = (initial_weight * value).sum(),
+                    )
+            self.margins_by_variable[variable].update(margin_by_type)
 
     def _update_weights(self, margins, parameters = None):
-        """Runs calmar, stores new weights and returns adjusted margins
+        """Run calmar, stores new weights and returns adjusted margins.
 
         Args:
           margins: margins
@@ -159,112 +278,22 @@ class Calibration(object):
         if parameters is None:
             parameters = dict()
 
+        entity = self.entity
+        weight_variable = self.simulation.weight_variable_by_entity[entity]
+
+        if self.weight_name != weight_variable:
+            raise NotImplementedError("Calmar needs to be adapted. Consider using a projected target on the entity with changing weights")
+
         data = self._build_calmar_data()
-        assert self.initial_weight_name is not None
-        parameters['initial_weight'] = self.initial_weight_name
+
+        assert self._initial_weight_name is not None
+        parameters['initial_weight'] = self._initial_weight_name
+        if self.target_entity_count:
+            margins["total_population"] = self.target_entity_count
+
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
         # Updating only afetr filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
+
         return updated_margins
-
-    def calibrate(self):
-        """Applies the calibrations by updating weights and margins
-        """
-        margins_by_variable = self.margins_by_variable
-        parameters = self.get_parameters()
-
-        if margins_by_variable is not None:
-            simple_margins_by_variable = dict([
-                (variable, margins_by_type['target'])
-                for variable, margins_by_type in margins_by_variable.items()])
-        else:
-            simple_margins_by_variable = dict()
-
-        if self.total_population:
-            simple_margins_by_variable['total_population'] = self.total_population
-
-        self._update_weights(simple_margins_by_variable, parameters = parameters)
-        self._update_margins()
-
-    def set_calibrated_weights(self):
-        """Modify the weights to use the calibrated weights"""
-        period = self.period
-        survey_scenario = self.survey_scenario
-        assert survey_scenario.simulation is not None
-        for simulation in [survey_scenario.simulation, survey_scenario.baseline_simulation]:
-            if simulation is None:
-                continue
-            simulation.set_input(self.weight_name, period, self.weight)
-            # TODO: propagation to other weights
-
-    def set_target_margins(self, target_margin_by_variable: dict):
-        """[summary]
-
-        Args:
-            target_margin_by_variable (dict): Targets margins
-        """
-        for variable, target in target_margin_by_variable.items():
-            self.set_target_margin(variable, target)
-
-    def set_target_margin(self, variable, target):
-        """Sets variable target margin
-
-        Args:
-          variable: Targett variable
-          target: Target value
-        """
-        survey_scenario = self.survey_scenario
-        period = self.period
-        assert variable in survey_scenario.tax_benefit_system.variables
-        variable_instance = survey_scenario.tax_benefit_system.variables[variable]
-
-        filter_by = self.filter_by
-        target_by_category = None
-        categorical_variable = (
-            (variable_instance.value_type in [bool, Enum])
-            or (variable_instance.unit == 'years')
-            or (variable_instance.unit == 'months')
-            )
-        if categorical_variable:
-            value = survey_scenario.calculate_variable(variable = variable, period = period)
-            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
-            categories = numpy.sort(numpy.unique(filtered_value))
-            target_by_category = dict(zip(categories, target))
-
-        if not self.margins_by_variable:
-            self.margins_by_variable = dict()
-        if variable not in self.margins_by_variable:
-            self.margins_by_variable[variable] = dict()
-        self.margins_by_variable[variable]['target'] = target_by_category or target
-        self._update_margins()
-
-    def _update_margins(self):
-        """Updates margins
-        """
-        for variable in self.margins_by_variable:
-            survey_scenario = self.survey_scenario
-            period = self.period
-            assert variable in survey_scenario.tax_benefit_system.variables
-            column = survey_scenario.tax_benefit_system.variables[variable]
-            weight = self.weight
-            filter_by = self.filter_by
-            initial_weight = self.initial_weight
-
-            value = survey_scenario.calculate_variable(variable, period = period)
-            margin_items = [
-                ('actual', weight[filter_by]),
-                ('initial', initial_weight[filter_by]),
-                ]
-
-            if column.value_type in [bool, Enum]:
-                margin_items.append(('category', value[filter_by]))
-                margins_data_frame = pd.DataFrame.from_items(margin_items)
-                margins_data_frame = margins_data_frame.groupby('category', sort = True).sum()
-                margin_by_type = margins_data_frame.to_dict()
-            else:
-                margin_by_type = dict(
-                    actual = (weight[filter_by] * value[filter_by]).sum(),
-                    initial = (initial_weight[filter_by] * value[filter_by]).sum(),
-                    )
-            self.margins_by_variable[variable].update(margin_by_type)

@@ -1,5 +1,3 @@
-
-
 import logging
 import os
 import pandas as pd
@@ -7,9 +5,14 @@ import pandas as pd
 
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
-
+from typing import List, Optional
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
+
+
+def do_nothing(*args, **kwargs):
+    return None
 
 
 def inflate_parameters(parameters, inflator, base_year, last_year = None, ignore_missing_units = False,
@@ -228,3 +231,30 @@ def stata_files_to_data_frames(data, period = None):
     data['input_data_frame_by_entity_by_period'] = input_data_frame_by_entity_by_period
 
     return variables_from_stata_files
+
+
+def load_table(config_files_directory, variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
+        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None) -> pd.DataFrame:
+    """
+    Load values from table from a survey in a collection.
+
+    Args:
+        config_files_directory : _description_.
+        variables (List, optional): List of the variables to retrieve in the table. Defaults to None to get all the variables.
+        collection (str, optional): Collection. Defaults to None.
+        survey (str, optional): Survey. Defaults to None.
+        input_data_survey_prefix (str, optional): Prefix of the survey to be combined with data year. Defaults to None.
+        data_year (_type_, optional): Year of the survey data. Defaults to None.
+        table (str, optional): Table. Defaults to None.
+
+    Returns:
+        pandas.DataFrame: A table with the retrieved variables
+    """
+    survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
+    if survey is not None:
+        survey = survey
+    else:
+        survey = f"{input_data_survey_prefix}_{data_year}"
+    survey_ = survey_collection.get_survey(survey)
+    log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
+    return survey_.get_values(table = table, variables = variables)
