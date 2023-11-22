@@ -22,13 +22,15 @@ app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None, parquet_files = None):
     if sas_files is None:
         sas_files = []
     if stata_files is None:
         stata_files = []
     if csv_files is None:
         csv_files = []
+    if parquet_files is None:
+        parquet_files = []
 
     assert survey_collection is not None
     overwrite = True
@@ -44,6 +46,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             csv_files = csv_files,
             sas_files = sas_files,
             stata_files = stata_files,
+            parquet_files = parquet_files,
             survey_collection = survey_collection,
             )
     else:
@@ -53,6 +56,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             "csv_files": csv_files,
             "sas_files": sas_files,
             "stata_files": stata_files,
+            "parquet_files": parquet_files,
             })
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name

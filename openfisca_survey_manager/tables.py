@@ -90,6 +90,7 @@ class Table(object):
             sas = read_sas.read_sas,
             spss = read_spss,
             stata = pandas.read_stata,
+            parquet = pandas.read_parquet,
             )
         start_table_time = datetime.datetime.now()
         data_file = kwargs.pop("data_file")
@@ -171,6 +172,7 @@ class Table(object):
                 raise e
 
     def save_data_frame(self, data_frame, **kwargs):
+        """Save a data frame in the HDF5 file format."""
         hdf5_file_path = self.survey.hdf5_file_path
         store_path = self.name
         try:
