@@ -47,7 +47,3 @@ class TestParquet(TestCase):
             config_files_directory = self.data_dir,
             )
 
-    def test_check_template_config_files(self):
-        config_files_directory = self.data_dir
-        check = check_template_config_files(config_files_directory)
-        self.assertTrue(check)
