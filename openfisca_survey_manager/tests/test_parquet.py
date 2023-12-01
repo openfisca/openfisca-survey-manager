@@ -8,7 +8,7 @@ from openfisca_survey_manager import openfisca_survey_manager_location
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 
-from openfisca_survey_manager.scripts.build_collection import check_template_config_files, build_survey_collection
+from openfisca_survey_manager.scripts.build_collection import build_survey_collection
 
 from unittest import TestCase
 
@@ -46,4 +46,3 @@ class TestParquet(TestCase):
             source_format = 'parquet',
             config_files_directory = self.data_dir,
             )
-

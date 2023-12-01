@@ -76,7 +76,6 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
-        config.save  # TODO: check if this is necessary : why two call to save ?
         config.save()
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
