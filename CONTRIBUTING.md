@@ -22,6 +22,29 @@ In case of breaking changes, you **must** give details about what features were 
 
 > You must also provide guidelines to help users adapt their code to be compatible with the new version of the package.
 
+## Debug tests in VSCode
+
+To launch the debugger in VSCode, you need to create a `launch.json` file in the `.vscode` folder at the root of the project. The content of the file should be the following:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python debug Pytest",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["${file}"],
+            "console": "integratedTerminal",
+            "env": {
+                "CI": "1",
+              }
+          }
+          
+    ]
+}
+```
 
 ## Advertising changes
 
