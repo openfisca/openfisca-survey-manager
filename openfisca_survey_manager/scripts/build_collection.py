@@ -69,6 +69,7 @@ def create_data_file_by_format(directory_path = None):
     stata_files = []
     sas_files = []
     csv_files = []
+    parquet_files = []
 
     for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
@@ -82,7 +83,10 @@ def create_data_file_by_format(directory_path = None):
             if os.path.basename(file_name).endswith(".sas7bdat"):
                 log.info("Found sas file {}".format(file_path))
                 sas_files.append(file_path)
-    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files}
+            if os.path.basename(file_name).endswith(".parquet"):
+                log.info("Found parquet file {}".format(file_path))
+                parquet_files.append(file_path)
+    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files, 'parquet': parquet_files}
 
 
 def build_survey_collection(
@@ -121,6 +125,7 @@ def build_survey_collection(
             csv_files = data_file_by_format.get('csv'),
             sas_files = data_file_by_format.get('sas'),
             stata_files = data_file_by_format.get('stata'),
+            parquet_files = data_file_by_format.get('parquet'),
             )
 
         valid_source_format = [
@@ -144,6 +149,9 @@ def build_survey_collection(
 
 
 def check_template_config_files(config_files_directory: str):
+    """
+    Create template config files if they do not exist.
+    """
     raw_data_ini_path = os.path.join(config_files_directory, 'raw_data.ini')
     config_ini_path = os.path.join(config_files_directory, 'config.ini')
     raw_data_template_ini_path = os.path.join(config_files_directory, 'raw_data_template.ini')

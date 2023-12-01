@@ -57,6 +57,10 @@ Contains the following surveys :
         return header + "".join(surveys)
 
     def dump(self, config_files_directory = None, json_file_path = None):
+        """
+        Dump the survey collection to a json file
+        And set the json file path in the config file
+        """
         if self.config is not None:
             config = self.config
         else:
@@ -72,14 +76,14 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
-        config.save
+        config.save  # TODO: check if this is necessary : why two call to save ?
         config.save()
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
     def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
         if source_format is not None:
-            assert source_format in ["csv", "Rdata", "sas", "spss", "stata"], \
+            assert source_format in ["csv", "Rdata", "sas", "spss", "stata", "parquet"], \
                 "Data source format {} is unknown".format(source_format)
         if surveys is None:
             surveys = self.surveys

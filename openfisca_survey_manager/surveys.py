@@ -8,7 +8,7 @@ import re
 import logging
 import pandas
 import yaml
-
+import pyarrow.parquet as pq
 
 from .tables import Table
 
@@ -23,13 +23,15 @@ source_format_by_extension = dict(
     sas7bdat = "sas",
     dta = 'stata',
     Rdata = 'Rdata',
-    spss = 'sav'
+    spss = 'sav',
+    parquet = 'parquet',
     )
 
 
 class Survey(object):
     """An object to describe survey data"""
     hdf5_file_path = None
+    parquet_file_path = None
     informations = dict()
     label = None
     name = None
@@ -37,7 +39,7 @@ class Survey(object):
     tables_index = dict()
     survey_collection = None
 
-    def __init__(self, name = None, label = None, hdf5_file_path = None,
+    def __init__(self, name = None, label = None, hdf5_file_path = None, parquet_file_path = None,
             survey_collection = None, **kwargs):
         assert name is not None, "A survey should have a name"
         self.name = name
@@ -48,6 +50,9 @@ class Survey(object):
 
         if hdf5_file_path is not None:
             self.hdf5_file_path = hdf5_file_path
+
+        if parquet_file_path is not None:
+            self.parquet_file_path = parquet_file_path
 
         if survey_collection is not None:
             self.survey_collection = survey_collection
@@ -69,6 +74,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             name = survey_json.get('name'),
             label = survey_json.get('label'),
             hdf5_file_path = survey_json.get('hdf5_file_path'),
+            parquet_file_path = survey_json.get('parquet_file_path'),
             **survey_json.get('informations', dict())
             )
         self.tables = survey_json.get('tables')
@@ -79,10 +85,15 @@ Contains the following tables : \n""".format(self.name, self.label)
         self.survey_collection.dump()
 
     def fill_hdf(self, source_format = None, tables = None, overwrite = True):
+        """
+        Convert data from the source files to hdf5.
+        If the source is in parquet, the data is not converted.
+        """
         assert self.survey_collection is not None
         assert isinstance(overwrite, bool) or isinstance(overwrite, list)
         survey = self
-        if survey.hdf5_file_path is None:
+        if survey.hdf5_file_path is None and 'parquet' not in source_format:
+            # Create folder if it does not exist
             config = survey.survey_collection.config
             directory_path = config.get("data", "output_directory")
             if not os.path.isdir(directory_path):
@@ -92,7 +103,7 @@ Contains the following tables : \n""".format(self.name, self.label)
 
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         if source_format is None:
-            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata']
+            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata', 'parquet']
         else:
             source_formats = [source_format]
         for source_format in source_formats:
@@ -107,14 +118,20 @@ Contains the following tables : \n""".format(self.name, self.label)
                         source_format = source_format_by_extension[extension[1:]],
                         survey = survey,
                         )
-                    table.fill_hdf(
-                        data_file = data_file,
-                        clean = True,
-                        overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
-                        )
+                    if source_format != "parquet":
+                        table.fill_hdf(
+                            data_file = data_file,
+                            clean = True,
+                            overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
+                            )
+                    else:
+                        survey.parquet_file_path = data_file
+                        table.read_parquet_columns(data_file)
+
         self.dump()
 
-    def find_tables(self, variable = None, tables = None, rename_ident = True):
+    def find_tables(self, variable, tables = None, rename_ident = True):
+        """Find tables containing a given variable."""
         container_tables = []
 
         assert variable is not None
@@ -129,24 +146,32 @@ Contains the following tables : \n""".format(self.name, self.label)
                 container_tables.append(table)
         return container_tables
 
-    def get_columns(self, table = None, rename_ident = True):
+    def get_columns(self, table, rename_ident = True):
+        """
+        Get columns of a table.
+        """
         assert table is not None
-        store = pandas.HDFStore(self.hdf5_file_path, "r")
-        if table in store:
-            log.debug("Building columns index for table {}".format(table))
-            data_frame = store[table]
-            if rename_ident is True:
-                for column_name in data_frame:
-                    if ident_re.match(column_name) is not None:
-                        data_frame.rename(columns = {column_name: "ident"}, inplace = True)
-                        log.info("{} column have been replaced by ident".format(column_name))
-                        break
-            store.close()
-            return list(data_frame.columns)
-        else:
-            log.info('table {} was not found in {}'.format(table, store.filename))
-            store.close()
-            return list()
+        if self.hdf5_file_path is not None:
+            store = pandas.HDFStore(self.hdf5_file_path, "r")
+            if table in store:
+                log.debug("Building columns index for table {}".format(table))
+                data_frame = store[table]
+                if rename_ident is True:
+                    for column_name in data_frame:
+                        if ident_re.match(column_name) is not None:
+                            data_frame.rename(columns = {column_name: "ident"}, inplace = True)
+                            log.info("{} column have been replaced by ident".format(column_name))
+                            break
+                store.close()
+                return list(data_frame.columns)
+            else:
+                log.info('table {} was not found in {}'.format(table, store.filename))
+                store.close()
+                return list()
+        elif self.parquet_file_path is not None:
+            parquet_schema = pq.read_schema(self.parquet_file_path)
+            column_names = parquet_schema.names
+            return column_names
 
     def get_value(self, variable, table, lowercase = False, ignorecase = False):
         """Get variable value from a survey table.
@@ -163,7 +188,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         return self.get_values([variable], table)
 
-    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True):
+    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True) -> pandas.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -180,33 +205,38 @@ Contains the following tables : \n""".format(self.name, self.label)
           Exception:
 
         """
-        assert self.hdf5_file_path is not None
-        assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
-            self.hdf5_file_path)
-        store = pandas.HDFStore(self.hdf5_file_path, "r")
+        if self.parquet_file_path is None and self.hdf5_file_path is None:
+            raise Exception("No data file found for survey {}".format(self.name))
+        if self.hdf5_file_path is not None:
+            assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
+                self.hdf5_file_path)
+            store = pandas.HDFStore(self.hdf5_file_path, "r")
+            if ignorecase:
+                keys = store.keys()
+                eligible_tables = []
+                for string in keys:
+                    match = re.findall(table, string, re.IGNORECASE)
+                    if match:
+                        eligible_tables.append(match[0])
+                if len(eligible_tables) > 1:
+                    raise ValueError(f"{table} is ambiguious since the following tables are available: {eligible_tables}")
+                elif len(eligible_tables) == 0:
+                    raise ValueError(f"No eligible available table in {keys}")
+                else:
+                    table = eligible_tables[0]
+            try:
+                df = store.select(table)
+            except KeyError:
+                log.error(f'No table {table} in the file {self.hdf5_file_path}')
+                log.error(f'This could happen because your data were not builded yet. Available tables are: {store.keys()}')
+                store.close()
+                raise
 
-        if ignorecase:
-            keys = store.keys()
-            eligible_tables = []
-            for string in keys:
-                match = re.findall(table, string, re.IGNORECASE)
-                if match:
-                    eligible_tables.append(match[0])
-            if len(eligible_tables) > 1:
-                raise ValueError(f"{table} is ambiguious since the following tables are available: {eligible_tables}")
-            elif len(eligible_tables) == 0:
-                raise ValueError(f"No eligible available table in {keys}")
-            else:
-                table = eligible_tables[0]
-        try:
-            df = store.select(table)
-        except KeyError:
-            log.error(f'No table {table} in the file {self.hdf5_file_path}')
-            log.error(f'This could happen because your data were not builded yet. Available tables are: {store.keys()}')
             store.close()
-            raise
 
-        store.close()
+        elif self.parquet_file_path is not None:
+            df = pandas.read_parquet(self.parquet_file_path, columns = variables)
+
         if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)
             df.rename(columns = columns, inplace = True)
@@ -229,27 +259,29 @@ Contains the following tables : \n""".format(self.name, self.label)
             return df
 
     def insert_table(self, label = None, name = None, **kwargs):
-        """Inserts a table in the Survey object"""
+        """
+        Inserts a table in the Survey object
+        If a pandas dataframe is provided, it is saved in the hdf5 file
+        """
 
         data_frame = kwargs.pop('data_frame', None)
-        variables = kwargs.pop('variables', None)
         if data_frame is None:
+            # Try without underscore
             data_frame = kwargs.pop('dataframe', None)
 
-        to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
         if data_frame is not None:
             assert isinstance(data_frame, pandas.DataFrame)
+            variables = kwargs.pop('variables', None)
             if variables is not None:
                 assert set(variables) < set(data_frame.columns)
             else:
                 variables = list(data_frame.columns)
-
-        if data_frame is not None:
             if label is None:
                 label = name
             table = Table(label = label, name = name, survey = self, variables = variables)
             assert table.survey.hdf5_file_path is not None
             log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
+            to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
             table.save_data_frame(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
@@ -261,6 +293,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         self_json = collections.OrderedDict((
             ))
         self_json['hdf5_file_path'] = self.hdf5_file_path
+        self_json['parquet_file_path'] = self.parquet_file_path
         self_json['label'] = self.label
         self_json['name'] = self.name
         self_json['tables'] = self.tables

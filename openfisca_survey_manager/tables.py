@@ -8,6 +8,7 @@ import gc
 import logging
 import os
 import pandas
+from pyarrow import parquet as pq
 
 
 from openfisca_survey_manager import read_sas
@@ -54,6 +55,7 @@ class Table(object):
             )
 
     def _check_and_log(self, data_file_path):
+        """Check if the file exists and log the insertion."""
         if not os.path.isfile(data_file_path):
             raise Exception("file_path {} do not exists".format(data_file_path))
         log.info("Inserting table {} from file {} in HDF file {} at point {}".format(
@@ -63,7 +65,10 @@ class Table(object):
             self.name,
             ))
 
-    def _save(self, data_frame = None):
+    def _save(self, data_frame: pandas.DataFrame = None):
+        """
+        Save a data frame in the HDF5 file format.
+        """
         assert data_frame is not None
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
@@ -81,7 +86,22 @@ class Table(object):
         self.save_data_frame(data_frame)
         gc.collect()
 
+    def read_parquet_columns(self, parquet_file: str) -> list:
+        """
+        Initialize the table from a parquet file.
+        """
+        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
+        self.source_format = 'parquet'
+        parquet_schema = pq.read_schema(parquet_file)
+        self.variables = parquet_schema.names
+        self.survey.tables[self.name]["variables"] = self.variables
+        return self.variables
+
     def fill_hdf(self, **kwargs):
+        """
+        Fill the HDF5 file with the table.
+        Read the `data_file` in parameter and save it in the HDF5 file.
+        """
         source_format = self.source_format
 
         reader_by_source_format = dict(
@@ -199,6 +219,11 @@ class Table(object):
 
 
 def clean_data_frame(data_frame):
+    """Clean a data frame.
+    - drop empty columns
+    - replace empty strings with zeros
+    - convert string columns to integers
+    """
     data_frame.columns = data_frame.columns.str.lower()
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
     log.info(

@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from openfisca_survey_manager import openfisca_survey_manager_location
 
+
 def test_write_parquet():
     data_dir = os.path.join(
         openfisca_survey_manager_location,
