@@ -195,7 +195,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         return self.get_values([variable], table)
 
-    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True) -> pandas.DataFrame:
+    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = 500_000, batch_index=0) -> pandas.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -204,6 +204,8 @@ Contains the following tables : \n""".format(self.name, self.label)
           ignorecase: ignore case of table name, defaults to False
           lowercase(bool, optional, optional): lowercase variable names, defaults to False
           rename_ident(bool, optional, optional): rename ident+yr (e.g. ident08) into ident, defaults to True
+          batch_size(int, optional, optional): batch size for parquet file, defaults to 500_000
+          batch_index(int, optional, optional): batch index for parquet file, defaults to 0
 
         Returns:
           pd.DataFrame: dataframe containing the variables
@@ -246,7 +248,26 @@ Contains the following tables : \n""".format(self.name, self.label)
                 raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
                 if table_name in table:
-                    df = pandas.read_parquet(table_content.get("parquet_file"), columns = variables)
+                    # TODO: Allow to load only a subset of row
+                    print(table_content.get("parquet_file"))
+                    parquet_schema = pq.read_schema(table_content.get("parquet_file"))
+                    assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
+                    parquet_file = pq.ParquetFile(table_content.get("parquet_file"))
+                    
+                    iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
+                    index = 0
+                    while True:
+                        try:
+                            batch = next(iter_parquet)
+                        except StopIteration as e:
+                            raise Exception(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
+                            break
+                        if batch_index == index:
+                            df = batch.to_pandas()
+                            break
+                        index+=1
+
+                    # df = pandas.read_parquet(table_content.get("parquet_file"), columns = variables)
                     break
             else:
                 raise Exception("No table {} found in {}".format(table, self.parquet_file_path))

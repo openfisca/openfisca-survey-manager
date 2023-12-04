@@ -3,12 +3,13 @@ Test the ability to store parquet files in collections, without converting them 
 """
 
 import os
+from pathlib import Path
 import pytest
 import pandas as pd
 from unittest import TestCase
 
 from openfisca_core import periods
-from openfisca_survey_manager import openfisca_survey_manager_location
+from openfisca_survey_manager import openfisca_survey_manager_location, default_config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 from openfisca_survey_manager.scripts.build_collection import build_survey_collection
@@ -57,9 +58,9 @@ class TestParquet(TestCase):
         df = pd.read_parquet(
             os.path.join(self.data_dir, self.collection_name, "household.parquet")
             )
-        assert len(df) == 2
+        assert len(df) == 4
         assert (df.columns == ["household_id", "rent", "household_weight"]).all()
-        assert df.rent.sum() == 7700
+        assert df.rent.sum() == 18700
 
         survey_name = 'test_parquet_collection_2020'
         survey_collection = SurveyCollection.load(
@@ -70,9 +71,9 @@ class TestParquet(TestCase):
         table = survey.get_values(
             table="household", ignorecase=True
             )
-        assert len(table) == 2
+        assert len(table) == 4
         assert (table.columns == ["household_id", "rent", "household_weight"]).all()
-        assert table.rent.sum() == 7700
+        assert table.rent.sum() == 18700
 
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
@@ -89,13 +90,25 @@ class TestParquet(TestCase):
                 period: {
                     'household': 'household',
                     'person': 'person',
+                    'batch_size': 3,
+                    'batch_index': 0,
                     }
                 },
             'config_files_directory': self.data_dir
             }
+        # TODO: Add batch_size
         survey_scenario.init_from_data(data = data)
 
         simulation = survey_scenario.simulations["baseline"]
         result = simulation.calculate('rent', period)
-        assert len(result) == 2
+        assert len(result) == 4
         assert (result == input_data_frame_by_entity['rent']).all()
+
+if __name__ == "__main__":
+    # openfisca_survey_manager_location = Path(__file__).parent.parent
+    # os.environ["CI"] = "True"
+    print(openfisca_survey_manager_location)
+    print(f"Default config files directory: {default_config_files_directory}")
+    test = TestParquet()
+    test.test_build_collection()
+    test.test_load_parquet()

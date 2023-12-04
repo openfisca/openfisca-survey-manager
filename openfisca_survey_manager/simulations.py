@@ -923,18 +923,21 @@ def init_simulation(tax_benefit_system, period, data):
         simulation = None
         for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
             period = periods.period(period)
-
+            batch_size = input_data_table_by_entity.get('batch_size')
+            batch_index = input_data_table_by_entity.get('batch_index',0)
             if simulation is None:
                 for entity in tax_benefit_system.entities:
                     table = input_data_table_by_entity.get(entity.key)
                     if table is None:
                         continue
+                    # Here tables are read only to get variables, so a small batch size is enough
                     if survey is not None:
-                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table)
+                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table, batch_size=2, batch_index=0)
                     else:
-                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table)
+                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table, batch_size=2, batch_index=0)
                     custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
+                    print(f"{entity.key=} {len(input_data_frame)=}")
 
                 simulation = builder.build(tax_benefit_system)
                 simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
@@ -944,9 +947,10 @@ def init_simulation(tax_benefit_system, period, data):
                 if table is None:
                     continue
                 if survey is not None:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table)
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table, batch_size=batch_size, batch_index=batch_index)
                 else:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table)
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table, batch_size=batch_size, batch_index=batch_index)
+                print(f"{entity.key=} {len(input_data_frame)=}")
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                 simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
     else:
@@ -1005,9 +1009,6 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
             )
 
     array = series.values.astype(variable.dtype)
-    # TODO is the next line needed ?
-    # Might be due to values returning also ndarray like objects
-    # for instance for categories or
     np_array = np.array(array, dtype = variable.dtype)
     if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
