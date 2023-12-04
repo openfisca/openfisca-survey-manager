@@ -36,7 +36,7 @@ def test_set_table_in_survey_parquet():
         openfisca_survey_manager_location,
         'openfisca_survey_manager/tests/data_files',
         )
-    filepath = os.path.join(data_dir, 'test.parquet')
+    filepath = os.path.join(data_dir, 'test_parquet_collection', 'foyer.parquet')
     input_dataframe = pd.read_parquet(filepath)
     survey_name = 'test_parquet'
     collection = "fake"
@@ -49,7 +49,7 @@ def test_set_table_in_survey_parquet():
         table="foyer_2023", ignorecase=True
         )
     assert len(table) == 2
-    assert (table.columns == ["revenue", "rfr"]).all()
+    assert (table.columns == ['id_foy', "irpp_economique", "rfr"]).all()
     assert table.rfr.sum() == 2050
 
 

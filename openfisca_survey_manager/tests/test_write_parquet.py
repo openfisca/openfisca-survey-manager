@@ -9,10 +9,13 @@ def test_write_parquet():
         'openfisca_survey_manager',
         'tests',
         'data_files',
+        'test_parquet_collection',
         )
-    filepath = os.path.join(data_dir, 'test.parquet')
-    df = pd.DataFrame({'revenue': [3300, 4400], 'rfr': [550, 1500]})
-
+    df = pd.DataFrame({'id_foy': [1, 2], 'irpp_economique': [3300, 4400], 'rfr': [550, 1500]})
+    filepath = os.path.join(data_dir, 'foyer.parquet')
+    df.to_parquet(filepath)
+    df = pd.DataFrame({'id_foy': [1, 1, 2], 'salaire': [3300, 0, 4400], 'rente': [550, 0, 1500]})
+    filepath = os.path.join(data_dir, 'individus.parquet')
     df.to_parquet(filepath)
     df2 = pd.read_parquet(filepath)
     assert df.equals(df2)

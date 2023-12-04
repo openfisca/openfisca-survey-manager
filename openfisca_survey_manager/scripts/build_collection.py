@@ -119,6 +119,7 @@ def build_survey_collection(
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
         survey_name = '{}_{}'.format(collection_name, survey_suffix)
+        # Save the originals files list in the survey collection
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = survey_collection,
@@ -143,7 +144,11 @@ def build_survey_collection(
             os.mkdir(collections_directory)
         collection_json_path = os.path.join(collections_directory, "{}.json".format(collection_name))
         survey_collection.dump(json_file_path = collection_json_path)
-        surveys = [survey for survey in survey_collection.surveys if survey.name.endswith(str(survey_suffix))]
+        surveys = []
+        for survey in survey_collection.surveys:
+            # TODO: Check with Mahdi why all suveys of the same year was added to the collection and not only the one we provide in parameters ?
+            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
+                surveys.append(survey)
         survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)
     return survey_collection
 

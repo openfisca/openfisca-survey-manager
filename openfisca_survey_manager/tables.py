@@ -29,19 +29,17 @@ class Table(object):
     source_format = None
     survey = None
     variables = None
+    parquet_file = None
 
-    def __init__(self, survey = None, name = None, label = None, source_format = None, variables = None,
+    def __init__(self, survey = None, name = None, label = None, source_format = None, variables = None, parquet_file = None,
                  **kwargs):
         assert name is not None, "A table should have a name"
         self.name = name
-        if label is not None:
-            self.label = label
-        if variables is not None:
-            self.variables = variables
+        self.label = label
+        self.source_format = source_format
+        self.variables = variables
+        self.parquet_file = parquet_file
         self.informations = kwargs
-
-        if source_format is not None:
-            self.source_format = source_format
 
         from .surveys import Survey  # Keep it here to avoid infinite recursion
         assert isinstance(survey, Survey), 'survey is of type {} and not {}'.format(type(survey), Survey)
@@ -51,7 +49,8 @@ class Table(object):
 
         survey.tables[name] = collections.OrderedDict(
             source_format = source_format,
-            variables = variables
+            variables = variables,
+            parquet_file = parquet_file,
             )
 
     def _check_and_log(self, data_file_path):
@@ -86,13 +85,13 @@ class Table(object):
         self.save_data_frame(data_frame)
         gc.collect()
 
-    def read_parquet_columns(self, parquet_file: str) -> list:
+    def read_parquet_columns(self) -> list:
         """
         Initialize the table from a parquet file.
         """
-        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
+        log.info(f"Initializing table {self.name} from parquet file {self.parquet_file}")
         self.source_format = 'parquet'
-        parquet_schema = pq.read_schema(parquet_file)
+        parquet_schema = pq.read_schema(self.parquet_file)
         self.variables = parquet_schema.names
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables

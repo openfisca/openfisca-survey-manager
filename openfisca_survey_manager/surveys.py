@@ -112,21 +112,28 @@ Contains the following tables : \n""".format(self.name, self.label)
                 path_name, extension = os.path.splitext(data_file)
                 name = os.path.basename(path_name)
                 if tables is None or name in tables:
-                    table = Table(
-                        label = name,
-                        name = name,
-                        source_format = source_format_by_extension[extension[1:]],
-                        survey = survey,
-                        )
                     if source_format != "parquet":
+                        table = Table(
+                            label = name,
+                            name = name,
+                            source_format = source_format_by_extension[extension[1:]],
+                            survey = survey,
+                            )
                         table.fill_hdf(
                             data_file = data_file,
                             clean = True,
                             overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
                             )
                     else:
-                        survey.parquet_file_path = data_file
-                        table.read_parquet_columns(data_file)
+                        table = Table(
+                            label = name,
+                            name = name,
+                            source_format = source_format_by_extension[extension[1:]],
+                            survey = survey,
+                            parquet_file = data_file,
+                            )
+                        survey.parquet_file_path = os.path.dirname(data_file)
+                        table.read_parquet_columns()
 
         self.dump()
 
