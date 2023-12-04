@@ -242,7 +242,14 @@ Contains the following tables : \n""".format(self.name, self.label)
             store.close()
 
         elif self.parquet_file_path is not None:
-            df = pandas.read_parquet(self.parquet_file_path, columns = variables)
+            if table is None:
+                raise Exception("A table name is needed to retrieve data from a parquet file")
+            for table_name, table_content in self.tables.items():
+                if table_name in table:
+                    df = pandas.read_parquet(table_content.get("parquet_file"), columns = variables)
+                    break
+            else:
+                raise Exception("No table {} found in {}".format(table, self.parquet_file_path))
 
         if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)

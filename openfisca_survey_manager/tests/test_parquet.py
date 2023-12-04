@@ -4,12 +4,16 @@ Test the ability to store parquet files in collections, without converting them 
 
 import os
 import pytest
+import pandas as pd
 from unittest import TestCase
 
+from openfisca_core import periods
 from openfisca_survey_manager import openfisca_survey_manager_location
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 from openfisca_survey_manager.scripts.build_collection import build_survey_collection
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.tests import tax_benefit_system
 
 
 @pytest.mark.order(after="test_write_parquet.py::test_write_parquet")
@@ -47,3 +51,51 @@ class TestParquet(TestCase):
             source_format="parquet",
             config_files_directory=self.data_dir,
             )
+
+    def test_load_parquet(self):
+
+        df = pd.read_parquet(
+            os.path.join(self.data_dir, self.collection_name, "household.parquet")
+            )
+        assert len(df) == 2
+        assert (df.columns == ["household_id", "rent", "household_weight"]).all()
+        assert df.rent.sum() == 7700
+
+        survey_name = 'test_parquet_collection_2020'
+        survey_collection = SurveyCollection.load(
+            config_files_directory=self.data_dir,
+            collection=self.collection_name,
+            )
+        survey = survey_collection.get_survey(survey_name)
+        table = survey.get_values(
+            table="household", ignorecase=True
+            )
+        assert len(table) == 2
+        assert (table.columns == ["household_id", "rent", "household_weight"]).all()
+        assert table.rent.sum() == 7700
+
+        # Create survey scenario
+        survey_scenario = AbstractSurveyScenario()
+        input_data_frame_by_entity = table
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+        survey_scenario.period = 2020
+        survey_scenario.used_as_input_variables = ["rent"]
+        survey_scenario.collection = self.collection_name
+        period = periods.period('2020-01')
+        data = {
+            'collection': 'test_parquet_collection',
+            'survey': 'test_parquet_collection_2020',
+            'input_data_table_by_entity_by_period': {
+                period: {
+                    'household': 'household',
+                    'person': 'person',
+                    }
+                },
+            'config_files_directory': self.data_dir
+            }
+        survey_scenario.init_from_data(data = data)
+
+        simulation = survey_scenario.simulations["baseline"]
+        result = simulation.calculate('rent', period)
+        assert len(result) == 2
+        assert (result == input_data_frame_by_entity['rent']).all()
