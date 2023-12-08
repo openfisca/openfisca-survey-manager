@@ -921,6 +921,13 @@ def init_simulation(tax_benefit_system, period, data):
         # of all periods containing a dictionnary of entity variables
         input_data_table_by_entity_by_period = source
         simulation = None
+        if len(tax_benefit_system.entities) == 4 and 'foyer_fiscal' == tax_benefit_system.entities[2].key:
+            log.debug("We are in OpenFisca-France TaxBenefitSystem : re-ordering entities")
+            # Re-order entities to load household before individu
+            # entities = [Individu, Famille, FoyerFiscal, Menage]
+            entities = [tax_benefit_system.entities[2], tax_benefit_system.entities[0], tax_benefit_system.entities[1], tax_benefit_system.entities[3]]
+        else:
+            entities = tax_benefit_system.entities
         for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
             period = periods.period(period)
             batch_size = input_data_table_by_entity.get('batch_size')
@@ -928,14 +935,23 @@ def init_simulation(tax_benefit_system, period, data):
             batch_index = input_data_table_by_entity.get('batch_index', 0)
             simulation_datasets = {}
             households_ids = None
-            for entity in tax_benefit_system.entities:
+            foyer_fiscal_ids = None
+
+            for entity in entities:
                 # Read all tables for the entity
+                log.debug(f"init_simulation - {period=} {batch_index=} {entity.key=}")
                 table = input_data_table_by_entity.get(entity.key)
                 if table is None:
                     continue
                 if entity.key == 'person':
+                    if households_ids is None:
+                        raise ValueError("survey-manager.init_simulation : person entity should be loaded after household entity")
                     filter_by = [('household_id', 'in', households_ids)]
-                    # print(f"init_simulation - {filter_by=}")
+                    log.debug(f"init_simulation - {filter_by=}")
+                if entity.key == 'individu':
+                    if foyer_fiscal_ids is None:
+                        raise ValueError("survey-manager.init_simulation : individu entity should be loaded before foyer_fiscal entity")
+                    filter_by = [('foyer_fiscal_id', 'in', foyer_fiscal_ids)]
                 else:
                     filter_by = None
                 if survey is not None:
@@ -947,12 +963,14 @@ def init_simulation(tax_benefit_system, period, data):
                 simulation_datasets[entity.key] = input_data_frame
                 if entity.key == 'household':
                     households_ids = input_data_frame.household_id.to_list()
-                    # print(f"init_simulation - {input_data_frame.household_id.to_list()=}")
+                    log.debug(f"init_simulation - {input_data_frame.household_id.to_list()=}")
+                if entity.key == 'foyer_fiscal':
+                    foyer_fiscal_ids = input_data_frame.foyer_fiscal_id.to_list()
 
             if simulation is None:
                 # Instantiate simulation only for the fist period
                 # Next period will reuse the same simulation
-                for entity in tax_benefit_system.entities:
+                for entity in entities:
                     table = input_data_table_by_entity.get(entity.key)
                     if table is None:
                         continue
@@ -962,13 +980,12 @@ def init_simulation(tax_benefit_system, period, data):
                 simulation = builder.build(tax_benefit_system)
                 simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
 
-            for entity in tax_benefit_system.entities:
+            for entity in entities:
                 # Load data in the simulation
-                # print(f"init_simulation - {batch_index=} {entity.key=}")
                 table = input_data_table_by_entity.get(entity.key)
                 if table is None:
                     continue
-                # print(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
+                log.debug(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
                 input_data_frame = simulation_datasets[entity.key]
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                 simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)

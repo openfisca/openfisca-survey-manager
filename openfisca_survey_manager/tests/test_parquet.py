@@ -108,7 +108,6 @@ class TestParquet(TestCase):
                         },
                     'config_files_directory': self.data_dir
                     }
-                # TODO: Add batch_size
                 survey_scenario.init_from_data(data = data)
 
                 simulation = survey_scenario.simulations["baseline"]
