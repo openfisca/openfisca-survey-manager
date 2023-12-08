@@ -234,7 +234,7 @@ def stata_files_to_data_frames(data, period = None):
 
 
 def load_table(config_files_directory, variables: Optional[List] = None, collection: Optional[str] = None, survey: Optional[str] = None,
-        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None, batch_size=None, batch_index=0 ) -> pd.DataFrame:
+        input_data_survey_prefix: Optional[str] = None, data_year = None, table: Optional[str] = None, batch_size=None, batch_index=0, filter_by=None) -> pd.DataFrame:
     """
     Load values from table from a survey in a collection.
 
@@ -258,6 +258,6 @@ def load_table(config_files_directory, variables: Optional[List] = None, collect
     survey_ = survey_collection.get_survey(survey)
     log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
     if batch_size:
-        return survey_.get_values(table = table, variables = variables, batch_size = batch_size, batch_index = batch_index)
+        return survey_.get_values(table = table, variables = variables, batch_size = batch_size, batch_index = batch_index, filter_by=filter_by)
     else:
-        return survey_.get_values(table = table, variables = variables)
+        return survey_.get_values(table = table, variables = variables, filter_by=filter_by)

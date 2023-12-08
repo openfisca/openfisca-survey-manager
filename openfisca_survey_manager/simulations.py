@@ -924,35 +924,55 @@ def init_simulation(tax_benefit_system, period, data):
         for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
             period = periods.period(period)
             batch_size = input_data_table_by_entity.get('batch_size')
-            batch_index = input_data_table_by_entity.get('batch_index',0)
+            # batch_size = None
+            batch_index = input_data_table_by_entity.get('batch_index', 0)
+            simulation_datasets = {}
+            households_ids = None
+            for entity in tax_benefit_system.entities:
+                # Read all tables for the entity
+                table = input_data_table_by_entity.get(entity.key)
+                if table is None:
+                    continue
+                if entity.key == 'person':
+                    filter_by = [('household_id', 'in', households_ids)]
+                    # print(f"init_simulation - {filter_by=}")
+                else:
+                    filter_by = None
+                if survey is not None:
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey,
+                        table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
+                else:
+                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input',
+                        table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
+                simulation_datasets[entity.key] = input_data_frame
+                if entity.key == 'household':
+                    households_ids = input_data_frame.household_id.to_list()
+                    # print(f"init_simulation - {input_data_frame.household_id.to_list()=}")
+
             if simulation is None:
+                # Instantiate simulation only for the fist period
+                # Next period will reuse the same simulation
                 for entity in tax_benefit_system.entities:
                     table = input_data_table_by_entity.get(entity.key)
                     if table is None:
                         continue
-                    # Here tables are read only to get variables, so a small batch size is enough
-                    if survey is not None:
-                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table, batch_size=2, batch_index=0)
-                    else:
-                        input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table, batch_size=2, batch_index=0)
+                    input_data_frame = simulation_datasets[entity.key]
                     custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                     builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
-                    print(f"{entity.key=} {len(input_data_frame)=}")
-
                 simulation = builder.build(tax_benefit_system)
                 simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
 
             for entity in tax_benefit_system.entities:
+                # Load data in the simulation
+                # print(f"init_simulation - {batch_index=} {entity.key=}")
                 table = input_data_table_by_entity.get(entity.key)
                 if table is None:
                     continue
-                if survey is not None:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey, table = table, batch_size=batch_size, batch_index=batch_index)
-                else:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input', table = table, batch_size=batch_size, batch_index=batch_index)
-                print(f"{entity.key=} {len(input_data_frame)=}")
+                # print(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
+                input_data_frame = simulation_datasets[entity.key]
                 custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
                 simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
+
     else:
         pass
 

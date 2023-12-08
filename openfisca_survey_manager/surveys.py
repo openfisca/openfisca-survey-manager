@@ -28,6 +28,11 @@ source_format_by_extension = dict(
     )
 
 
+class NoMoreDataError(Exception):
+    # Exception when the user ask for more data than available in file
+    pass
+
+
 class Survey(object):
     """An object to describe survey data"""
     hdf5_file_path = None
@@ -195,7 +200,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         return self.get_values([variable], table)
 
-    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = 500_000, batch_index=0) -> pandas.DataFrame:
+    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = 500_000, batch_index=0, filter_by=None) -> pandas.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -248,26 +253,24 @@ Contains the following tables : \n""".format(self.name, self.label)
                 raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
                 if table_name in table:
-                    # TODO: Allow to load only a subset of row
-                    print(table_content.get("parquet_file"))
                     parquet_schema = pq.read_schema(table_content.get("parquet_file"))
                     assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
-                    parquet_file = pq.ParquetFile(table_content.get("parquet_file"))
-                    
-                    iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
-                    index = 0
-                    while True:
-                        try:
-                            batch = next(iter_parquet)
-                        except StopIteration as e:
-                            raise Exception(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
-                            break
-                        if batch_index == index:
-                            df = batch.to_pandas()
-                            break
-                        index+=1
-
-                    # df = pandas.read_parquet(table_content.get("parquet_file"), columns = variables)
+                    if filter_by:
+                        df = pq.ParquetDataset(table_content.get("parquet_file"), filters=filter_by).read().to_pandas()
+                    else:
+                        parquet_file = pq.ParquetFile(table_content.get("parquet_file"))
+                        iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
+                        index = 0
+                        while True:
+                            try:
+                                batch = next(iter_parquet)
+                            except StopIteration:
+                                raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
+                                break
+                            if batch_index == index:
+                                df = batch.to_pandas()
+                                break
+                            index += 1
                     break
             else:
                 raise Exception("No table {} found in {}".format(table, self.parquet_file_path))
