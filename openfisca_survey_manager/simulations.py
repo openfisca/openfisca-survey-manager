@@ -1047,7 +1047,7 @@ def init_simulation(tax_benefit_system, period, data):
             if input_data_table_by_entity.get('batch_size'):
                 simulation = _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey)
             else:
-                simulation = _input_data_table_by_entity_by_period_monolithic(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey = None)
+                simulation = _input_data_table_by_entity_by_period_monolithic(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey)
 
     else:
         pass

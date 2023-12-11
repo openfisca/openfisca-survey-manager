@@ -56,8 +56,63 @@ class TestParquet(TestCase):
             config_files_directory=self.data_dir,
             )
 
-    def test_load_parquet(self):
+    def test_load_parquet_monolithic(self):
+        """
+        Test the loading all the data from parquet files in memory.
+        """
+        # Create survey scenario
+        survey_scenario = AbstractSurveyScenario()
+        survey_name = 'test_parquet_collection_2020'
+        survey_collection = SurveyCollection.load(
+            config_files_directory=self.data_dir,
+            collection=self.collection_name,
+            )
+        survey = survey_collection.get_survey(survey_name)
+        table = survey.get_values(
+            table="household", ignorecase=True
+            )
+        input_data_frame_by_entity = table
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+        survey_scenario.period = 2020
+        survey_scenario.used_as_input_variables = ["rent"]
+        survey_scenario.collection = self.collection_name
+        period = periods.period('2020-01')
+        results = {
+            'rent': [],
+            'housing_tax': [],
+            'income_tax': [],
+            }
+        data = {
+            'collection': 'test_parquet_collection',
+            'survey': 'test_parquet_collection_2020',
+            'input_data_table_by_entity_by_period': {
+                period: {
+                    'household': 'household',
+                    'person': 'person',
+                    }
+                },
+            'config_files_directory': self.data_dir
+            }
+        survey_scenario.init_from_data(data = data)
 
+        simulation = survey_scenario.simulations["baseline"]
+        sim_res = simulation.calculate('housing_tax', period.this_year).flatten().tolist()
+        results['housing_tax'] += sim_res
+        sim_res = simulation.calculate('rent', period).flatten().tolist()
+        results['rent'] += sim_res
+        sim_res = simulation.calculate('income_tax', period).flatten().tolist()
+        results['income_tax'] += sim_res
+
+        logger.debug(f"{results=}")
+        assert len(results['rent']) == 4
+        assert (results['rent'] == input_data_frame_by_entity['rent']).all()
+        assert (results['housing_tax'] == [500.0, 1000.0, 1500.0, 2000.0])
+        assert (results['income_tax'] == [195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
+
+    def test_load_parquet_batch(self):
+        """
+        Test the batch loading of data from parquet files. This allow loading larger than memory datasets.
+        """
         df = pd.read_parquet(
             os.path.join(self.data_dir, self.collection_name, "household.parquet")
             )
