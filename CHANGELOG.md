@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+# 2.0.1 [#279](https://github.com/openfisca/openfisca-survey-manager/pull/279)
+
+#### Technical changes
+
+- Fix names of ids columns when the merge option is True in create_data_frame_by_entity.
+
 # 2.0.O [#273](https://github.com/openfisca/openfisca-survey-manager/pull/273)
 
 #### Breaking changes

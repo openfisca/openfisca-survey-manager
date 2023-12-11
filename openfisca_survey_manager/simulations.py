@@ -598,7 +598,7 @@ def create_data_frame_by_entity(simulation: Simulation, variables: Optional[List
         for entity in non_person_entities:
             entity_key_id = id_variable_by_entity_key[entity.key]
             person_data_frame[
-                "{}_{}".format(entity.key, 'id')
+                entity_key_id
                 ] = simulation.populations[entity.key].members_entity_id
             flattened_roles = entity.flattened_roles
             index_by_role = dict(
@@ -634,12 +634,12 @@ def create_data_frame_by_entity(simulation: Simulation, variables: Optional[List
     else:
         for entity_key, openfisca_data_frame in openfisca_data_frame_by_entity_key.items():
             if entity_key != person_entity.key:
-                openfisca_data_frame.index.name = '{}_id'.format(entity_key)
-                if len(openfisca_data_frame.reset_index()) > 0:
+                entity_key_id = id_variable_by_entity_key[entity.key]
+                if len(openfisca_data_frame) > 0:
                     person_data_frame = person_data_frame.merge(
                         openfisca_data_frame.reset_index(),
-                        left_on = '{}_id'.format(entity_key),
-                        right_on = '{}_id'.format(entity_key),
+                        left_on = entity_key_id,
+                        right_on = entity_key_id,
                         )
         return person_data_frame
 
