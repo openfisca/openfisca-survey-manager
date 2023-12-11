@@ -159,6 +159,10 @@ class TestParquet(TestCase):
                             'person': 'person',
                             'batch_size': batch_size,
                             'batch_index': batch_index,
+                            'batch_entity': 'household',
+                            'batch_entity_key': 'household_id',
+                            'filtered_entity': 'person',
+                            'filtered_entity_on_key': 'household_id',
                             }
                         },
                     'config_files_directory': self.data_dir
@@ -191,5 +195,5 @@ if __name__ == "__main__":
     logger.debug(f"Default config files directory: {default_config_files_directory}")
     test = TestParquet()
     test.test_build_collection()
-    test.test_load_parquet()
+    test.test_load_parquet_batch()
     logger.debug("Done")
