@@ -828,6 +828,121 @@ def inflate(simulation: Simulation, inflator_by_variable: Optional[Dict] = None,
         simulation.set_input(variable_name, period, inflator * array)  # insert inflated array
 
 
+def _input_data_table_by_entity_by_period_monolithic(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey = None):
+    """
+    Initialize simulation with input data from a table for each entity and period.
+    """
+    period = periods.period(period)
+    simulation_datasets = {}
+    entities = tax_benefit_system.entities
+    for entity in entities:
+        # Read all tables for the entity
+        log.debug(f"init_simulation - {period=} {entity.key=}")
+        table = input_data_table_by_entity.get(entity.key)
+        if table is None:
+            continue
+        if survey is not None:
+            input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey,
+                table = table)
+        else:
+            input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input',
+                table = table)
+        simulation_datasets[entity.key] = input_data_frame
+
+    if simulation is None:
+        # Instantiate simulation only for the fist period
+        # Next period will reuse the same simulation
+        for entity in entities:
+            table = input_data_table_by_entity.get(entity.key)
+            if table is None:
+                continue
+            input_data_frame = simulation_datasets[entity.key]
+            custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
+            builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
+        simulation = builder.build(tax_benefit_system)
+        simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
+
+    for entity in entities:
+        # Load data in the simulation
+        table = input_data_table_by_entity.get(entity.key)
+        if table is None:
+            continue
+        log.debug(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
+        input_data_frame = simulation_datasets[entity.key]
+        custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
+        simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
+    return simulation
+
+
+def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey = None):
+    """
+    Initialize simulation with input data from a table for each entity and period.
+    """
+    # TODO: Two methods : one for batch loading, one for monolithic loading
+    # TODO: specify batch_entity and filtered_entity
+    period = periods.period(period)
+    batch_size = input_data_table_by_entity.get('batch_size')
+    batch_index = input_data_table_by_entity.get('batch_index', 0)
+    simulation_datasets = {}
+    households_ids = None
+    foyer_fiscal_ids = None
+    entities = tax_benefit_system.entities
+    for entity in entities:
+        # Read all tables for the entity
+        log.debug(f"init_simulation - {period=} {batch_index=} {entity.key=}")
+        table = input_data_table_by_entity.get(entity.key)
+        if table is None:
+            continue
+
+        if entity.key == 'person':
+            if households_ids is None:
+                raise ValueError("survey-manager.init_simulation : person entity should be loaded after household entity")
+            filter_by = [('household_id', 'in', households_ids)]
+            log.debug(f"init_simulation - {filter_by=}")
+        elif entity.key == 'individu':
+            if foyer_fiscal_ids is None:
+                raise ValueError("survey-manager.init_simulation : individu entity should be loaded before foyer_fiscal entity")
+            filter_by = [('foyer_fiscal_id', 'in', foyer_fiscal_ids)]
+        else:
+            filter_by = None  # TODO : individu id
+        if survey is not None:
+            input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey,
+                table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
+        else:
+            input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input',
+                table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
+        if entity.key == 'household':
+            households_ids = input_data_frame.household_id.to_list()
+            log.debug(f"init_simulation - {input_data_frame.household_id.to_list()=}")
+        if entity.key == 'foyer_fiscal':
+            foyer_fiscal_ids = input_data_frame.foyer_fiscal_id.to_list()
+        simulation_datasets[entity.key] = input_data_frame
+
+    if simulation is None:
+        # Instantiate simulation only for the fist period
+        # Next period will reuse the same simulation
+        for entity in entities:
+            table = input_data_table_by_entity.get(entity.key)
+            if table is None:
+                continue
+            input_data_frame = simulation_datasets[entity.key]
+            custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
+            builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
+        simulation = builder.build(tax_benefit_system)
+        simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
+
+    for entity in entities:
+        # Load data in the simulation
+        table = input_data_table_by_entity.get(entity.key)
+        if table is None:
+            continue
+        log.debug(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
+        input_data_frame = simulation_datasets[entity.key]
+        custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
+        simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
+    return simulation
+
+
 def init_simulation(tax_benefit_system, period, data):
     builder = SimulationBuilder()
     builder.create_entities(tax_benefit_system)
@@ -921,74 +1036,18 @@ def init_simulation(tax_benefit_system, period, data):
         # of all periods containing a dictionnary of entity variables
         input_data_table_by_entity_by_period = source
         simulation = None
-        if len(tax_benefit_system.entities) == 4 and 'foyer_fiscal' == tax_benefit_system.entities[2].key:
-            log.debug("We are in OpenFisca-France TaxBenefitSystem : re-ordering entities")
-            # Re-order entities to load household before individu
-            # entities = [Individu, Famille, FoyerFiscal, Menage]
-            entities = [tax_benefit_system.entities[2], tax_benefit_system.entities[0], tax_benefit_system.entities[1], tax_benefit_system.entities[3]]
-        else:
-            entities = tax_benefit_system.entities
+        # if len(tax_benefit_system.entities) == 4 and 'foyer_fiscal' == tax_benefit_system.entities[2].key:
+        #     log.debug("We are in OpenFisca-France TaxBenefitSystem : re-ordering entities")
+        #     # Re-order entities to load household before individu
+        #     # entities = [Individu, Famille, FoyerFiscal, Menage]
+        #     entities = [tax_benefit_system.entities[2], tax_benefit_system.entities[0], tax_benefit_system.entities[1], tax_benefit_system.entities[3]]
+        # else:
+        #     entities = tax_benefit_system.entities
         for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
-            period = periods.period(period)
-            batch_size = input_data_table_by_entity.get('batch_size')
-            # batch_size = None
-            batch_index = input_data_table_by_entity.get('batch_index', 0)
-            simulation_datasets = {}
-            households_ids = None
-            foyer_fiscal_ids = None
-
-            for entity in entities:
-                # Read all tables for the entity
-                log.debug(f"init_simulation - {period=} {batch_index=} {entity.key=}")
-                table = input_data_table_by_entity.get(entity.key)
-                if table is None:
-                    continue
-                if entity.key == 'person':
-                    if households_ids is None:
-                        raise ValueError("survey-manager.init_simulation : person entity should be loaded after household entity")
-                    filter_by = [('household_id', 'in', households_ids)]
-                    log.debug(f"init_simulation - {filter_by=}")
-                if entity.key == 'individu':
-                    if foyer_fiscal_ids is None:
-                        raise ValueError("survey-manager.init_simulation : individu entity should be loaded before foyer_fiscal entity")
-                    filter_by = [('foyer_fiscal_id', 'in', foyer_fiscal_ids)]
-                else:
-                    filter_by = None
-                if survey is not None:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = survey,
-                        table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
-                else:
-                    input_data_frame = load_table(config_files_directory = config_files_directory, collection = collection, survey = 'input',
-                        table = table, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by)
-                simulation_datasets[entity.key] = input_data_frame
-                if entity.key == 'household':
-                    households_ids = input_data_frame.household_id.to_list()
-                    log.debug(f"init_simulation - {input_data_frame.household_id.to_list()=}")
-                if entity.key == 'foyer_fiscal':
-                    foyer_fiscal_ids = input_data_frame.foyer_fiscal_id.to_list()
-
-            if simulation is None:
-                # Instantiate simulation only for the fist period
-                # Next period will reuse the same simulation
-                for entity in entities:
-                    table = input_data_table_by_entity.get(entity.key)
-                    if table is None:
-                        continue
-                    input_data_frame = simulation_datasets[entity.key]
-                    custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                    builder.init_entity_structure(entity, input_data_frame)  # TODO complete args
-                simulation = builder.build(tax_benefit_system)
-                simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
-
-            for entity in entities:
-                # Load data in the simulation
-                table = input_data_table_by_entity.get(entity.key)
-                if table is None:
-                    continue
-                log.debug(f"init_simulation - {entity.key=} {len(input_data_frame)=}")
-                input_data_frame = simulation_datasets[entity.key]
-                custom_input_data_frame(input_data_frame, period = period, entity = entity.key)
-                simulation.init_entity_data(entity, input_data_frame, period, builder.used_as_input_variables_by_entity)
+            if input_data_table_by_entity.get('batch_size'):
+                simulation = _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey)
+            else:
+                simulation = _input_data_table_by_entity_by_period_monolithic(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey = None)
 
     else:
         pass

@@ -48,9 +48,9 @@ def test_set_table_in_survey_parquet():
     table = survey.get_values(
         table="foyer_2023", ignorecase=True
         )
-    assert len(table) == 2
-    assert (table.columns == ["household_id", "rent", "household_weight"]).all()
-    assert table.household_weight.sum() == 2050
+    assert len(table) == 4
+    assert (table.columns == ["household_id", "rent", "household_weight", "accommodation_size"]).all()
+    assert table.household_weight.sum() == 2950
 
 
 def test_add_survey_to_collection():
