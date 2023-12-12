@@ -85,13 +85,15 @@ class Table(object):
         self.save_data_frame(data_frame)
         gc.collect()
 
-    def read_parquet_columns(self) -> list:
+    def read_parquet_columns(self, parquet_file = None) -> list:
         """
         Initialize the table from a parquet file.
         """
-        log.info(f"Initializing table {self.name} from parquet file {self.parquet_file}")
+        if parquet_file is None:
+            parquet_file = self.parquet_file
+        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
         self.source_format = 'parquet'
-        parquet_schema = pq.read_schema(self.parquet_file)
+        parquet_schema = pq.read_schema(parquet_file)
         self.variables = parquet_schema.names
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables

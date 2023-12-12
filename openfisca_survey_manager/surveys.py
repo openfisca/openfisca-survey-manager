@@ -130,16 +130,19 @@ Contains the following tables : \n""".format(self.name, self.label)
                             overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
                             )
                     else:
+                        # Use folder instead of files if numeric at end of file
+                        if re.match(r".*-\d$", name):
+                            name = name.split("-")[0]
                         table = Table(
                             label = name,
                             name = name,
                             source_format = source_format_by_extension[extension[1:]],
                             survey = survey,
-                            parquet_file = data_file,
+                            parquet_file = os.path.dirname(data_file),
                             )
-                        survey.parquet_file_path = os.path.dirname(data_file)
-                        table.read_parquet_columns()
-
+                        # Get the parent folder
+                        survey.parquet_file_path = os.path.dirname(data_file).split(os.sep)[:-1]
+                        table.read_parquet_columns(data_file)
         self.dump()
 
     def find_tables(self, variable, tables = None, rename_ident = True):
@@ -253,12 +256,24 @@ Contains the following tables : \n""".format(self.name, self.label)
                 raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
                 if table_name in table:
-                    parquet_schema = pq.read_schema(table_content.get("parquet_file"))
+                    parquet_file = table_content.get("parquet_file")
+                    # Is parquet_file a folder or a file?
+                    if os.path.isdir(parquet_file):
+                        # find first parquet file in folder
+                        for file in os.listdir(parquet_file):
+                            if file.endswith('.parquet'):
+                                one_parquet_file = os.path.join(parquet_file, file)
+                                break
+                        else:
+                            raise Exception(f"No parquet file found in {parquet_file}")
+                    else:
+                        one_parquet_file = parquet_file
+                    parquet_schema = pq.read_schema(one_parquet_file)
                     assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
                     if filter_by:
-                        df = pq.ParquetDataset(table_content.get("parquet_file"), filters=filter_by).read().to_pandas()
+                        df = pq.ParquetDataset(parquet_file, filters=filter_by).read().to_pandas()
                     else:
-                        parquet_file = pq.ParquetFile(table_content.get("parquet_file"))
+                        parquet_file = pq.ParquetFile(parquet_file)
                         iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
                         index = 0
                         while True:

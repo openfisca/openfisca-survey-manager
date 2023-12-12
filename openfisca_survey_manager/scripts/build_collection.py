@@ -85,6 +85,10 @@ def create_data_file_by_format(directory_path = None):
                 sas_files.append(file_path)
             if os.path.basename(file_name).endswith(".parquet"):
                 log.info("Found parquet file {}".format(file_path))
+                relative = file_name[file_name.find(directory_path):]
+                if "/" in relative or "\\" in relative:
+                    # Keep only the folder name if parquet files are in subfolders
+                    file_path = os.path.dirname(file_name)
                 parquet_files.append(file_path)
     return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files, 'parquet': parquet_files}
 
@@ -146,7 +150,6 @@ def build_survey_collection(
         survey_collection.dump(json_file_path = collection_json_path)
         surveys = []
         for survey in survey_collection.surveys:
-            # TODO: Check with Mahdi why all suveys of the same year was added to the collection and not only the one we provide in parameters ?
             if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
                 surveys.append(survey)
         survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)

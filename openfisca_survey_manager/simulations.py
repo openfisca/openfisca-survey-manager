@@ -913,6 +913,7 @@ def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, 
         warnings.warn(f"survey-manager.simulation._input_data_table_by_entity_by_period_batch : Your TaxBenefitSystem has {len(entities)} entities but we will only load  {batch_entity} and {filtered_entity}.", stacklevel=2)
 
     for entity_name, entity_data in simulation_datasets.items():
+        # Find Identity object from TaxBenefitSystem
         for entity in entities:
             if entity.key == entity_name:
                 entity_data['entity'] = entity
@@ -930,11 +931,10 @@ def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, 
     input_data_frame = _load_table_for_survey(config_files_directory, collection, survey, table, filter_by = filter_by)
     simulation_datasets[filtered_entity]['input_data_frame'] = input_data_frame
 
-    for entity_name, entity_data in simulation_datasets.items():
-        custom_input_data_frame(entity_data['input_data_frame'], period = period, entity = entity_name)
-        builder.init_entity_structure(entity_data['entity'], entity_data['input_data_frame'])
-
     if simulation is None:
+        for entity_name, entity_data in simulation_datasets.items():
+            custom_input_data_frame(entity_data['input_data_frame'], period = period, entity = entity_name)
+            builder.init_entity_structure(entity_data['entity'], entity_data['input_data_frame'])
         simulation = builder.build(tax_benefit_system)
         simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
     for entity_name, entity_data in simulation_datasets.items():
