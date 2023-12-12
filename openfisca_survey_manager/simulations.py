@@ -891,6 +891,8 @@ def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, 
     batch_entity_key = input_data_table_by_entity.get('batch_entity_key')
     filtered_entity = input_data_table_by_entity.get('filtered_entity')
     filtered_entity_on_key = input_data_table_by_entity.get('filtered_entity_on_key')
+    if not batch_entity or not batch_entity_key or not filtered_entity or not filtered_entity_on_key:
+        raise ValueError("batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required")
     simulation_datasets = {
         batch_entity: {
             'table_key': batch_entity_key,
@@ -925,7 +927,7 @@ def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, 
     # Load the filtered entity
     table = input_data_table_by_entity[filtered_entity]
     filter_by = [(filtered_entity_on_key, 'in', batch_entity_ids)]
-    input_data_frame = _load_table_for_survey(config_files_directory, collection, survey, table, batch_size, batch_index, filter_by)
+    input_data_frame = _load_table_for_survey(config_files_directory, collection, survey, table, filter_by = filter_by)
     simulation_datasets[filtered_entity]['input_data_frame'] = input_data_frame
 
     for entity_name, entity_data in simulation_datasets.items():
@@ -1035,13 +1037,6 @@ def init_simulation(tax_benefit_system, period, data):
         # of all periods containing a dictionnary of entity variables
         input_data_table_by_entity_by_period = source
         simulation = None
-        # if len(tax_benefit_system.entities) == 4 and 'foyer_fiscal' == tax_benefit_system.entities[2].key:
-        #     log.debug("We are in OpenFisca-France TaxBenefitSystem : re-ordering entities")
-        #     # Re-order entities to load household before individu
-        #     # entities = [Individu, Famille, FoyerFiscal, Menage]
-        #     entities = [tax_benefit_system.entities[2], tax_benefit_system.entities[0], tax_benefit_system.entities[1], tax_benefit_system.entities[3]]
-        # else:
-        #     entities = tax_benefit_system.entities
         for period, input_data_table_by_entity in input_data_table_by_entity_by_period.items():
             if input_data_table_by_entity.get('batch_size'):
                 simulation = _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, period, input_data_table_by_entity, builder, custom_input_data_frame, config_files_directory, collection, survey)
