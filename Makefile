@@ -9,6 +9,7 @@ clean:
 	rm -f openfisca_survey_manager/tests/data_files/test_parquet_collection.json
 	rm -rf openfisca_survey_manager/tests/data_files/test_multiple_parquet_collection
 	rm -rf openfisca_survey_manager/tests/data_files/test_parquet_collection
+	rm -rf openfisca_survey_manager/tests/data_files/test_random_generator.json
 	find . -name '*.pyc' -exec rm \{\} \;
 
 deps:
