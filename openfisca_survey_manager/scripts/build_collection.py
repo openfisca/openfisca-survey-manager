@@ -12,7 +12,7 @@ import os
 import pdb
 import shutil
 import sys
-
+import re
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
@@ -86,8 +86,8 @@ def create_data_file_by_format(directory_path = None):
             if os.path.basename(file_name).endswith(".parquet"):
                 log.info("Found parquet file {}".format(file_path))
                 relative = file_name[file_name.find(directory_path):]
-                if "/" in relative or "\\" in relative:
-                    # Keep only the folder name if parquet files are in subfolders
+                if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", file_name):
+                    # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
                     file_path = os.path.dirname(file_name)
                 parquet_files.append(file_path)
     return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files, 'parquet': parquet_files}

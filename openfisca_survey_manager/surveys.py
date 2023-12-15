@@ -4,11 +4,12 @@
 import collections
 import os
 import re
-
+import glob
 import logging
 import pandas
 import yaml
 import pyarrow.parquet as pq
+import pyarrow as pa
 
 from .tables import Table
 
@@ -133,15 +134,19 @@ Contains the following tables : \n""".format(self.name, self.label)
                         # Use folder instead of files if numeric at end of file
                         if re.match(r".*-\d$", name):
                             name = name.split("-")[0]
+                            parquet_file = os.path.dirname(data_file)
+                            # Get the parent folder
+                            survey.parquet_file_path = "/".join(os.path.dirname(data_file).split(os.sep)[:-1])
+                        else:
+                            parquet_file = data_file
+                            survey.parquet_file_path = os.path.dirname(data_file)
                         table = Table(
                             label = name,
                             name = name,
                             source_format = source_format_by_extension[extension[1:]],
                             survey = survey,
-                            parquet_file = os.path.dirname(data_file),
+                            parquet_file = parquet_file,
                             )
-                        # Get the parent folder
-                        survey.parquet_file_path = os.path.dirname(data_file).split(os.sep)[:-1]
                         table.read_parquet_columns(data_file)
         self.dump()
 
@@ -203,7 +208,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         """
         return self.get_values([variable], table)
 
-    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = 500_000, batch_index=0, filter_by=None) -> pandas.DataFrame:
+    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = None, batch_index=0, filter_by=None) -> pandas.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -212,7 +217,7 @@ Contains the following tables : \n""".format(self.name, self.label)
           ignorecase: ignore case of table name, defaults to False
           lowercase(bool, optional, optional): lowercase variable names, defaults to False
           rename_ident(bool, optional, optional): rename ident+yr (e.g. ident08) into ident, defaults to True
-          batch_size(int, optional, optional): batch size for parquet file, defaults to 500_000
+          batch_size(int, optional, optional): batch size for parquet file, defaults to None
           batch_index(int, optional, optional): batch index for parquet file, defaults to 0
 
         Returns:
@@ -272,20 +277,41 @@ Contains the following tables : \n""".format(self.name, self.label)
                     assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
                     if filter_by:
                         df = pq.ParquetDataset(parquet_file, filters=filter_by).read().to_pandas()
+                    elif batch_size:
+                        if os.path.isdir(parquet_file):
+                            parquet_file = glob.glob(os.path.join(parquet_file, '*.parquet'))
+                        else:
+                            parquet_file = [parquet_file]
+                        # Initialize an empty list to store the Parquet tables
+                        tables = []
+                        # Loop through the file paths and read each Parquet file
+                        for file_path in parquet_file:
+                            table = pq.read_table(file_path, columns=variables)
+                            tables.append(table)
+
+                        # Concatenate the tables if needed
+                        if len(tables) > 1:
+                            final_table = pa.concat_tables(tables)
+                        else:
+                            final_table = tables[0]
+                        record_batches = final_table.to_batches(max_chunksize=batch_size)
+                        if len(record_batches) <= batch_index:
+                            raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
+                        df = record_batches[batch_index].to_pandas()
+                        # iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
+                        # index = 0
+                        # while True:
+                        #     try:
+                        #         batch = next(iter_parquet)
+                        #     except StopIteration:
+                        #         raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
+                        #         break
+                        #     if batch_index == index:
+                        #         df = batch.to_pandas()
+                        #         break
+                        #     index += 1
                     else:
-                        parquet_file = pq.ParquetFile(parquet_file)
-                        iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
-                        index = 0
-                        while True:
-                            try:
-                                batch = next(iter_parquet)
-                            except StopIteration:
-                                raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
-                                break
-                            if batch_index == index:
-                                df = batch.to_pandas()
-                                break
-                            index += 1
+                        df = pq.ParquetDataset(parquet_file).read().to_pandas()
                     break
             else:
                 raise Exception("No table {} found in {}".format(table, self.parquet_file_path))

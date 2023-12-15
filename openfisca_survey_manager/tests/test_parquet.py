@@ -20,7 +20,7 @@ from openfisca_survey_manager.surveys import NoMoreDataError
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.order(after="test_write_parquet.py::test_write_parquet")
+@pytest.mark.order(after="test_write_parquet.py::TestWriteParquet::test_write_parquet_one_file_per_entity")
 class TestParquet(TestCase):
     data_dir = os.path.join(
         openfisca_survey_manager_location,
@@ -44,8 +44,23 @@ class TestParquet(TestCase):
 
     def test_build_collection(self):
         collection_name = self.collection_name
+        json_file = os.path.join(
+            self.data_dir,
+            collection_name + ".json",
+            )
+        with open(json_file, "w") as f:
+            f.write(
+                """
+    {
+    "label": "Test parquet collection",
+    "name": "collection_name",
+    "surveys": {
+    }
+    }
+    """.replace("collection_name", collection_name)
+                )
         data_directory_path_by_survey_suffix = {
-            "2020": os.path.join(self.data_dir, "test_parquet_collection/"),
+            "2020": os.path.join(self.data_dir, collection_name),
             }
         build_survey_collection(
             collection_name=collection_name,
@@ -56,13 +71,14 @@ class TestParquet(TestCase):
             config_files_directory=self.data_dir,
             )
 
-    def test_load_parquet_monolithic(self):
+    @pytest.mark.order(after="test_build_collection")
+    def test_load_single_parquet_monolithic(self):
         """
         Test the loading all the data from parquet files in memory.
         """
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
-        survey_name = 'test_parquet_collection_2020'
+        survey_name = self.collection_name + "_2020"
         survey_collection = SurveyCollection.load(
             config_files_directory=self.data_dir,
             collection=self.collection_name,
@@ -83,8 +99,8 @@ class TestParquet(TestCase):
             'income_tax': [],
             }
         data = {
-            'collection': 'test_parquet_collection',
-            'survey': 'test_parquet_collection_2020',
+            'collection': self.collection_name,
+            'survey': survey_name,
             'input_data_table_by_entity_by_period': {
                 period: {
                     'household': 'household',
@@ -92,6 +108,61 @@ class TestParquet(TestCase):
                     }
                 },
             'config_files_directory': self.data_dir
+            }
+        survey_scenario.init_from_data(data = data)
+
+        simulation = survey_scenario.simulations["baseline"]
+        sim_res = simulation.calculate('housing_tax', period.this_year).flatten().tolist()
+        results['housing_tax'] += sim_res
+        sim_res = simulation.calculate('rent', period).flatten().tolist()
+        results['rent'] += sim_res
+        sim_res = simulation.calculate('income_tax', period).flatten().tolist()
+        results['income_tax'] += sim_res
+
+        logger.debug(f"{results=}")
+        assert len(results['rent']) == 4
+        assert (results['rent'] == input_data_frame_by_entity['rent']).all()
+        assert (results['housing_tax'] == [500.0, 1000.0, 1500.0, 2000.0])
+        assert (results['income_tax'] == [195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
+
+    def test_load_multiple_parquet_monolithic(self):
+        """
+        Test the loading all the data from parquet files in memory.
+        """
+        collection_name = 'test_multiple_parquet_collection'
+        data_dir = os.path.join(self.data_dir, collection_name)
+        # Create survey scenario
+        survey_scenario = AbstractSurveyScenario()
+        survey_name = collection_name + "_2020"
+        survey_collection = SurveyCollection.load(
+            config_files_directory=data_dir,
+            collection=collection_name,
+            )
+        survey = survey_collection.get_survey(survey_name)
+        table = survey.get_values(
+            table="household", ignorecase=True
+            )
+        input_data_frame_by_entity = table
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+        survey_scenario.period = 2020
+        survey_scenario.used_as_input_variables = ["rent"]
+        survey_scenario.collection = collection_name
+        period = periods.period('2020-01')
+        results = {
+            'rent': [],
+            'housing_tax': [],
+            'income_tax': [],
+            }
+        data = {
+            'collection': collection_name,
+            'survey': survey_name,
+            'input_data_table_by_entity_by_period': {
+                period: {
+                    'household': 'household',
+                    'person': 'person',
+                    }
+                },
+            'config_files_directory': data_dir
             }
         survey_scenario.init_from_data(data = data)
 
@@ -120,26 +191,14 @@ class TestParquet(TestCase):
         assert (df.columns == ["household_id", "rent", "household_weight", "accommodation_size"]).all()
         assert df.rent.sum() == 10300
 
-        survey_name = 'test_parquet_collection_2020'
-        survey_collection = SurveyCollection.load(
-            config_files_directory=self.data_dir,
-            collection=self.collection_name,
-            )
-        survey = survey_collection.get_survey(survey_name)
-        table = survey.get_values(
-            table="household", ignorecase=True
-            )
-        assert len(table) == 4
-        assert (table.columns == ["household_id", "rent", "household_weight", "accommodation_size"]).all()
-        assert table.rent.sum() == 10300
-
+        collection_name = 'test_multiple_parquet_collection'
+        data_dir = os.path.join(self.data_dir, collection_name)
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
-        input_data_frame_by_entity = table
         survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
         survey_scenario.period = 2020
         survey_scenario.used_as_input_variables = ["rent"]
-        survey_scenario.collection = self.collection_name
+        survey_scenario.collection = collection_name
         period = periods.period('2020-01')
         results = {
             'rent': [],
@@ -151,8 +210,8 @@ class TestParquet(TestCase):
         while True:
             try:
                 data = {
-                    'collection': 'test_parquet_collection',
-                    'survey': 'test_parquet_collection_2020',
+                    'collection': collection_name,
+                    'survey': collection_name + '_2020',
                     'input_data_table_by_entity_by_period': {
                         period: {
                             'household': 'household',
@@ -165,7 +224,7 @@ class TestParquet(TestCase):
                             'filtered_entity_on_key': 'household_id',
                             }
                         },
-                    'config_files_directory': self.data_dir
+                    'config_files_directory': data_dir
                     }
                 survey_scenario.init_from_data(data = data)
 
@@ -183,7 +242,7 @@ class TestParquet(TestCase):
                 break
         logger.debug(f"{results=}")
         assert len(results['rent']) == 4
-        assert (results['rent'] == input_data_frame_by_entity['rent']).all()
+        assert (sum(results['rent']) == sum([1100, 2200, 3_000, 4_000]))
         assert (results['housing_tax'] == [500.0, 1000.0, 1500.0, 2000.0])
         assert (results['income_tax'] == [195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
 

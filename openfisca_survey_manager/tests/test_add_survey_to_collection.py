@@ -9,7 +9,7 @@ from openfisca_survey_manager.scripts.build_collection import add_survey_to_coll
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 
 
-@pytest.mark.order(after="test_write_parquet.py::test_write_parquet")
+@pytest.mark.order(after="test_write_parquet.py::TestWriteParquet::test_write_parquet_one_file_per_entity")
 def test_add_survey_to_collection_parquet():
     name = 'fake'
     survey_name = 'test_parquet'
@@ -30,7 +30,7 @@ def test_add_survey_to_collection_parquet():
     assert survey_name in list(ordered_dict['surveys'].keys())
 
 
-@pytest.mark.order(after="test_write_parquet.py::test_write_parquet")
+@pytest.mark.order(after="test_write_parquet.py::TestWriteParquet::test_write_parquet_one_file_per_entity")
 def test_set_table_in_survey_parquet():
     data_dir = os.path.join(
         openfisca_survey_manager_location,

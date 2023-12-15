@@ -5,6 +5,10 @@ uninstall:
 
 clean:
 	rm -rf build dist
+	rm -f openfisca_survey_manager/tests/data_files/config.ini
+	rm -f openfisca_survey_manager/tests/data_files/test_parquet_collection.json
+	rm -rf openfisca_survey_manager/tests/data_files/test_multiple_parquet_collection
+	rm -rf openfisca_survey_manager/tests/data_files/test_parquet_collection
 	find . -name '*.pyc' -exec rm \{\} \;
 
 deps:
