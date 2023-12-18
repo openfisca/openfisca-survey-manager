@@ -45,8 +45,12 @@ with open(os.path.join(test_config_files_directory, 'config_template.ini')) as f
     config_ini = file.read()
 
 config_ini = config_ini.format(location = openfisca_survey_manager_location)
-with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
-    file.write(config_ini)
+try:
+    with open(os.path.join(test_config_files_directory, 'config.ini'), "w+") as file:
+        file.write(config_ini)
+except PermissionError:
+    log.debug(f"config.ini can't be written in the test config files directory{test_config_files_directory}")
+    pass
 
 # GitHub Actions test
 is_in_ci = 'CI' in os.environ
