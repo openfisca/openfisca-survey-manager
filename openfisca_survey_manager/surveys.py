@@ -342,7 +342,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         Inserts a table in the Survey object
         If a pandas dataframe is provided, it is saved in the hdf5 file
         """
-
+        parquet_file = kwargs.pop('parquet_file', None)
         data_frame = kwargs.pop('data_frame', None)
         if data_frame is None:
             # Try without underscore
@@ -357,11 +357,15 @@ Contains the following tables : \n""".format(self.name, self.label)
                 variables = list(data_frame.columns)
             if label is None:
                 label = name
-            table = Table(label = label, name = name, survey = self, variables = variables)
-            assert table.survey.hdf5_file_path is not None
-            log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
-            to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
-            table.save_data_frame(data_frame, **to_hdf_kwargs)
+            table = Table(label = label, name = name, survey = self, variables = variables, parquet_file = parquet_file)
+            assert (table.survey.hdf5_file_path is not None) or (table.survey.parquet_file_path is not None)
+            if parquet_file is not None:
+                log.debug("Saving table {} in {}".format(name, table.survey.parquet_file_path))
+                data_frame.to_parquet(parquet_file)
+            else:
+                log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
+                to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
+                table.save_data_frame(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
             self.tables[name] = dict()
