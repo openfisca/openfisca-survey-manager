@@ -634,7 +634,7 @@ def create_data_frame_by_entity(simulation: Simulation, variables: Optional[List
     else:
         for entity_key, openfisca_data_frame in openfisca_data_frame_by_entity_key.items():
             if entity_key != person_entity.key:
-                entity_key_id = id_variable_by_entity_key[entity.key]
+                entity_key_id = id_variable_by_entity_key[entity_key]
                 if len(openfisca_data_frame) > 0:
                     person_data_frame = person_data_frame.merge(
                         openfisca_data_frame.reset_index(),
