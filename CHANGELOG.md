@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+# 2.0.3 [#282](https://github.com/openfisca/openfisca-survey-manager/pull/282)
+
+- Correction typo error in create_data_frame_by_entity
+
 # 2.0.2 [#280](https://github.com/openfisca/openfisca-survey-manager/pull/280)
 
 - Add a try/except for the tests config in openfisca_survey_manager/__init__.py
