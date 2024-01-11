@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+# 2.0.4 [#283](https://github.com/openfisca/openfisca-survey-manager/pull/283)
+
+- Correction function compute_pivot_tables in ReformScenario
+
 # 2.0.3 [#282](https://github.com/openfisca/openfisca-survey-manager/pull/282)
 
 - Correction typo error in create_data_frame_by_entity
