@@ -8,7 +8,7 @@ def test_compute_pivot_table():
 
     return survey_scenario.compute_pivot_table(
         aggfunc = "mean",
-        columns = ['decile'],
+        columns = None,
         difference = False,
         filter_by = None,
         index = None,
