@@ -1,6 +1,7 @@
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
 from openfisca_country_template.reforms.modify_social_security_taxation import modify_social_security_taxation
 
+
 def test_compute_pivot_table():
     survey_scenario = create_randomly_initialized_survey_scenario(reform = modify_social_security_taxation)
     period = "2017-01"
@@ -19,4 +20,4 @@ def test_compute_pivot_table():
         concat_axis = None,
         weighted = True,
         alternative_weights = None,
-    )
+        )
