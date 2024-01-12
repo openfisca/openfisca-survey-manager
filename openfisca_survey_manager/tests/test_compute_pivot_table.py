@@ -15,7 +15,7 @@ def test_compute_pivot_table():
         period = period,
         use_baseline = True,
         use_baseline_for_columns = True,
-        values = ['niveau_de_vie'],
+        values = None,
         missing_variable_default_value = 0,
         concat_axis = None,
         weighted = True,
