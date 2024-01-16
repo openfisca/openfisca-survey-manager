@@ -7,7 +7,7 @@ def test_compute_pivot_table():
     period = "2017-01"
 
     return survey_scenario.compute_pivot_table(
-        aggfunc = mean,
+        aggfunc = "mean",
         columns = ['decile'],
         difference = False,
         filter_by = None,
