@@ -7,15 +7,15 @@ def test_compute_pivot_table():
     period = "2017-01"
 
     return survey_scenario.compute_pivot_table(
-        aggfunc = "mean",
-        columns = None,
+        aggfunc = mean,
+        columns = ['decile'],
         difference = False,
         filter_by = None,
         index = None,
         period = period,
         use_baseline = True,
         use_baseline_for_columns = True,
-        values = None,
+        values = ['niveau_de_vie'],
         missing_variable_default_value = 0,
         concat_axis = None,
         weighted = True,
