@@ -310,6 +310,8 @@ def compute_pivot_table(simulation: Simulation = None, baseline_simulation: Simu
     admissible_aggfuncs = ['max', 'mean', 'min', 'sum', 'count', 'sum_abs']
     assert aggfunc in admissible_aggfuncs
     assert columns or index or values
+    assert isinstance(simulation, Simulation)
+    assert isinstance(baseline_simulation, Simulation)
 
     if baseline_simulation is not None:
         tax_benefit_system = baseline_simulation.tax_benefit_system
