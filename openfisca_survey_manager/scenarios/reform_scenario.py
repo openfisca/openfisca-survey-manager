@@ -8,6 +8,7 @@ from typing import Optional, Union
 from openfisca_core.types import Array, Period
 
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.simulations import Simulation
 
 
 log = logging.getLogger(__name__)
@@ -182,7 +183,9 @@ class ReformScenario(AbstractSurveyScenario):
             period = None, use_baseline = False, use_baseline_for_columns = None, values = None,
             missing_variable_default_value = np.nan, concat_axis = None, weighted = True, alternative_weights = None):
 
-        return super(ReformScenario, self).compute_pivot_table(
+        filtering_variable_by_entity = self.filtering_variable_by_entity
+
+        return Simulation.compute_pivot_table(
             aggfunc = aggfunc,
             columns = columns,
             baseline_simulation = self._get_simulation(use_baseline = True),
@@ -193,10 +196,11 @@ class ReformScenario(AbstractSurveyScenario):
             difference = difference,
             use_baseline_for_columns = use_baseline_for_columns,
             values = values,
-            missing_variable_default_value = missing_variable_default_value.nan,
+            missing_variable_default_value = missing_variable_default_value,
             concat_axis = concat_axis,
             weighted = weighted,
             alternative_weights = alternative_weights,
+            filtering_variable_by_entity = filtering_variable_by_entity
             )
 
     def compute_winners_loosers(self, variable = None,
