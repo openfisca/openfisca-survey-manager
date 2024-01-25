@@ -82,3 +82,39 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     assert all(person_weight_after != person_weight_before)
     assert calibration.initial_entity_count != calibration.target_entity_count
     assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
+
+
+def test_simulation_calibration_input_from_data():
+    input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
+        nb_persons, nb_groups, salary_max_value, rent_max_value)
+    survey_scenario = AbstractSurveyScenario()
+    weight_variable_by_entity = {
+        "person": "person_weight",
+        "household": "household_weight",
+        }
+    if reform is None:
+        survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+    else:
+        survey_scenario.set_tax_benefit_systems(dict(
+            reform = reform(tax_benefit_system),
+            baseline = tax_benefit_system,
+            ))
+    survey_scenario.period = 2017
+    survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
+    period = periods.period('2017-01')
+
+    data = {
+        'input_data_frame_by_entity_by_period': {
+            period: input_data_frame_by_entity
+            },
+        'config_files_directory': default_config_files_directory
+        }
+    calibration_kwargs = {'target_margins_by_variable':{'rent': target_rent_aggregate}, 'target_entity_count':300, 'parameters':{'method':'logit', 'up':4, 'invlo':4}}
+    survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
+    assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
+    survey_scenario.init_from_data(data = data, calibration_kwargs=calibration_kwargs)
+    for simulation_name, simulation in survey_scenario.simulations.items():
+        assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
+        assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
+        assert_near(simulation.compute_aggregate("rent", period = period), target_rent_aggregate)
+    return survey_scenario
