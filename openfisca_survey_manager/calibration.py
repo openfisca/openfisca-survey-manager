@@ -26,7 +26,7 @@ class Calibration(object):
         'initial_weight': None,
         'method': None,  # 'linear', 'raking ratio', 'logit'
         'up': None,
-        'lo': None
+        'invlo': None
         }
     period = None
     simulation = None
