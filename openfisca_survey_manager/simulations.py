@@ -195,6 +195,10 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
             period = periods.period(str(period))
         if period_size_independent_weight is True and definition_period_weight == 'year' and period.start.year == period.stop.year:
             period_computation_weights = period.this_year
+        else:
+            period_computation_weights = period
+    else:
+        period_computation_weights = period
 
     weight = (
         simulation.calculate(weight_variable, period = period_computation_weights).astype(float)
