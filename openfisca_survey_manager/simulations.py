@@ -196,7 +196,7 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
         period_computation_weights = period.this_year
     else:
         period_computation_weights = period
-    
+
     weight = (
         simulation.calculate(weight_variable, period = period_computation_weights).astype(float)
         if weight_variable else uniform_weight
