@@ -187,8 +187,18 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
         log.debug("Variable {} not found. Assiging {}".format(variable, missing_variable_default_value))
         return missing_variable_default_value
 
+    # The following lines allow for under-yearly weighted aggregates even if weights are annual
+    period_size_independent_weight = tax_benefit_system.get_variable(weight_variable).is_period_size_independent
+    definition_period_weight = tax_benefit_system.get_variable(weight_variable).definition_period
+    if not isinstance(period, periods.Period):
+        period = periods.period(str(period))
+    if period_size_independent_weight is True and definition_period_weight == 'year' and period.start.year == period.stop.year:
+        period_computation_weights = period.this_year
+    else:
+        period_computation_weights = period
+    
     weight = (
-        simulation.calculate(weight_variable, period = period).astype(float)
+        simulation.calculate(weight_variable, period = period_computation_weights).astype(float)
         if weight_variable else uniform_weight
         )
     if weight_variable:
