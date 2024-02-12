@@ -14,3 +14,4 @@ then
   exit 1
 fi
 echo "The functional files above were changed."
+exit 0
