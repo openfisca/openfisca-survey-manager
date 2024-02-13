@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 2.0.7 [#293](https://github.com/openfisca/openfisca-survey-manager/pull/293)
+
+* Technical changes
+  - Improve correction done in https://github.com/openfisca/openfisca-survey-manager/pull/286/files
+
 # 2.0.6 [#291](https://github.com/openfisca/openfisca-survey-manager/pull/291)
 
 * Technical changes
