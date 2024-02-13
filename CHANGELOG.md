@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+# 2.0.6 [#291](https://github.com/openfisca/openfisca-survey-manager/pull/291)
+
+* Technical changes
+  - Fix the script check-version-and-changelog.sh to fix issue #288
+  - Upgrade CI actions
+
+# 2.0.5 [#286](https://github.com/openfisca/openfisca-survey-manager/pull/286)
+
+* New features
+  - Allows sub-annual weighted aggregates in compute_aggregate when the weights are annual.
+
 # 2.0.4 [#283](https://github.com/openfisca/openfisca-survey-manager/pull/283)
 
 - Correction function compute_pivot_tables in ReformScenario
