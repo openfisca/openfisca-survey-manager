@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 2.0.9 [#294](https://github.com/openfisca/openfisca-survey-manager/pull/294)
+
+* Technical changes
+  - Add config files directory option in `set_table_in_survey`
+
 # 2.0.8 [#292](https://github.com/openfisca/openfisca-survey-manager/pull/292)
 
 * Technical change
