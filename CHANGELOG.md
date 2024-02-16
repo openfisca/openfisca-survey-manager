@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 2.0.8 [#292](https://github.com/openfisca/openfisca-survey-manager/pull/292)
+
+* Technical change
+  - With the security enforcement of PyPi, we have to use token instead of login/password.
+
 # 2.0.7 [#293](https://github.com/openfisca/openfisca-survey-manager/pull/293)
 
 * Technical changes
