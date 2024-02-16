@@ -186,7 +186,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
         survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
     except configparser.NoOptionError as e:
         log.warning(f"set_table_in_survey configparser.NoOptionError : {e}")
-        survey_collection = SurveyCollection(name = collection)
+        survey_collection = SurveyCollection(name = collection, config_files_directory=config_files_directory)
     except configparser.NoSectionError as e:  # For tests
         log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
         data_dir = os.path.join(
