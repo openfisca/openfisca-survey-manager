@@ -151,7 +151,7 @@ jobs:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
       - name: Upload a Python package to PyPi
-        run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_TOKEN
+        run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_TOKEN_OPENFISCA_BOT
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
 
