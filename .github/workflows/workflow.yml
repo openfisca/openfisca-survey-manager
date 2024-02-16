@@ -129,7 +129,7 @@ jobs:
     if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
     env:
       PYPI_USERNAME: __token__
-      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
     steps:
       - uses: actions/checkout@v4
         with:
