@@ -850,9 +850,10 @@ def _input_data_table_by_entity_by_period_monolithic(tax_benefit_system, simulat
         # Read all tables for the entity
         log.debug(f"init_simulation - {period=} {entity.key=}")
         table = input_data_table_by_entity.get(entity.key)
+        filter_by = input_data_table_by_entity.get('filter_by', None)
         if table is None:
             continue
-        input_data_frame = _load_table_for_survey(config_files_directory, collection, survey, table)
+        input_data_frame = _load_table_for_survey(config_files_directory, collection, survey, table, filter_by = filter_by)
         simulation_datasets[entity.key] = input_data_frame
 
     if simulation is None:
