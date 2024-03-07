@@ -214,7 +214,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             survey_collection = survey_collection,
             )
 
-    if survey.hdf5_file_path is None and survey.parquet_file_path is None: 
+    if survey.hdf5_file_path is None and survey.parquet_file_path is None:
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
@@ -229,7 +229,6 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
                 log.warning("{} who should be the parquet data directory does not exist: we create the directory".format(
                     survey.parquet_file_path))
                 os.makedirs(survey.parquet_file_path)
-
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
     if source_format == "parquet" and parquet_file is None:
