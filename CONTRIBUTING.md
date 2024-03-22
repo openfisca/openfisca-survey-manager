@@ -46,6 +46,8 @@ To launch the debugger in VSCode, you need to create a `launch.json` file in the
 }
 ```
 
+If you have an error "ModuleNotFoundError" create your environment in `.venv` folder and install the requirements.
+
 ## Advertising changes
 
 ### Version number
