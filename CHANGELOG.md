@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 2.0.10 [#285](https://github.com/openfisca/openfisca-survey-manager/pull/285)
+
+* Technical changes
+- Some arguments for calibration were not consistently named.
+
 # 2.0.9 [#294](https://github.com/openfisca/openfisca-survey-manager/pull/294)
 
 * Technical changes
