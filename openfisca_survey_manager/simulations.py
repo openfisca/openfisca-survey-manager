@@ -936,9 +936,8 @@ def _input_data_table_by_entity_by_period_batch(tax_benefit_system, simulation, 
             builder.init_entity_structure(entity_data['entity'], entity_data['input_data_frame'])
         simulation = builder.build(tax_benefit_system)
         simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key  # Should be propagated to enhanced build
-    for entity_name, entity_data in simulation_datasets.items():
+    for _entity_name, entity_data in simulation_datasets.items():
         simulation.init_entity_data(entity_data['entity'], entity_data['input_data_frame'], period, builder.used_as_input_variables_by_entity)
-        del simulation_datasets[entity_name]
     return simulation
 
 
