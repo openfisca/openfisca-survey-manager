@@ -1,5 +1,15 @@
 ﻿# Changelog
 
+# 2.1.0 [#277](https://github.com/openfisca/openfisca-survey-manager/pull/277)
+
+* New features
+  - Support parquet file format : 
+      - if a parquet file is provided to buildcollection it won't be converted in HDF5 but added to the collection as is.
+      - It is possible to provide a folder containing many files : each files will be used as a separate table.
+  - Run a simulation on a part of the input datasets (for the moment it works only for two entities simulations) :
+      - With a batch size option
+      - With a filter_by option 
+
 # 2.0.10 [#285](https://github.com/openfisca/openfisca-survey-manager/pull/285)
 
 * Technical changes
