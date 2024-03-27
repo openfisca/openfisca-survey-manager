@@ -26,7 +26,7 @@ It provides two main features:
 
 Ce dépôt contient le module Survey-Manager. Il facilite l'usage d'OpenFisca avec des données d'enquête.
 
-Il fournit trois fonctionnalités principales:
+Il fournit deux fonctionnalités principales:
 * Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF) ou [Parquet](https://parquet.apache.org/).
 * Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python. Si le format est Parquet, il est conservé tel quel.
 
@@ -232,11 +232,11 @@ It should work. If it doesn't, please do not hesitate to [open an issue](https:/
 
 ### Parquet files
 
-Parquet files could be used as input files. They will not be converted to HDF5. As Paquet files can only contains one table, we add a `"parquet_file"` key to each table in a survey. This key contains the path to the Parquet file, or the folder containing many parquet files for the same table.
+Parquet files could be used as input files. They will not be converted to HDF5. As Parquet files can only contains one table, we add a `"parquet_file"` key to each table in a survey. This key contains the path to the Parquet file, or the folder containing many parquet files for the same table.
 
 If using folder you have to name your files with the following pattern: `some_name_-<number>.parquet` and keep only the files for the same table in the same folder.
 
-If a sigle file contains all the table, you can have many files for different tables in the same folder.
+If a single file contains all the table, you can have many files for different tables in the same folder.
 
 ## Development
 
