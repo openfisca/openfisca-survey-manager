@@ -15,8 +15,8 @@
 This repository contains the Survey-Manager module, to work with OpenFisca and survey data.
 
 It provides two main features:
-* A Python API to access data in [Hierarchical Data Format](https://en.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
-* A script that transforms SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the Python API.
+* A Python API to access data in [Hierarchical Data Format](https://en.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF) or [Parquet](https://parquet.apache.org/).
+* A script that transforms Parquet, SAS, Stata, SPSS, and CSV data files to HDF data files, along with some metadata so they can be used by the Python API. If the format is Parquet, it is kept as is.
 
 > For France survey data, you might find useful information on the next steps in [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) repository.
 
@@ -27,8 +27,8 @@ It provides two main features:
 Ce dépôt contient le module Survey-Manager. Il facilite l'usage d'OpenFisca avec des données d'enquête.
 
 Il fournit deux fonctionnalités principales:
-* Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF).
-* Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python.
+* Une API Python permettant l'accès à des données au format [Hierarchical Data Format](https://fr.wikipedia.org/wiki/Hierarchical_Data_Format) (HDF) ou [Parquet](https://parquet.apache.org/).
+* Un script qui tranforme les fichiers de données aux formats SAS, Stata, SPSS, and CSV data files en fichiers de données au format HDF, avec quelques metadonnées leur permettant d'être utilisés par l'API Python. Si le format est Parquet, il est conservé tel quel.
 
 > Si vous disposez de données d'enquête sur la France, le dépôt [openfisca-france-data](https://github.com/openfisca/openfisca-france-data) pourrait être utile à vos prochaines étapes de traitement.
 
@@ -230,6 +230,13 @@ build-collection -p /another/path -c housing_survey -s 2014 -d -m -v
 
 It should work. If it doesn't, please do not hesitate to [open an issue](https://github.com/openfisca/openfisca-survey-manager/issues/new).
 
+### Parquet files
+
+Parquet files could be used as input files. They will not be converted to HDF5. As Parquet files can only contains one table, we add a `"parquet_file"` key to each table in a survey. This key contains the path to the Parquet file, or the folder containing many parquet files for the same table.
+
+If using folder you have to name your files with the following pattern: `some_name_-<number>.parquet` and keep only the files for the same table in the same folder.
+
+If a single file contains all the table, you can have many files for different tables in the same folder.
 
 ## Development
 

@@ -176,7 +176,8 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
 
 def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None,
-        table_label = None, table_name = None, config_files_directory = default_config_files_directory):
+        table_label = None, table_name = None, config_files_directory = default_config_files_directory,
+        source_format = None, parquet_file = None):
     period = periods.period(period)
     if table_name is None:
         table_name = entity + '_' + str(period)
@@ -199,6 +200,9 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             name = collection,
             config_files_directory = data_dir,
             )
+    except FileNotFoundError as e:
+        log.warning(f"set_table_in_survey FileNotFoundError : {e}")
+        survey_collection = SurveyCollection(name = collection, config_files_directory=config_files_directory)
 
     try:
         survey = survey_collection.get_survey(survey_name)
@@ -210,17 +214,26 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             survey_collection = survey_collection,
             )
 
-    if survey.hdf5_file_path is None:
+    if survey.hdf5_file_path is None and survey.parquet_file_path is None:
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
-            log.warning("{} who should be the HDF5 data directory does not exist: we create the directory".format(
+            log.warning("{} who should be the data directory does not exist: we create the directory".format(
                 directory_path))
             os.makedirs(directory_path)
-        survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+        if source_format is None:
+            survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+        elif source_format == "parquet":
+            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+            if not os.path.isdir(survey.parquet_file_path):
+                log.warning("{} who should be the parquet data directory does not exist: we create the directory".format(
+                    survey.parquet_file_path))
+                os.makedirs(survey.parquet_file_path)
 
-    assert survey.hdf5_file_path is not None
-    survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe)
+    assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
+    if source_format == "parquet" and parquet_file is None:
+        parquet_file = os.path.join(directory_path, survey.name + '.parquet')
+    survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe, parquet_file = parquet_file)
     # If a survey with save name exist it will be overwritten
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name

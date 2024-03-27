@@ -12,7 +12,7 @@ import os
 import pdb
 import shutil
 import sys
-
+import re
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
@@ -22,13 +22,15 @@ app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None, parquet_files = None):
     if sas_files is None:
         sas_files = []
     if stata_files is None:
         stata_files = []
     if csv_files is None:
         csv_files = []
+    if parquet_files is None:
+        parquet_files = []
 
     assert survey_collection is not None
     overwrite = True
@@ -44,6 +46,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             csv_files = csv_files,
             sas_files = sas_files,
             stata_files = stata_files,
+            parquet_files = parquet_files,
             survey_collection = survey_collection,
             )
     else:
@@ -53,6 +56,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             "csv_files": csv_files,
             "sas_files": sas_files,
             "stata_files": stata_files,
+            "parquet_files": parquet_files,
             })
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
@@ -65,6 +69,7 @@ def create_data_file_by_format(directory_path = None):
     stata_files = []
     sas_files = []
     csv_files = []
+    parquet_files = []
 
     for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
@@ -78,7 +83,14 @@ def create_data_file_by_format(directory_path = None):
             if os.path.basename(file_name).endswith(".sas7bdat"):
                 log.info("Found sas file {}".format(file_path))
                 sas_files.append(file_path)
-    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files}
+            if os.path.basename(file_name).endswith(".parquet"):
+                log.info("Found parquet file {}".format(file_path))
+                relative = file_name[file_name.find(directory_path):]
+                if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", file_name):
+                    # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
+                    file_path = os.path.dirname(file_name)
+                parquet_files.append(file_path)
+    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files, 'parquet': parquet_files}
 
 
 def build_survey_collection(
@@ -111,12 +123,14 @@ def build_survey_collection(
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
         survey_name = '{}_{}'.format(collection_name, survey_suffix)
+        # Save the originals files list in the survey collection
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = survey_collection,
             csv_files = data_file_by_format.get('csv'),
             sas_files = data_file_by_format.get('sas'),
             stata_files = data_file_by_format.get('stata'),
+            parquet_files = data_file_by_format.get('parquet'),
             )
 
         valid_source_format = [
@@ -134,12 +148,18 @@ def build_survey_collection(
             os.mkdir(collections_directory)
         collection_json_path = os.path.join(collections_directory, "{}.json".format(collection_name))
         survey_collection.dump(json_file_path = collection_json_path)
-        surveys = [survey for survey in survey_collection.surveys if survey.name.endswith(str(survey_suffix))]
+        surveys = []
+        for survey in survey_collection.surveys:
+            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
+                surveys.append(survey)
         survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)
     return survey_collection
 
 
 def check_template_config_files(config_files_directory: str):
+    """
+    Create template config files if they do not exist.
+    """
     raw_data_ini_path = os.path.join(config_files_directory, 'raw_data.ini')
     config_ini_path = os.path.join(config_files_directory, 'config.ini')
     raw_data_template_ini_path = os.path.join(config_files_directory, 'raw_data_template.ini')

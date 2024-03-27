@@ -8,6 +8,7 @@ import gc
 import logging
 import os
 import pandas
+from pyarrow import parquet as pq
 
 
 from openfisca_survey_manager import read_sas
@@ -28,19 +29,17 @@ class Table(object):
     source_format = None
     survey = None
     variables = None
+    parquet_file = None
 
-    def __init__(self, survey = None, name = None, label = None, source_format = None, variables = None,
+    def __init__(self, survey = None, name = None, label = None, source_format = None, variables = None, parquet_file = None,
                  **kwargs):
         assert name is not None, "A table should have a name"
         self.name = name
-        if label is not None:
-            self.label = label
-        if variables is not None:
-            self.variables = variables
+        self.label = label
+        self.source_format = source_format
+        self.variables = variables
+        self.parquet_file = parquet_file
         self.informations = kwargs
-
-        if source_format is not None:
-            self.source_format = source_format
 
         from .surveys import Survey  # Keep it here to avoid infinite recursion
         assert isinstance(survey, Survey), 'survey is of type {} and not {}'.format(type(survey), Survey)
@@ -50,10 +49,12 @@ class Table(object):
 
         survey.tables[name] = collections.OrderedDict(
             source_format = source_format,
-            variables = variables
+            variables = variables,
+            parquet_file = parquet_file,
             )
 
     def _check_and_log(self, data_file_path):
+        """Check if the file exists and log the insertion."""
         if not os.path.isfile(data_file_path):
             raise Exception("file_path {} do not exists".format(data_file_path))
         log.info("Inserting table {} from file {} in HDF file {} at point {}".format(
@@ -63,7 +64,10 @@ class Table(object):
             self.name,
             ))
 
-    def _save(self, data_frame = None):
+    def _save(self, data_frame: pandas.DataFrame = None):
+        """
+        Save a data frame in the HDF5 file format.
+        """
         assert data_frame is not None
         table = self
         hdf5_file_path = table.survey.hdf5_file_path
@@ -81,7 +85,24 @@ class Table(object):
         self.save_data_frame(data_frame)
         gc.collect()
 
+    def read_parquet_columns(self, parquet_file = None) -> list:
+        """
+        Initialize the table from a parquet file.
+        """
+        if parquet_file is None:
+            parquet_file = self.parquet_file
+        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
+        self.source_format = 'parquet'
+        parquet_schema = pq.read_schema(parquet_file)
+        self.variables = parquet_schema.names
+        self.survey.tables[self.name]["variables"] = self.variables
+        return self.variables
+
     def fill_hdf(self, **kwargs):
+        """
+        Fill the HDF5 file with the table.
+        Read the `data_file` in parameter and save it in the HDF5 file.
+        """
         source_format = self.source_format
 
         reader_by_source_format = dict(
@@ -90,6 +111,7 @@ class Table(object):
             sas = read_sas.read_sas,
             spss = read_spss,
             stata = pandas.read_stata,
+            parquet = pandas.read_parquet,
             )
         start_table_time = datetime.datetime.now()
         data_file = kwargs.pop("data_file")
@@ -171,6 +193,7 @@ class Table(object):
                 raise e
 
     def save_data_frame(self, data_frame, **kwargs):
+        """Save a data frame in the HDF5 file format."""
         hdf5_file_path = self.survey.hdf5_file_path
         store_path = self.name
         try:
@@ -197,6 +220,11 @@ class Table(object):
 
 
 def clean_data_frame(data_frame):
+    """Clean a data frame.
+    - drop empty columns
+    - replace empty strings with zeros
+    - convert string columns to integers
+    """
     data_frame.columns = data_frame.columns.str.lower()
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
     log.info(
