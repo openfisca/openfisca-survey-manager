@@ -22,6 +22,16 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
+reader_by_source_format = dict(
+    # Rdata = pandas.rpy.common.load_data,
+    csv = pandas.read_csv,
+    sas = read_sas.read_sas,
+    spss = read_spss,
+    stata = pandas.read_stata,
+    parquet = pandas.read_parquet,
+    )
+
+
 class Table(object):
     """A table of a survey."""
     label = None
@@ -64,6 +74,21 @@ class Table(object):
             self.name,
             ))
 
+    def _is_stored(self):
+        if self.survey.hdf5_file_path is not None:
+            store = pandas.HDFStore(self.survey.hdf5_file_path)
+            if self.name in store:
+                log.info(
+                    'Exiting without overwriting {} in {}'.format(
+                        self.name, self.survey.hdf5_file_path))
+                store.close()
+                return True
+
+            store.close()
+            return False
+        else:
+            return False
+
     def _save(self, data_frame: pandas.DataFrame = None):
         """
         Save a data frame in the HDF5 file format.
@@ -87,84 +112,18 @@ class Table(object):
 
     def fill_store(self, **kwargs):
         """
-        Fill the HDF5 file with the table.
-        Read the `data_file` in parameter and save it in the HDF5 file.
+        Fill the store (HDF5 or parquet file) with the table.
+        Read the `data_file` in parameter and save it to the store.
         """
-        source_format = self.source_format
-        reader_by_source_format = dict(
-            # Rdata = pandas.rpy.common.load_data,
-            csv = pandas.read_csv,
-            sas = read_sas.read_sas,
-            spss = read_spss,
-            stata = pandas.read_stata,
-            parquet = pandas.read_parquet,
-            )
-        start_table_time = datetime.datetime.now()
-        data_file = kwargs.pop("data_file")
-        overwrite = kwargs.pop('overwrite')
-        clean = kwargs.pop("clean")
-
-        if not overwrite:
-            store = pandas.HDFStore(self.survey.hdf5_file_path)
-            if self.name in store:
-                log.info(
-                    'Exiting without overwriting {} in {}'.format(
-                        self.name, self.survey.hdf5_file_path))
-            store.close()
+        if not overwrite and self._is_stored():
+            log.info(
+                'Exiting without overwriting {} in {}'.format(
+                    self.name, self.survey.hdf5_file_path))
             return
         else:
-            self._check_and_log(data_file)
-            reader = reader_by_source_format[source_format]
-            try:
-                if source_format == 'csv':
-                    try:
-                        data_frame = reader(data_file, **kwargs)
 
-                        if len(data_frame.columns) == 1 and ";" in len(data_frame.columns[0]):
-                            raise ValueError("A ';' is presennt in the unique column name. Looks like we got the wrong separator.")
+            data_frame = self.read_source(**kwargs)
 
-                    except Exception:
-                        log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
-
-                        # Detect encoding
-                        detector = UniversalDetector()
-                        with open(data_file, 'rb') as csvfile:
-                            for line in csvfile:
-                                detector.feed(line)
-                                if detector.done:
-                                    break
-                            detector.close()
-
-                        encoding = detector.result['encoding']
-                        confidence = detector.result['confidence']
-
-                        # Sniff dialect
-                        try:
-                            with open(data_file, 'r', newline = "", encoding = encoding) as csvfile:
-                                dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
-                        except Exception:
-                            # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
-                            dialect = None
-                            delimiter = ";"
-
-                        log.debug(
-                            f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, encoding = {encoding}, confidence = {confidence}"
-                            )
-                        kwargs['engine'] = "python"
-                        if dialect:
-                            kwargs['dialect'] = dialect
-                        else:
-                            kwargs['delimiter'] = delimiter
-                        kwargs['encoding'] = encoding
-                        data_frame = reader(data_file, **kwargs)
-
-                else:
-                    data_frame = reader(data_file, **kwargs)
-
-            except Exception as e:
-                log.info('Error while reading {}'.format(data_file))
-                raise e
-            gc.collect()
             try:
                 if clean:
                     clean_data_frame(data_frame)
@@ -187,6 +146,68 @@ class Table(object):
         self.variables = parquet_schema.names
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables
+
+    def read_source(self, **kwargs):
+        source_format = self.source_format
+        start_table_time = datetime.datetime.now()
+        data_file = kwargs.pop("data_file")
+        overwrite = kwargs.pop('overwrite')
+        clean = kwargs.pop("clean")
+
+        self._check_and_log(data_file)
+        reader = reader_by_source_format[source_format]
+        try:
+            if source_format == 'csv':
+                try:
+                    data_frame = reader(data_file, **kwargs)
+
+                    if len(data_frame.columns) == 1 and ";" in len(data_frame.columns[0]):
+                        raise ValueError("A ';' is presennt in the unique column name. Looks like we got the wrong separator.")
+
+                except Exception:
+                    log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
+
+                    # Detect encoding
+                    detector = UniversalDetector()
+                    with open(data_file, 'rb') as csvfile:
+                        for line in csvfile:
+                            detector.feed(line)
+                            if detector.done:
+                                break
+                        detector.close()
+
+                    encoding = detector.result['encoding']
+                    confidence = detector.result['confidence']
+
+                    # Sniff dialect
+                    try:
+                        with open(data_file, 'r', newline = "", encoding = encoding) as csvfile:
+                            dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
+                    except Exception:
+                        # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
+                        dialect = None
+                        delimiter = ";"
+
+                    log.debug(
+                        f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, encoding = {encoding}, confidence = {confidence}"
+                        )
+                    kwargs['engine'] = "python"
+                    if dialect:
+                        kwargs['dialect'] = dialect
+                    else:
+                        kwargs['delimiter'] = delimiter
+                    kwargs['encoding'] = encoding
+                    data_frame = reader(data_file, **kwargs)
+
+            else:
+                data_frame = reader(data_file, **kwargs)
+
+        except Exception as e:
+            log.info('Error while reading {}'.format(data_file))
+            raise e
+
+        gc.collect()
+        return data_frame
 
     def save_data_frame(self, data_frame, **kwargs):
         """Save a data frame in the HDF5 file format."""
