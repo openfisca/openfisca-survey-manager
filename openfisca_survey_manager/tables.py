@@ -115,24 +115,27 @@ class Table(object):
         Fill the store (HDF5 or parquet file) with the table.
         Read the `data_file` in parameter and save it to the store.
         """
+        overwrite = kwargs.pop('overwrite')
+        clean = kwargs.pop("clean")
+        data_file = kwargs.pop("data_file")
+
         if not overwrite and self._is_stored():
             log.info(
-                'Exiting without overwriting {} in {}'.format(
-                    self.name, self.survey.hdf5_file_path))
+                f'Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}'
+                )
             return
-        else:
 
-            data_frame = self.read_source(**kwargs)
-
-            try:
-                if clean:
-                    clean_data_frame(data_frame)
-                self._save(data_frame = data_frame)
-                log.info("File {} has been processed in {}".format(
-                    data_file, datetime.datetime.now() - start_table_time))
-            except Exception as e:
-                log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
-                raise e
+        start_table_time = datetime.datetime.now()
+        data_frame = self.read_source(**kwargs)
+        try:
+            if clean:
+                clean_data_frame(data_frame)
+            self._save(data_frame = data_frame)
+            log.info("File {} has been processed in {}".format(
+                data_file, datetime.datetime.now() - start_table_time))
+        except Exception as e:
+            log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
+            raise e
 
     def read_parquet_columns(self, parquet_file = None) -> list:
         """
@@ -147,12 +150,8 @@ class Table(object):
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables
 
-    def read_source(self, **kwargs):
+    def read_source(self, data_file, **kwargs):
         source_format = self.source_format
-        start_table_time = datetime.datetime.now()
-        data_file = kwargs.pop("data_file")
-        overwrite = kwargs.pop('overwrite')
-        clean = kwargs.pop("clean")
 
         self._check_and_log(data_file)
         reader = reader_by_source_format[source_format]
