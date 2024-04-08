@@ -85,26 +85,12 @@ class Table(object):
         self.save_data_frame(data_frame)
         gc.collect()
 
-    def read_parquet_columns(self, parquet_file = None) -> list:
-        """
-        Initialize the table from a parquet file.
-        """
-        if parquet_file is None:
-            parquet_file = self.parquet_file
-        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
-        self.source_format = 'parquet'
-        parquet_schema = pq.read_schema(parquet_file)
-        self.variables = parquet_schema.names
-        self.survey.tables[self.name]["variables"] = self.variables
-        return self.variables
-
-    def fill_hdf(self, **kwargs):
+    def fill_store(self, **kwargs):
         """
         Fill the HDF5 file with the table.
         Read the `data_file` in parameter and save it in the HDF5 file.
         """
         source_format = self.source_format
-
         reader_by_source_format = dict(
             # Rdata = pandas.rpy.common.load_data,
             csv = pandas.read_csv,
@@ -118,8 +104,6 @@ class Table(object):
         overwrite = kwargs.pop('overwrite')
         clean = kwargs.pop("clean")
 
-        # if source_format == 'stata':
-        #     kwargs[]
         if not overwrite:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
@@ -132,7 +116,6 @@ class Table(object):
             self._check_and_log(data_file)
             reader = reader_by_source_format[source_format]
             try:
-
                 if source_format == 'csv':
                     try:
                         data_frame = reader(data_file, **kwargs)
@@ -191,6 +174,19 @@ class Table(object):
             except Exception as e:
                 log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
                 raise e
+
+    def read_parquet_columns(self, parquet_file = None) -> list:
+        """
+        Initialize the table from a parquet file.
+        """
+        if parquet_file is None:
+            parquet_file = self.parquet_file
+        log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
+        self.source_format = 'parquet'
+        parquet_schema = pq.read_schema(parquet_file)
+        self.variables = parquet_schema.names
+        self.survey.tables[self.name]["variables"] = self.variables
+        return self.variables
 
     def save_data_frame(self, data_frame, **kwargs):
         """Save a data frame in the HDF5 file format."""

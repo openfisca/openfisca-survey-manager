@@ -80,14 +80,11 @@ Contains the following surveys :
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
-        if source_format is not None:
-            assert source_format in ["csv", "Rdata", "sas", "spss", "stata", "parquet"], \
-                "Data source format {} is unknown".format(source_format)
+    def fill_store(self, source_format = None, surveys = None, tables = None, overwrite = False):
         if surveys is None:
             surveys = self.surveys
         for survey in surveys:
-            survey.fill_hdf(source_format = source_format, tables = tables, overwrite = overwrite)
+            survey.fill_store(source_format = source_format, tables = tables, overwrite = overwrite)
         self.dump()
 
     def get_survey(self, survey_name):

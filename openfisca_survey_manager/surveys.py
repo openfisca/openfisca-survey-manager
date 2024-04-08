@@ -90,9 +90,9 @@ Contains the following tables : \n""".format(self.name, self.label)
         assert self.survey_collection is not None
         self.survey_collection.dump()
 
-    def fill_hdf(self, source_format = None, tables = None, overwrite = True):
+    def fill_store(self, source_format = None, tables = None, overwrite = True):
         """
-        Convert data from the source files to hdf5.
+        Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
         """
         assert self.survey_collection is not None
@@ -108,10 +108,14 @@ Contains the following tables : \n""".format(self.name, self.label)
                 os.makedirs(directory_path)
 
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
-        if source_format is None:
-            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata', 'parquet']
-        else:
+
+        if source_format is not None:
+            assert source_format in ["csv", "Rdata", "sas", "spss", "stata", "parquet"], \
+                "Data source format {} is unknown".format(source_format)
             source_formats = [source_format]
+        else:
+            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata', 'parquet']
+
         for source_format in source_formats:
             files = "{}_files".format(source_format)
             for data_file in survey.informations.get(files, []):
@@ -125,7 +129,7 @@ Contains the following tables : \n""".format(self.name, self.label)
                             source_format = source_format_by_extension[extension[1:]],
                             survey = survey,
                             )
-                        table.fill_hdf(
+                        table.fill_store(
                             data_file = data_file,
                             clean = True,
                             overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,

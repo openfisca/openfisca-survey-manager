@@ -152,7 +152,7 @@ def build_survey_collection(
         for survey in survey_collection.surveys:
             if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
                 surveys.append(survey)
-        survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)
+        survey_collection.fill_store(source_format = source_format, surveys = surveys, overwrite = replace_data)
     return survey_collection
 
 
