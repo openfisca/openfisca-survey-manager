@@ -28,7 +28,7 @@ source_format_by_extension = dict(
     parquet = 'parquet',
     )
 
-admissible_source_formats = list(source_format_by_extension.keys())
+admissible_source_formats = list(source_format_by_extension.values())
 
 
 class NoMoreDataError(Exception):
