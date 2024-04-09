@@ -269,7 +269,7 @@ class Table(object):
 def clean_data_frame(data_frame):
     """Clean a data frame.
 
-    The following steps are excetcuted:
+    The following steps are executed:
     - drop empty columns
     - replace empty strings with zeros
     - convert string columns to integers
