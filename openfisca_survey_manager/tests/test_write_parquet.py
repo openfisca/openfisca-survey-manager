@@ -97,4 +97,5 @@ class TestWriteParquet(unittest.TestCase):
             replace_data=False,
             source_format="parquet",
             config_files_directory=data_dir,
+            keep_original_parquet_file=True,
             )
