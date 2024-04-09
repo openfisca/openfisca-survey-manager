@@ -130,10 +130,8 @@ class Table(object):
             store_format (str, optional): _description_. Defaults to "hdf5".
 
         Raises:
-            e: _description_
-        """        """
-        # """
-        # """
+            e: Skip file if error
+        """
         if not overwrite and self._is_stored():
             log.info(
                 f'Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}'
@@ -166,7 +164,6 @@ class Table(object):
 
     def read_source(self, data_file, **kwargs):
         source_format = self.source_format
-        store_format = self.survey.store_format
         store_file_path = (
             self.survey.hdf5_file_path
             if self.survey.store_format == "hdf5"
