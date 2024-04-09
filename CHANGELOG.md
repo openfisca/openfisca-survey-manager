@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+# 2.2.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+
+* Improve support for parquet file format :
+      - If a parquet file is provided to build-collection it will be cleaned an added to the collection as a parquet file.
+      - If the option `keep_original_parquet_file` is passed the parquet file is kept and added to the collection as is as is.
+
+
 # 2.1.0 [#277](https://github.com/openfisca/openfisca-survey-manager/pull/277)
 
 * New features

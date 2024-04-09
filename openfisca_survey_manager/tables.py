@@ -4,6 +4,7 @@ from chardet.universaldetector import UniversalDetector
 import collections
 import csv
 import datetime
+import errno
 import gc
 import logging
 import os
@@ -52,7 +53,7 @@ class Table(object):
         self.informations = kwargs
 
         from .surveys import Survey  # Keep it here to avoid infinite recursion
-        assert isinstance(survey, Survey), 'survey is of type {} and not {}'.format(type(survey), Survey)
+        assert isinstance(survey, Survey), f'survey is of type {type(survey)} and not {Survey}'
         self.survey = survey
         if not survey.tables:
             survey.tables = collections.OrderedDict()
@@ -63,24 +64,28 @@ class Table(object):
             parquet_file = parquet_file,
             )
 
-    def _check_and_log(self, data_file_path):
-        """Check if the file exists and log the insertion."""
+    def _check_and_log(self, data_file_path, store_file_path):
+        """
+        Check if the file exists and log the insertion.
+
+        Args:
+            data_file_path: Data file path
+            store_file_path: Store file or dir path
+
+        Raises:
+            Exception: File not found
+        """
+        assert store_file_path is not None, "Store file path cannot be None"
         if not os.path.isfile(data_file_path):
-            raise Exception("file_path {} do not exists".format(data_file_path))
-        log.info("Inserting table {} from file {} in HDF file {} at point {}".format(
-            self.name,
-            data_file_path,
-            self.survey.hdf5_file_path,
-            self.name,
-            ))
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_file_path)
+
+        log.info(f"Inserting table {self.name} from file {data_file_path} in store file {store_file_path} at point {self.name}")
 
     def _is_stored(self):
         if self.survey.hdf5_file_path is not None:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
-                log.info(
-                    'Exiting without overwriting {} in {}'.format(
-                        self.name, self.survey.hdf5_file_path))
+                log.info(f'Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}')
                 store.close()
                 return True
 
@@ -89,36 +94,46 @@ class Table(object):
         else:
             return False
 
-    def _save(self, data_frame: pandas.DataFrame = None):
+    def _save(self, data_frame: pandas.DataFrame = None, store_format = "hdf5"):
         """
-        Save a data frame in the HDF5 file format.
+        Save a data frame in the store according to is format (HDF5 or Parque).
         """
         assert data_frame is not None
-        table = self
-        hdf5_file_path = table.survey.hdf5_file_path
-        variables = table.variables
-        log.info("Inserting table {} in HDF file {}".format(table.name, hdf5_file_path))
+        variables = self.variables
+
         if variables:
             stored_variables = list(set(variables).intersection(set(data_frame.columns)))
-            log.info('The folloging variables are stored: {}'.format(stored_variables))
+            log.info(f'The folloging variables are stored: {stored_variables}')
             if set(stored_variables) != set(variables):
-                log.info('variables wanted by the user that were not available: {}'.format(
-                    list(set(variables) - set(stored_variables))
-                    ))
+                log.info(f'variables wanted by the user that were not available: {list(set(variables) - set(stored_variables))}')
             data_frame = data_frame[stored_variables].copy()
 
-        self.save_data_frame(data_frame)
+        assert store_format in ["hdf5", "parquet"], f"inavlide store_format: {store_format}"
+        if store_format == "hdf5":
+            self.save_data_frame_to_hdf5(data_frame)
+        else:
+            parquet_file_path = self.survey.parquet_file_path
+            log.info(f"Inserting table {self.name} in Parquet file {parquet_file_path}")
+            self.save_data_frame_to_parquet(data_frame)
         gc.collect()
 
-    def fill_store(self, **kwargs):
+
+    def fill_store(self, data_file, overwrite: bool = False, clean: bool = False, **kwargs):
         """
         Fill the store (HDF5 or parquet file) with the table.
         Read the `data_file` in parameter and save it to the store.
-        """
-        overwrite = kwargs.pop('overwrite')
-        clean = kwargs.pop("clean")
-        data_file = kwargs.pop("data_file")
 
+        Args:
+            data_file (_type_, optional): The data file path. Defaults to None.
+            overwrite (bool, optional): Overwrite the data. Defaults to False.
+            clean (bool, optional): Clean the raw data befoe saving. Defaults to False.
+            store_format (str, optional): _description_. Defaults to "hdf5".
+
+        Raises:
+            e: _description_
+        """        """
+        # """
+        # """
         if not overwrite and self._is_stored():
             log.info(
                 f'Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}'
@@ -130,11 +145,10 @@ class Table(object):
         try:
             if clean:
                 clean_data_frame(data_frame)
-            self._save(data_frame = data_frame)
-            log.info("File {} has been processed in {}".format(
-                data_file, datetime.datetime.now() - start_table_time))
+            self._save(data_frame = data_frame, store_format = self.survey.store_format)
+            log.info(f"File {data_file} has been processed in {datetime.datetime.now() - start_table_time}")
         except Exception as e:
-            log.info('Skipping file {} because of following error \n {}'.format(data_file, e))
+            log.info(f'Skipping file {data_file} because of following error \n {e}')
             raise e
 
     def read_parquet_columns(self, parquet_file = None) -> list:
@@ -152,8 +166,14 @@ class Table(object):
 
     def read_source(self, data_file, **kwargs):
         source_format = self.source_format
+        store_format = self.survey.store_format
+        store_file_path = (
+            self.survey.hdf5_file_path
+            if self.survey.store_format == "hdf5"
+            else self.survey.parquet_file_path
+            )
 
-        self._check_and_log(data_file)
+        self._check_and_log(data_file, store_file_path = store_file_path)
         reader = reader_by_source_format[source_format]
         try:
             if source_format == 'csv':
@@ -202,25 +222,26 @@ class Table(object):
                 data_frame = reader(data_file, **kwargs)
 
         except Exception as e:
-            log.info('Error while reading {}'.format(data_file))
+            log.info(f'Error while reading {data_file}')
             raise e
 
         gc.collect()
         return data_frame
 
-    def save_data_frame(self, data_frame, **kwargs):
+    def save_data_frame_to_hdf5(self, data_frame, **kwargs):
         """Save a data frame in the HDF5 file format."""
         hdf5_file_path = self.survey.hdf5_file_path
+        log.info(f"Inserting table {self.name} in HDF file {hdf5_file_path}")
         store_path = self.name
         try:
             data_frame.to_hdf(hdf5_file_path, store_path, append = False, **kwargs)
         except (TypeError, NotImplementedError):
-            log.info("Type problem(s) when creating {} in {}".format(store_path, hdf5_file_path))
+            log.info(f"Type problem(s) when creating {store_path} in {hdf5_file_path}")
             dtypes = data_frame.dtypes
             # Checking for strings
             converted_dtypes = dtypes.isin(['mixed', 'unicode'])
             if converted_dtypes.any():
-                log.info("The following types are converted to strings \n {}".format(dtypes[converted_dtypes]))
+                log.info(f"The following types are converted to strings \n {dtypes[converted_dtypes]}")
                 # Conversion to strings
                 for column in dtypes[converted_dtypes].index:
                     data_frame[column] = data_frame[column].copy().astype(str)
@@ -229,26 +250,40 @@ class Table(object):
             dtypes = data_frame.dtypes
             converted_dtypes = dtypes.isin(['category'])
             if not converted_dtypes.empty:  # With category table format is needed
-                log.info("The following types are added as category using the table format\n {}".format(dtypes[converted_dtypes]))
+                log.info(f"The following types are added as category using the table format\n {dtypes[converted_dtypes]}")
                 data_frame.to_hdf(hdf5_file_path, store_path, append = False, format = 'table', **kwargs)
 
         self.variables = list(data_frame.columns)
 
+    def save_data_frame_to_parquet(self, data_frame):
+        """Save a data frame in the Parquet file format."""
+        parquet_file_path = self.survey.parquet_file_path
+
+        if not os.path.isdir(parquet_file_path):
+            log.warn(f"{parquet_file_path} where to store table {self.name} data does not exist: we create the directory")
+            os.makedirs(parquet_file_path)
+        self.parquet_file = parquet_file_path + "/" + self.name
+        data_frame.to_parquet(self.parquet_file)
+        self.variables = list(data_frame.columns)
+
+        self.survey.tables[self.name]["parquet_file"] = self.parquet_file
+        self.survey.tables[self.name]["variables"] = self.variables
+
 
 def clean_data_frame(data_frame):
     """Clean a data frame.
+
+    The following steps are excetcuted:
     - drop empty columns
     - replace empty strings with zeros
     - convert string columns to integers
     """
     data_frame.columns = data_frame.columns.str.lower()
     object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
-    log.info(
-        "The following variables are to be cleaned or left as strings : \n {}".format(object_column_names)
-        )
+    log.info(f"The following variables are to be cleaned or left as strings : \n {object_column_names}")
     for column_name in object_column_names:
         if data_frame[column_name].isnull().all():  #
-            log.info("Drop empty column {}".format(column_name))
+            log.info(f"Drop empty column {column_name}")
             data_frame.drop(column_name, axis = 1, inplace = True)
             continue
 
@@ -259,22 +294,13 @@ def clean_data_frame(data_frame):
         all_digits = all([value.strip().isdigit() for value in values])
         no_zero = all([value != 0 for value in values])
         if all_digits and no_zero:
-            log.info(
-                "Replacing empty string with zero for variable {}".format(column_name)
-                )
+            log.info(f"Replacing empty string with zero for variable {column_name}")
             data_frame.replace(
-                to_replace = {
-                    column_name: {"": 0},
-                    },
+                to_replace = {column_name: {"": 0}},
                 inplace = True,
                 )
-            log.info(
-                "Converting string variable {} to integer".format(column_name)
-                )
+            log.info(f"Converting string variable {column_name} to integer")
             try:
                 data_frame[column_name] = data_frame[column_name].astype("int")
             except OverflowError:
-                log.info(
-                    'OverflowError when converting {} to int. Keeping as {}'.format(
-                        column_name, data_frame[column_name].dtype)
-                    )
+                log.info(f'OverflowError when converting {column_name} to int. Keeping as {data_frame[column_name].dtype}')
