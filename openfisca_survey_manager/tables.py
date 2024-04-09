@@ -108,7 +108,7 @@ class Table(object):
                 log.info(f'variables wanted by the user that were not available: {list(set(variables) - set(stored_variables))}')
             data_frame = data_frame[stored_variables].copy()
 
-        assert store_format in ["hdf5", "parquet"], f"inavlide store_format: {store_format}"
+        assert store_format in ["hdf5", "parquet"], f"invalid store_format: {store_format}"
         if store_format == "hdf5":
             self.save_data_frame_to_hdf5(data_frame)
         else:
@@ -177,10 +177,10 @@ class Table(object):
                     data_frame = reader(data_file, **kwargs)
 
                     if len(data_frame.columns) == 1 and ";" in len(data_frame.columns[0]):
-                        raise ValueError("A ';' is presennt in the unique column name. Looks like we got the wrong separator.")
+                        raise ValueError("A ';' is present in the unique column name. Looks like we got the wrong separator.")
 
                 except Exception:
-                    log.debug(f"Failing to read {data_file}, Trying to infer econding and dialect/sperator")
+                    log.debug(f"Failing to read {data_file}, Trying to infer encoding and dialect/separator")
 
                     # Detect encoding
                     detector = UniversalDetector()
