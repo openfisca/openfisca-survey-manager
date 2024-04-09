@@ -117,7 +117,6 @@ class Table(object):
             self.save_data_frame_to_parquet(data_frame)
         gc.collect()
 
-
     def fill_store(self, data_file, overwrite: bool = False, clean: bool = False, **kwargs):
         """
         Fill the store (HDF5 or parquet file) with the table.
