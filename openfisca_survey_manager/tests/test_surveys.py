@@ -30,7 +30,7 @@ def test_survey_parquet():
         survey_collection = survey_collection,
         )
     survey.insert_table(name = 'test_parquet')
-    survey.fill_hdf(source_format = 'parquet')
+    survey.fill_store(source_format = 'parquet')
 
 
 def test_survey():
@@ -57,7 +57,7 @@ def test_survey():
         survey_collection = survey_collection,
         )
     survey.insert_table(name = 'help')
-    survey.fill_hdf(source_format = 'sas')
+    survey.fill_store(source_format = 'sas')
 
 
 def test_survey_load():

@@ -17,7 +17,7 @@ def test_create_data_frame_by_entity():
     salary = survey_scenario.calculate_variable('salary', period = period)
     rent = survey_scenario.calculate_variable('rent', period = period)
     for entity, df in df_by_entity.items():
-        assert not df.empty, "{} dataframe is empty".format(entity)
+        assert not df.empty, f"{entity} dataframe is empty"
     assert (df_by_entity['person']['salary'] == salary).all().all()
     assert (df_by_entity['household']['rent'] == rent).all().all()
 

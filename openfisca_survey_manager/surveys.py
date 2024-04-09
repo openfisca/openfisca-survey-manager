@@ -28,6 +28,8 @@ source_format_by_extension = dict(
     parquet = 'parquet',
     )
 
+admissible_source_formats = list(source_format_by_extension.values())
+
 
 class NoMoreDataError(Exception):
     # Exception when the user ask for more data than available in file
@@ -66,8 +68,8 @@ class Survey(object):
         self.informations = kwargs
 
     def __repr__(self):
-        header = """{} : survey data {}
-Contains the following tables : \n""".format(self.name, self.label)
+        header = f"""{self.name} : survey data {self.label}
+Contains the following tables : \n"""
         tables = yaml.safe_dump(
             list(self.tables.keys()),
             default_flow_style = False)
@@ -90,47 +92,46 @@ Contains the following tables : \n""".format(self.name, self.label)
         assert self.survey_collection is not None
         self.survey_collection.dump()
 
-    def fill_hdf(self, source_format = None, tables = None, overwrite = True):
+    def fill_store(self, source_format = None, tables = None, overwrite = True, keep_original_parquet_file = False,
+            store_format = "hdf5"):
         """
-        Convert data from the source files to hdf5.
+        Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
         """
         assert self.survey_collection is not None
         assert isinstance(overwrite, bool) or isinstance(overwrite, list)
         survey = self
-        if survey.hdf5_file_path is None and 'parquet' not in source_format:
-            # Create folder if it does not exist
-            config = survey.survey_collection.config
-            directory_path = config.get("data", "output_directory")
-            if not os.path.isdir(directory_path):
-                log.warn("{} who should be the HDF5 data directory does not exist: we create the directory".format(
-                    directory_path))
-                os.makedirs(directory_path)
+        # Create folder if it does not exist
+        config = survey.survey_collection.config
+        directory_path = config.get("data", "output_directory")
+        if not os.path.isdir(directory_path):
+            log.warn(f"{directory_path} who should be the store data directory does not exist: we create the directory")
+            os.makedirs(directory_path)
 
+        if source_format == "parquet":
+            store_format = "parquet"
+
+        if store_format == "hdf5" and survey.hdf5_file_path is None:
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
-        if source_format is None:
-            source_formats = ['csv', 'stata', 'sas', 'spss', 'Rdata', 'parquet']
-        else:
+
+        if store_format == "parquet" and survey.parquet_file_path is None:
+            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+
+        self.store_format = store_format
+
+        if source_format is not None:
+            assert source_format in admissible_source_formats, f"Data source format {source_format} is unknown"
             source_formats = [source_format]
+        else:
+            source_formats = admissible_source_formats
+
         for source_format in source_formats:
-            files = "{}_files".format(source_format)
+            files = f"{source_format}_files"
             for data_file in survey.informations.get(files, []):
                 path_name, extension = os.path.splitext(data_file)
                 name = os.path.basename(path_name)
                 if tables is None or name in tables:
-                    if source_format != "parquet":
-                        table = Table(
-                            label = name,
-                            name = name,
-                            source_format = source_format_by_extension[extension[1:]],
-                            survey = survey,
-                            )
-                        table.fill_hdf(
-                            data_file = data_file,
-                            clean = True,
-                            overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
-                            )
-                    else:
+                    if keep_original_parquet_file:
                         # Use folder instead of files if numeric at end of file
                         if re.match(r".*-\d$", name):
                             name = name.split("-")[0]
@@ -148,6 +149,19 @@ Contains the following tables : \n""".format(self.name, self.label)
                             parquet_file = parquet_file,
                             )
                         table.read_parquet_columns(data_file)
+
+                    else:
+                        table = Table(
+                            label = name,
+                            name = name,
+                            source_format = source_format_by_extension[extension[1:]],
+                            survey = survey,
+                            )
+                        table.fill_store(
+                            data_file,
+                            clean = True,
+                            overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
+                            )
         self.dump()
 
     def find_tables(self, variable, tables = None, rename_ident = True):
@@ -174,18 +188,18 @@ Contains the following tables : \n""".format(self.name, self.label)
         if self.hdf5_file_path is not None:
             store = pandas.HDFStore(self.hdf5_file_path, "r")
             if table in store:
-                log.debug("Building columns index for table {}".format(table))
+                log.debug(f"Building columns index for table {table}")
                 data_frame = store[table]
                 if rename_ident is True:
                     for column_name in data_frame:
                         if ident_re.match(column_name) is not None:
                             data_frame.rename(columns = {column_name: "ident"}, inplace = True)
-                            log.info("{} column have been replaced by ident".format(column_name))
+                            log.info(f"{column_name} column have been replaced by ident")
                             break
                 store.close()
                 return list(data_frame.columns)
             else:
-                log.info('table {} was not found in {}'.format(table, store.filename))
+                log.info(f'table {table} was not found in {store.filename}')
                 store.close()
                 return list()
         elif self.parquet_file_path is not None:
@@ -228,10 +242,9 @@ Contains the following tables : \n""".format(self.name, self.label)
 
         """
         if self.parquet_file_path is None and self.hdf5_file_path is None:
-            raise Exception("No data file found for survey {}".format(self.name))
+            raise Exception(f"No data file found for survey {self.name}")
         if self.hdf5_file_path is not None:
-            assert os.path.exists(self.hdf5_file_path), '{} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'.format(
-                self.hdf5_file_path)
+            assert os.path.exists(self.hdf5_file_path), f'{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'
             store = pandas.HDFStore(self.hdf5_file_path, "r")
             if ignorecase:
                 keys = store.keys()
@@ -315,7 +328,7 @@ Contains the following tables : \n""".format(self.name, self.label)
                         df = pq.ParquetDataset(parquet_file).read(columns=columns).to_pandas()
                     break
             else:
-                raise Exception("No table {} found in {}".format(table, self.parquet_file_path))
+                raise Exception(f"No table {table} found in {self.parquet_file_path}")
 
         if lowercase:
             columns = dict((column_name, column_name.lower()) for column_name in df)
@@ -325,7 +338,7 @@ Contains the following tables : \n""".format(self.name, self.label)
             for column_name in df:
                 if ident_re.match(str(column_name)) is not None:
                     df.rename(columns = {column_name: "ident"}, inplace = True)
-                    log.info("{} column have been replaced by ident".format(column_name))
+                    log.info(f"{column_name} column have been replaced by ident")
                     break
 
         if variables is None:
@@ -333,7 +346,7 @@ Contains the following tables : \n""".format(self.name, self.label)
         else:
             diff = set(variables) - set(df.columns)
             if diff:
-                raise Exception("The following variable(s) {} are missing".format(diff))
+                raise Exception(f"The following variable(s) {diff} are missing")
             variables = list(set(variables).intersection(df.columns))
             df = df[variables]
             return df
@@ -341,7 +354,7 @@ Contains the following tables : \n""".format(self.name, self.label)
     def insert_table(self, label = None, name = None, **kwargs):
         """
         Inserts a table in the Survey object
-        If a pandas dataframe is provided, it is saved in the hdf5 file
+        If a pandas dataframe is provided, it is saved in the store file
         """
         parquet_file = kwargs.pop('parquet_file', None)
         data_frame = kwargs.pop('data_frame', None)
@@ -361,12 +374,12 @@ Contains the following tables : \n""".format(self.name, self.label)
             table = Table(label = label, name = name, survey = self, variables = variables, parquet_file = parquet_file)
             assert (table.survey.hdf5_file_path is not None) or (table.survey.parquet_file_path is not None)
             if parquet_file is not None:
-                log.debug("Saving table {} in {}".format(name, table.survey.parquet_file_path))
+                log.debug(f"Saving table {name} in {table.survey.parquet_file_path}")
                 data_frame.to_parquet(parquet_file)
             else:
-                log.debug("Saving table {} in {}".format(name, table.survey.hdf5_file_path))
+                log.debug(f"Saving table {name} in {table.survey.hdf5_file_path}")
                 to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
-                table.save_data_frame(data_frame, **to_hdf_kwargs)
+                table.save_data_frame_to_hdf5(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
             self.tables[name] = dict()

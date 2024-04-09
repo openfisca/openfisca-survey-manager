@@ -182,7 +182,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
     if table_name is None:
         table_name = entity + '_' + str(period)
     if table_label is None:
-        table_label = "Input data for entity {} at period {}".format(entity, period)
+        table_label = f"Input data for entity {entity} at period {period}"
     try:
         survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
     except configparser.NoOptionError as e:
@@ -218,16 +218,14 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
-            log.warning("{} who should be the data directory does not exist: we create the directory".format(
-                directory_path))
+            log.warning(f"{directory_path} who should be the data directory does not exist: we create the directory")
             os.makedirs(directory_path)
         if source_format is None:
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
         elif source_format == "parquet":
             survey.parquet_file_path = os.path.join(directory_path, survey.name)
             if not os.path.isdir(survey.parquet_file_path):
-                log.warning("{} who should be the parquet data directory does not exist: we create the directory".format(
-                    survey.parquet_file_path))
+                log.warning(f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory")
                 os.makedirs(survey.parquet_file_path)
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
@@ -240,9 +238,9 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
         ]
     survey_collection.surveys.append(survey)
     collections_directory = survey_collection.config.get('collections', 'collections_directory')
-    assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
-Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
-    collection_json_path = os.path.join(collections_directory, "{}.json".format(collection))
+    assert os.path.isdir(collections_directory), f"""{collections_directory} who should be the collections' directory does not exist.
+Fix the option collections_directory in the collections section of your config file."""
+    collection_json_path = os.path.join(collections_directory, f"{collection}.json")
     survey_collection.dump(json_file_path = collection_json_path)
 
 

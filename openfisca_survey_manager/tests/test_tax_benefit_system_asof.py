@@ -8,8 +8,7 @@ from openfisca_survey_manager.utils import parameters_asof, variables_asof
 
 def check_max_instant_leaf(sub_parameter, instant):
     for parameter_at_instant in sub_parameter.values_list:
-        assert periods.instant(parameter_at_instant.instant_str) <= instant, "Error for {}: \n {}".format(
-            sub_parameter.name, sub_parameter.values_list)
+        assert periods.instant(parameter_at_instant.instant_str) <= instant, f"Error for {sub_parameter.name}: \n {sub_parameter.values_list}"
 
 
 def check_max_instant(parameters, instant):

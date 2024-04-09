@@ -69,6 +69,4 @@ if default_config_files_directory is None:
     from xdg import BaseDirectory
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
 
-    log.debug('Using default_config_files_directory = {}'.format(
-        default_config_files_directory
-        ))
+    log.debug(f'Using default_config_files_directory = {default_config_files_directory}')

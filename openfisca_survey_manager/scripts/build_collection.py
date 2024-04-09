@@ -75,16 +75,16 @@ def create_data_file_by_format(directory_path = None):
         for file_name in files:
             file_path = os.path.join(root, file_name)
             if os.path.basename(file_name).endswith(".csv"):
-                log.info("Found csv file {}".format(file_path))
+                log.info(f"Found csv file {file_path}")
                 csv_files.append(file_path)
             if os.path.basename(file_name).endswith(".dta"):
-                log.info("Found stata file {}".format(file_path))
+                log.info(f"Found stata file {file_path}")
                 stata_files.append(file_path)
             if os.path.basename(file_name).endswith(".sas7bdat"):
-                log.info("Found sas file {}".format(file_path))
+                log.info(f"Found sas file {file_path}")
                 sas_files.append(file_path)
             if os.path.basename(file_name).endswith(".parquet"):
-                log.info("Found parquet file {}".format(file_path))
+                log.info(f"Found parquet file {file_path}")
                 relative = file_name[file_name.find(directory_path):]
                 if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", file_name):
                     # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
@@ -100,6 +100,7 @@ def build_survey_collection(
         replace_data = False,
         data_directory_path_by_survey_suffix = None,
         source_format = 'sas',
+        keep_original_parquet_file = False,
         ):
 
     assert collection_name is not None
@@ -152,7 +153,7 @@ def build_survey_collection(
         for survey in survey_collection.surveys:
             if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
                 surveys.append(survey)
-        survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)
+        survey_collection.fill_store(source_format = source_format, surveys = surveys, overwrite = replace_data, keep_original_parquet_file = keep_original_parquet_file)
     return survey_collection
 
 
@@ -204,7 +205,9 @@ def main():
         help = "erase existing collection metadata JSON file (instead of just adding new surveys)")
     parser.add_argument('-p', '--path', help = f'path to the config files directory (default = {default_config_files_directory})')
     parser.add_argument('-s', '--survey', help = 'name of survey to build or update (default = all)')
+    parser.add_argument('-k', '--keep_original_parquet_file', action = 'store_true', default = False, help = "Keep original and point to original parquet files")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
+
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
@@ -238,6 +241,7 @@ def main():
             replace_data = args.replace_data,
             source_format = 'sas',
             config_files_directory = config_files_directory,
+            keep_original_parquet_file = args.keep_original_parquet_file,
             )
     except Exception as e:
         log.info(e)
