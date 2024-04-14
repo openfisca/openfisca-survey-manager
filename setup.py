@@ -85,7 +85,7 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'chardet >=5.1.0, < 6.0',
-        'configparser >=5.3.0, < 6.0',
+        'configparser >= 5.3.0, < 8.0',
         'humanize >=4.6.0, < 5.0',
         'openfisca-core >=41.1.0, < 42.0',
         'pandas >=2.0.3, < 3.0',
