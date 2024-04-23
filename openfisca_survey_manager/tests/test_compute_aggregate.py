@@ -19,14 +19,12 @@ def test_compute_aggregate():
         "social_security_contribution",
         period = period,
         filter_by = "salary < 3000",
-        weighted = False,
         )
 
     assert 34489 == survey_scenario.compute_aggregate(
         "social_security_contribution",
         period = period,
         filter_by = "3000 < salary < 10000",
-        weighted = False,
         ).astype(int)
 
     del survey_scenario.weight_variable_by_entity
