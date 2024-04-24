@@ -33,4 +33,5 @@ def test_compute_aggregate():
         "social_security_contribution",
         period = period,
         filter_by = "3000 < salary < 10000",
+        weighted = False,
         ).astype(int)
