@@ -26,11 +26,16 @@ class Calibration(object):
         'initial_weight': None,
         'method': None,  # 'linear', 'raking ratio', 'logit'
         'up': None,
-        'invlo': None
+        'invlo': None,
+        'id_variable': None,
+        'id_variable_link': None
         }
     period = None
     simulation = None
     target_entity_count = None
+    target_entity = None
+    weight_name = None
+    entities = None
     weight_name = None
 
     def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
@@ -47,6 +52,7 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
+        self.entities = entities
 
         if len(entities) == 0:
             assert target_entity_count != 0
@@ -54,17 +60,32 @@ class Calibration(object):
                 entity.key
                 for entity in simulation.tax_benefit_system.entities
                 ]
-        elif len(entities) > 1:
+        elif len(entities) == 2:
+            assert "id_variable" in parameters.keys() and parameters["id_variable"] is not None, "With two entities involved, an id variable of the largest entity is needed"
+            assert "id_variable_link" in parameters.keys() and parameters["id_variable_link"] is not None, "With two entities involved, an id variable linking entity is needed"
+            entity_id_variable = variable_instance_by_variable_name[parameters["id_variable"]].entity.key
+            entity_id_variable_link = variable_instance_by_variable_name[parameters["id_variable_link"]].entity.key
+            assert entity_id_variable in entities, "'id_variable' do not correspond to a calibrating variable entity"
+            assert entity_id_variable_link in entities, "'id_variable' do not correspond to a calibrating variable entity"
+            assert entity_id_variable != entity_id_variable_link, "'id_variable_link' must associate a smaller entity to the id of the greater, 'id_variable'"
+            id_variable = simulation.calculate(parameters["id_variable"], period)
+            id_variable_link = simulation.calculate(parameters["id_variable_link"], period)
+            assert numpy.unique(id_variable_link).sort() == numpy.unique(id_variable).sort(), "There is no inclusion of one entity in the other"
+            assert len(id_variable) < len(id_variable_link), "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
+            entity = entity_id_variable
+        elif len(entities) > 2:
             raise NotImplementedError("Cannot hande multiple entites")
         else:
             entity = list(entities)[0]
+            if "id_variable" in parameters.keys():
+                assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == entity, "'id_variable' isn't the id of the entity targeted by the calibration variables"
 
         assert simulation.weight_variable_by_entity is not None
 
         weight_variable_name = simulation.weight_variable_by_entity.get(entity)
         self.weight_name = weight_name = weight_variable_name
 
-        self.entity = entity
+        self.target_entity = entity
         period = self.period
 
         if filter_by:
@@ -99,12 +120,23 @@ class Calibration(object):
         """
         # Select only filtered entities
         assert self._initial_weight_name is not None
-        data = pd.DataFrame()
-        data[self._initial_weight_name] = self.initial_weight * self.filter_by
+        data = dict()
+        for entity in self.entities:
+            data[entity] = pd.DataFrame()
+        data[self.target_entity][self._initial_weight_name] = self.initial_weight * self.filter_by
         period = self.period
         for variable in self.margins_by_variable:
             assert variable in self.simulation.tax_benefit_system.variables
-            data[variable] = self.simulation.calculate(variable, period = period)
+            data[self.simulation.tax_benefit_system.variables[variable].entity.key][variable] = self.simulation.adaptative_calculate_variable(variable, period = period)
+
+        if len(self.entities) == 2:
+            for entity in self.entities:
+                if entity == self.target_entity:
+                    data[entity["id_variable"]] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable"], period = period)
+                else:
+                    data[entity][self.simulation.weight_variable_by_entity[entity]] = self.initial_weight_by_entity[entity]
+                    data[entity["id_variable"]] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable_link"], period = period)
+        data["target_entity"] = {"name": self.target_entity}
 
         return data
 
@@ -231,11 +263,14 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = simulation.calculate(variable, period = period)
+            value = simulation.adaptative_calculate_variable(variable, period = period)
             weight_variable = simulation.weight_variable_by_entity[entity]
 
-            # weight = simulation.calculate(weight_variable, period)
-            # initial_weight = self.initial_weight_by_entity[entity]
+            if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable].entity.key != self.target_entity:
+                value_df = pd.DataFrame(value)
+                id_variable = simulation.id_variable_by_entity_key[self.target_entity]
+                value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
+                value = value_df.groupby(id_variable).sum().to_numpy()
 
             if filter_by != 1:
                 if weight_variable != self.weight_name:
