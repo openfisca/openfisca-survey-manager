@@ -156,7 +156,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         log.info("{} observations have a zero weight. Not used in the calibration.".format(
             (data_in[target_entity][initial_weight].fillna(0) <= 0).sum() - null_weight_observations))
 
-    variables = set(margins.keys()).intersection(set(data_in.columns))
+    variables = set(margins.keys()).intersection(set(data_in[target_entity].columns))
     for variable in variables:
         null_value_observations = data_in[target_entity][variable].isnull().sum()
         if null_value_observations > 0:
@@ -212,15 +212,15 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
 
     margins_new = {}
     margins_new_dict = {}
-    for entity in entities:
+    for entity in list(entities):
         for var, val in margins.items():
-            if var in entity.columns:
+            if var in data[entity].columns:
                 if isinstance(val, dict):
-                    dummies_dict = build_dummies_dict(data[var])
+                    dummies_dict = build_dummies_dict(data[entity][var])
                     k, pop = 0, 0
                     for cat, nb in val.items():
                         cat_varname = var + '_' + str(cat)
-                        data[target_entity][cat_varname] = dummies_dict[cat]
+                        data[entity][cat_varname] = dummies_dict[cat]
                         margins_new[cat_varname] = nb
                         if var not in margins_new_dict:
                             margins_new_dict[var] = {}
@@ -252,7 +252,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
     if hasattr(data, 'dummy_is_in_pop'):
         raise Exception('dummy_is_in_pop is not a valid variable name')
 
-    data['dummy_is_in_pop'] = ones(nk)
+    data[target_entity]['dummy_is_in_pop'] = ones(nk)
     margins_new['dummy_is_in_pop'] = total_population
     data_final = data[target_entity]
 
@@ -316,7 +316,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         log.debug("optimization converged after {} tries".format(tries))
 
     # rebuilding a weight vector with the same size of the initial one
-    pondfin_out = array(data_in[initial_weight], dtype = float64)
+    pondfin_out = array(data_in[target_entity][initial_weight], dtype = float64)
     pondfin_out[is_non_zero_weight] = pondfin
 
     del infodict, mesg  # TODO better exploit this information
