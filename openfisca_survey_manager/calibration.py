@@ -52,7 +52,7 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
-        self.entities = entities
+        self.entities = list(entities)
 
         if len(entities) == 0:
             assert target_entity_count != 0
@@ -112,11 +112,11 @@ class Calibration(object):
 
         self.parameters = parameters
 
-    def _build_calmar_data(self) -> pd.DataFrame:
+    def _build_calmar_data(self) -> dict:
         """Build the data dictionnary used as calmar input argument.
 
         Returns:
-            pd.DataFrame: Data used by calmar
+            dict containing one pd.DataFrame by entity: Data used by calmar, and the name of the aggregating entity
         """
         # Select only filtered entities
         assert self._initial_weight_name is not None
@@ -256,7 +256,7 @@ class Calibration(object):
         for variable in self.margins_by_variable:
             simulation = self.simulation
             period = self.period
-            entity = self.entity
+            entity = self.target_entity
 
             # These are the varying weights
             weight = self.weight
@@ -313,7 +313,7 @@ class Calibration(object):
         if parameters is None:
             parameters = dict()
 
-        entity = self.entity
+        entity = self.target_entity
         weight_variable = self.simulation.weight_variable_by_entity[entity]
 
         if self.weight_name != weight_variable:
