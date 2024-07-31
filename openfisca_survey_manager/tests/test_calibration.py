@@ -1,4 +1,3 @@
-import pytest
 
 from openfisca_core.tools import assert_near
 from openfisca_core import periods
@@ -45,15 +44,16 @@ def test_calibration_variable_entity_is_not_weight_entity():
     target_rent_aggregate = 200000
     target_salary_aggregate = 1e7
 
-    with pytest.raises(NotImplementedError):
-        survey_scenario.calibrate(
-            period,
-            target_margins_by_variable = {
-                'rent': target_rent_aggregate,
-                'salary': target_salary_aggregate
-                },
-            parameters = {"method": "raking ratio"},
-            )
+    survey_scenario.calibrate(
+        period,
+        target_margins_by_variable = {
+            'rent': target_rent_aggregate,
+            'salary': target_salary_aggregate
+            },
+        parameters = {"method": "raking ratio", "id_variable": "household_id", "id_variable_link": "household_id_ind"},
+        )
+    assert_near(survey_scenario.compute_aggregate("rent", period = period), target_rent_aggregate, absolute_error_margin = 1)
+    assert_near(survey_scenario.compute_aggregate("salary", period = period), target_salary_aggregate, absolute_error_margin = 1)
 
 
 def test_simulation_calibration_variable_entity_is_weight_entity():
