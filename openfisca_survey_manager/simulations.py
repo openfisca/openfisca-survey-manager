@@ -77,7 +77,7 @@ def adaptative_calculate_variable(simulation: Simulation, variable: str, period:
     tax_benefit_system = simulation.tax_benefit_system
     assert tax_benefit_system is not None
 
-    assert variable in tax_benefit_system.variables, "{variable} is not a valid variable"
+    assert variable in tax_benefit_system.variables, "{} is not a valid variable".format(variable)
     period_size_independent = tax_benefit_system.get_variable(variable).is_period_size_independent
     definition_period = tax_benefit_system.get_variable(variable).definition_period
 

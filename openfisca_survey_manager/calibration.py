@@ -40,6 +40,7 @@ class Calibration(object):
 
     def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
             filter_by = None, entity = None):
+        self.parameters = parameters
         self.period = period
         self.simulation = simulation
         if target_margins:
@@ -110,8 +111,6 @@ class Calibration(object):
             for variable, target in target_margins.items():
                 self.set_target_margin(variable, target)
 
-        self.parameters = parameters
-
     def _build_calmar_data(self) -> dict:
         """Build the data dictionnary used as calmar input argument.
 
@@ -132,10 +131,10 @@ class Calibration(object):
         if len(self.entities) == 2:
             for entity in self.entities:
                 if entity == self.target_entity:
-                    data[entity["id_variable"]] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable"], period = period)
+                    data[entity]["id_variable"] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable"], period = period)
                 else:
                     data[entity][self.simulation.weight_variable_by_entity[entity]] = self.initial_weight_by_entity[entity]
-                    data[entity["id_variable"]] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable_link"], period = period)
+                    data[entity]["id_variable"] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable_link"], period = period)
         data["target_entity"] = {"name": self.target_entity}
 
         return data
@@ -268,7 +267,7 @@ class Calibration(object):
 
             if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable].entity.key != self.target_entity:
                 value_df = pd.DataFrame(value)
-                id_variable = simulation.id_variable_by_entity_key[self.target_entity]
+                id_variable = self.parameters["id_variable_link"]
                 value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
                 value = value_df.groupby(id_variable).sum().to_numpy()
 
