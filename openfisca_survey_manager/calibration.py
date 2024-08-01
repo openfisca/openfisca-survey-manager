@@ -135,8 +135,7 @@ class Calibration(object):
                 else:
                     data[entity][self.simulation.weight_variable_by_entity[entity]] = self.initial_weight_by_entity[entity]
                     data[entity]['id_variable'] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable_link"], period = period)
-        data['target_entity'] = {'name': self.target_entity}
-        print("data['target_entity']", data["target_entity"])
+        data['target_entity'] = self.target_entity
 
         return data
 

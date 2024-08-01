@@ -46,7 +46,7 @@ def create_input_dataframe():
 
     df1['Z'] = df1.Z.astype(float)
     df1['POND'] = df1.POND.astype(float)
-    df = {"main_entity" : df1, "target_entity":{"name": "main_entity"}}
+    df = {"main_entity": df1, "target_entity": "main_entity"}
     return df
 
 

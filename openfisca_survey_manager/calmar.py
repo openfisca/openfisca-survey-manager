@@ -138,7 +138,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         dict: Updated margins
     """
     from scipy.optimize import fsolve
-    target_entity = data_in["target_entity"]["name"]
+    target_entity = data_in["target_entity"]
     smaller_entity = None
     entities = [target_entity]
     for key in data_in.keys():
