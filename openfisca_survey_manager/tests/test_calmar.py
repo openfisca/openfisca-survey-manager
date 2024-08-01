@@ -27,7 +27,7 @@ def create_input_dataframe():
         'J',
         'K',
         ]
-    df = pd.DataFrame(columns = columns, index = index)
+    df1 = pd.DataFrame(columns = columns, index = index)
     values_by_index = {
         'A': [1, 1, 1, 10],
         'B': [1, 2, 2, 0],
@@ -42,10 +42,11 @@ def create_input_dataframe():
         'K': [2, 2, 2, 14],
         }
     for index, values in values_by_index.items():
-        df.loc[index] = pd.Series(dict(zip(columns, values)))
+        df1.loc[index] = pd.Series(dict(zip(columns, values)))
 
-    df['Z'] = df.Z.astype(float)
-    df['POND'] = df.POND.astype(float)
+    df1['Z'] = df1.Z.astype(float)
+    df1['POND'] = df1.POND.astype(float)
+    df = {"main_entity" : df1, "target_entity":{"name": "main_entity"}}
     return df
 
 
@@ -83,8 +84,8 @@ def test_calmar():
     margins_by_variable = create_margins()
     pondfin_out, lambdasol, margins_new_dict = calmar(data, margins_by_variable, method = 'raking ratio', initial_weight = 'POND')
 
-    data['weightt_ratio'] = pondfin_out / data.POND
-    weight_ratio = data.sort_values(['X', 'Y', 'Z'])['weightt_ratio'].round(5)
+    data[data["target_entity"]["name"]]['weightt_ratio'] = pondfin_out / data[data["target_entity"]["name"]].POND
+    weight_ratio = data[data["target_entity"]["name"]].sort_values(['X', 'Y', 'Z'])['weightt_ratio'].round(5)
     null_target_weight_ratio = target_weight_ratio.isnull()
 
     assert weight_ratio.loc[null_target_weight_ratio.values].isnull().all(), "Error on Nan"
