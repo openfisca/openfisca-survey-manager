@@ -46,7 +46,7 @@ def create_input_dataframe():
 
     df1['Z'] = df1.Z.astype(float)
     df1['POND'] = df1.POND.astype(float)
-    df = {"main_entity": df1, "target_entity": "main_entity"}
+    df = {"main_entity": df1, "target_entity_name": "main_entity"}
     return df
 
 
@@ -84,8 +84,8 @@ def test_calmar():
     margins_by_variable = create_margins()
     pondfin_out, lambdasol, margins_new_dict = calmar(data, margins_by_variable, method = 'raking ratio', initial_weight = 'POND')
 
-    data[data["target_entity"]["name"]]['weightt_ratio'] = pondfin_out / data[data["target_entity"]["name"]].POND
-    weight_ratio = data[data["target_entity"]["name"]].sort_values(['X', 'Y', 'Z'])['weightt_ratio'].round(5)
+    data[data["target_entity_name"]]['weightt_ratio'] = pondfin_out / data[data["target_entity_name"]].POND
+    weight_ratio = data[data["target_entity_name"]].sort_values(['X', 'Y', 'Z'])['weightt_ratio'].round(5)
     null_target_weight_ratio = target_weight_ratio.isnull()
 
     assert weight_ratio.loc[null_target_weight_ratio.values].isnull().all(), "Error on Nan"
