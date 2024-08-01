@@ -26,7 +26,7 @@ def test_create_data_frame_by_entity_with_index():
     survey_scenario = create_randomly_initialized_survey_scenario()
     period = '2017-01'
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
-        variables = ['salary', 'rent', "person_id", "household_id"],
+        variables = ['salary', 'rent', "person_id"],
         period = period,
         index = True
         )
