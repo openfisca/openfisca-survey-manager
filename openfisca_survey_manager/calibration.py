@@ -210,7 +210,7 @@ class Calibration(object):
             )
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
-            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
+            filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
             categories = numpy.sort(numpy.unique(filtered_value))
             target_by_category = dict(zip(categories, target))
 
