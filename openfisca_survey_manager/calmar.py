@@ -4,7 +4,7 @@ import logging
 import operator
 import pandas as pd
 
-from numpy import exp, ones, zeros, unique, array, dot, float64, longdouble, sqrt
+from numpy import exp, ones, zeros, unique, array, dot, float64, sqrt
 from numpy import log as ln
 
 
@@ -91,16 +91,18 @@ def logit_prime(u, low, up):
         - (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)
         ) / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
+
 def hyperbolic_sinus(u, alpha):
-    l = ln(2 * alpha *u + sqrt(4 * (alpha ** 2) * (u ** 2) + 1))
-    return 0.5 * (l / alpha + sqrt((l / alpha) ** 2 + 4))
+    logarithm = ln(2 * alpha * u + sqrt(4 * (alpha ** 2) * (u ** 2) + 1))
+    return 0.5 * (logarithm / alpha + sqrt((logarithm / alpha) ** 2 + 4))
+
 
 def hyperbolic_sinus_prime(u, alpha):
     square = sqrt(4 * (alpha ** 2) * (u ** 2) + 1)
-    return(
-        0.5 * (((4 * (alpha ** 2) * u ) / square + 2 * alpha) / (alpha * (square + 2 * alpha * u)) +
+    return (
+        0.5 * (((4 * (alpha ** 2) * u) / square + 2 * alpha) / (alpha * (square + 2 * alpha * u)) +
                ((4 * (alpha ** 2) * u / square + 2 * alpha) * ln(square + 2 * alpha * u)) / ((alpha ** 2) * (square + 2 * alpha * u) * sqrt((ln(square + 2 * alpha * u) ** 2) + 4)))
-    )
+        )
 
 
 def build_dummies_dict(data):
