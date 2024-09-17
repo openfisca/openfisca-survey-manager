@@ -27,7 +27,7 @@ class Calibration(object):
         'method': None,  # 'linear', 'raking ratio', 'logit', 'hyperbolic sinus'
         'up': None,
         'invlo': None,
-        'alpha' : None
+        'alpha': None
         }
     period = None
     simulation = None
