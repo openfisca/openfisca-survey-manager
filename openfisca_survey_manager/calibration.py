@@ -24,9 +24,10 @@ class Calibration(object):
     parameters = {
         'use_proportions': True,
         'initial_weight': None,
-        'method': None,  # 'linear', 'raking ratio', 'logit'
+        'method': None,  # 'linear', 'raking ratio', 'logit', 'hyperbolic sinus'
         'up': None,
-        'invlo': None
+        'invlo': None,
+        'alpha' : None
         }
     period = None
     simulation = None
@@ -154,6 +155,9 @@ class Calibration(object):
             assert self.parameters.get('invlo') is not None and self.parameters.get('up') is not None
             p['lo'] = 1 / self.parameters.get('invlo')
             p['up'] = self.parameters.get('up')
+        if p['method'] == 'hyperbolic sinus':
+            assert self.parameters.get('alpha') is not None
+            p['alpha'] = self.parameters.get('alpha')
         p['use_proportions'] = self.parameters.get('use_proportions', True)
         p['initial_weight'] = self.weight_name + ""
         return p
