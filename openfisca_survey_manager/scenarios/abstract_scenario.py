@@ -105,11 +105,13 @@ class AbstractSurveyScenario(object):
             period = survey_scenario.period
 
         if parameters is not None:
-            assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
-                "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
+            assert parameters['method'] in ['linear', 'raking ratio', 'logit', 'hyperbolic sinus'], \
+                "Incorect parameter value: method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
             if parameters['method'] == 'logit':
                 assert parameters['invlo'] is not None
                 assert parameters['up'] is not None
+            elif parameters['method'] == 'hyperbolic sinus':
+                assert parameters['alpha'] is not None
         else:
             parameters = dict(method = 'logit', up = 3, invlo = 3)
 
