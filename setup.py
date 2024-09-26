@@ -30,7 +30,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '2.2.1',
+    version = '2.2.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -64,7 +64,7 @@ setup(
             'flake8-docstrings >=1.7.0, < 2.0',
             'flake8-print >=5.0.0, < 6.0',
             'flake8-rst-docstrings >=0.3.0, < 0.4.0',
-            'openfisca-country-template @ https://github.com/openfisca/country-template/archive/chore/update-core-42.0.0.zip',
+            'openfisca-country-template >=7.1.5, <8.0.0',
             'pytest >=8.3.3, < 9.0',
             'pytest-cov >=4.0.0, < 5.0',
             'scipy >=1.10.1, < 2.0',
@@ -87,7 +87,7 @@ setup(
         'chardet >=5.1.0, < 6.0',
         'configparser >=5.3.0, < 6.0',
         'humanize >=4.6.0, < 5.0',
-        'openfisca-core @ https://github.com/openfisca/openfisca-core/archive/fix-mypy-checks-periods.zip',
+        'openfisca-core >=42.0.0, <43.0.0',
         'pandas >=2.0.3, < 3.0',
         'pyarrow >=13.0.0, < 14.0.0',
         'pyxdg >=0.28, < 0.29',
