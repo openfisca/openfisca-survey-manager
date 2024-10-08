@@ -49,7 +49,7 @@ def create_input_dataframe(entities = 1):
     df = {"main_entity": df1, "target_entity_name": "main_entity"}
 
     if entities == 2:
-        columns2 = ['A', 'B', 'C', 'D','id_variable']
+        columns2 = ['A', 'B', 'C', 'D', 'id_variable']
         index2 = [
             0,
             1,
@@ -71,29 +71,28 @@ def create_input_dataframe(entities = 1):
             ]
         df2 = pd.DataFrame(columns = columns2, index = index2)
         values_by_index2 = {
-        0: [1, 1, 1, 10, "A"],
-        1: [1, 2, 0, 0, "A"],
-        2: [1, 2, 3, np.nan, "B"],
-        3: [2, 1, 1, 11, "C"],
-        4: [2, 1, 3, 13, "C"],
-        5: [2, 2, 2, 7, "C"],
-        6: [2, 2, 5, 8, "D"],
-        7: [1, 2, 2, 8, "E"],
-        8: [2, 1, 2, 9, "E"],
-        9: [np.nan, 2, 2, 10, "F"],
-        10: [2, 2, 2, 14, "G"],
-        11: [1, 2, 3, 7, "G"],
-        12: [2, 2, 8, 7, "H"],
-        13: [1, 1, 3, 7, "I"],
-        14: [1, 2, 4, 7, "I"],
-        15: [2, 1, 0, 7, "J"],
-        16: [2, 2, 3, 7, "K"],
+            0: [1, 1, 1, 10, "A"],
+            1: [1, 2, 0, 0, "A"],
+            2: [1, 2, 3, np.nan, "B"],
+            3: [2, 1, 1, 11, "C"],
+            4: [2, 1, 3, 13, "C"],
+            5: [2, 2, 2, 7, "C"],
+            6: [2, 2, 5, 8, "D"],
+            7: [1, 2, 2, 8, "E"],
+            8: [2, 1, 2, 9, "E"],
+            9: [np.nan, 2, 2, 10, "F"],
+            10: [2, 2, 2, 14, "G"],
+            11: [1, 2, 3, 7, "G"],
+            12: [2, 2, 8, 7, "H"],
+            13: [1, 1, 3, 7, "I"],
+            14: [1, 2, 4, 7, "I"],
+            15: [2, 1, 0, 7, "J"],
+            16: [2, 2, 3, 7, "K"],
             }
         for index, values in values_by_index2.items():
             df2.loc[index] = pd.Series(dict(zip(columns2, values)))
 
-
-        df = {"main_entity": df1, "target_entity_name": "main_entity", "second_entity": df2}#, "smaller_entity_name": "second_entity"
+        df = {"main_entity": df1, "target_entity_name": "main_entity", "second_entity": df2}
     return df
 
 
@@ -109,7 +108,7 @@ def create_margins(entities = 1):
             },
         'Z': 140.0
         }
-    if entities ==2:
+    if entities == 2:
         margins_by_variable['C'] = 85
         margins_by_variable['total_population'] = 80
         margins_by_variable['total_population2'] = 100
@@ -146,6 +145,7 @@ def test_calmar():
         == weight_ratio.loc[~null_target_weight_ratio.values].values
         ).all(), "Errors on non NaN values"
 
+
 def test_calmar_2_entities():
 
     data = create_input_dataframe(2)
@@ -158,8 +158,6 @@ def test_calmar_2_entities():
 
     assert -1 < sum(pondfin_out) - 80 < 1
     assert -5 < sum(pondfin_ind) - 100 < 5
-    #assert sum(data["second_entity"]) == 100
-
 
 
 if __name__ == '__main__':

@@ -209,7 +209,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
     if smaller_entity is not None:
         if 'total_population2' in margins:
             total_population2 = margins.pop('total_population2')
-        else :
+        else:
             total_population2 = total_population * len(data[smaller_entity]) / len(data[target_entity])
     else:
         total_population2 = 0
