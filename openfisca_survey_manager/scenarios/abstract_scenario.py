@@ -87,7 +87,7 @@ class AbstractSurveyScenario(object):
         return simulation.adaptative_calculate_variable(variable, period = period)
 
     def calibrate(self, period: int = None, target_margins_by_variable: dict = None, parameters: dict = None,
-            target_entity_count: float = None, entity: str = None):
+            target_entity_count: float = None, target_entity_count2: float = None, entity: str = None):
         """Calibrate the scenario data.
 
         Args:
@@ -95,6 +95,7 @@ class AbstractSurveyScenario(object):
             target_margins_by_variable (dict, optional): Variable targets margins. Defaults to None.
             parameters (dict, optional): Calibration parameters. Defaults to None.
             target_entity_count (float, optional): Total population target. Defaults to None.
+            target_entity_count2 (float, optional): Total population target of the second entity. Defaults to None.
             entity (str): Entity specified when no variable comes with a target margins but `target_entity_count` is not None.
         """
         survey_scenario = self
@@ -121,6 +122,7 @@ class AbstractSurveyScenario(object):
                 target_margins_by_variable,
                 period,
                 target_entity_count = target_entity_count,
+                target_entity_count2 = target_entity_count2,
                 entity = entity,
                 parameters = parameters,
                 # filter_by = self.filter_by,
@@ -512,7 +514,7 @@ class AbstractSurveyScenario(object):
 
         if calibration_kwargs is not None:
             assert set(calibration_kwargs.keys()).issubset(set(
-                ['target_margins_by_variable', 'parameters', 'target_entity_count', 'entity']))
+                ['target_margins_by_variable', 'parameters', 'target_entity_count', 'target_entity_count2', 'entity']))
 
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable', 'period']))

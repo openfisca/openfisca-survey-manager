@@ -118,6 +118,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
           - a scalar for numeric variables
           - a dictionnary with categories as key and populations as values
           - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
+          - eventually a key named `total_population2` with value the total number of the second entity. If absent it is initialized to the actual total population
 
         initial_weight (str): Initial weight variable.
         method (str, optional): Calibration method. Should be 'linear', 'raking ratio' or 'logit'. Defaults to 'linear'.
@@ -205,10 +206,17 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         total_population = margins.pop('total_population')
     else:
         total_population = data[target_entity][initial_weight].fillna(0).sum()
+    if smaller_entity is not None:
+        if 'total_population2' in margins:
+            total_population2 = margins.pop('total_population2')
+        else:
+            total_population2 = total_population * len(data[smaller_entity]) / len(data[target_entity])
+    else:
+        total_population2 = 0
 
     nk = len(data[target_entity][initial_weight])
-    # number of Lagrange parameters (at least total population)
-    nj = 1
+    # number of Lagrange parameters (at least total population, and potentially total population 2)
+    nj = 1 + (smaller_entity is not None)
 
     margins_new = {}
     margins_new_dict = {}
@@ -229,7 +237,8 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
                         k += 1
                         nj += 1
                     # Check total popualtion
-                    if pop != total_population:
+                    population = (entity == target_entity) * total_population + (entity != target_entity) * total_population2
+                    if pop != population:
                         if use_proportions:
                             log.info(
                                 'calmar: categorical variable {} is inconsistent with population; using proportions'.format(
@@ -238,22 +247,25 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
                                 )
                             for cat, nb in val.items():
                                 cat_varname = var + '_' + str(cat)
-                                margins_new[cat_varname] = nb * total_population / pop
-                                margins_new_dict[var][cat] = nb * total_population / pop
+                                margins_new[cat_varname] = nb * population / pop
+                                margins_new_dict[var][cat] = nb * population / pop
                         else:
                             raise Exception('calmar: categorical variable {} weights sums up to {} != {}'.format(
-                                var, pop, total_population))
+                                var, pop, population))
                 else:
                     margins_new[var] = val
                     margins_new_dict[var] = val
                     nj += 1
 
     # On conserve systematiquement la population
-    if hasattr(data, 'dummy_is_in_pop'):
-        raise Exception('dummy_is_in_pop is not a valid variable name')
+    if hasattr(data, 'dummy_is_in_pop') or hasattr(data, 'dummy_is_in_pop2'):
+        raise Exception('dummy_is_in_pop and dummy_is_in_pop2 are not valid variable names')
 
     data[target_entity]['dummy_is_in_pop'] = ones(nk)
     margins_new['dummy_is_in_pop'] = total_population
+    if smaller_entity:
+        data[smaller_entity]['dummy_is_in_pop2'] = ones(len(data[smaller_entity]['id_variable']))
+        margins_new['dummy_is_in_pop2'] = total_population2
     data_final = data[target_entity]
 
     if smaller_entity:
