@@ -33,12 +33,13 @@ class Calibration(object):
     period = None
     simulation = None
     target_entity_count = None
+    other_entity_count = None
     target_entity = None
     weight_name = None
     entities = None
     weight_name = None
 
-    def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
+    def __init__(self, simulation, target_margins, period, target_entity_count = None, other_entity_count = None, parameters = None,
             filter_by = None, entity = None):
         self.parameters = parameters
         self.period = period
@@ -100,6 +101,7 @@ class Calibration(object):
 
         self.initial_entity_count = sum(initial_weight * self.filter_by)
         self.target_entity_count = target_entity_count
+        self.other_entity_count = other_entity_count
 
         self.weight = initial_weight.copy()
 
@@ -159,8 +161,10 @@ class Calibration(object):
         else:
             simple_margins_by_variable = dict()
 
-        if self.target_entity_count:
+        if self.target_entity_count is not None:
             simple_margins_by_variable['total_population'] = self.target_entity_count
+        if self.other_entity_count is not None:
+            simple_margins_by_variable['total_population2'] = self.other_entity_count
 
         self._update_weights(simple_margins_by_variable, parameters = parameters)
         self._update_margins()
@@ -236,7 +240,7 @@ class Calibration(object):
             if weight_name == self.weight_name:
                 weight_variable = simulation.tax_benefit_system.variables[weight_name]
                 if weight_variable.formulas:
-                    weight_variable.formulas = [] #The weight variabe becomes an input variable after it changes with calibration
+                    weight_variable.formulas = []  # The weight variable becomes an input variable after it changes with calibration
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
@@ -326,6 +330,8 @@ class Calibration(object):
         parameters['initial_weight'] = self._initial_weight_name
         if self.target_entity_count:
             margins["total_population"] = self.target_entity_count
+        if self.other_entity_count:
+            margins["total_population2"] = self.other_entity_count
 
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
