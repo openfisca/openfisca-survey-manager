@@ -335,7 +335,7 @@ class Calibration(object):
 
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
-        # Updating only afetr filtering weights
+        # Updating only after filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
 
         return updated_margins
