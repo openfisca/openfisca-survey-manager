@@ -50,10 +50,12 @@ def test_calibration_variable_entity_is_not_weight_entity():
             'rent': target_rent_aggregate,
             'salary': target_salary_aggregate
             },
-        parameters = {"method": "raking ratio", "id_variable": "household_id", "id_variable_link": "household_id_ind"},
+        parameters = {"method": "raking ratio", "id_variable": "household_id", "id_variable_link": "household_id_ind", "other_entity_count": 70000, "target_entity_count": 30000},
         )
     assert_near(survey_scenario.compute_aggregate("rent", period = period), target_rent_aggregate, absolute_error_margin = 1)
     assert_near(survey_scenario.compute_aggregate("salary", period = period), target_salary_aggregate, absolute_error_margin = 1)
+    assert_near(survey_scenario.compute_aggregate("person_weight", period = period), 70000, absolute_error_margin = 1)
+    assert_near(survey_scenario.compute_aggregate("household_weight", period = period), 30000, absolute_error_margin = 1)
 
 
 def test_simulation_calibration_variable_entity_is_weight_entity():
