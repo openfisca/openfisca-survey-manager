@@ -37,7 +37,6 @@ class Calibration(object):
     target_entity = None
     weight_name = None
     entities = None
-    weight_name = None
 
     def __init__(self, simulation, target_margins, period, target_entity_count = None, other_entity_count = None, parameters = None,
             filter_by = None, entity = None):
@@ -335,7 +334,7 @@ class Calibration(object):
 
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
-        # Updating only afetr filtering weights
+        # Updating only after filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
 
         return updated_margins
