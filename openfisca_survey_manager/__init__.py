@@ -21,7 +21,7 @@ if taxipp_location is None or not os.path.exists(default_config_files_directory)
     default_config_files_directory = None
 
 
-# Hack for uising with france-data on a CI or locally
+# Hack for using with france-data on a CI or locally
 try:
     import openfisca_france_data
     france_data_location = Path(openfisca_france_data.__file__).parent.parent
@@ -69,6 +69,4 @@ if default_config_files_directory is None:
     from xdg import BaseDirectory
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
 
-    log.debug('Using default_config_files_directory = {}'.format(
-        default_config_files_directory
-        ))
+    log.debug(f'Using default_config_files_directory = {default_config_files_directory}')

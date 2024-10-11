@@ -57,6 +57,10 @@ Contains the following surveys :
         return header + "".join(surveys)
 
     def dump(self, config_files_directory = None, json_file_path = None):
+        """
+        Dump the survey collection to a json file
+        And set the json file path in the config file
+        """
         if self.config is not None:
             config = self.config
         else:
@@ -72,19 +76,15 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
-        config.save
         config.save()
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
-        if source_format is not None:
-            assert source_format in ["csv", "Rdata", "sas", "spss", "stata"], \
-                "Data source format {} is unknown".format(source_format)
+    def fill_store(self, source_format = None, surveys = None, tables = None, overwrite = False, keep_original_parquet_file = False):
         if surveys is None:
             surveys = self.surveys
         for survey in surveys:
-            survey.fill_hdf(source_format = source_format, tables = tables, overwrite = overwrite)
+            survey.fill_store(source_format = source_format, tables = tables, overwrite = overwrite, keep_original_parquet_file = keep_original_parquet_file)
         self.dump()
 
     def get_survey(self, survey_name):

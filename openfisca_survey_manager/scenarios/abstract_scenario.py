@@ -512,7 +512,7 @@ class AbstractSurveyScenario(object):
 
         if calibration_kwargs is not None:
             assert set(calibration_kwargs.keys()).issubset(set(
-                ['target_margins_by_variable', 'parameters', 'total_population']))
+                ['target_margins_by_variable', 'parameters', 'target_entity_count', 'entity']))
 
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable', 'period']))

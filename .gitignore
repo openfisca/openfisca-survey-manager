@@ -98,3 +98,7 @@ docs/_build/
 /tags
 tags
 .venv
+
+# Tests files
+*.parquet
+test_*.json

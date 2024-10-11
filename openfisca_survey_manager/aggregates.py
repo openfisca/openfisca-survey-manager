@@ -195,16 +195,14 @@ class AbstractAggregates(object):
                 index = [variable],
                 )
         weight = self.weight_variable_by_entity[column.entity.key]
-        assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
+        assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
 
         weight_array = simulation.calculate(weight, period = self.period).astype('float')
-        assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
-            weight, column.entity.key)
+        assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {column.entity.key}"
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
         variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
-        assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
-            variable, column.entity.key)
+        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {column.entity.key}"
         data = pd.DataFrame({
             variable: variable_array,
             weight: weight_array,

@@ -1,14 +1,69 @@
 ﻿# Changelog
 
-# 2.0.3 [#282](https://github.com/openfisca/openfisca-survey-manager/pull/282)
+## 2.2.1 [#298](https://github.com/openfisca/openfisca-survey-manager/pull/298)
+
+* For `compute_aggregate`, replace the warning by an assert when `weighted = True` (the default) and no weight is defined for the variable. Before, a warning was displayed and the aggregate was computed using uniform weights.
+
+## 2.2.0 [#295](https://github.com/openfisca/openfisca-survey-manager/pull/295)
+
+* Improve support for parquet file format :
+      - If a parquet file is provided to build-collection it will be cleaned an added to the collection as a parquet file.
+      - If the option `keep_original_parquet_file` is passed the parquet file is kept and added to the collection as is as is.
+
+## 2.1.0 [#277](https://github.com/openfisca/openfisca-survey-manager/pull/277)
+
+* New features
+  - Support parquet file format :
+      - if a parquet file is provided to build-collection it won't be converted in HDF5 but added to the collection as is.
+      - It is possible to provide a folder containing many files : each files will be used as a separate table.
+  - Run a simulation on a part of the input datasets (for the moment it works only for two entities simulations) :
+      - With a batch size option
+      - With a filter_by option
+
+### 2.0.10 [#285](https://github.com/openfisca/openfisca-survey-manager/pull/285)
+
+* Technical changes
+- Some arguments for calibration were not consistently named.
+
+### 2.0.9 [#294](https://github.com/openfisca/openfisca-survey-manager/pull/294)
+
+* Technical changes
+  - Add config files directory option in `set_table_in_survey`
+
+### 2.0.8 [#292](https://github.com/openfisca/openfisca-survey-manager/pull/292)
+
+* Technical change
+  - With the security enforcement of PyPi, we have to use token instead of login/password.
+
+### 2.0.7 [#293](https://github.com/openfisca/openfisca-survey-manager/pull/293)
+
+* Technical changes
+  - Improve correction done in https://github.com/openfisca/openfisca-survey-manager/pull/286/files
+
+### 2.0.6 [#291](https://github.com/openfisca/openfisca-survey-manager/pull/291)
+
+* Technical changes
+  - Fix the script check-version-and-changelog.sh to fix issue #288
+  - Upgrade CI actions
+
+### 2.0.5 [#286](https://github.com/openfisca/openfisca-survey-manager/pull/286)
+
+* New features
+  - Allows sub-annual weighted aggregates in compute_aggregate when the weights are annual.
+
+### 2.0.4 [#283](https://github.com/openfisca/openfisca-survey-manager/pull/283)
+
+- Correction function compute_pivot_tables in ReformScenario
+
+### 2.0.3 [#282](https://github.com/openfisca/openfisca-survey-manager/pull/282)
 
 - Correction typo error in create_data_frame_by_entity
 
-# 2.0.2 [#280](https://github.com/openfisca/openfisca-survey-manager/pull/280)
+### 2.0.2 [#280](https://github.com/openfisca/openfisca-survey-manager/pull/280)
 
 - Add a try/except for the tests config in openfisca_survey_manager/__init__.py
 
-# 2.0.1 [#279](https://github.com/openfisca/openfisca-survey-manager/pull/279)
+### 2.0.1 [#279](https://github.com/openfisca/openfisca-survey-manager/pull/279)
 
 #### Technical changes
 

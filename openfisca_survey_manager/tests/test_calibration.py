@@ -1,11 +1,15 @@
 import pytest
 
-
 from openfisca_core.tools import assert_near
-
+from openfisca_core import periods
 
 from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
+from openfisca_survey_manager.tests.test_scenario import generate_input_input_dataframe_by_entity
 from openfisca_survey_manager.calibration import Calibration
+
+from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.tests import tax_benefit_system
 
 
 def test_calibration_variable_entity_is_weight_entity():
@@ -82,3 +86,33 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     assert all(person_weight_after != person_weight_before)
     assert calibration.initial_entity_count != calibration.target_entity_count
     assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
+
+
+def test_simulation_calibration_input_from_data():
+    input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
+        10, 5, 5000, 1000)
+    survey_scenario = AbstractSurveyScenario()
+    weight_variable_by_entity = {
+        "person": "person_weight",
+        "household": "household_weight",
+        }
+    survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
+    survey_scenario.period = '2017-01'
+    survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
+    period = periods.period('2017-01')
+    target_rent_aggregate = 200000
+
+    data = {
+        'input_data_frame_by_entity_by_period': {
+            period: input_data_frame_by_entity
+            },
+        'config_files_directory': default_config_files_directory
+        }
+    calibration_kwargs = {'target_margins_by_variable': {'rent': target_rent_aggregate}, 'target_entity_count': 300, 'parameters': {'method': 'logit', 'up': 4, 'invlo': 4}}
+    survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
+    assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
+    survey_scenario.init_from_data(data = data, calibration_kwargs=calibration_kwargs)
+    for simulation_name, simulation in survey_scenario.simulations.items():
+        assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
+        assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
+    return survey_scenario
