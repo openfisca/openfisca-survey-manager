@@ -2,6 +2,7 @@
 
 import logging
 import numpy as np
+from numpy import logical_or as or_
 import pandas as pd
 import re
 from typing import Callable, Dict, List, Optional, Union
@@ -165,6 +166,7 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
     uniform_weight = np.array(1.0)
     weight_variable = None
     if weighted:
+        assert or_(alternative_weights, weight_variable_by_entity), "The weighted option is set at True but there is no weight variable for entity {} nor alternative weights. Either define a weight variable or switch to unweighted".format(entity_key)
         if alternative_weights:
             if isinstance(alternative_weights, str):
                 assert alternative_weights in tax_benefit_system.variables, \
@@ -174,13 +176,8 @@ def compute_aggregate(simulation: Simulation, variable: str = None, aggfunc: str
             elif (type(alternative_weights) is int) or (type(alternative_weights) is float):
                 weight_variable = None
                 uniform_weight = float(alternative_weights)
-
-        else:
-            if weight_variable_by_entity:
-                weight_variable = weight_variable_by_entity[entity_key]
-
-            else:
-                log.warn('There is no weight variable for entity {} nor alternative weights. Switch to unweighted'.format(entity_key))
+        elif weight_variable_by_entity:
+            weight_variable = weight_variable_by_entity[entity_key]
 
     if variable in simulation.tax_benefit_system.variables:
         value = simulation.adaptative_calculate_variable(variable = variable, period = period)

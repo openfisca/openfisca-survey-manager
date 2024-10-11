@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 2.2.1 [#298](https://github.com/openfisca/openfisca-survey-manager/pull/298)
+
+* For `compute_aggregate`, replace the warning by an assert when `weighted = True` (the default) and no weight is defined for the variable. Before, a warning was displayed and the aggregate was computed using uniform weights.
+
 ## 2.2.0 [#295](https://github.com/openfisca/openfisca-survey-manager/pull/295)
 
 * Improve support for parquet file format :
