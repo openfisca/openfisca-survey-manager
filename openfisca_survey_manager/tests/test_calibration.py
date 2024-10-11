@@ -93,6 +93,38 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
 
 
+def test_simulation_calibration_variable_entity_is_weight_entity_with_hyperbolic_sinus():
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+    period = "2017-01"
+    survey_scenario.period = period
+    simulation = list(survey_scenario.simulations.values())[0]
+    person_weight_before = simulation.calculate("person_weight", period)
+
+    # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)
+    target_rent_aggregate = 200000
+
+    calibration = Calibration(
+        simulation,
+        period = "2017-01",
+        target_margins = {
+            'rent': target_rent_aggregate,
+            },
+        target_entity_count = 300,
+        parameters = {"method": "hyperbolic sinus", 'alpha': 1.2},
+        )
+
+    calibration.calibrate(inplace = True)
+    assert all(calibration.weight != calibration.initial_weight)
+
+    assert_near(simulation.compute_aggregate("rent", period = period), target_rent_aggregate)
+
+    # See if propagation to derived weights is done well
+    person_weight_after = simulation.calculate("person_weight", period)
+    assert all(person_weight_after != person_weight_before)
+    assert calibration.initial_entity_count != calibration.target_entity_count
+    assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
+
+
 def test_simulation_calibration_input_from_data():
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         10, 5, 5000, 1000)
