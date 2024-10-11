@@ -150,6 +150,9 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         np.array: Margins adjusting weights
         float: Lagrangian parameter
         dict: Updated margins
+
+    Sources:
+        https://github.com/InseeFrLab/Calmar2/blob/main/manuel_utilisation.pdf
     """
     from scipy.optimize import fsolve
     # remove null weights and keep original data
