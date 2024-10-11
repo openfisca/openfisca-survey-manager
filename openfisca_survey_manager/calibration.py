@@ -37,7 +37,6 @@ class Calibration(object):
     target_entity = None
     weight_name = None
     entities = None
-    weight_name = None
 
     def __init__(self, simulation, target_margins, period, target_entity_count = None, other_entity_count = None, parameters = None,
             filter_by = None, entity = None):
