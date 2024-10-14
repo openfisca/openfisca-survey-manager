@@ -90,6 +90,12 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
 def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate = False, reform = None):
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
+    for entity in input_data_frame_by_entity.keys():
+        if entity == "person":
+            input_data_frame_by_entity[entity]["household_id_ind"] = input_data_frame_by_entity[entity]["household_id"]
+        if entity == "household":
+            input_data_frame_by_entity[entity]["household_id"] = input_data_frame_by_entity[entity].index
+
     survey_scenario = AbstractSurveyScenario()
     weight_variable_by_entity = {
         "person": "person_weight",
@@ -103,7 +109,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
             baseline = tax_benefit_system,
             ))
     survey_scenario.period = 2017
-    survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight']
+    survey_scenario.used_as_input_variables = ['salary', 'rent', 'household_weight', 'household_id', 'household_id_ind']
     period = periods.period('2017-01')
 
     data = {
