@@ -238,8 +238,7 @@ class Calibration(object):
         for weight_name in simulation.weight_variable_by_entity.values():
             if weight_name == self.weight_name:
                 weight_variable = simulation.tax_benefit_system.variables[weight_name]
-                if weight_variable.formulas:
-                    weight_variable.formulas = []  # The weight variable becomes an input variable after it changes with calibration
+                weight_variable.unit = "base_weight"  # The weight variable is flagged as the one that have changed
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
