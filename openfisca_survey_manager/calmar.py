@@ -3,7 +3,8 @@
 import logging
 import operator
 
-from numpy import exp, ones, zeros, unique, array, dot, float64
+from numpy import exp, ones, zeros, unique, array, dot, float64, sqrt
+from numpy import log as ln
 
 
 log = logging.getLogger(__name__)
@@ -90,6 +91,19 @@ def logit_prime(u, low, up):
         ) / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
 
+def hyperbolic_sinus(u, alpha):
+    logarithm = ln(2 * alpha * u + sqrt(4 * (alpha ** 2) * (u ** 2) + 1))
+    return 0.5 * (logarithm / alpha + sqrt((logarithm / alpha) ** 2 + 4))
+
+
+def hyperbolic_sinus_prime(u, alpha):
+    square = sqrt(4 * (alpha ** 2) * (u ** 2) + 1)
+    return (
+        0.5 * (((4 * (alpha ** 2) * u) / square + 2 * alpha) / (alpha * (square + 2 * alpha * u)) +
+               ((4 * (alpha ** 2) * u / square + 2 * alpha) * ln(square + 2 * alpha * u)) / ((alpha ** 2) * (square + 2 * alpha * u) * sqrt((ln(square + 2 * alpha * u) ** 2) + 4)))
+        )
+
+
 def build_dummies_dict(data):
     """
 
@@ -107,7 +121,7 @@ def build_dummies_dict(data):
     return output
 
 
-def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = None, up = None, use_proportions: bool = False,
+def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = None, up = None, alpha = None, use_proportions: bool = False,
         xtol: float = 1.49012e-08, maxfev: int = 256):
     """Calibrates weights to satisfy margins constraints.
 
@@ -119,9 +133,10 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
           - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
 
         initial_weight (str): Initial weight variable.
-        method (str, optional): Calibration method. Should be 'linear', 'raking ratio' or 'logit'. Defaults to 'linear'.
+        method (str, optional): Calibration method. Should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'. Defaults to 'linear'.
         lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method. Should be < 1. Defaults to None.
         up (float, optional): Upper bound on weights ratio. Mandatory when using logit method. Should be > 1. Defaults to None.
+        alpha (float, optional): Bound on weights ratio. Mandatory when using hyperbolic sinus method. Should be > 0. Defaults to None.
         use_proportions (bool, optional): When True use proportions if total population from margins doesn't match total population. Defaults to False.
         xtol (float, optional): Relative precision on lagrangian multipliers.  Defaults to 1.49012e-08 (fsolve xtol).
         maxfev (int, optional): Maximum number of function evaluation. Defaults to 256.
@@ -135,6 +150,9 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         np.array: Margins adjusting weights
         float: Lagrangian parameter
         dict: Updated margins
+
+    Sources:
+        https://github.com/InseeFrLab/Calmar2/blob/main/manuel_utilisation.pdf
     """
     from scipy.optimize import fsolve
     # remove null weights and keep original data
@@ -166,7 +184,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         raise Exception("Calmar requires non empty dict of margins")
 
     # choose method
-    assert method in ['linear', 'raking ratio', 'logit'], "method should be 'linear', 'raking ratio' or 'logit'"
+    assert method in ['linear', 'raking ratio', 'logit', 'hyperbolic sinus'], "method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
     if method == 'linear':
         F = linear
         F_prime = linear_prime
@@ -184,6 +202,15 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
 
         def F_prime(x):
             return logit_prime(x, lo, up)
+    elif method == 'hyperbolic sinus':
+        assert alpha is not None, "When method == 'hyperbolic sinus', a value > 0 for alpha is mandatory"
+        assert alpha > 0, "alpha should be > 0"
+
+        def F(x):
+            return hyperbolic_sinus(x, alpha)
+
+        def F_prime(x):
+            return hyperbolic_sinus_prime(x, alpha)
 
     margins = margins.copy()
     # Construction observations matrix
