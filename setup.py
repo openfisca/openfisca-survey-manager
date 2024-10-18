@@ -30,7 +30,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Survey-Manager',
-    version = '2.2.2',
+    version = '2.2.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -85,7 +85,7 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'chardet >=5.1.0, < 6.0',
-        'configparser >=5.3.0, < 6.0',
+        'configparser >= 5.3.0, < 8.0',
         'humanize >=4.6.0, < 5.0',
         'openfisca-core >=42.0.0, <43.0.0',
         'pandas >=2.0.3, < 3.0',

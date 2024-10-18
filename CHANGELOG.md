@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 2.2.2 [#297](https://github.com/openfisca/openfisca-survey-manager/pull/297)
+
+* Minor change.
+  - Update configarser to 8.0.0
+
 ### 2.2.2 [#302](https://github.com/openfisca/openfisca-survey-manager/pull/302)
 
 * Minor change.
