@@ -60,7 +60,7 @@ setup(
             'autopep8 >=2.0.2, < 3',
             'coveralls >=3.3.1, < 4.0',
             'flake8 >=6.0.0, < 7.0',
-            'flake8-bugbear >=23.3.12, < 24.0',
+            'flake8-bugbear >= 23.3.12, < 25.0',
             'flake8-docstrings >=1.7.0, < 2.0',
             'flake8-print >=5.0.0, < 6.0',
             'flake8-rst-docstrings >=0.3.0, < 0.4.0',
