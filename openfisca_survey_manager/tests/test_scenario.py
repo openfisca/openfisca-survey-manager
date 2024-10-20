@@ -33,7 +33,7 @@ def create_randomly_initialized_survey_scenario(
     collection: Optional[str] = "test_random_generator",
     use_marginal_tax_rate: bool = False,
     reform: Optional[Callable] = None
-) -> AbstractSurveyScenario:
+    ) -> AbstractSurveyScenario:
     """
     Create a randomly initialized survey scenario.
 
@@ -65,7 +65,7 @@ def create_randomly_initialized_survey_scenario_from_table(
     collection: str,
     use_marginal_tax_rate: bool,
     reform: Optional[Callable] = None
-) -> AbstractSurveyScenario:
+    ) -> AbstractSurveyScenario:
     """
     Create a randomly initialized survey scenario from a table.
 
@@ -141,9 +141,9 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     rent_max_value: float,
     use_marginal_tax_rate: bool = False,
     reform: Optional[Callable] = None
-) -> AbstractSurveyScenario:
+    ) -> AbstractSurveyScenario:
     """
-    Create a randomly initialized survey scenario from a data frame.
+        Create a randomly initialized survey scenario from a data frame.
 
     Args:
         nb_persons (int): Number of persons
@@ -194,7 +194,7 @@ def generate_input_input_dataframe_by_entity(
     nb_groups: int,
     salary_max_value: float,
     rent_max_value: float
-) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
     """
     Generate input dataframe by entity with randomly initialized variables.
 
@@ -334,7 +334,7 @@ def test_survey_scenario_input_dataframe_import(
     nb_groups: int = 5,
     salary_max_value: float = 50000,
     rent_max_value: float = 1000,
-) -> None:
+    ) -> None:
     """
     Test the import of input dataframes into a survey scenario.
 
@@ -373,7 +373,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(
     nb_groups: int = 5,
     salary_max_value: float = 50000,
     rent_max_value: float = 1000
-) -> None:
+    ) -> None:
     """
     Test survey scenario input dataframe import with scrambled IDs.
 
