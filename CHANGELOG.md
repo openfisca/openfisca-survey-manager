@@ -1,4 +1,5 @@
 ﻿# Changelog
+
 ### 2.2.3 [#304](https://github.com/openfisca/openfisca-survey-manager/pull/304)
 
 * Minor change.
