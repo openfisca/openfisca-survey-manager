@@ -26,14 +26,14 @@ log = logging.getLogger(__name__)
 
 
 def create_randomly_initialized_survey_scenario(
-    nb_persons: int = 10,
-    nb_groups: int = 5,
-    salary_max_value: float = 50000,
-    rent_max_value: float = 1000,
-    collection: Optional[str] = "test_random_generator",
-    use_marginal_tax_rate: bool = False,
-    reform: Optional[Callable] = None
-    ) -> AbstractSurveyScenario:
+        nb_persons: int = 10,
+        nb_groups: int = 5,
+        salary_max_value: float = 50000,
+        rent_max_value: float = 1000,
+        collection: Optional[str] = "test_random_generator",
+        use_marginal_tax_rate: bool = False,
+        reform: Optional[Callable] = None
+        ) -> AbstractSurveyScenario:
     """
     Create a randomly initialized survey scenario.
 
@@ -58,14 +58,14 @@ def create_randomly_initialized_survey_scenario(
 
 
 def create_randomly_initialized_survey_scenario_from_table(
-    nb_persons: int,
-    nb_groups: int,
-    salary_max_value: float,
-    rent_max_value: float,
-    collection: str,
-    use_marginal_tax_rate: bool,
-    reform: Optional[Callable] = None
-    ) -> AbstractSurveyScenario:
+        nb_persons: int,
+        nb_groups: int,
+        salary_max_value: float,
+        rent_max_value: float,
+        collection: str,
+        use_marginal_tax_rate: bool,
+        reform: Optional[Callable] = None
+        ) -> AbstractSurveyScenario:
     """
     Create a randomly initialized survey scenario from a table.
 
@@ -135,13 +135,13 @@ def create_randomly_initialized_survey_scenario_from_table(
 
 
 def create_randomly_initialized_survey_scenario_from_data_frame(
-    nb_persons: int,
-    nb_groups: int,
-    salary_max_value: float,
-    rent_max_value: float,
-    use_marginal_tax_rate: bool = False,
-    reform: Optional[Callable] = None
-    ) -> AbstractSurveyScenario:
+        nb_persons: int,
+        nb_groups: int,
+        salary_max_value: float,
+        rent_max_value: float,
+        use_marginal_tax_rate: bool = False,
+        reform: Optional[Callable] = None
+        ) -> AbstractSurveyScenario:
     """
         Create a randomly initialized survey scenario from a data frame.
 
@@ -190,11 +190,11 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
 
 
 def generate_input_input_dataframe_by_entity(
-    nb_persons: int,
-    nb_groups: int,
-    salary_max_value: float,
-    rent_max_value: float
-    ) -> Dict[str, Any]:
+        nb_persons: int,
+        nb_groups: int,
+        salary_max_value: float,
+        rent_max_value: float
+        ) -> Dict[str, Any]:
     """
     Generate input dataframe by entity with randomly initialized variables.
 
@@ -231,14 +231,12 @@ def generate_input_input_dataframe_by_entity(
 
 
 def test_input_dataframe_generator(
-    nb_persons: int = 10,
-    nb_groups: int = 5,
-    salary_max_value: float = 50000,
-    rent_max_value: float = 1000
-    ) -> None:
-    """
-    Test the input dataframe generator function.
-    """
+        nb_persons: int = 10,
+        nb_groups: int = 5,
+        salary_max_value: float = 50000,
+        rent_max_value: float = 1000
+        ) -> None:
+    """Test the input dataframe generator function."""
     input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     assert (input_dataframe_by_entity['person']['household_role'] == "first_parent").sum() == 5
@@ -264,11 +262,11 @@ def test_input_dataframe_generator(
 # qui sont employées dans le calcul des simulations, les autres variables n'étant pas utilisées dans le calcul,
 # étant dans la base en entrée mais pas dans la base en sortie (la base de la simulation)
 def test_init_from_data(
-    nb_persons: int = 10,
-    nb_groups: int = 5,
-    salary_max_value: float = 50000,
-    rent_max_value: float = 1000,
-    ) -> None:
+        nb_persons: int = 10,
+        nb_groups: int = 5,
+        salary_max_value: float = 50000,
+        rent_max_value: float = 1000,
+        ) -> None:
     """
     Test the initialization of data in the survey scenario.
 
@@ -330,11 +328,11 @@ def test_init_from_data(
 
 
 def test_survey_scenario_input_dataframe_import(
-    nb_persons: int = 10,
-    nb_groups: int = 5,
-    salary_max_value: float = 50000,
-    rent_max_value: float = 1000,
-    ) -> None:
+        nb_persons: int = 10,
+        nb_groups: int = 5,
+        salary_max_value: float = 50000,
+        rent_max_value: float = 1000,
+        ) -> None:
     """
     Test the import of input dataframes into a survey scenario.
 
@@ -369,11 +367,11 @@ def test_survey_scenario_input_dataframe_import(
 
 
 def test_survey_scenario_input_dataframe_import_scrambled_ids(
-    nb_persons: int = 10,
-    nb_groups: int = 5,
-    salary_max_value: float = 50000,
-    rent_max_value: float = 1000
-    ) -> None:
+        nb_persons: int = 10,
+        nb_groups: int = 5,
+        salary_max_value: float = 50000,
+        rent_max_value: float = 1000
+        ) -> None:
     """
     Test survey scenario input dataframe import with scrambled IDs.
 
