@@ -1,7 +1,10 @@
+"""Tests for the survey scenario functionality in OpenFisca Survey Manager."""
+
 import shutil
 import logging
 import os
 import pytest
+from typing import Dict, Any, List, Optional, Callable
 
 
 from openfisca_core import periods
@@ -22,9 +25,30 @@ from openfisca_survey_manager.tests import tax_benefit_system
 log = logging.getLogger(__name__)
 
 
-def create_randomly_initialized_survey_scenario(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000, collection = "test_random_generator", use_marginal_tax_rate = False, reform = None):
+def create_randomly_initialized_survey_scenario(
+    nb_persons: int = 10,
+    nb_groups: int = 5,
+    salary_max_value: float = 50000,
+    rent_max_value: float = 1000,
+    collection: Optional[str] = "test_random_generator",
+    use_marginal_tax_rate: bool = False,
+    reform: Optional[Callable] = None
+) -> AbstractSurveyScenario:
+    """
+    Create a randomly initialized survey scenario.
 
+    Args:
+        nb_persons (int): Number of persons
+        nb_groups (int): Number of groups
+        salary_max_value (float): Maximum salary value
+        rent_max_value (float): Maximum rent value
+        collection (Optional[str]): Collection name
+        use_marginal_tax_rate (bool): Use marginal tax rate
+        reform (Optional[Callable]): Reform function
+
+    Returns:
+        AbstractSurveyScenario: Initialized survey scenario
+    """
     if collection is not None:
         return create_randomly_initialized_survey_scenario_from_table(
             nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate, reform = reform)
@@ -33,7 +57,30 @@ def create_randomly_initialized_survey_scenario(nb_persons = 10, nb_groups = 5, 
             nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate, reform = reform)
 
 
-def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups, salary_max_value, rent_max_value, collection, use_marginal_tax_rate, reform = None):
+def create_randomly_initialized_survey_scenario_from_table(
+    nb_persons: int,
+    nb_groups: int,
+    salary_max_value: float,
+    rent_max_value: float,
+    collection: str,
+    use_marginal_tax_rate: bool,
+    reform: Optional[Callable] = None
+) -> AbstractSurveyScenario:
+    """
+    Create a randomly initialized survey scenario from a table.
+
+    Args:
+        nb_persons (int): Number of persons
+        nb_groups (int): Number of groups
+        salary_max_value (float): Maximum salary value
+        rent_max_value (float): Maximum rent value
+        collection (str): Collection name
+        use_marginal_tax_rate (bool): Use marginal tax rate
+        reform (Optional[Callable]): Reform function
+
+    Returns:
+        AbstractSurveyScenario: Initialized survey scenario
+    """
     variable_generators_by_period = {
         periods.period('2017-01'): [
             {
@@ -87,7 +134,28 @@ def create_randomly_initialized_survey_scenario_from_table(nb_persons, nb_groups
     return survey_scenario
 
 
-def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_groups, salary_max_value, rent_max_value, use_marginal_tax_rate = False, reform = None):
+def create_randomly_initialized_survey_scenario_from_data_frame(
+    nb_persons: int,
+    nb_groups: int,
+    salary_max_value: float,
+    rent_max_value: float,
+    use_marginal_tax_rate: bool = False,
+    reform: Optional[Callable] = None
+) -> AbstractSurveyScenario:
+    """
+    Create a randomly initialized survey scenario from a data frame.
+
+    Args:
+        nb_persons (int): Number of persons
+        nb_groups (int): Number of groups
+        salary_max_value (float): Maximum salary value
+        rent_max_value (float): Maximum rent value
+        use_marginal_tax_rate (bool): Use marginal tax rate
+        reform (Optional[Callable]): Reform function
+
+    Returns:
+        AbstractSurveyScenario: Initialized survey scenario
+    """
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
@@ -121,7 +189,24 @@ def create_randomly_initialized_survey_scenario_from_data_frame(nb_persons, nb_g
     return survey_scenario
 
 
-def generate_input_input_dataframe_by_entity(nb_persons, nb_groups, salary_max_value, rent_max_value):
+def generate_input_input_dataframe_by_entity(
+    nb_persons: int,
+    nb_groups: int,
+    salary_max_value: float,
+    rent_max_value: float
+) -> Dict[str, Any]:
+    """
+    Generate input dataframe by entity with randomly initialized variables.
+
+    Args:
+        nb_persons (int): Number of persons
+        nb_groups (int): Number of groups
+        salary_max_value (float): Maximum salary value
+        rent_max_value (float): Maximum rent value
+
+    Returns:
+        Dict[str, Any]: Input dataframe by entity
+    """
     input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     randomly_init_variable(
         tax_benefit_system,
@@ -145,8 +230,15 @@ def generate_input_input_dataframe_by_entity(nb_persons, nb_groups, salary_max_v
     return input_dataframe_by_entity
 
 
-def test_input_dataframe_generator(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000):
+def test_input_dataframe_generator(
+    nb_persons: int = 10,
+    nb_groups: int = 5,
+    salary_max_value: float = 50000,
+    rent_max_value: float = 1000
+    ) -> None:
+    """
+    Test the input dataframe generator function.
+    """
     input_dataframe_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     assert (input_dataframe_by_entity['person']['household_role'] == "first_parent").sum() == 5
@@ -171,9 +263,21 @@ def test_input_dataframe_generator(nb_persons = 10, nb_groups = 5, salary_max_va
 # On vérifie que l'attribut `used_as_input_variables` correspond à la liste des variables
 # qui sont employées dans le calcul des simulations, les autres variables n'étant pas utilisées dans le calcul,
 # étant dans la base en entrée mais pas dans la base en sortie (la base de la simulation)
-def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000):
+def test_init_from_data(
+    nb_persons: int = 10,
+    nb_groups: int = 5,
+    salary_max_value: float = 50000,
+    rent_max_value: float = 1000,
+    ) -> None:
+    """
+    Test the initialization of data in the survey scenario.
 
+    Args:
+        nb_persons: Number of persons to generate in the test data.
+        nb_groups: Number of household groups to generate.
+        salary_max_value: Maximum value for randomly generated salaries.
+        rent_max_value: Maximum value for randomly generated rents.
+    """
     # Set up test : the minimum necessary data to perform an `init_from_data`
     survey_scenario = AbstractSurveyScenario()
     assert survey_scenario.simulations is None
@@ -225,9 +329,21 @@ def test_init_from_data(nb_persons = 10, nb_groups = 5, salary_max_value = 50000
     assert data_out['household']['rent'].equals(table_men['rent'])
 
 
-def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000):
+def test_survey_scenario_input_dataframe_import(
+    nb_persons: int = 10,
+    nb_groups: int = 5,
+    salary_max_value: float = 50000,
+    rent_max_value: float = 1000,
+) -> None:
+    """
+    Test the import of input dataframes into a survey scenario.
 
+    Args:
+        nb_persons: Number of persons to generate.
+        nb_groups: Number of household groups.
+        salary_max_value: Maximum salary value.
+        rent_max_value: Maximum rent value.
+    """
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)
     survey_scenario = AbstractSurveyScenario()
@@ -252,11 +368,21 @@ def test_survey_scenario_input_dataframe_import(nb_persons = 10, nb_groups = 5, 
         ).all()
 
 
-def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, nb_groups = 5, salary_max_value = 50000,
-        rent_max_value = 1000):
-    '''
-        On teste que .init_from_data fait
-    '''
+def test_survey_scenario_input_dataframe_import_scrambled_ids(
+    nb_persons: int = 10,
+    nb_groups: int = 5,
+    salary_max_value: float = 50000,
+    rent_max_value: float = 1000
+) -> None:
+    """
+    Test survey scenario input dataframe import with scrambled IDs.
+
+    Args:
+        nb_persons: Number of persons to generate.
+        nb_groups: Number of household groups.
+        salary_max_value: Maximum salary value.
+        rent_max_value: Maximum rent value.
+    """
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value)  # Un dataframe d'exemple que l'on injecte
     input_data_frame_by_entity['person']['household_id'] = 4 - input_data_frame_by_entity['person']['household_id']
@@ -282,7 +408,8 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(nb_persons = 10, n
         ).all()
 
 
-def test_dump_survey_scenario():
+def test_dump_survey_scenario() -> None:
+    """Test the dump and restore functionality of survey scenarios."""
     survey_scenario = create_randomly_initialized_survey_scenario()
     directory = os.path.join(
         openfisca_survey_manager_location,
@@ -314,7 +441,8 @@ def test_dump_survey_scenario():
 
 
 @pytest.mark.order(before="test_add_survey_to_collection.py::test_add_survey_to_collection")
-def test_inflate():
+def test_inflate() -> None:
+    """Test the inflate method of the survey scenario."""
     survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
     period = "2017-01"
     inflator = 2.42
@@ -354,7 +482,8 @@ def test_inflate():
 
 
 @pytest.mark.order(before="test_add_survey_to_collection.py::test_add_survey_to_collection")
-def test_compute_pivot_table():
+def test_compute_pivot_table() -> None:
+    """Test the compute_pivot_table method of the survey scenario."""
     survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
     period = "2017-01"
     pivot_table = survey_scenario.compute_pivot_table(columns = ['age'], values = ["salary"], period = period, simulation = "baseline")
@@ -369,7 +498,8 @@ def test_compute_pivot_table():
     assert pivot_table.values.round() == 13570.
 
 
-def test_compute_quantile():
+def test_compute_quantile() -> List[float]:
+    """Test the compute_quantiles method of the survey scenario."""
     survey_scenario = create_randomly_initialized_survey_scenario()
     period = "2017-01"
     quintiles = survey_scenario.compute_quantiles(variable = "salary", nquantiles = 5, period = period, weighted = False, simulation = "baseline")

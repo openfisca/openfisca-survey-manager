@@ -181,9 +181,7 @@ Contains the following tables : \n"""
         return container_tables
 
     def get_columns(self, table, rename_ident = True):
-        """
-        Get columns of a table.
-        """
+        """Get columns of a table."""
         assert table is not None
         if self.hdf5_file_path is not None:
             store = pandas.HDFStore(self.hdf5_file_path, "r")
@@ -352,8 +350,8 @@ Contains the following tables : \n"""
             return df
 
     def insert_table(self, label = None, name = None, **kwargs):
-        """
-        Inserts a table in the Survey object
+        """Insert a table in the Survey object.
+
         If a pandas dataframe is provided, it is saved in the store file
         """
         parquet_file = kwargs.pop('parquet_file', None)
@@ -387,6 +385,7 @@ Contains the following tables : \n"""
             self.tables[name][key] = val
 
     def to_json(self):
+        """Convert the survey to a JSON object."""
         self_json = collections.OrderedDict((
             ))
         self_json['hdf5_file_path'] = self.hdf5_file_path

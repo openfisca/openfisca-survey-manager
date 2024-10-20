@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 @pytest.mark.order(after="test_write_parquet.py::TestWriteParquet::test_write_parquet_one_file_per_entity")
 class TestParquet(TestCase):
+    """Tests for Parquet file operations."""
+
     data_dir = os.path.join(
         openfisca_survey_manager_location,
         "openfisca_survey_manager",
@@ -32,6 +34,7 @@ class TestParquet(TestCase):
     survey_name = "test_parquet_survey"
 
     def test_add_survey_to_collection_parquet(self):
+        """Test adding a parquet survey to a collection."""
         survey_collection = SurveyCollection(name=self.collection_name)
         survey_file_path = os.path.join(self.data_dir, self.collection_name)
         add_survey_to_collection(
@@ -43,6 +46,7 @@ class TestParquet(TestCase):
         assert self.survey_name in list(ordered_dict["surveys"].keys())
 
     def test_build_collection(self):
+        """Test building a survey collection from parquet files."""
         collection_name = self.collection_name
         json_file = os.path.join(
             self.data_dir,
@@ -73,9 +77,7 @@ class TestParquet(TestCase):
 
     @pytest.mark.order(after="test_build_collection")
     def test_load_single_parquet_monolithic(self):
-        """
-        Test the loading all the data from parquet files in memory.
-        """
+        """Test loading all the data from parquet files in memory."""
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
         survey_name = self.collection_name + "_2020"
@@ -126,9 +128,7 @@ class TestParquet(TestCase):
         assert (results['income_tax'] == [195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
 
     def test_load_multiple_parquet_monolithic(self):
-        """
-        Test the loading all the data from parquet files in memory.
-        """
+        """Test loading all data from parquet files in memory."""
         collection_name = 'test_multiple_parquet_collection'
         data_dir = os.path.join(self.data_dir, collection_name)
         # Create survey scenario
@@ -182,7 +182,9 @@ class TestParquet(TestCase):
 
     def test_load_parquet_batch(self):
         """
-        Test the batch loading of data from parquet files. This allow loading larger than memory datasets.
+        Test the batch loading of data from parquet files.
+
+        This allow loading larger than memory datasets.
         """
         df = pd.read_parquet(
             os.path.join(self.data_dir, self.collection_name, "household.parquet")
