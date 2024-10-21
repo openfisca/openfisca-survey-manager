@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 2.2.3 [#304](https://github.com/openfisca/openfisca-survey-manager/pull/304)
+
+* Minor change.
+  - Add docstrings and types to some tests.
+
 ### 2.2.2 [#297](https://github.com/openfisca/openfisca-survey-manager/pull/297)
 
 * Minor change.

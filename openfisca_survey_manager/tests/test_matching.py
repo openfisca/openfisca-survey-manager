@@ -1,3 +1,4 @@
+"""Tests for the matching functionality in OpenFisca Survey Manager."""
 
 import pandas as pd
 
@@ -13,6 +14,7 @@ except ImportError:
 
 
 def test_reproduction():
+    """Test the reproduction of examples from the StatMatch documentation."""
     if rpy2 is None:
         return
 
@@ -88,6 +90,7 @@ def test_reproduction():
 
 
 def test_nnd_hotdeck_using_rpy2():
+    """Test the nnd_hotdeck_using_rpy2 function with iris dataset."""
     if rpy2 is None:
         print('rpy2 is absent: skipping test')  # noqa analysis:ignore
         return
