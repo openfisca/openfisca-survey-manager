@@ -30,7 +30,7 @@ requirements:
     #  PyPI 'tables' library is named 'pytables' for conda
     - {{ req.replace('tables', 'pytables') }}
     {% else %}
-    - {{ req }}
+    - {{ req | replace(" ","")}}
     {% endif %}
     {% endfor %}
 
