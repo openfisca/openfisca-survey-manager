@@ -1,11 +1,16 @@
 ﻿# Changelog
 
-### 2.2.3 [#304](https://github.com/openfisca/openfisca-survey-manager/pull/304)
+### 2.2.5 [#305](https://github.com/openfisca/openfisca-survey-manager/pull/305)
 
 * Minor change.
   - Add docstrings and types to some tests.
 
-### 2.2.2 [#297](https://github.com/openfisca/openfisca-survey-manager/pull/297)
+### 2.2.4 [#304](https://github.com/openfisca/openfisca-survey-manager/pull/304)
+
+* Minor change.
+  - Add docstrings and types to some tests.
+
+### 2.2.3 [#297](https://github.com/openfisca/openfisca-survey-manager/pull/297)
 
 * Minor change.
   - Update configarser to 8.0.0
