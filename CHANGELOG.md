@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 2.2.6 [#308](https://github.com/openfisca/openfisca-survey-manager/pull/308)
+
+* Minor change.
+  - Update OpenFisca-Core to 43.0.0
+
 ### 2.2.5 [#305](https://github.com/openfisca/openfisca-survey-manager/pull/305)
 
 * Minor change.
