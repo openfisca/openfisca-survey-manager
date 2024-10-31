@@ -4,7 +4,7 @@ import logging
 import operator
 import pandas as pd
 
-from numpy import exp, ones, zeros, unique, array, dot, float64, longdouble
+from numpy import exp, ones, zeros, unique, array, dot, float64
 
 
 log = logging.getLogger(__name__)
@@ -195,10 +195,10 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
         assert lo < 1, "lo should be < 1"
 
         def F(x):
-            return logit(x, longdouble(lo), longdouble(up))
+            return logit(x, lo, up)
 
         def F_prime(x):
-            return logit_prime(x, longdouble(lo), longdouble(up))
+            return logit_prime(x, lo, up)
 
     margins = margins.copy()
     # Construction observations matrix
@@ -282,7 +282,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
 
     # initial weights
     d = data_final[initial_weight].values
-    x = zeros((nk, nj), dtype = longdouble)  # nb obs x nb constraints
+    x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
     j = 0
