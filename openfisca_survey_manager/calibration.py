@@ -82,7 +82,7 @@ class Calibration(object):
                 assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == target_entity, "'id_variable' isn't the id of the entity targeted by the calibration variables"
 
         assert simulation.weight_variable_by_entity is not None
-        if type(simulation.weight_variable_by_entity) == dict:
+        if isinstance(simulation.weight_variable_by_entity, dict):
             weight_variable_name = simulation.weight_variable_by_entity[target_entity]
         else:
             weight_variable_name = simulation.weight_variable_by_entity.get(entity)
