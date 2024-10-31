@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)
 class Calibration(object):
     """An object to calibrate survey data of a SurveyScenario."""
 
-    entity = None
     filter_by = None
     initial_entity_count = None
     _initial_weight_name = None
@@ -40,6 +39,7 @@ class Calibration(object):
 
     def __init__(self, simulation, target_margins, period, target_entity_count = None, other_entity_count = None, parameters = None,
             filter_by = None, entity = None):
+        target_entity = entity
         self.parameters = parameters
         self.period = period
         self.simulation = simulation
@@ -57,7 +57,7 @@ class Calibration(object):
 
         if len(entities) == 0:
             assert target_entity_count != 0
-            assert entity in [
+            assert target_entity in [
                 entity.key
                 for entity in simulation.tax_benefit_system.entities
                 ]
@@ -73,20 +73,20 @@ class Calibration(object):
             id_variable_link = simulation.calculate(parameters["id_variable_link"], period)
             assert numpy.unique(id_variable_link).sort() == numpy.unique(id_variable).sort(), "There is no inclusion of one entity in the other"
             assert len(id_variable) < len(id_variable_link), "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
-            entity = entity_id_variable
+            target_entity = entity_id_variable
         elif len(entities) > 2:
             raise NotImplementedError("Cannot hande multiple entites")
         else:
-            entity = list(entities)[0]
+            target_entity = list(entities)[0]
             if "id_variable" in parameters.keys():
-                assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == entity, "'id_variable' isn't the id of the entity targeted by the calibration variables"
+                assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == target_entity, "'id_variable' isn't the id of the entity targeted by the calibration variables"
 
         assert simulation.weight_variable_by_entity is not None
 
         weight_variable_name = simulation.weight_variable_by_entity.get(entity)
         self.weight_name = weight_name = weight_variable_name
 
-        self.target_entity = entity
+        self.target_entity = target_entity
         period = self.period
 
         if filter_by:
@@ -259,7 +259,7 @@ class Calibration(object):
         for variable in self.margins_by_variable:
             simulation = self.simulation
             period = self.period
-            entity = self.target_entity
+            target_entity = self.target_entity
 
             # These are the varying weights
             weight = self.weight
@@ -267,7 +267,7 @@ class Calibration(object):
             initial_weight = self.initial_weight
 
             value = simulation.adaptative_calculate_variable(variable, period = period)
-            weight_variable = simulation.weight_variable_by_entity[entity]
+            weight_variable = simulation.weight_variable_by_entity[target_entity]
 
             if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable].entity.key != self.target_entity:
                 value_df = pd.DataFrame(value)
@@ -316,8 +316,8 @@ class Calibration(object):
         if parameters is None:
             parameters = dict()
 
-        entity = self.target_entity
-        weight_variable = self.simulation.weight_variable_by_entity[entity]
+        target_entity = self.target_entity
+        weight_variable = self.simulation.weight_variable_by_entity[target_entity]
 
         if self.weight_name != weight_variable:
             raise NotImplementedError("Calmar needs to be adapted. Consider using a projected target on the entity with changing weights")
