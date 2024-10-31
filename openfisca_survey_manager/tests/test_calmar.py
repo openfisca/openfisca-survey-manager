@@ -111,7 +111,7 @@ def create_margins(entities = 1):
     if entities == 2:
         margins_by_variable['C'] = 85
         margins_by_variable['total_population'] = 80
-        margins_by_variable['total_population2'] = 100
+        margins_by_variable['total_population_smaller_entity'] = 100
     return margins_by_variable
 
 

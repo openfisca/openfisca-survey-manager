@@ -163,7 +163,7 @@ class Calibration(object):
         if self.target_entity_count is not None:
             simple_margins_by_variable['total_population'] = self.target_entity_count
         if self.other_entity_count is not None:
-            simple_margins_by_variable['total_population2'] = self.other_entity_count
+            simple_margins_by_variable['total_population_smaller_entity'] = self.other_entity_count
 
         self._update_weights(simple_margins_by_variable, parameters = parameters)
         self._update_margins()
@@ -329,7 +329,7 @@ class Calibration(object):
         if self.target_entity_count:
             margins["total_population"] = self.target_entity_count
         if self.other_entity_count:
-            margins["total_population2"] = self.other_entity_count
+            margins["total_population_smaller_entity"] = self.other_entity_count
 
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
