@@ -271,7 +271,7 @@ Contains the following tables : \n"""
             if table is None:
                 raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
-                if table_name in table:
+                if table in table_name:
                     parquet_file = table_content.get("parquet_file")
                     # Is parquet_file a folder or a file?
                     if os.path.isdir(parquet_file):

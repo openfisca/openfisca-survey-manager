@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 2.2.7 [#311](https://github.com/openfisca/openfisca-survey-manager/pull/311)
+
+* Bug fix
+  - Fix filepath and table fetcher when using parquet format.
+
 ### 2.2.6 [#308](https://github.com/openfisca/openfisca-survey-manager/pull/308)
 
 * Minor change.

@@ -230,7 +230,7 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
     if source_format == "parquet" and parquet_file is None:
-        parquet_file = os.path.join(directory_path, survey.name + '.parquet')
+        parquet_file = os.path.join(survey.parquet_file_path, table_name + '.parquet')
     survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe, parquet_file = parquet_file)
     # If a survey with save name exist it will be overwritten
     survey_collection.surveys = [
