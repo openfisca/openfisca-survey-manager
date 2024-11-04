@@ -58,7 +58,7 @@ setup(
             ],
         'dev': [
             'autopep8 >=2.0.2, < 3',
-            'coveralls >=3.3.1, < 4.0',
+            'coveralls >= 3.3.1, < 5.0',
             'flake8 >= 6.0.0, < 8.0',
             'flake8-bugbear >= 23.3.12, < 25.0',
             'flake8-docstrings >=1.7.0, < 2.0',
