@@ -1,4 +1,10 @@
 ﻿# Changelog
+### 2.3.1 [#300](https://github.com/openfisca/openfisca-survey-manager/pull/300)
+
+* New features
+  - Add a new distance function method, the hyperbolic sinus. It allows to cap the weight ratio with a one dimensionnal parametring, and with less computation issues than with the logit method.
+  - It is described in Calmar 2 documentation
+
 ## 2.3.0 [#308](https://github.com/openfisca/openfisca-survey-manager/pull/308)
 
 * New features
