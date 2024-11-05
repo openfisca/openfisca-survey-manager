@@ -26,7 +26,7 @@ class Calibration(object):
         'method': None,  # 'linear', 'raking ratio', 'logit', 'hyperbolic sinus'
         'up': None,
         'invlo': None,
-        'alpha' : None,
+        'alpha': None,
         'id_variable': None,
         'id_variable_link': None,
         }
