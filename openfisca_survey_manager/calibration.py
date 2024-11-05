@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)
 class Calibration(object):
     """An object to calibrate survey data of a SurveyScenario."""
 
-    entity = None
     filter_by = None
     initial_entity_count = None
     _initial_weight_name = None
@@ -26,15 +25,22 @@ class Calibration(object):
         'initial_weight': None,
         'method': None,  # 'linear', 'raking ratio', 'logit'
         'up': None,
-        'invlo': None
+        'invlo': None,
+        'id_variable': None,
+        'id_variable_link': None
         }
     period = None
     simulation = None
     target_entity_count = None
+    other_entity_count = None
+    target_entity = None
     weight_name = None
+    entities = None
 
-    def __init__(self, simulation, target_margins, period, target_entity_count = None, parameters = None,
+    def __init__(self, simulation, target_margins, period, target_entity_count = None, other_entity_count = None, parameters = None,
             filter_by = None, entity = None):
+        target_entity = entity
+        self.parameters = parameters
         self.period = period
         self.simulation = simulation
         if target_margins:
@@ -47,24 +53,42 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
+        self.entities = list(entities)
 
         if len(entities) == 0:
             assert target_entity_count != 0
-            assert entity in [
+            assert target_entity in [
                 entity.key
                 for entity in simulation.tax_benefit_system.entities
                 ]
-        elif len(entities) > 1:
+        elif len(entities) == 2:
+            assert "id_variable" in parameters.keys() and parameters["id_variable"] is not None, "With two entities involved, an id variable of the largest entity is needed"
+            assert "id_variable_link" in parameters.keys() and parameters["id_variable_link"] is not None, "With two entities involved, an id variable linking entity is needed"
+            entity_id_variable = variable_instance_by_variable_name[parameters["id_variable"]].entity.key
+            entity_id_variable_link = variable_instance_by_variable_name[parameters["id_variable_link"]].entity.key
+            assert entity_id_variable in entities, "'id_variable' do not correspond to a calibrating variable entity"
+            assert entity_id_variable_link in entities, "'id_variable' do not correspond to a calibrating variable entity"
+            assert entity_id_variable != entity_id_variable_link, "'id_variable_link' must associate a smaller entity to the id of the greater, 'id_variable'"
+            id_variable = simulation.calculate(parameters["id_variable"], period)
+            id_variable_link = simulation.calculate(parameters["id_variable_link"], period)
+            assert numpy.unique(id_variable_link).sort() == numpy.unique(id_variable).sort(), "There is no inclusion of one entity in the other"
+            assert len(id_variable) < len(id_variable_link), "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
+            target_entity = entity_id_variable
+        elif len(entities) > 2:
             raise NotImplementedError("Cannot hande multiple entites")
         else:
-            entity = list(entities)[0]
+            target_entity = list(entities)[0]
+            if "id_variable" in parameters.keys():
+                assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == target_entity, "'id_variable' isn't the id of the entity targeted by the calibration variables"
 
         assert simulation.weight_variable_by_entity is not None
-
-        weight_variable_name = simulation.weight_variable_by_entity.get(entity)
+        if isinstance(simulation.weight_variable_by_entity, dict):
+            weight_variable_name = simulation.weight_variable_by_entity[target_entity]
+        else:
+            weight_variable_name = simulation.weight_variable_by_entity.get(entity)
         self.weight_name = weight_name = weight_variable_name
 
-        self.entity = entity
+        self.target_entity = target_entity
         period = self.period
 
         if filter_by:
@@ -78,6 +102,7 @@ class Calibration(object):
 
         self.initial_entity_count = sum(initial_weight * self.filter_by)
         self.target_entity_count = target_entity_count
+        self.other_entity_count = other_entity_count
 
         self.weight = initial_weight.copy()
 
@@ -89,22 +114,31 @@ class Calibration(object):
             for variable, target in target_margins.items():
                 self.set_target_margin(variable, target)
 
-        self.parameters = parameters
-
-    def _build_calmar_data(self) -> pd.DataFrame:
+    def _build_calmar_data(self) -> dict:
         """Build the data dictionnary used as calmar input argument.
 
         Returns:
-            pd.DataFrame: Data used by calmar
+            dict containing one pd.DataFrame by entity: Data used by calmar, and the name of the aggregating entity
         """
         # Select only filtered entities
         assert self._initial_weight_name is not None
-        data = pd.DataFrame()
-        data[self._initial_weight_name] = self.initial_weight * self.filter_by
+        data = dict()
+        for entity in self.entities:
+            data[entity] = pd.DataFrame()
+        data[self.target_entity][self._initial_weight_name] = self.initial_weight * self.filter_by
         period = self.period
         for variable in self.margins_by_variable:
             assert variable in self.simulation.tax_benefit_system.variables
-            data[variable] = self.simulation.calculate(variable, period = period)
+            data[self.simulation.tax_benefit_system.variables[variable].entity.key][variable] = self.simulation.adaptative_calculate_variable(variable, period = period)
+
+        if len(self.entities) == 2:
+            for entity in self.entities:
+                if entity == self.target_entity:
+                    data[entity]['id_variable'] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable"], period = period)
+                else:
+                    data[entity][self.simulation.weight_variable_by_entity[entity]] = self.initial_weight_by_entity[entity]
+                    data[entity]['id_variable'] = self.simulation.adaptative_calculate_variable(self.parameters["id_variable_link"], period = period)
+        data['target_entity_name'] = self.target_entity
 
         return data
 
@@ -128,8 +162,10 @@ class Calibration(object):
         else:
             simple_margins_by_variable = dict()
 
-        if self.target_entity_count:
+        if self.target_entity_count is not None:
             simple_margins_by_variable['total_population'] = self.target_entity_count
+        if self.other_entity_count is not None:
+            simple_margins_by_variable['total_population_smaller_entity'] = self.other_entity_count
 
         self._update_weights(simple_margins_by_variable, parameters = parameters)
         self._update_margins()
@@ -179,7 +215,7 @@ class Calibration(object):
             )
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
-            filtered_value = value if all(filter_by) else value[filter_by.astype(bool)]
+            filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
             categories = numpy.sort(numpy.unique(filtered_value))
             target_by_category = dict(zip(categories, target))
 
@@ -203,7 +239,8 @@ class Calibration(object):
         simulation.set_input(self.weight_name, period, self.weight)
         for weight_name in simulation.weight_variable_by_entity.values():
             if weight_name == self.weight_name:
-                continue
+                weight_variable = simulation.tax_benefit_system.variables[weight_name]
+                weight_variable.unit = "base_weight"  # The weight variable is flagged as the one that have changed
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
@@ -224,18 +261,21 @@ class Calibration(object):
         for variable in self.margins_by_variable:
             simulation = self.simulation
             period = self.period
-            entity = self.entity
+            target_entity = self.target_entity
 
             # These are the varying weights
             weight = self.weight
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = simulation.calculate(variable, period = period)
-            weight_variable = simulation.weight_variable_by_entity[entity]
+            value = simulation.adaptative_calculate_variable(variable, period = period)
+            weight_variable = simulation.weight_variable_by_entity[target_entity]
 
-            # weight = simulation.calculate(weight_variable, period)
-            # initial_weight = self.initial_weight_by_entity[entity]
+            if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable].entity.key != self.target_entity:
+                value_df = pd.DataFrame(value)
+                id_variable = self.parameters["id_variable_link"]
+                value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
+                value = value_df.groupby(id_variable).sum().to_numpy()
 
             if filter_by != 1:
                 if weight_variable != self.weight_name:
@@ -278,8 +318,8 @@ class Calibration(object):
         if parameters is None:
             parameters = dict()
 
-        entity = self.entity
-        weight_variable = self.simulation.weight_variable_by_entity[entity]
+        target_entity = self.target_entity
+        weight_variable = self.simulation.weight_variable_by_entity[target_entity]
 
         if self.weight_name != weight_variable:
             raise NotImplementedError("Calmar needs to be adapted. Consider using a projected target on the entity with changing weights")
@@ -290,10 +330,12 @@ class Calibration(object):
         parameters['initial_weight'] = self._initial_weight_name
         if self.target_entity_count:
             margins["total_population"] = self.target_entity_count
+        if self.other_entity_count:
+            margins["total_population_smaller_entity"] = self.other_entity_count
 
         val_pondfin, lambdasol, updated_margins = calmar(
             data, margins, **parameters)
-        # Updating only afetr filtering weights
+        # Updating only after filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
 
         return updated_margins

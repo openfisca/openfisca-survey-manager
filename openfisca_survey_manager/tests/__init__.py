@@ -22,8 +22,24 @@ class Plugin(Reform):
             label = "Household weight"
             definition_period = ETERNITY
 
+        class household_id(Variable):
+            is_period_size_independent = True
+            value_type = float
+            entity = Household
+            label = "Household id"
+            definition_period = ETERNITY
+
+        class household_id_ind(Variable):
+            is_period_size_independent = True
+            value_type = float
+            entity = Person
+            label = "Household id of person"
+            definition_period = ETERNITY
+
         self.add_variable(person_weight)
         self.add_variable(household_weight)
+        self.add_variable(household_id)
+        self.add_variable(household_id_ind)
 
 
 tax_benefit_system = Plugin(CountryTaxBenefitSystem())

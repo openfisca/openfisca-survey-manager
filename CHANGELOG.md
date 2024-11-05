@@ -1,4 +1,11 @@
 ﻿# Changelog
+## 2.3.0 [#308](https://github.com/openfisca/openfisca-survey-manager/pull/308)
+
+* New features
+  - Allows for calibration of variables defined in two different entities ; it requires that one is included in the other (ex : individuals and fiscal household : each individual is in only one fiscal household). To use it, a variable identifying in the smaller entity the identifier of the larger one is needed (the name must be given in parameter "id_variable_link").
+  - Reshape the input of calmar and calibration (with dicts more than dataframes to allow several entities)
+  - Adapt the tests
+The idea comes from Insee's Calmar 2 documentation.
 
 ### 2.2.7 [#311](https://github.com/openfisca/openfisca-survey-manager/pull/311)
 
