@@ -14,7 +14,7 @@ import warnings
 
 from openfisca_core import periods
 from openfisca_core.memory_config import MemoryConfig
-from openfisca_core.indexed_enums import Enum
+from openfisca_core.indexed_enums import (Enum, EnumArray)
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
 from openfisca_core.types import Array, CoreEntity as Entity, Period, TaxBenefitSystem
 from openfisca_core.simulations import Simulation
@@ -1094,6 +1094,10 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
 
     array = series.values.astype(variable.dtype)
     np_array = np.array(array, dtype = variable.dtype)
+
+    if (variable.value_type == Enum) and (np.issubdtype(series.values.dtype, np.integer) or np.issubdtype(series.values.dtype, float)):
+        np_array = EnumArray(np_array, variable.possible_values)
+
     if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run

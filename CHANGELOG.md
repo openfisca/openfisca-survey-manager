@@ -1,4 +1,10 @@
 ﻿# Changelog
+
+### 3.3.2 [#319](https://github.com/openfisca/openfisca-survey-manager/pull/315)
+
+* Technical changes
+  - Transform input arrays of Enums variables in EnumArray type to improve computation speed due to changes in Openfisca-core 42
+
 ### 2.3.1 [#300](https://github.com/openfisca/openfisca-survey-manager/pull/300)
 
 * New features
