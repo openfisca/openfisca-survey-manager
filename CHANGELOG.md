@@ -1,6 +1,13 @@
 ﻿# Changelog
 
-### 2.3.2 [#319](https://github.com/openfisca/openfisca-survey-manager/pull/315)
+### 2.3.3 [#316](https://github.com/openfisca/openfisca-survey-manager/pull/315)
+
+* Technical changes
+  - Solve an issue caused by #299 when there is a target_entity_count without variables of the same entity.
+  - Correct the CHANGELOG which had two errors.
+
+
+### 2.3.2 [#315](https://github.com/openfisca/openfisca-survey-manager/pull/315)
 
 * Technical changes
   - Transform input arrays of Enums variables in EnumArray type to improve computation speed due to changes in Openfisca-core 42
