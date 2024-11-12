@@ -54,6 +54,8 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
+        if entity is not None:
+            entities.add(entity)
         self.entities = list(entities)
 
         if len(entities) == 0:
