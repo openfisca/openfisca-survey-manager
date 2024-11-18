@@ -1,6 +1,13 @@
 ﻿# Changelog
 
-### 3.3.2 [#319](https://github.com/openfisca/openfisca-survey-manager/pull/315)
+### 2.3.3 [#316](https://github.com/openfisca/openfisca-survey-manager/pull/315)
+
+* Technical changes
+  - Solve an issue caused by #299 when there is a target_entity_count without variables of the same entity.
+  - Correct the CHANGELOG which had two errors.
+
+
+### 2.3.2 [#315](https://github.com/openfisca/openfisca-survey-manager/pull/315)
 
 * Technical changes
   - Transform input arrays of Enums variables in EnumArray type to improve computation speed due to changes in Openfisca-core 42
@@ -11,7 +18,7 @@
   - Add a new distance function method, the hyperbolic sinus. It allows to cap the weight ratio with a one dimensionnal parametring, and with less computation issues than with the logit method.
   - It is described in Calmar 2 documentation
 
-## 2.3.0 [#308](https://github.com/openfisca/openfisca-survey-manager/pull/308)
+## 2.3.0 [#299](https://github.com/openfisca/openfisca-survey-manager/pull/299)
 
 * New features
   - Allows for calibration of variables defined in two different entities ; it requires that one is included in the other (ex : individuals and fiscal household : each individual is in only one fiscal household). To use it, a variable identifying in the smaller entity the identifier of the larger one is needed (the name must be given in parameter "id_variable_link").

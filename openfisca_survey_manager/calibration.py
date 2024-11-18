@@ -54,6 +54,8 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
             )
+        if entity is not None:
+            entities.add(entity)
         self.entities = list(entities)
 
         if len(entities) == 0:
@@ -242,13 +244,14 @@ class Calibration(object):
         simulation = self.simulation
         simulation.set_input(self.weight_name, period, self.weight)
         for weight_name in simulation.weight_variable_by_entity.values():
+            weight_variable = simulation.tax_benefit_system.variables[weight_name]
             if weight_name == self.weight_name:
-                weight_variable = simulation.tax_benefit_system.variables[weight_name]
                 weight_variable.unit = "base_weight"  # The weight variable is flagged as the one that have changed
+                if weight_variable.formulas:
+                    weight_variable.formulas = []  # The weight variable becomes an input variable after it changes with calibration
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
-            weight_variable = simulation.tax_benefit_system.variables[weight_name]
             if weight_variable.formulas:
                 simulation.delete_arrays(weight_variable.name, period)
 
