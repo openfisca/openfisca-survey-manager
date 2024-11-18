@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 2.3.4 [#317](https://github.com/openfisca/openfisca-survey-manager/pull/317)
+
+* Technical changes
+  - add `"numpy >=1.24.2, <2.0"` in setup.py to solve conda build
+
 ### 2.3.3 [#316](https://github.com/openfisca/openfisca-survey-manager/pull/315)
 
 * Technical changes
