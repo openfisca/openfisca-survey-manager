@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+### 2.3.5 [#319](https://github.com/openfisca/openfisca-survey-manager/pull/319)
+
+* Technical changes
+  - Fix the conda build by moving the Numpy pinning to `install_requires`.
+  - Add a conda build step in CI to inform the dev about a problem before merging.
+
 ### 2.3.4 [#317](https://github.com/openfisca/openfisca-survey-manager/pull/317)
 
 * Technical changes
