@@ -177,13 +177,13 @@ jobs:
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
 
   publish-to-conda:
-    runs-on: "ubuntu-20.04"
-    needs: [ deploy ]
+    runs-on: "ubuntu-24.04"
+    needs: [ deploy, buid-conda ]
     steps:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.9.9
+          python-version: 3.10.6
           # Add openfisca channel for OpenFisca-Core
           channels: conda-forge, openfisca
           activate-environment: true
@@ -206,7 +206,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.9.9
+          python-version: 3.10.6
           # Add openfisca channel for OpenFisca-Core
           channels: conda-forge, openfisca
           activate-environment: true
