@@ -31,7 +31,7 @@ dependencies = [
     'tables >=3.8.0, < 4.0',
     'tabulate >=0.9.0, < 0.10.0',
     'weightedcalcs >=0.1.2, < 0.2.0',
-    'wquantiles >=0.6, < 0.7',
+    'wquantiles >=0.6, < 0.7'
     ]
 
 [project.urls]
@@ -51,7 +51,7 @@ build-collection = "openfisca_survey_manager.scripts.build_collection:main"
 [project.optional-dependencies]
 matching = [
     'feather',
-    'rpy2 >=3.5.10, < 4.0',
+    'rpy2 >=3.5.10, < 4.0'
 ]
 dev = [
     'autopep8 >=2.0.2, < 3',
@@ -65,18 +65,18 @@ dev = [
     'pytest >=8.3.3, < 9.0',
     'pytest-cov >=4.0.0, < 7.0',
     'scipy >=1.10.1, < 2.0',
-    'pytest-order >=1.1.0, <2.0',
+    'pytest-order >=1.1.0, <2.0'
 ]
 casd = [
     'autopep8 >=2.0.2, < 3',
     'flake8 >=6.0.0, < 8.0',
     'pycodestyle >=2.10.0, < 3.0',
     'pytest >=7.2.2, < 8.0',
-    'scipy >=1.10.1, < 2.0',
+    'scipy >=1.10.1, < 2.0'
 ]
 sas = [
     'pyreadstat >=1.2.1, < 2.0',
-    'sas7bdat >=2.2.3, < 3.0',
+    'sas7bdat >=2.2.3, < 3.0'
 ]
 
 [tool.flake8]
@@ -101,3 +101,20 @@ addopts      = "--doctest-modules --disable-pytest-warnings --showlocals"
 testpaths    = "openfisca_survey_manager"
 doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
 python_files = "**/*.py"
+
+
+[tool.coverage.paths]
+source = [
+    ".",
+    "*/site-packages"
+]
+
+[tool.coverage.run]
+branch = true
+source = ["openfisca_survey_manager"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
+skip_covered = true
+skip_empty = true
