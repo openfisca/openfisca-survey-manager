@@ -80,11 +80,11 @@ Contains the following surveys :
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_store(self, source_format = None, surveys = None, tables = None, overwrite = False, keep_original_parquet_file = False):
+    def fill_store(self, source_format = None, surveys = None, tables = None, overwrite = False, keep_original_parquet_file = False, encoding = None):
         if surveys is None:
             surveys = self.surveys
         for survey in surveys:
-            survey.fill_store(source_format = source_format, tables = tables, overwrite = overwrite, keep_original_parquet_file = keep_original_parquet_file)
+            survey.fill_store(source_format = source_format, tables = tables, overwrite = overwrite, keep_original_parquet_file = keep_original_parquet_file, encoding = encoding)
         self.dump()
 
     def get_survey(self, survey_name):

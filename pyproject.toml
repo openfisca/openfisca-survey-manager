@@ -1,0 +1,104 @@
+[project]
+name = "OpenFisca-Survey-Manager"
+version = "2.3.5"
+description = "A tool for managing survey/administrative data and import them in OpenFisca"
+readme = "README.md"
+keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
+authors = [
+  {name = "OpenFisca Team", email = "contact@openfisca.fr"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+requires-python = ">= 3.9"
+dependencies = [
+    'chardet >=5.1.0, < 6.0',
+    'configparser >= 5.3.0, < 8.0',
+    'humanize >=4.6.0, < 5.0',
+    'numpy >=1.24.2, <2.0',
+    'openfisca-core >=43.0.0, <44.0.0',
+    'pandas >=2.0.3, < 3.0',
+    'pyarrow >= 13.0.0, < 19.0.0',
+    'pyxdg >=0.28, < 0.29',
+    'PyYAML >=6.0, < 7.0',
+    'tables >=3.8.0, < 4.0',
+    'tabulate >=0.9.0, < 0.10.0',
+    'weightedcalcs >=0.1.2, < 0.2.0',
+    'wquantiles >=0.6, < 0.7',
+    ]
+
+[project.urls]
+Homepage = "https://github.com/openfisca/openfisca-survey-manager"
+Repository = "https://github.com/openfisca/openfisca-survey-manager"
+Issues = "https://github.com/openfisca/openfisca-survey-manager/issues"
+Changelog = "https://github.com/openfisca/openfisca-survey-manager/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+
+[project.scripts]
+# Command-line scripts
+build-collection = "openfisca_survey_manager.scripts.build_collection:main"
+
+
+[project.optional-dependencies]
+matching = [
+    'feather',
+    'rpy2 >=3.5.10, < 4.0',
+]
+dev = [
+    'autopep8 >=2.0.2, < 3',
+    'flake8 >= 6.0.0, < 8.0',
+    'flake8-bugbear >= 23.3.12, < 25.0',
+    'flake8-docstrings >=1.7.0, < 2.0',
+    'flake8-print >=5.0.0, < 6.0',
+    'flake8-rst-docstrings >=0.3.0, < 0.4.0',
+    'openfisca-country-template >=7.1.5, <8.0.0',
+    'pytest >=8.3.3, < 9.0',
+    'pytest-cov >= 4.0.0, < 7.0',
+    'scipy >=1.10.1, < 2.0',
+    'pytest-order >=1.1.0, <2.0',
+]
+casd = [
+    'autopep8 >=2.0.2, < 3',
+    'flake8 >= 6.0.0, < 8.0',
+    'pycodestyle >=2.10.0, < 3.0',
+    'pytest >=7.2.2, < 8.0',
+    'scipy >=1.10.1, < 2.0',
+]
+sas = [
+    'pyreadstat >=1.2.1, < 2.0',
+    'sas7bdat >=2.2.3, < 3.0',
+]
+
+[tool.flake8]
+# ; E128/133: We prefer hang-closing visual indents
+# ; E251:     We prefer `function(x = 1)` over `function(x=1)`
+# ; E501:     We do not enforce a maximum line length
+# ; F403/405: We ignore * imports
+# ; W503/504: We break lines before binary operators (Knuth's style)
+hang-closing = true
+ignore       = ["E128","E251","F403","F405","E501","W503", ]
+docstring-quotes = "single"
+inline-quotes = "single"
+multiline-quotes = "single"
+
+[tool.pep8]
+hang-closing = true
+ignore       = ["E128","E251","F403","F405","E501","W503"]
+in-place     = true
+
+[tool.pytest.ini_options]
+addopts      = "--doctest-modules --disable-pytest-warnings --showlocals"
+testpaths    = "openfisca_survey_manager"
+doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
+python_files = "**/*.py"

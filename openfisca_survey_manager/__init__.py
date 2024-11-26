@@ -4,7 +4,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-
+default_config_files_directory = None
 openfisca_survey_manager_location = Path(__file__).parent.parent
 
 
@@ -70,3 +70,6 @@ if default_config_files_directory is None:
     default_config_files_directory = BaseDirectory.save_config_path('openfisca-survey-manager')
 
     log.debug(f'Using default_config_files_directory = {default_config_files_directory}')
+
+
+assert default_config_files_directory is not None

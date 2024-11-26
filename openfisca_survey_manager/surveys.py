@@ -93,7 +93,7 @@ Contains the following tables : \n"""
         self.survey_collection.dump()
 
     def fill_store(self, source_format = None, tables = None, overwrite = True, keep_original_parquet_file = False,
-            store_format = "hdf5"):
+            encoding = None, store_format = "hdf5"):
         """
         Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
@@ -161,6 +161,7 @@ Contains the following tables : \n"""
                             data_file,
                             clean = True,
                             overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
+                            encoding = encoding,
                             )
         self.dump()
 
