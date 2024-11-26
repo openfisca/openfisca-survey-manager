@@ -103,9 +103,9 @@ rst-roles           = ["any", "attr", "class", "exc", "func", "meth", "obj"]
 strictness          = "short"
 
 [tool.pylint.message_control]
-disable             = "all"
+disable             = ["all"]
 enable              = ["C0115", "C0116", "R0401"]
-score               = "no"
+score               = ["no"]
 
 [tool.pep8]
 hang-closing = true
@@ -116,7 +116,7 @@ in-place     = true
 addopts      = "--doctest-modules --disable-pytest-warnings --showlocals"
 testpaths    = "openfisca_survey_manager"
 doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
-python_files = "**/*.py"
+python_files = ["**/*.py"]
 
 
 [tool.coverage.paths]
