@@ -56,16 +56,17 @@ matching = [
 dev = [
     'autopep8 >=2.0.2, < 3',
     'coveralls >=3.3.1, < 5.0',
+    'Flake8-pyproject >=1.2.3, <2.0.0',  # To read flake8 configuration from pyproject.toml
     'flake8 >=6.0.0, < 8.0',
     'flake8-bugbear >=23.3.12, < 25.0',
     'flake8-docstrings >=1.7.0, < 2.0',
     'flake8-print >=5.0.0, < 6.0',
     'flake8-rst-docstrings >=0.3.0, < 0.4.0',
     'openfisca-country-template >=7.1.5, <8.0.0',
-    'pytest >=8.3.3, < 9.0',
-    'pytest-cov >=4.0.0, < 7.0',
+    'pytest', # Let OpenFisca-Core decide pytest version
+    'pytest-cov',
     'scipy >=1.10.1, < 2.0',
-    'pytest-order >=1.1.0, <2.0'
+    'pytest-order'
 ]
 casd = [
     'autopep8 >=2.0.2, < 3',
@@ -91,7 +92,7 @@ sas = [
 # -; RST301:           We use Google Python Style (see https://pypi.org/project/flake8-rst-docstrings/)
 # -; W503/504:         We break lines before binary operators (Knuth's style).
 hang-closing = true
-ignore              = ["E128","E251","F403","F405","E501","RST301","W503","W504","T001"]
+ignore              = ["E128", "E251", "F403", "F405", "E501", "RST301", "W503", "W504", "T001"]
 docstring-quotes    = "single"
 inline-quotes       = "single"
 multiline-quotes    = "single"
