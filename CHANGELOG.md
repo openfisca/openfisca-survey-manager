@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+# 3.0.0 [#320](https://github.com/openfisca/openfisca-survey-manager/pull/320)
+
+* Technical changes
+  - Migrate config to `pyproject.toml`.
+  - Comment out conda build.
+  - Add a `openfisa_survey_manager.paths` module to store paths (breaking change).
+
+
 ### 2.3.5 [#319](https://github.com/openfisca/openfisca-survey-manager/pull/319)
 
 * Technical changes
