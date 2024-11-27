@@ -15,7 +15,7 @@ def get_versions():
     Read package version and deps in pyproject.toml
     '''
     openfisca_core_api = None
-    openfisca_france = None
+    openfisca_survey_manager = None
     with open('./pyproject.toml', 'r') as file:
         content = file.read()
     # Extract the version of openfisca_survey_manager
