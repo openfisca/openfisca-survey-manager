@@ -9,7 +9,7 @@ import logging
 from unittest import TestCase
 
 from openfisca_core import periods
-from openfisca_survey_manager import openfisca_survey_manager_location, default_config_files_directory
+from openfisca_survey_manager.paths import openfisca_survey_manager_location, default_config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import add_survey_to_collection
 from openfisca_survey_manager.scripts.build_collection import build_survey_collection

@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import unittest
-from openfisca_survey_manager import openfisca_survey_manager_location
+from openfisca_survey_manager.paths import openfisca_survey_manager_location
 from openfisca_survey_manager.scripts.build_collection import build_survey_collection
 
 

@@ -11,7 +11,7 @@ from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
 
-from openfisca_survey_manager import openfisca_survey_manager_location, default_config_files_directory
+from openfisca_survey_manager.paths import openfisca_survey_manager_location, default_config_files_directory
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     random_data_generator,
