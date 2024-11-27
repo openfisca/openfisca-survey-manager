@@ -38,27 +38,27 @@ jobs:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
 
-  buid-conda:
-    runs-on: "ubuntu-24.04"
-    needs: [ build ]
-    steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: 3.10.6
-          # Add openfisca channel for OpenFisca-Core
-          channels: conda-forge, openfisca
-          activate-environment: true
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1 # Fetch all the tags
-      - name: Conda config
-        run: |
-          conda install conda-build
-          conda info
-      - name: Conda build
-        # See .conda/meta.yaml for more information on the built package
-        run: conda build --channel openfisca .conda
+  # buid-conda:
+  #   runs-on: "ubuntu-24.04"
+  #   needs: [ build ]
+  #   steps:
+  #     - uses: conda-incubator/setup-miniconda@v2
+  #       with:
+  #         auto-update-conda: true
+  #         python-version: 3.10.6
+  #         # Add openfisca channel for OpenFisca-Core
+  #         channels: conda-forge, openfisca
+  #         activate-environment: true
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 1 # Fetch all the tags
+  #     - name: Conda config
+  #       run: |
+  #         conda install conda-build
+  #         conda info
+  #     - name: Conda build
+  #       # See .conda/meta.yaml for more information on the built package
+  #       run: conda build --channel openfisca .conda
 
   lint-files:
     runs-on: ubuntu-20.04
@@ -176,44 +176,44 @@ jobs:
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
 
-  publish-to-conda:
-    runs-on: "ubuntu-24.04"
-    needs: [ deploy, buid-conda ]
-    steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: 3.10.6
-          # Add openfisca channel for OpenFisca-Core
-          channels: conda-forge, openfisca
-          activate-environment: true
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all the tags
-      - name: Conda config
-        run: |
-          conda install conda-build anaconda-client
-          conda info
-          conda config --set anaconda_upload yes
-      - name: Conda build
-        # See .conda/meta.yaml for more information on the built package
-        run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca --channel openfisca .conda
+  # publish-to-conda:
+  #   runs-on: "ubuntu-24.04"
+  #   needs: [ deploy, buid-conda ]
+  #   steps:
+  #     - uses: conda-incubator/setup-miniconda@v2
+  #       with:
+  #         auto-update-conda: true
+  #         python-version: 3.10.6
+  #         # Add openfisca channel for OpenFisca-Core
+  #         channels: conda-forge, openfisca
+  #         activate-environment: true
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0 # Fetch all the tags
+  #     - name: Conda config
+  #       run: |
+  #         conda install conda-build anaconda-client
+  #         conda info
+  #         conda config --set anaconda_upload yes
+  #     - name: Conda build
+  #       # See .conda/meta.yaml for more information on the built package
+  #       run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca --channel openfisca .conda
 
-  test-on-windows:
-    runs-on: "windows-latest"
-    needs: [ publish-to-conda ]
-    steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: 3.10.6
-          # Add openfisca channel for OpenFisca-Core
-          channels: conda-forge, openfisca
-          activate-environment: true
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all the tags
-      - name: Install with conda
-        run: conda install openfisca-survey-manager
-      - name: Buid Collection
-        run: build-collection
+  # test-on-windows:
+  #   runs-on: "windows-latest"
+  #   needs: [ publish-to-conda ]
+  #   steps:
+  #     - uses: conda-incubator/setup-miniconda@v2
+  #       with:
+  #         auto-update-conda: true
+  #         python-version: 3.10.6
+  #         # Add openfisca channel for OpenFisca-Core
+  #         channels: conda-forge, openfisca
+  #         activate-environment: true
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0 # Fetch all the tags
+  #     - name: Install with conda
+  #       run: conda install openfisca-survey-manager
+  #     - name: Buid Collection
+  #       run: build-collection
