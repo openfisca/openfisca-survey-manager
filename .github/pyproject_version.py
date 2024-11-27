@@ -18,13 +18,14 @@ def get_versions():
     openfisca_france = None
     with open('./pyproject.toml', 'r') as file:
         content = file.read()
-    # Extract the version of openfisca_france
+    # Extract the version of openfisca_survey_manager
     version_match = re.search(r'^version\s*=\s*"([\d.]*)"', content, re.MULTILINE)
     if version_match:
-        openfisca_france = version_match.group(1)
+        openfisca_survey_manager = version_match.group(1)
     else:
         raise Exception('Package version not found in pyproject.toml')
     # Extract dependencies
+
     version = re.search(r'openfisca-core\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
     if version:
         openfisca_core_api = version.group(1)
@@ -34,32 +35,10 @@ def get_versions():
     if not openfisca_core_api or not numpy:
         raise Exception('Dependencies not found in pyproject.toml')
     return {
-        'openfisca_france': openfisca_france,
+        'openfisca_survey_manager': openfisca_survey_manager,
         'openfisca_core_api': openfisca_core_api.replace(' ', ''),
         'numpy': numpy.replace(' ', ''),
         }
-
-
-def replace_in_file(filepath: str, info: dict):
-    '''
-    ::filepath:: Path to meta.yaml, with filename
-    ::info:: Dict with information to populate
-    '''
-    with open(filepath, 'rt') as fin:
-        meta = fin.read()
-    # Replace with info from pyproject.toml
-    if PACKAGE_VERSION not in meta:
-        raise Exception(f'{PACKAGE_VERSION=} not found in {filepath}')
-    meta = meta.replace(PACKAGE_VERSION, info['openfisca_france'])
-    if CORE_VERSION not in meta:
-        raise Exception(f'{CORE_VERSION=} not found in {filepath}')
-    meta = meta.replace(CORE_VERSION, info['openfisca_core_api'])
-    if NUMPY_VERSION not in meta:
-        raise Exception(f'{NUMPY_VERSION=} not found in {filepath}')
-    meta = meta.replace(NUMPY_VERSION, info['numpy'])
-    with open(filepath, 'wt') as fout:
-        fout.write(meta)
-    logging.info(f'File {filepath} has been updated with informations from pyproject.toml.')
 
 
 if __name__ == '__main__':
@@ -71,12 +50,7 @@ if __name__ == '__main__':
     info = get_versions()
     file = args.filename
     if args.only_package_version:
-        print(f'{info["openfisca_france"]}')  # noqa: T201
+        print(f'{info["openfisca_survey_manager"]}')  # noqa: T201
         exit()
     logging.info('Versions :')
     print(info)  # noqa: T201
-    if args.replace:
-        logging.info(f'Replace in {file}')
-        replace_in_file(file, info)
-    else:
-        logging.info('Dry mode, no replace made')
