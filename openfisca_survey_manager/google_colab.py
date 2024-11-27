@@ -2,7 +2,7 @@ import configparser
 import os
 
 
-from openfisca_survey_manager import default_config_files_directory as config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory as config_files_directory
 
 
 def create_raw_data_ini(value_by_option_by_section = None):

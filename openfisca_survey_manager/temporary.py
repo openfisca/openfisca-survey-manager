@@ -7,7 +7,7 @@ import logging
 from configparser import ConfigParser
 from pandas import HDFStore
 
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 
 
 log = logging.getLogger(__name__)

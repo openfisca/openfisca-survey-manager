@@ -10,7 +10,7 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.variables import quantile
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 
 Individu = build_entity(
     key = "individu",
