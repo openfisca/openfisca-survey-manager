@@ -14,8 +14,9 @@ def get_versions():
     '''
     Read package version and deps in pyproject.toml
     '''
-    openfisca_core_api = None
+    # openfisca_core_api = None
     openfisca_survey_manager = None
+    # numpy = None
     with open('./pyproject.toml', 'r') as file:
         content = file.read()
     # Extract the version of openfisca_survey_manager
@@ -25,19 +26,18 @@ def get_versions():
     else:
         raise Exception('Package version not found in pyproject.toml')
     # Extract dependencies
-
-    version = re.search(r'openfisca-core\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
-    if version:
-        openfisca_core_api = version.group(1)
-    version = re.search(r'numpy\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
-    if version:
-        numpy = version.group(1)
-    if not openfisca_core_api or not numpy:
-        raise Exception('Dependencies not found in pyproject.toml')
+    # version = re.search(r'openfisca-core\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
+    # if version:
+    #     openfisca_core_api = version.group(1)
+    # version = re.search(r'numpy\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
+    # if version:
+    #     numpy = version.group(1)
+    # if not openfisca_core_api or not numpy:
+    #     raise Exception('Dependencies not found in pyproject.toml')
     return {
         'openfisca_survey_manager': openfisca_survey_manager,
-        'openfisca_core_api': openfisca_core_api.replace(' ', ''),
-        'numpy': numpy.replace(' ', ''),
+        # 'openfisca_core_api': openfisca_core_api.replace(' ', ''),
+        # 'numpy': numpy.replace(' ', ''),
         }
 
 
