@@ -13,7 +13,7 @@ import pandas as pd
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager import default_config_files_directory, openfisca_survey_manager_location
+from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
 
 
 log = logging.getLogger(__name__)

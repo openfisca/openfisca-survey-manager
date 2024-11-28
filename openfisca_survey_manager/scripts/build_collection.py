@@ -16,7 +16,7 @@ import re
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager import default_config_files_directory, openfisca_survey_manager_location
+from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
 
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
@@ -101,6 +101,7 @@ def build_survey_collection(
         data_directory_path_by_survey_suffix = None,
         source_format = 'sas',
         keep_original_parquet_file = False,
+        encoding = None,
         ):
 
     assert collection_name is not None
@@ -153,7 +154,7 @@ def build_survey_collection(
         for survey in survey_collection.surveys:
             if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
                 surveys.append(survey)
-        survey_collection.fill_store(source_format = source_format, surveys = surveys, overwrite = replace_data, keep_original_parquet_file = keep_original_parquet_file)
+        survey_collection.fill_store(source_format = source_format, surveys = surveys, overwrite = replace_data, keep_original_parquet_file = keep_original_parquet_file, encoding = encoding)
     return survey_collection
 
 
@@ -207,6 +208,7 @@ def main():
     parser.add_argument('-s', '--survey', help = 'name of survey to build or update (default = all)')
     parser.add_argument('-k', '--keep_original_parquet_file', action = 'store_true', default = False, help = "Keep original and point to original parquet files")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
+    parser.add_argument('-e', '--encoding', default = None, help = "encoding to be used")
 
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
@@ -242,6 +244,7 @@ def main():
             source_format = 'sas',
             config_files_directory = config_files_directory,
             keep_original_parquet_file = args.keep_original_parquet_file,
+            encoding = args.encoding,
             )
     except Exception as e:
         log.info(e)

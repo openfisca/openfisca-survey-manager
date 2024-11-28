@@ -6,7 +6,7 @@ from openfisca_survey_manager.tests.test_scenario import create_randomly_initial
 from openfisca_survey_manager.tests.test_scenario import generate_input_input_dataframe_by_entity
 from openfisca_survey_manager.calibration import Calibration
 
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 

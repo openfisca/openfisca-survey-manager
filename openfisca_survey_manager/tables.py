@@ -138,6 +138,8 @@ class Table(object):
             return
 
         start_table_time = datetime.datetime.now()
+        if self.source_format in ['sas', 'parquet']:
+            del kwargs['encoding']
         data_frame = self.read_source(data_file, **kwargs)
         try:
             if clean:

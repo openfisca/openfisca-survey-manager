@@ -93,7 +93,7 @@ Contains the following tables : \n"""
         self.survey_collection.dump()
 
     def fill_store(self, source_format = None, tables = None, overwrite = True, keep_original_parquet_file = False,
-            store_format = "hdf5"):
+            encoding = None, store_format = "hdf5"):
         """
         Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
@@ -161,49 +161,9 @@ Contains the following tables : \n"""
                             data_file,
                             clean = True,
                             overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
+                            encoding = encoding,
                             )
         self.dump()
-
-    def find_tables(self, variable, tables = None, rename_ident = True):
-        """Find tables containing a given variable."""
-        container_tables = []
-
-        assert variable is not None
-
-        if tables is None:
-            tables = self.tables
-        tables_index = self.tables_index
-        for table in tables:
-            if table not in tables_index:
-                tables_index[table] = self.get_columns(table)
-            if variable in tables_index[table]:
-                container_tables.append(table)
-        return container_tables
-
-    def get_columns(self, table, rename_ident = True):
-        """Get columns of a table."""
-        assert table is not None
-        if self.hdf5_file_path is not None:
-            store = pandas.HDFStore(self.hdf5_file_path, "r")
-            if table in store:
-                log.debug(f"Building columns index for table {table}")
-                data_frame = store[table]
-                if rename_ident is True:
-                    for column_name in data_frame:
-                        if ident_re.match(column_name) is not None:
-                            data_frame.rename(columns = {column_name: "ident"}, inplace = True)
-                            log.info(f"{column_name} column have been replaced by ident")
-                            break
-                store.close()
-                return list(data_frame.columns)
-            else:
-                log.info(f'table {table} was not found in {store.filename}')
-                store.close()
-                return list()
-        elif self.parquet_file_path is not None:
-            parquet_schema = pq.read_schema(self.parquet_file_path)
-            column_names = parquet_schema.names
-            return column_names
 
     def get_value(self, variable, table, lowercase = False, ignorecase = False):
         """Get variable value from a survey table.

@@ -467,7 +467,7 @@ def compute_pivot_table(simulation: Simulation = None, baseline_simulation: Simu
                     if aggfunc != 'sum_abs'
                     else data_frame[value].abs() * data_frame[weight_variable]
                     )
-                data_frame[value].fillna(missing_variable_default_value, inplace = True)
+                data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
                 pivot_sum = data_frame.pivot_table(index = index, columns = columns, values = value, aggfunc = 'sum')
                 pivot_mass = data_frame.pivot_table(index = index, columns = columns, values = weight_variable, aggfunc = 'sum')
                 if aggfunc == 'mean':
@@ -1080,11 +1080,16 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
                 variable_name, variable.default_value._name_))
             series.fillna(variable.default_value._name_, inplace = True)
         possible_values = variable.possible_values
-        index_by_category = dict(zip(
-            possible_values._member_names_,
-            range(len(possible_values._member_names_))
-            ))
-        series.replace(index_by_category, inplace = True)
+        # index_by_category = dict(zip(
+        #     possible_values._member_names_,
+        #     range(len(possible_values._member_names_))
+        #     ))
+
+        if isinstance(series, pd.CategoricalDtype):
+            series = series.cat.codes
+        else:
+            assert series.isin(list(possible_values._member_names_)).all()
+            series = series.astype("category").cat.codes
 
     if series.values.dtype != variable.dtype:
         log.debug(
