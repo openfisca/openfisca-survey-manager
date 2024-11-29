@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-20.04"]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.9", "3.10.6"]
+        os: ["ubuntu-24.04"]  # On peut ajouter "macos-latest" si besoin
+        python-version: ["3.9.13", "3.10.6"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,32 +36,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
-
-  # buid-conda:
-  #   runs-on: "ubuntu-24.04"
-  #   needs: [ build ]
-  #   steps:
-  #     - uses: conda-incubator/setup-miniconda@v2
-  #       with:
-  #         auto-update-conda: true
-  #         python-version: 3.10.6
-  #         # Add openfisca channel for OpenFisca-Core
-  #         channels: conda-forge, openfisca
-  #         activate-environment: true
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1 # Fetch all the tags
-  #     - name: Conda config
-  #       run: |
-  #         conda install conda-build
-  #         conda info
-  #     - name: Conda build
-  #       # See .conda/meta.yaml for more information on the built package
-  #       run: conda build --channel openfisca .conda
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
 
   lint-files:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ build ]
     steps:
       - uses: actions/checkout@v4
@@ -70,13 +48,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9.9
+          python-version: 3.9.13
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-20.04
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
       - run: pip install -e .[dev]  # Need to install linter
       - run: make check-syntax-errors
       - run: make check-style
@@ -87,8 +65,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ "ubuntu-20.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.9", "3.10.6"]
+        os: [ "ubuntu-24.04" ]  # On peut ajouter "macos-latest" si besoin
+        python-version: ["3.9.13", "3.10.6"]
     env:
       # Needed for coveralls
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,7 +90,7 @@ jobs:
         run: coveralls --service=github
 
   check-version-and-changelog:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ lint-files, build ] # TODO: Replace build by test-python
     steps:
       - uses: actions/checkout@v4
@@ -121,7 +99,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9.9
+          python-version: 3.9.13
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -129,7 +107,7 @@ jobs:
   # We build a separate job to substitute the halt option.
   # The `deploy` job is dependent on the output of the `check-for-functional-changes` job.
   check-for-functional-changes:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version-and-changelog ]
     outputs:
@@ -141,12 +119,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9.9
+          python-version: 3.9.13
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has_functional_changes_status=detected_functional_changes" >> $GITHUB_OUTPUT ; fi
 
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ check-for-functional-changes ]
     if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
     env:
@@ -158,62 +136,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9.9
+          python-version: 3.9.13
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-20.04
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
       - name: Cache release
         id: restore-release
         uses: actions/cache@v4
         with:
           path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-20.04
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username __token__ --password $PYPI_TOKEN_OPENFISCA_BOT
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
-
-  # publish-to-conda:
-  #   runs-on: "ubuntu-24.04"
-  #   needs: [ deploy, buid-conda ]
-  #   steps:
-  #     - uses: conda-incubator/setup-miniconda@v2
-  #       with:
-  #         auto-update-conda: true
-  #         python-version: 3.10.6
-  #         # Add openfisca channel for OpenFisca-Core
-  #         channels: conda-forge, openfisca
-  #         activate-environment: true
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0 # Fetch all the tags
-  #     - name: Conda config
-  #       run: |
-  #         conda install conda-build anaconda-client
-  #         conda info
-  #         conda config --set anaconda_upload yes
-  #     - name: Conda build
-  #       # See .conda/meta.yaml for more information on the built package
-  #       run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca --channel openfisca .conda
-
-  # test-on-windows:
-  #   runs-on: "windows-latest"
-  #   needs: [ publish-to-conda ]
-  #   steps:
-  #     - uses: conda-incubator/setup-miniconda@v2
-  #       with:
-  #         auto-update-conda: true
-  #         python-version: 3.10.6
-  #         # Add openfisca channel for OpenFisca-Core
-  #         channels: conda-forge, openfisca
-  #         activate-environment: true
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0 # Fetch all the tags
-  #     - name: Install with conda
-  #       run: conda install openfisca-survey-manager
-  #     - name: Buid Collection
-  #       run: build-collection
