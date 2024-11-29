@@ -103,6 +103,28 @@ jobs:
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
+############################""
+  test-a-effacer:
+    runs-on: ubuntu-24.04
+    needs: [ check-for-functional-changes ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9.13
+      - name: Cache release
+        id: restore-release
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+      - name: ls
+        run: ls -la dist/*
+############################"
+
   # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
   # We build a separate job to substitute the halt option.
   # The `deploy` job is dependent on the output of the `check-for-functional-changes` job.
