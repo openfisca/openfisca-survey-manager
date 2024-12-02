@@ -42,6 +42,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Pyenv config
+.python-version
+
 # Distribution / packaging
 .Python
 env/
@@ -94,3 +97,8 @@ docs/_build/
 .tags*
 /tags
 tags
+.venv
+
+# Tests files
+*.parquet
+test_*.json

@@ -1,14 +1,15 @@
 import logging
 import os
 import pandas as pd
-import pkg_resources
 
+
+from openfisca_survey_manager.paths import openfisca_survey_manager_location
 
 log = logging.getLogger(__name__)
 
 
 legislation_directory = os.path.join(
-    pkg_resources.get_distribution('openfisca_survey_manager').location,
+    openfisca_survey_manager_location,
     'openfisca_survey_manager',
     'assets',
     )
@@ -29,9 +30,9 @@ def build_coicop_level_nomenclature(level, keep_code = False, to_csv = False):
             )
     except Exception as e:
         log.info("Error when reading nomenclature coicop source data for level {}".format(level))
-        raise(e)
+        raise e
 
-    data_frame.reset_index(inplace = True)
+    data_frame.reset_index(inplace = True, drop = True)
     data_frame.rename(columns = {0: 'code_coicop', 1: 'label_{}'.format(level[:-1])}, inplace = True)
     data_frame = data_frame.iloc[2:].copy()
 
@@ -74,7 +75,13 @@ def build_raw_coicop_nomenclature():
                 build_coicop_level_nomenclature(level), build_coicop_level_nomenclature(next_level),
                 on = on, left_index = False, right_index = False)
         else:
-            coicop_nomenclature = pd.merge(coicop_nomenclature, build_coicop_level_nomenclature(next_level), on = on)
+            coicop_nomenclature = pd.merge(
+                coicop_nomenclature,
+                build_coicop_level_nomenclature(next_level),
+                on = on,
+                left_index = False,
+                right_index = False,
+                )
 
     coicop_nomenclature = coicop_nomenclature[
         ['code_coicop']

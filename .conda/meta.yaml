@@ -1,0 +1,103 @@
+###############################################################################
+## File describing the package for Anaconda.org
+## It uses Jinja2 templating code to retreive information from setup.py
+###############################################################################
+
+{% set name = "OpenFisca-Survey-Manager" %}
+{% set data = load_setup_py_data() %}
+{% set version = data.get('version') %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+# openfisca-survey-manager package source
+source:
+  path: ..
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    {% for req in data.get('install_requires', []) %}
+    {% if req.startswith('tables') %}
+    #  PyPI 'tables' library is named 'pytables' for conda
+    - {{ req.replace('tables', 'pytables') }}
+    {% else %}
+    - {{ req | replace(" ","")}}
+    {% endif %}
+    {% endfor %}
+
+
+test:
+  imports:
+    - openfisca_survey_manager
+  requires:
+    - pip
+  commands:
+    - pip check
+
+outputs:
+  - name: openfisca-survey-manager
+
+  - name: openfisca-survey-manager-matching
+    build:
+      noarch: python
+    commands:
+      - echo {{ data.keys() }}
+    requirements:
+      host:
+        - python
+      run:
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('matching', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
+        - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
+
+  - name: openfisca-survey-manager-dev
+    build:
+      noarch: python
+    requirements:
+      host:
+        - python
+      run:
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('dev', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
+        - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
+
+  - name: openfisca-survey-manager-sas
+    build:
+      noarch: python
+    requirements:
+      host:
+        - python
+      run:
+        {% if 'extra_requires' in data %}
+        {% for req in data['extra_requires'].get('sas', []) %}
+        - {{ req }}
+        {% endfor %}
+        {% endif %}
+        - {{ pin_subpackage('openfisca-survey-manager', exact=True) }}
+
+about:
+  home: https://fr.openfisca.org/
+  license_family: AGPL
+  license: AGPL-3.0-only
+  license_file: LICENSE.AGPL.txt
+  summary: "Survey-Manager module, to work with OpenFisca and survey data."
+  description: |
+    OpenFisca is a versatile microsimulation free software.
+    This repository contains the Survey-Manager module, to work with OpenFisca and survey data.
+  doc_url: https://fr.openfisca.org/
+  dev_url: https://github.com/openfisca/openfisca-survey-manager/

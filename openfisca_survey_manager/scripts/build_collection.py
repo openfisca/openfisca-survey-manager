@@ -9,26 +9,28 @@ import configparser
 import datetime
 import logging
 import os
-import pkg_resources
+import pdb
 import shutil
 import sys
-
+import re
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
 
 app_name = os.path.splitext(os.path.basename(__file__))[0]
 log = logging.getLogger(app_name)
 
 
-def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None):
+def add_survey_to_collection(survey_name = None, survey_collection = None, sas_files = None, stata_files = None, csv_files = None, parquet_files = None):
     if sas_files is None:
         sas_files = []
     if stata_files is None:
         stata_files = []
     if csv_files is None:
         csv_files = []
+    if parquet_files is None:
+        parquet_files = []
 
     assert survey_collection is not None
     overwrite = True
@@ -44,6 +46,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             csv_files = csv_files,
             sas_files = sas_files,
             stata_files = stata_files,
+            parquet_files = parquet_files,
             survey_collection = survey_collection,
             )
     else:
@@ -53,6 +56,7 @@ def add_survey_to_collection(survey_name = None, survey_collection = None, sas_f
             "csv_files": csv_files,
             "sas_files": sas_files,
             "stata_files": stata_files,
+            "parquet_files": parquet_files,
             })
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
@@ -65,20 +69,28 @@ def create_data_file_by_format(directory_path = None):
     stata_files = []
     sas_files = []
     csv_files = []
+    parquet_files = []
 
     for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
             file_path = os.path.join(root, file_name)
             if os.path.basename(file_name).endswith(".csv"):
-                log.info("Found csv file {}".format(file_path))
+                log.info(f"Found csv file {file_path}")
                 csv_files.append(file_path)
             if os.path.basename(file_name).endswith(".dta"):
-                log.info("Found stata file {}".format(file_path))
+                log.info(f"Found stata file {file_path}")
                 stata_files.append(file_path)
             if os.path.basename(file_name).endswith(".sas7bdat"):
-                log.info("Found sas file {}".format(file_path))
+                log.info(f"Found sas file {file_path}")
                 sas_files.append(file_path)
-    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files}
+            if os.path.basename(file_name).endswith(".parquet"):
+                log.info(f"Found parquet file {file_path}")
+                relative = file_name[file_name.find(directory_path):]
+                if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", file_name):
+                    # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
+                    file_path = os.path.dirname(file_name)
+                parquet_files.append(file_path)
+    return {'csv': csv_files, 'stata': stata_files, 'sas': sas_files, 'parquet': parquet_files}
 
 
 def build_survey_collection(
@@ -88,6 +100,8 @@ def build_survey_collection(
         replace_data = False,
         data_directory_path_by_survey_suffix = None,
         source_format = 'sas',
+        keep_original_parquet_file = False,
+        encoding = None,
         ):
 
     assert collection_name is not None
@@ -111,12 +125,14 @@ def build_survey_collection(
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
         survey_name = '{}_{}'.format(collection_name, survey_suffix)
+        # Save the originals files list in the survey collection
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = survey_collection,
             csv_files = data_file_by_format.get('csv'),
             sas_files = data_file_by_format.get('sas'),
             stata_files = data_file_by_format.get('stata'),
+            parquet_files = data_file_by_format.get('parquet'),
             )
 
         valid_source_format = [
@@ -134,20 +150,26 @@ def build_survey_collection(
             os.mkdir(collections_directory)
         collection_json_path = os.path.join(collections_directory, "{}.json".format(collection_name))
         survey_collection.dump(json_file_path = collection_json_path)
-        surveys = [survey for survey in survey_collection.surveys if survey.name.endswith(str(survey_suffix))]
-        survey_collection.fill_hdf(source_format = source_format, surveys = surveys, overwrite = replace_data)
+        surveys = []
+        for survey in survey_collection.surveys:
+            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name):
+                surveys.append(survey)
+        survey_collection.fill_store(source_format = source_format, surveys = surveys, overwrite = replace_data, keep_original_parquet_file = keep_original_parquet_file, encoding = encoding)
     return survey_collection
 
 
 def check_template_config_files(config_files_directory: str):
+    """
+    Create template config files if they do not exist.
+    """
     raw_data_ini_path = os.path.join(config_files_directory, 'raw_data.ini')
     config_ini_path = os.path.join(config_files_directory, 'config.ini')
     raw_data_template_ini_path = os.path.join(config_files_directory, 'raw_data_template.ini')
     config_template_ini_path = os.path.join(config_files_directory, 'config_template.ini')
 
     if os.path.exists(config_files_directory):
-        config_files_do_not_exist = not(os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path))
-        templates_config_files_do_not_exist = not(
+        config_files_do_not_exist = not (os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path))
+        templates_config_files_do_not_exist = not (
             os.path.exists(raw_data_template_ini_path) and os.path.exists(config_template_ini_path))
 
         if config_files_do_not_exist:
@@ -157,7 +179,7 @@ def check_template_config_files(config_files_directory: str):
                     'raw_data_template.ini', 'config_template.ini'
                     ]
                 templates_config_files_directory = os.path.join(
-                    pkg_resources.get_distribution('openfisca-survey-manager').location,
+                    openfisca_survey_manager_location,
                     'openfisca_survey_manager',
                     'config_files_templates'
                     )
@@ -166,7 +188,7 @@ def check_template_config_files(config_files_directory: str):
                         os.path.join(templates_config_files_directory, template_file),
                         os.path.join(config_files_directory, template_file),
                         )
-            print("Rename and fill the template files in {}".format(config_files_directory))
+            print("Rename and fill the template files in {}".format(config_files_directory))  # noqa analysis:ignore
             return False
     else:
         os.makedirs(config_files_directory)
@@ -184,7 +206,10 @@ def main():
         help = "erase existing collection metadata JSON file (instead of just adding new surveys)")
     parser.add_argument('-p', '--path', help = f'path to the config files directory (default = {default_config_files_directory})')
     parser.add_argument('-s', '--survey', help = 'name of survey to build or update (default = all)')
+    parser.add_argument('-k', '--keep_original_parquet_file', action = 'store_true', default = False, help = "Keep original and point to original parquet files")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
+    parser.add_argument('-e', '--encoding', default = None, help = "encoding to be used")
+
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
@@ -210,14 +235,21 @@ def main():
 
     start_time = datetime.datetime.now()
 
-    build_survey_collection(
-        collection_name = args.collection,
-        data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
-        replace_metadata = args.replace_metadata,
-        replace_data = args.replace_data,
-        source_format = 'sas',
-        config_files_directory = config_files_directory,
-        )
+    try:
+        build_survey_collection(
+            collection_name = args.collection,
+            data_directory_path_by_survey_suffix = data_directory_path_by_survey_suffix,
+            replace_metadata = args.replace_metadata,
+            replace_data = args.replace_data,
+            source_format = 'sas',
+            config_files_directory = config_files_directory,
+            keep_original_parquet_file = args.keep_original_parquet_file,
+            encoding = args.encoding,
+            )
+    except Exception as e:
+        log.info(e)
+        pdb.post_mortem(sys.exc_info()[2])
+        raise e
 
     log.info("The program has been executed in {}".format(datetime.datetime.now() - start_time))
 

@@ -1,0 +1,155 @@
+name: OpenFisca-Survey-Manager
+
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-24.04"]  # On peut ajouter "macos-latest" si besoin
+        python-version: ["3.9.13", "3.10.6"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+          restore-keys: |  # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+            build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ matrix.os }}
+            build-${{ env.pythonLocation }}-${{ matrix.os }}
+      - name: Build package
+        run: make build
+      - name: Cache release
+        id: restore-release
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+
+  lint-files:
+    runs-on: ubuntu-24.04
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9.13
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+      - run: pip install -e .[dev]  # Need to install linter
+      - run: make check-syntax-errors
+      - run: make check-style
+
+  test-python:
+    runs-on: ${{ matrix.os }}
+    needs: [ build ]
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ "ubuntu-24.04" ]  # On peut ajouter "macos-latest" si besoin
+        python-version: ["3.9.13", "3.10.6"]
+    env:
+      # Needed for coveralls
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+      - name: install
+        run: make install
+      - name: test
+        run: make test
+      - name : coverage
+        run: coveralls --service=github
+
+  check-version-and-changelog:
+    runs-on: ubuntu-24.04
+    needs: [ lint-files, build ] # TODO: Replace build by test-python
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9.13
+      - name: Check version number has been properly updated
+        run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
+
+  # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
+  # We build a separate job to substitute the halt option.
+  # The `deploy` job is dependent on the output of the `check-for-functional-changes` job.
+  check-for-functional-changes:
+    runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
+    needs: [ check-version-and-changelog ]
+    outputs:
+      status: ${{ steps.stop-early.outputs.has_functional_changes_status }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9.13
+      - id: stop-early
+        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "has_functional_changes_status=detected_functional_changes" >> $GITHUB_OUTPUT ; fi
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: [ check-for-functional-changes ]
+    if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
+    env:
+      PYPI_TOKEN_OPENFISCA_BOT: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9.13
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+      - name: Cache release
+        id: restore-release
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+      - name: Upload a Python package to PyPi
+        run: twine upload dist/* --username __token__ --password $PYPI_TOKEN_OPENFISCA_BOT
+      - name: Publish a git tag
+        run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"

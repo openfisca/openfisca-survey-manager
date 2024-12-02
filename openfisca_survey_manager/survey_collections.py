@@ -7,7 +7,7 @@ import os
 import logging
 
 
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.config import Config
 
@@ -57,6 +57,10 @@ Contains the following surveys :
         return header + "".join(surveys)
 
     def dump(self, config_files_directory = None, json_file_path = None):
+        """
+        Dump the survey collection to a json file
+        And set the json file path in the config file
+        """
         if self.config is not None:
             config = self.config
         else:
@@ -72,19 +76,15 @@ Contains the following surveys :
             self.json_file_path = json_file_path
 
         config.set("collections", self.name, self.json_file_path)
-        config.save
         config.save()
         with codecs.open(self.json_file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf(self, source_format = None, surveys = None, tables = None, overwrite = False):
-        if source_format is not None:
-            assert source_format in ["csv", "Rdata", "sas", "spss", "stata"], \
-                "Data source format {} is unknown".format(source_format)
+    def fill_store(self, source_format = None, surveys = None, tables = None, overwrite = False, keep_original_parquet_file = False, encoding = None):
         if surveys is None:
             surveys = self.surveys
         for survey in surveys:
-            survey.fill_hdf(source_format = source_format, tables = tables, overwrite = overwrite)
+            survey.fill_store(source_format = source_format, tables = tables, overwrite = overwrite, keep_original_parquet_file = keep_original_parquet_file, encoding = encoding)
         self.dump()
 
     def get_survey(self, survey_name):
@@ -97,21 +97,21 @@ Contains the following surveys :
     @classmethod
     def load(cls, json_file_path = None, collection = None, config_files_directory = default_config_files_directory):
         assert os.path.exists(config_files_directory)
+        config = Config(config_files_directory = config_files_directory)
         if json_file_path is None:
-            assert collection is not None
-            config = Config(config_files_directory = config_files_directory)
+            assert collection is not None, "A collection is needed"
             try:
                 json_file_path = config.get("collections", collection)
             except Exception as error:
-                log.debug("Looking for congi file in {}".format(config_files_directory))
+                log.debug("Looking for config file in {}".format(config_files_directory))
                 log.error(error)
                 raise
 
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
-            name = self_json.get('name')
+            name = self_json['name']
 
-        self = cls(name = name)
+        self = cls(config_files_directory = config_files_directory, name = name)
         self.config = config
         with open(json_file_path, 'r') as _file:
             self_json = json.load(_file)
@@ -119,7 +119,7 @@ Contains the following surveys :
             self.label = self_json.get('label')
             self.name = self_json.get('name')
 
-        surveys = self_json.get('surveys')
+        surveys = self_json['surveys']
         for survey_name, survey_json in surveys.items():
             survey = Survey(name = survey_name)
             self.surveys.append(survey.create_from_json(survey_json))

@@ -7,15 +7,19 @@ import logging
 from configparser import ConfigParser
 from pandas import HDFStore
 
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 
 
 log = logging.getLogger(__name__)
 
 
+temporary_store_by_file_path = dict()
+
+
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):
     parser = ConfigParser()
     config_ini = os.path.join(config_files_directory, 'config.ini')
+    assert os.path.exists(config_ini), "{} is not a valid path".format(config_ini)
     read_config_file_name = parser.read([config_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
     assert tmp_directory is not None, \
@@ -33,12 +37,22 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
 
     def actual_decorator(func):
         def func_wrapper(*args, **kwargs):
-            temporary_store = HDFStore(file_path)
+            just_openned = False
+            temporary_store = temporary_store_by_file_path.get(file_path)
+            if temporary_store is None:
+                temporary_store = HDFStore(file_path)
+                temporary_store_by_file_path[file_path] = temporary_store
+                just_openned = True
+
             try:
                 return func(*args, temporary_store = temporary_store, **kwargs)
+            except Exception as e:
+                raise e
             finally:
                 gc.collect()
-                temporary_store.close()
+                if just_openned:
+                    temporary_store.close()
+                    del temporary_store_by_file_path[file_path]
 
         return func_wrapper
 

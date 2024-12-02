@@ -8,12 +8,12 @@ import random
 
 import numpy as np
 import pandas as pd
-import pkg_resources
 
 
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
 
 
 log = logging.getLogger(__name__)
@@ -50,6 +50,8 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         })
     input_dataframe_by_entity[person_entity.key].set_index('person_id')
     #
+    seed = 42
+    random.seed(seed)
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
     members_entity_id = np.empty(nb_persons, dtype = int)
     # A role index is an index that every person within an entity has.
@@ -83,33 +85,28 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
 
 
 def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection = None):
-    """Generate randomn values for some variables of a tax-benefit system and store them in a specified collection
+    """
+    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
 
     Args:
-      TaxBenefitSystem: tax_benefit_system: the tax_benefit_system to use
-      int: nb_persons: the number of persons in the system
-      int: nb_groups: the number of collective entities in the system
-      dict: variable_generators_by_period: the specification of the periods and values of the generated variables
-      string: collection: the collection storing the produced data
-      tax_benefit_system:
-      nb_persons:
-      nb_groups:
-      variable_generators_by_period:
-      collection:  (Default value = None)
+        tax_benefit_system (TaxBenefitSystem): tax_benefit_system: the tax_benefit_system to use
+        nb_persons (int): the number of persons in the data
+        nb_groups (int): the number of collective entities in the data
+        variable_generators_by_period (dict): parameters of the varaibles for every period
+        collection (str, optional): collection where to store the input survey. Defaults to None.
 
     Returns:
-      A dictionnary of the entities tables by period
-
+        dict: The entities tables by period
     """
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     table_by_entity_by_period = dict()
-    for period, variable_generators in variable_generators_by_period.items():
+    for period, variable_generators in sorted(variable_generators_by_period.items()):
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
         table_by_entity_by_period[period] = table_by_entity = dict()
         for variable_generator in variable_generators:
             variable = variable_generator['variable']
             max_value = variable_generator['max_value']
-            condition = variable_generator.get(None)
+            condition = variable_generator.get("condition", None)
             randomly_init_variable(
                 tax_benefit_system = tax_benefit_system,
                 input_dataframe_by_entity = input_dataframe_by_entity,
@@ -172,7 +169,6 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
     if seed is None:
         seed = 42
-
     np.random.seed(seed)
     count = len(input_dataframe_by_entity[entity.key])
     value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
@@ -180,19 +176,22 @@ def randomly_init_variable(tax_benefit_system, input_dataframe_by_entity, variab
 
 
 def set_table_in_survey(input_dataframe, entity, period, collection, survey_name, survey_label = None,
-        table_label = None, table_name = None):
+        table_label = None, table_name = None, config_files_directory = default_config_files_directory,
+        source_format = None, parquet_file = None):
     period = periods.period(period)
     if table_name is None:
         table_name = entity + '_' + str(period)
     if table_label is None:
-        table_label = "Input data for entity {} at period {}".format(entity, period)
+        table_label = f"Input data for entity {entity} at period {period}"
     try:
-        survey_collection = SurveyCollection.load(collection = collection)
-    except configparser.NoOptionError:
-        survey_collection = SurveyCollection(name = collection)
-    except configparser.NoSectionError:  # For tests
+        survey_collection = SurveyCollection.load(collection = collection, config_files_directory=config_files_directory)
+    except configparser.NoOptionError as e:
+        log.warning(f"set_table_in_survey configparser.NoOptionError : {e}")
+        survey_collection = SurveyCollection(name = collection, config_files_directory=config_files_directory)
+    except configparser.NoSectionError as e:  # For tests
+        log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
         data_dir = os.path.join(
-            pkg_resources.get_distribution('openfisca-survey-manager').location,
+            openfisca_survey_manager_location,
             'openfisca_survey_manager',
             'tests',
             'data_files',
@@ -201,35 +200,47 @@ def set_table_in_survey(input_dataframe, entity, period, collection, survey_name
             name = collection,
             config_files_directory = data_dir,
             )
+    except FileNotFoundError as e:
+        log.warning(f"set_table_in_survey FileNotFoundError : {e}")
+        survey_collection = SurveyCollection(name = collection, config_files_directory=config_files_directory)
 
     try:
         survey = survey_collection.get_survey(survey_name)
     except AssertionError:
+        log.info(f"Survey {survey_name} does not exist, it will be created.")
         survey = Survey(
             name = survey_name,
             label = survey_label or None,
             survey_collection = survey_collection,
             )
 
-    if survey.hdf5_file_path is None:
+    if survey.hdf5_file_path is None and survey.parquet_file_path is None:
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
-            log.warn("{} who should be the HDF5 data directory does not exist: we create the directory".format(
-                directory_path))
+            log.warning(f"{directory_path} who should be the data directory does not exist: we create the directory")
             os.makedirs(directory_path)
-        survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+        if source_format is None:
+            survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+        elif source_format == "parquet":
+            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+            if not os.path.isdir(survey.parquet_file_path):
+                log.warning(f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory")
+                os.makedirs(survey.parquet_file_path)
 
-    assert survey.hdf5_file_path is not None
-    survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe)
+    assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
+    if source_format == "parquet" and parquet_file is None:
+        parquet_file = os.path.join(survey.parquet_file_path, table_name + '.parquet')
+    survey.insert_table(label = table_label, name = table_name, dataframe = input_dataframe, parquet_file = parquet_file)
+    # If a survey with save name exist it will be overwritten
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
         ]
     survey_collection.surveys.append(survey)
     collections_directory = survey_collection.config.get('collections', 'collections_directory')
-    assert os.path.isdir(collections_directory), """{} who should be the collections' directory does not exist.
-Fix the option collections_directory in the collections section of your config file.""".format(collections_directory)
-    collection_json_path = os.path.join(collections_directory, "{}.json".format(collection))
+    assert os.path.isdir(collections_directory), f"""{collections_directory} who should be the collections' directory does not exist.
+Fix the option collections_directory in the collections section of your config file."""
+    collection_json_path = os.path.join(collections_directory, f"{collection}.json")
     survey_collection.dump(json_file_path = collection_json_path)
 
 

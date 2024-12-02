@@ -2,27 +2,23 @@
 
 from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
 import pandas as pd
-import weighted
+import wquantiles
 import weightedcalcs as wc
+import numpy as np
 
 
 def gini(values, weights = None):
-    """Computes Gini coefficient (normalized to 1)
-    Using fastgini formula :
-
-
-                      i=N      j=i
-                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
-                      i=1      j=1
-          G = 1 - 2* ----------------------------------
-                           i=N             i=N
-                           SUM W_i*X_i  *  SUM W_i
-                           i=1             i=1
-
-
-        where observations are sorted in ascending order of X.
-
-    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    """Computes Gini coefficient (normalized to 1).
+    # Using fastgini formula :
+    #             i=N      j=i
+    #             SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
+    #             i=1      j=1
+    # G = 1 - 2* ----------------------------------
+    #                 i=N             i=N
+    #                 SUM W_i*X_i  *  SUM W_i
+    #                 i=1             i=1
+    # where observations are sorted in ascending order of X.
+    # From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
 
     Args:
       values: Vector of values
@@ -118,6 +114,8 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
     # The code outputs an array the same shape as 'a', but with
     # labels[i] inserted into spot j if a[j] falls in x-tile i.
     # The number of xtiles requested is inferred from the length of 'labels'.
+
+    np.random.seed(42)
 
     # First method, "vanilla" weights from Wikipedia article.
     if method == 1:
@@ -352,7 +350,7 @@ def weighted_quantiles(data, labels, weights, return_quantiles = False):
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
     quantiles = [
-        weighted.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
+        wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
         ]
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):
