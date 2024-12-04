@@ -107,7 +107,7 @@ def create_margins(entities = 1):
             2: 50,
             },
         'Z': 140.0,
-        'Z_number': 80,
+        'Z > 0': 80,
         }
     if entities == 2:
         margins_by_variable['C'] = 85
