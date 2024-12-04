@@ -132,11 +132,9 @@ class Calibration(object):
         period = self.period
         for variable in self.margins_by_variable:
             assert variable in self.simulation.tax_benefit_system.variables or variable.split(" ")[0] in self.simulation.tax_benefit_system.variables
+            value = self.simulation.adaptative_calculate_variable(variable.split(" ")[0], period = period)
             if len(variable.split(" ")) > 1:
-                var_to_eval = simulation.adaptative_calculate_variable(variable.split(" ")[0], period = period)
-                value = eval('var_to_eval' + ''.join(variable.split(" ")[1: ])).astype(float)
-            else:
-                value = self.simulation.adaptative_calculate_variable(variable, period = period)
+                value = eval('value' + ''.join(variable.split(" ")[1:])).astype(float)
             data[self.simulation.tax_benefit_system.variables[variable].entity.key][variable] = value
 
         if len(self.entities) == 2:
@@ -280,11 +278,9 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
+            value = simulation.adaptative_calculate_variable(variable.split(" ")[0], period = period)
             if len(variable.split(" ")) > 1:
-                var_to_eval = simulation.adaptative_calculate_variable(variable.split(" ")[0], period = period)
-                value = eval( 'var_to_eval' + ''.join(variable.split(" ")[1: ])).astype(float)
-            else:
-                value = simulation.adaptative_calculate_variable(variable, period = period)
+                value = eval('value' + ''.join(variable.split(" ")[1:])).astype(float)
             weight_variable = simulation.weight_variable_by_entity[target_entity]
 
             if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable.split(" ")[0]].entity.key != self.target_entity:
