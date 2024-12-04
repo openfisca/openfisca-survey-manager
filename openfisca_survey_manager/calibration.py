@@ -52,8 +52,9 @@ class Calibration(object):
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
         entities = set(
             variable_instance_by_variable_name[variable].entity.key
-            for variable in margin_variables
+            for variable in margin_variables if not variable.endswith("_number")
             )
+        assert all([(len(variable.split("_number")) < 3) for variable in margin_variables]), "invalid name of a variable for calibration, with '_number' not only in last position"
         if entity is not None:
             entities.add(entity)
         self.entities = list(entities)
@@ -131,8 +132,13 @@ class Calibration(object):
         data[self.target_entity][self._initial_weight_name] = self.initial_weight * self.filter_by
         period = self.period
         for variable in self.margins_by_variable:
-            assert variable in self.simulation.tax_benefit_system.variables
-            data[self.simulation.tax_benefit_system.variables[variable].entity.key][variable] = self.simulation.adaptative_calculate_variable(variable, period = period)
+            assert variable in self.simulation.tax_benefit_system.variables or variable.split("_number")[0] in self.simulation.tax_benefit_system.variables
+            if variable.endswith("_number"):
+                assert self.simulation.tax_benefit_system.variables[variable.split("_number")[0]].value_type in [int, float], "variable with suffix 'number' should be float-like so we can separate the positive values"
+                value = (self.simulation.adaptative_calculate_variable(variable.split("_number")[0], period = period) > 0).astype(int)
+            else:
+                value = self.simulation.adaptative_calculate_variable(variable, period = period)
+            data[self.simulation.tax_benefit_system.variables[variable].entity.key][variable] = value
 
         if len(self.entities) == 2:
             for entity in self.entities:
@@ -209,8 +215,8 @@ class Calibration(object):
         """
         simulation = self.simulation
         period = self.period
-        assert variable in simulation.tax_benefit_system.variables
-        variable_instance = simulation.tax_benefit_system.variables[variable]
+        assert variable in simulation.tax_benefit_system.variables or variable.split("_number")[0] in simulation.tax_benefit_system.variables
+        variable_instance = simulation.tax_benefit_system.variables[variable.split("_number")[0]]
 
         filter_by = self.filter_by
         target_by_category = None
@@ -275,10 +281,13 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = simulation.adaptative_calculate_variable(variable, period = period)
+            if variable.endswith("_number"):
+                value = (simulation.adaptative_calculate_variable(variable.split("_number")[0], period = period) < 0).astype(int)
+            else:
+                value = simulation.adaptative_calculate_variable(variable, period = period)
             weight_variable = simulation.weight_variable_by_entity[target_entity]
 
-            if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable].entity.key != self.target_entity:
+            if len(self.entities) == 2 and simulation.tax_benefit_system.variables[variable.split("_number")[0]].entity.key != self.target_entity:
                 value_df = pd.DataFrame(value)
                 id_variable = self.parameters["id_variable_link"]
                 value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
@@ -297,7 +306,7 @@ class Calibration(object):
                 ('initial', initial_weight),
                 ]
 
-            variable_instance = simulation.tax_benefit_system.get_variable(variable)
+            variable_instance = simulation.tax_benefit_system.get_variable(variable.split("_number")[0])
             assert variable_instance is not None
             if variable_instance.value_type in [bool, Enum]:
                 margin_items.append(('category', value))
