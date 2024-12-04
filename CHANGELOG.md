@@ -1,6 +1,10 @@
 ﻿# Changelog
+### 3.0.2 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
 
-# 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
+* New feature
+  - Introduce the possibility to use calmar on variables with a suffix "_number", with target the weighted sum of the number of positive value of the variable. Only the variable without "_number" should be in the tax benefit system.
+
+### 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
 
 * Technical changes
   - Fix build.
