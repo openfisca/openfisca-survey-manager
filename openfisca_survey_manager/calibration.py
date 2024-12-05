@@ -55,7 +55,7 @@ class Calibration(object):
             variable_instance_by_variable_name[variable].entity.key
             for var in margin_variables for variable in re.findall('[A-Za-z_]+', var)
             )
-        for var in margin_variables :
+        for var in margin_variables:
             assert len(set([variable_instance_by_variable_name[variable].entity.key
             for variable in re.findall('[A-Za-z_]+', var)])) == 1, "An expression use variables that are not based on the same entity"
         if entity is not None:
