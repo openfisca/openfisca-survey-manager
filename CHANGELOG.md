@@ -2,7 +2,7 @@
 ### 3.0.2 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
 
 * New feature
-  - Introduce the possibility to use calmar on variables with a suffix "_number", with target the weighted sum of the number of positive value of the variable. Only the variable without "_number" should be in the tax benefit system.
+  - Introduce the possibility to use calmar on variables changed with expressions starting with a space, with a target associated, for instance 'wage > 0' to have the number of positive wage in population.
 
 ### 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
 
