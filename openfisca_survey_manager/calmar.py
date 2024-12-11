@@ -253,9 +253,10 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
                     k, pop = 0, 0
+                    list_col_to_add = [data[entity]]
                     for cat, nb in val.items():
                         cat_varname = var + '_' + str(cat)
-                        data[entity][cat_varname] = dummies_dict[cat]
+                        list_col_to_add.append(pd.Series(dummies_dict[cat], name = cat_varname))
                         margins_new[cat_varname] = nb
                         if var not in margins_new_dict:
                             margins_new_dict[var] = {}
@@ -263,6 +264,7 @@ def calmar(data_in, margins: dict, initial_weight: str, method = 'linear', lo = 
                         pop += nb
                         k += 1
                         nj += 1
+                    data[entity] = pd.concat(list_col_to_add, axis = 1)
                     # Check total popualtion
                     population = (entity == target_entity) * total_population + (entity != target_entity) * total_population_smaller_entity
                     if pop != population:
