@@ -104,6 +104,8 @@ class Calibration(object):
             self.filter_by = numpy.array(1.0)
 
         assert weight_name is not None, "A calibration needs a weight variable name to act on"
+        weight_variable = simulation.tax_benefit_system.variables[weight_name]
+        weight_variable.unit = ""
         self._initial_weight_name = weight_name + "_ini"
         self.initial_weight = initial_weight = simulation.calculate(weight_name, period = period)
 
