@@ -1,6 +1,10 @@
 ﻿# Changelog
+### 3.0.2 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
 
-# 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
+* New feature
+  - Introduce the possibility to use calmar on variables changed with expressions starting with a space, with a target associated, for instance 'wage > 0' to have the number of positive wage in population.
+
+### 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
 
 * Technical changes
   - Fix build.
