@@ -49,15 +49,16 @@ class Calibration(object):
             margin_variables = list(target_margins.keys())
         else:
             margin_variables = []
+        search_variable = '[A-Za-z_]+[\w_]*'
 
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
         entities = set(
             variable_instance_by_variable_name[variable].entity.key
-            for var in margin_variables for variable in re.findall('[A-Za-z_]+', var)
+            for var in margin_variables for variable in re.findall(search_variable, var)
             )
         for var in margin_variables:
             assert len(set([variable_instance_by_variable_name[variable].entity.key
-            for variable in re.findall('[A-Za-z_]+', var)])) == 1, "An expression use variables that are not based on the same entity"
+            for variable in re.findall(search_variable, var)])) == 1, "An expression use variables that are not based on the same entity"
         if entity is not None:
             entities.add(entity)
         self.entities = list(entities)
@@ -137,7 +138,7 @@ class Calibration(object):
         data[self.target_entity][self._initial_weight_name] = self.initial_weight * self.filter_by
         period = self.period
         for variable in self.margins_by_variable:
-            list_var = re.findall('[A-Za-z_]+', variable)
+            list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
             assert all([var in self.simulation.tax_benefit_system.variables for var in list_var])
             dic_eval = {}
             for var in list_var:
@@ -220,7 +221,7 @@ class Calibration(object):
         """
         simulation = self.simulation
         period = self.period
-        list_var = re.findall('[A-Za-z_]+', variable)
+        list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
         assert all([var in simulation.tax_benefit_system.variables for var in list_var])
         variable_instance = simulation.tax_benefit_system.variables[list_var[0]]
 
@@ -235,7 +236,7 @@ class Calibration(object):
             value = simulation.calculate(variable, period = period)
             filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
             categories = numpy.sort(numpy.unique(filtered_value))
-            target_by_category = dict(zip(categories, target))
+            target_by_category = dict(zip(categories, target.values()))
 
         if not self.margins_by_variable:
             self.margins_by_variable = dict()
@@ -285,7 +286,7 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            list_var = re.findall('[A-Za-z_]+', variable)
+            list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
             dic_eval = {}
             for var in list_var:
                 dic_eval[var] = simulation.adaptative_calculate_variable(var, period = period)
