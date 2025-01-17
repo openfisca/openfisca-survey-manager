@@ -83,7 +83,7 @@ class Calibration(object):
             assert len(id_variable) < len(id_variable_link), "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
             target_entity = entity_id_variable
         elif len(entities) > 2:
-            raise NotImplementedError("Cannot hande multiple entites")
+            raise NotImplementedError("Cannot handle multiple entities")
         else:
             target_entity = list(entities)[0]
             if "id_variable" in parameters.keys():
@@ -228,10 +228,14 @@ class Calibration(object):
         filter_by = self.filter_by
         target_by_category = None
         categorical_variable = (
-            (variable_instance.value_type in [bool, Enum])
-            or (variable_instance.unit == 'years')
-            or (variable_instance.unit == 'months')
+            (variable_instance.value_type in [bool, Enum] and variable == list_var[0])
+            or (variable_instance.unit in ['years', 'months'] and variable == list_var[0])
             )
+        for var in list_var:
+            expr_categ = var + '[ ]*[<>=]+'
+            true_var = simulation.tax_benefit_system.variables[var]
+            if var != list_var and true_var.value_type == Enum or true_var.unit in ['years', 'months']:
+                assert len(re.findall(expr_categ, var)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
             filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
@@ -315,7 +319,7 @@ class Calibration(object):
 
             variable_instance = simulation.tax_benefit_system.get_variable(list_var[0])
             assert variable_instance is not None
-            if variable_instance.value_type in [bool, Enum]:
+            if variable_instance.value_type in [bool, Enum] and variable == list_var[0]:
                 margin_items.append(('category', value))
                 margins_data_frame = pd.DataFrame.from_items(margin_items)
                 margins_data_frame = margins_data_frame.groupby('category', sort = True).sum()
