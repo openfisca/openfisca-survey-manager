@@ -49,7 +49,7 @@ class Calibration(object):
             margin_variables = list(target_margins.keys())
         else:
             margin_variables = []
-        search_variable = '[A-Za-z_]+[\w_]*'
+        search_variable = '[A-Za-z_]+[A-Za-z0-9_]*'
 
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
         entities = set(
@@ -138,7 +138,7 @@ class Calibration(object):
         data[self.target_entity][self._initial_weight_name] = self.initial_weight * self.filter_by
         period = self.period
         for variable in self.margins_by_variable:
-            list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
+            list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
             assert all([var in self.simulation.tax_benefit_system.variables for var in list_var])
             dic_eval = {}
             for var in list_var:
@@ -221,7 +221,7 @@ class Calibration(object):
         """
         simulation = self.simulation
         period = self.period
-        list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
+        list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
         assert all([var in simulation.tax_benefit_system.variables for var in list_var])
         variable_instance = simulation.tax_benefit_system.variables[list_var[0]]
 
@@ -290,7 +290,7 @@ class Calibration(object):
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            list_var = re.findall('[A-Za-z_]+[\w_]*', variable)
+            list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
             dic_eval = {}
             for var in list_var:
                 dic_eval[var] = simulation.adaptative_calculate_variable(var, period = period)
