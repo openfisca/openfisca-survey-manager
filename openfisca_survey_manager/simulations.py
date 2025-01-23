@@ -1050,7 +1050,7 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
-    if (not isinstance(series, pd.CategoricalDtype)) and np.issubdtype(series.values.dtype, np.floating):
+    if (not isinstance(series.dtype, pd.CategoricalDtype)) and np.issubdtype(series.values.dtype, np.floating):
         if series.isnull().any():
             log.debug('There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name))
@@ -1064,7 +1064,7 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
     enum_variable_imputed_as_enum = (
         variable.value_type == Enum
         and (
-            isinstance(series, pd.CategoricalDtype)
+            isinstance(series.dtype, pd.CategoricalDtype)
             or not (
                 np.issubdtype(series.values.dtype, np.integer)
                 or np.issubdtype(series.values.dtype, float)
@@ -1085,7 +1085,7 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
         #     range(len(possible_values._member_names_))
         #     ))
 
-        if isinstance(series, pd.CategoricalDtype):
+        if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
         else:
             assert series.isin(list(possible_values._member_names_)).all()
