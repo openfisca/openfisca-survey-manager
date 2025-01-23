@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 3.0.2 [#328](https://github.com/openfisca/openfisca-survey-manager/pull/328)
+
+* Technical changes
+  - Fix categorical dtype check when initialising a Simulation.
+
 # 3.0.1 [#322](https://github.com/openfisca/openfisca-survey-manager/pull/322)
 
 * Technical changes
