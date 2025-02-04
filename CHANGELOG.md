@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.3 [#329](https://github.com/openfisca/openfisca-survey-manager/pull/329)
+
+* Technical changes
+  - Fix dependencies to be able to install package with uv
+
 ### 3.0.2 [#328](https://github.com/openfisca/openfisca-survey-manager/pull/328)
 
 * Technical changes

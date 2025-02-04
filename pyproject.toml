@@ -1,6 +1,6 @@
 [project]
 name = "OpenFisca-Survey-Manager"
-version = "3.0.2"
+version = "3.0.3"
 description = "A tool for managing survey/administrative data and import them in OpenFisca"
 readme = "README.md"
 keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
@@ -50,9 +50,9 @@ build-collection = "openfisca_survey_manager.scripts.build_collection:main"
 
 [project.optional-dependencies]
 matching = [
-    'feather',
+    # 'feather',
     'rpy2 >=3.5.10, < 4.0'
-]
+    ]
 dev = [
     'autopep8 >=2.0.2, < 3',
     'coveralls >=3.3.1, < 5.0',
@@ -72,7 +72,7 @@ casd = [
     'autopep8 >=2.0.2, < 3',
     'flake8 >=6.0.0, < 8.0',
     'pycodestyle >=2.10.0, < 3.0',
-    'pytest >=7.2.2, < 8.0',
+    'pytest',
     'scipy >=1.10.1, < 2.0'
 ]
 sas = [
