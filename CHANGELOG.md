@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.4 [#326](https://github.com/openfisca/openfisca-survey-manager/pull/326)
+
+* Technical changes
+  - Fix get_values of Survey class.
+
 ### 3.0.3 [#329](https://github.com/openfisca/openfisca-survey-manager/pull/329)
 
 * Technical changes

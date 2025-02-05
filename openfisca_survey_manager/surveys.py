@@ -231,7 +231,7 @@ Contains the following tables : \n"""
             if table is None:
                 raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
-                if table in table_name:
+                if table == table_name:
                     parquet_file = table_content.get("parquet_file")
                     # Is parquet_file a folder or a file?
                     if os.path.isdir(parquet_file):
@@ -246,9 +246,10 @@ Contains the following tables : \n"""
                         one_parquet_file = parquet_file
                     parquet_schema = pq.read_schema(one_parquet_file)
                     assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
-                    columns = table_content.get('variables')
+                    if variables is None:
+                        variables = table_content.get('variables')
                     if filter_by:
-                        df = pq.ParquetDataset(parquet_file, filters=filter_by).read(columns=columns).to_pandas()
+                        df = pq.ParquetDataset(parquet_file, filters=filter_by).read(columns=variables).to_pandas()
                     elif batch_size:
                         if os.path.isdir(parquet_file):
                             parquet_file = glob.glob(os.path.join(parquet_file, '*.parquet'))
@@ -258,7 +259,7 @@ Contains the following tables : \n"""
                         tables = []
                         # Loop through the file paths and read each Parquet file
                         for file_path in parquet_file:
-                            table = pq.read_table(file_path, columns=columns)
+                            table = pq.read_table(file_path, columns=variables)
                             tables.append(table)
 
                         # Concatenate the tables if needed
@@ -283,7 +284,7 @@ Contains the following tables : \n"""
                         #         break
                         #     index += 1
                     else:
-                        df = pq.ParquetDataset(parquet_file).read(columns=columns).to_pandas()
+                        df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
                     break
             else:
                 raise Exception(f"No table {table} found in {self.parquet_file_path}")
