@@ -234,8 +234,8 @@ class Calibration(object):
         for var in list_var:
             expr_categ = var + '[ ]*[<>=]+'
             true_var = simulation.tax_benefit_system.variables[var]
-            if var != list_var and true_var.value_type == Enum or true_var.unit in ['years', 'months']:
-                assert len(re.findall(expr_categ, var)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
+            if (var != list_var) and true_var.value_type == Enum or true_var.unit in ['years', 'months']:
+                assert len(re.findall(expr_categ, variable)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
             filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
@@ -267,7 +267,7 @@ class Calibration(object):
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
-            if weight_variable.formulas:
+            elif weight_variable.formulas:
                 simulation.delete_arrays(weight_variable.name, period)
 
     def summary(self):
