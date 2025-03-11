@@ -235,17 +235,15 @@ Contains the following tables : \n"""
                     parquet_file = table_content.get("parquet_file")
                     # Is parquet_file a folder or a file?
                     if os.path.isdir(parquet_file):
-                        # find first parquet file in folder
+                        names = []
                         for file in os.listdir(parquet_file):
                             if file.endswith('.parquet'):
-                                one_parquet_file = os.path.join(parquet_file, file)
-                                break
-                        else:
-                            raise Exception(f"No parquet file found in {parquet_file}")
+                                names + pq.read_schema(file).names
+                        if names == []:
+                            raise Exception(f"No parquet file found in {parquet_file} or parquet file are empty")
                     else:
-                        one_parquet_file = parquet_file
-                    parquet_schema = pq.read_schema(one_parquet_file)
-                    assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
+                        names = pq.read_schema(parquet_file).names
+                    assert len(names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
                     if variables is None:
                         variables = table_content.get('variables')
                     if filter_by:
@@ -256,33 +254,19 @@ Contains the following tables : \n"""
                         else:
                             parquet_file = [parquet_file]
                         # Initialize an empty list to store the Parquet tables
-                        tables = []
+                        final_table = pandas.DataFrame()
                         # Loop through the file paths and read each Parquet file
                         for file_path in parquet_file:
-                            table = pq.read_table(file_path, columns=variables)
-                            tables.append(table)
-
-                        # Concatenate the tables if needed
-                        if len(tables) > 1:
-                            final_table = pa.concat_tables(tables)
-                        else:
-                            final_table = tables[0]
-                        record_batches = final_table.to_batches(max_chunksize=batch_size)
-                        if len(record_batches) <= batch_index:
-                            raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
-                        df = record_batches[batch_index].to_pandas()
-                        # iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
-                        # index = 0
-                        # while True:
-                        #     try:
-                        #         batch = next(iter_parquet)
-                        #     except StopIteration:
-                        #         raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
-                        #         break
-                        #     if batch_index == index:
-                        #         df = batch.to_pandas()
-                        #         break
-                        #     index += 1
+                            file_names = pq.read_schema(parquet_file)
+                            table = pq.read_table(file_path, columns=list(set(variables)& set(file_names)))
+                            record_batches = table.to_batches(max_chunksize=batch_size)
+                            if len(record_batches) <= batch_index:
+                                raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
+                            df = record_batches[batch_index].to_pandas()
+                            if df.columns == final_table.columns:
+                                final_table = pandas.concat([final_table,df],axis = 0)
+                            else:
+                                final_table = pandas.concat([final_table,df],axis = 1)
                     else:
                         df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
                     break
