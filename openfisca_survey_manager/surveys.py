@@ -9,7 +9,6 @@ import logging
 import pandas
 import yaml
 import pyarrow.parquet as pq
-import pyarrow as pa
 
 from .tables import Table
 
@@ -258,15 +257,15 @@ Contains the following tables : \n"""
                         # Loop through the file paths and read each Parquet file
                         for file_path in parquet_file:
                             file_names = pq.read_schema(parquet_file)
-                            table = pq.read_table(file_path, columns=list(set(variables)& set(file_names)))
+                            table = pq.read_table(file_path, columns=list(set(variables) & set(file_names)))
                             record_batches = table.to_batches(max_chunksize=batch_size)
                             if len(record_batches) <= batch_index:
                                 raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
                             df = record_batches[batch_index].to_pandas()
                             if df.columns == final_table.columns:
-                                final_table = pandas.concat([final_table,df],axis = 0)
+                                final_table = pandas.concat([final_table, df], axis = 0)
                             else:
-                                final_table = pandas.concat([final_table,df],axis = 1)
+                                final_table = pandas.concat([final_table, df], axis = 1)
                     else:
                         df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
                     break
