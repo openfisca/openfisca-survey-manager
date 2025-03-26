@@ -258,7 +258,7 @@ Contains the following tables : \n"""
                             table = pq.read_table(file_path, columns=list(set(variables) & set(file_names)))
                             record_batches = table.to_batches(max_chunksize=batch_size)
                             if len(record_batches) <= batch_index:
-                                raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
+                                raise NoMoreDataError(f"Batch {batch_index} not found in {file_names}. Max index is {len(record_batches)}")
                             final_table = record_batches[batch_index].to_pandas()
                             if final_table.columns.isin(df.columns).sum() > 0:
                                 df = pandas.concat([df, final_table], axis = 0)
@@ -286,7 +286,7 @@ Contains the following tables : \n"""
         else:
             diff = set(variables) - set(df.columns)
             if diff:
-                raise Exception(f"The following variable(s) {diff} are missing, variables present : {df.columns}")
+                log.info(f"The following variable(s) {diff} are missing, variables present : {df.columns}")
             variables = list(set(variables).intersection(df.columns))
             df = df[variables]
             return df

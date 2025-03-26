@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.5 [#332](https://github.com/openfisca/openfisca-survey-manager/pull/332)
+
+* New features
+- Allow the read of multi files parquet datasets with different columns in each file
+
 ### 3.0.4 [#326](https://github.com/openfisca/openfisca-survey-manager/pull/326)
 
 * Technical changes
