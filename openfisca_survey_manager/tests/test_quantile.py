@@ -137,7 +137,9 @@ def test_quantile():
     assert all(
         (result == target)
         + (abs(result - target + 1) < 0.001)  # Finite size problem handling
-    ), f"{result[result != target]} != {target[result != target]}, \n{data[result != target]} , \n{abs(result - target + 1)[result != target]},"
+    ), (
+        f"{result[result != target]} != {target[result != target]}, \n{data[result != target]} , \n{abs(result - target + 1)[result != target]},"
+    )
 
     # No reason that method coincides so close to the quantiles thresholds
     # assert all(survey_scenario.calculate_variable(

@@ -1,4 +1,5 @@
 import contextlib
+
 with contextlib.suppress(ModuleNotFoundError):
     import pysal as ps
 import pandas as pd

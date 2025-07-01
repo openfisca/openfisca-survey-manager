@@ -1,4 +1,5 @@
 """Abstract survey scenario definition."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

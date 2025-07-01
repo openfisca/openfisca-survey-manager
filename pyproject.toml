@@ -175,6 +175,18 @@ lint.ignore = [
     "RUF012",
     "TD002",
     "TD003",
+    # To be removed when the code is fully documented and cleaned up
+    "S101",  # 	assert
+    "FBT002",  # boolean-default-value-positional-argument
+    "G004",    # logging-f-string
+    "D100",    # missing-docstring
+    "D101",    # missing-public-method-docstring
+    "D102",    # missing-public-module-docstring
+    "D104",    # missing-module-docstring
+    "D103",    # undocumented-public-function
+    "D414",    # missing-parameter-docstring
+    "D417",  # missing-function-docstring
+    "PLR0913",  # too-many-arguments
 ]
 lint.pydocstyle.convention = "google"
 

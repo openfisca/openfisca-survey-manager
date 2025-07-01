@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+
+from pathlib import Path
+
 import logging
-import os
 
 import pandas as pd
 
@@ -78,7 +80,9 @@ def inflate_parameters(
                 # Empty intersection: not unit present in metadata
                 if not bool(set(parameters.metadata.keys()) & set(acceptable_units)):
                     return
-            assert hasattr(parameters, "metadata"), f"{parameters.name} doesn't have metadata"
+            assert hasattr(parameters, "metadata"), (
+                f"{parameters.name} doesn't have metadata"
+            )
             unit_types = set(parameters.metadata.keys()).intersection(
                 set(acceptable_units)
             )
@@ -90,8 +94,7 @@ def inflate_parameters(
                     f"Too much admissible units in metadata for parameter {parameters.name}"
                 )
             unit_by_type = {
-                unit_type: parameters.metadata[unit_type]
-                    for unit_type in unit_types
+                unit_type: parameters.metadata[unit_type] for unit_type in unit_types
             }
             for unit_type in unit_by_type:
                 if parameters.metadata[unit_type].startswith("currency"):
@@ -286,7 +289,7 @@ def stata_files_to_data_frames(data, period=None):
         input_data_frame_by_entity
     ) = {}
     for entity, file_path in stata_file_by_entity.items():
-        assert os.path.exists(file_path), f"Invalid file path: {file_path}"
+        assert Path(file_path).exists(), f"Invalid file path: {file_path}"
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(
             file_path
         )
@@ -327,9 +330,7 @@ def load_table(
     )
     survey = survey if survey is not None else f"{input_data_survey_prefix}_{data_year}"
     survey_ = survey_collection.get_survey(survey)
-    log.debug(
-        f"Loading table {table} in survey {survey} from collection {collection}"
-    )
+    log.debug(f"Loading table {table} in survey {survey} from collection {collection}")
     if batch_size:
         return survey_.get_values(
             table=table,

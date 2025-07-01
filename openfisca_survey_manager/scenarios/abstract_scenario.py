@@ -1,11 +1,14 @@
-"""Abstract survey scenario definition."""
 from __future__ import annotations
+
+
+"""Abstract survey scenario definition."""
 
 from typing import TYPE_CHECKING
 
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -286,9 +289,7 @@ class AbstractSurveyScenario:
         if simulation is None:
             assert len(self.simulations.keys()) == 2
             simulation_name = next(
-                name
-                for name in self.simulations
-                if not name.startswith("_modified_")
+                name for name in self.simulations if not name.startswith("_modified_")
             )
             simulation = self.simulations[simulation_name]
         else:
@@ -334,9 +335,7 @@ class AbstractSurveyScenario:
                     .groupby("members_entity_id")
                     .sum()
                 )
-                return df.loc[
-                    population.ids, varying_variable
-                ].values
+                return df.loc[population.ids, varying_variable].values
 
             modified_varying = cast_to_target_entity(modified_simulation)
             varying = cast_to_target_entity(simulation)
@@ -356,7 +355,6 @@ class AbstractSurveyScenario:
             ),
             where=(denominator != 0),
         )
-
 
     def compute_pivot_table(
         self,
@@ -539,15 +537,13 @@ class AbstractSurveyScenario:
     def generate_performance_data(self, output_dir: str):
         if not self.trace:
             msg = "Method generate_performance_data cannot be used if trace hasn't been activated."
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
 
         for simulation_name, simulation in self.simulations.items():
             simulation_dir = os.path.join(output_dir, f"{simulation_name}_perf_log")
-            if not os.path.exists(output_dir):
+            if not Path(output_dir).exists():
                 os.mkdir(output_dir)
-            if not os.path.exists(simulation_dir):
+            if not Path(simulation_dir).exists():
                 os.mkdir(simulation_dir)
             simulation.tracer.generate_performance_graph(simulation_dir)
             simulation.tracer.generate_performance_tables(simulation_dir)
@@ -558,9 +554,7 @@ class AbstractSurveyScenario:
         inflator_by_variable = (
             {} if inflator_by_variable is None else inflator_by_variable
         )
-        target_by_variable = (
-            {} if target_by_variable is None else target_by_variable
-        )
+        target_by_variable = {} if target_by_variable is None else target_by_variable
         self.inflator_by_variable = inflator_by_variable
         self.target_by_variable = target_by_variable
 
@@ -633,12 +627,12 @@ class AbstractSurveyScenario:
         if calibration_kwargs is not None:
             assert set(calibration_kwargs.keys()).issubset(
                 {
-                        "target_margins_by_variable",
-                        "parameters",
-                        "target_entity_count",
-                        "other_entity_count",
-                        "entity",
-                    }
+                    "target_margins_by_variable",
+                    "parameters",
+                    "target_entity_count",
+                    "other_entity_count",
+                    "entity",
+                }
             )
 
         if inflation_kwargs is not None:
@@ -742,7 +736,7 @@ class AbstractSurveyScenario:
           kwargs: Restoration options
 
         """
-        assert os.path.exists(directory), (
+        assert Path(directory).exists(), (
             "Cannot restore simulations from non existent directory"
         )
         use_sub_directories = len(self.tax_benefit_systems) >= 2

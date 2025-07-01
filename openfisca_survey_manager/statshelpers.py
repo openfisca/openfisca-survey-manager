@@ -49,7 +49,6 @@ def gini(values, weights=None):
     return 1 - 2 * (numerator / denominator)
 
 
-
 def kakwani(values, ineq_axis, weights=None):
     """Computes the Kakwani index.
 
@@ -159,7 +158,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_high = N - 1
             else:
                 for ii in range(N - 1):
-                    if (p_vals[ii] <= brk < p_vals[ii + 1]):
+                    if p_vals[ii] <= brk < p_vals[ii + 1]:
                         i_low = ii
                         i_high = ii + 1
 
@@ -228,7 +227,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_high = N - 1
             else:
                 for ii in range(N - 1):
-                    if (norm_s_vals[ii] <= brk < norm_s_vals[ii + 1]):
+                    if norm_s_vals[ii] <= brk < norm_s_vals[ii + 1]:
                         i_low = ii
                         i_high = ii + 1
 

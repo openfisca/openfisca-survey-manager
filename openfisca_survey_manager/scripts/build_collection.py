@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-
-
 """Build or update a collection from raw surveys data."""
 
 import argparse
@@ -8,6 +5,7 @@ import configparser
 import datetime
 import logging
 import os
+from pathlib import Path
 import pdb
 import re
 import shutil
@@ -210,13 +208,13 @@ def check_template_config_files(config_files_directory: str):
         config_files_directory, "config_template.ini"
     )
 
-    if os.path.exists(config_files_directory):
+    if Path(config_files_directory).exists():
         config_files_do_not_exist = not (
-            os.path.exists(raw_data_ini_path) and os.path.exists(config_ini_path)
+            Path(raw_data_ini_path).exists() and Path(config_ini_path).exists()
         )
         templates_config_files_do_not_exist = not (
-            os.path.exists(raw_data_template_ini_path)
-            and os.path.exists(config_template_ini_path)
+            Path(raw_data_template_ini_path).exists()
+            and Path(config_template_ini_path).exists()
         )
 
         if config_files_do_not_exist:
@@ -331,9 +329,7 @@ def main():
         pdb.post_mortem(sys.exc_info()[2])
         raise
 
-    log.info(
-        f"The program has been executed in {datetime.datetime.now() - start_time}"
-    )
+    log.info(f"The program has been executed in {datetime.datetime.now() - start_time}")
 
     return 0
 

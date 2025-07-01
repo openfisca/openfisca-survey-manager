@@ -1,3 +1,4 @@
+from pathlib import Path
 import logging
 import os
 
@@ -22,7 +23,7 @@ def nnd_hotdeck_using_feather(
     assert matching_variables is not None
 
     temporary_directory_path = os.path.join(config_files_directory, "tmp")
-    assert os.path.exists(temporary_directory_path)
+    assert Path(temporary_directory_path).exists()
     receiver_path = os.path.join(temporary_directory_path, "receiver.feather")
     donor_path = os.path.join(temporary_directory_path, "donor.feather")
     feather.write_dataframe(receiver, receiver_path)

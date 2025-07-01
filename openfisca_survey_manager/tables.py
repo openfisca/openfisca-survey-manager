@@ -203,9 +203,7 @@ class Table:
                         data_frame.columns[0]
                     ):
                         msg = "A ';' is present in the unique column name. Looks like we got the wrong separator."
-                        raise ValueError(
-                            msg
-                        )
+                        raise ValueError(msg)
 
                 except Exception:
                     log.debug(
@@ -226,9 +224,7 @@ class Table:
 
                     # Sniff dialect
                     try:
-                        with open(
-                            data_file, newline="", encoding=encoding
-                        ) as csvfile:
+                        with open(data_file, newline="", encoding=encoding) as csvfile:
                             dialect = csv.Sniffer().sniff(
                                 csvfile.read(1024), delimiters=";,"
                             )

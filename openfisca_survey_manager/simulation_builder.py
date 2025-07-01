@@ -1,3 +1,4 @@
+"""SimulationBuilder monkey-patched methods."""
 
 import logging
 
@@ -174,9 +175,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 
 def init_all_entities(builder, input_data_frame, period=None):
     assert period is not None
-    log.info(
-        f"Initialasing simulation using input_data_frame for period {period}"
-    )
+    log.info(f"Initialasing simulation using input_data_frame for period {period}")
     builder._set_id_variable_by_entity_key()
     builder._set_role_variable_by_entity_key()
 

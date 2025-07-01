@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 
+from pathlib import Path
 import collections
 import glob
 import logging
@@ -233,7 +234,7 @@ Contains the following tables : \n"""
             msg = f"No data file found for survey {self.name}"
             raise Exception(msg)
         if self.hdf5_file_path is not None:
-            assert os.path.exists(self.hdf5_file_path), (
+            assert Path(self.hdf5_file_path).exists(), (
                 f"{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code."
             )
             store = pd.HDFStore(self.hdf5_file_path, "r")
@@ -246,9 +247,7 @@ Contains the following tables : \n"""
                         eligible_tables.append(match[0])
                 if len(eligible_tables) > 1:
                     msg = f"{table} is ambiguious since the following tables are available: {eligible_tables}"
-                    raise ValueError(
-                        msg
-                    )
+                    raise ValueError(msg)
                 if len(eligible_tables) == 0:
                     msg = f"No eligible available table in {keys}"
                     raise ValueError(msg)
@@ -268,9 +267,7 @@ Contains the following tables : \n"""
         elif self.parquet_file_path is not None:
             if table is None:
                 msg = "A table name is needed to retrieve data from a parquet file"
-                raise Exception(
-                    msg
-                )
+                raise Exception(msg)
             for table_name, table_content in self.tables.items():
                 if table == table_name:
                     parquet_file = table_content.get("parquet_file")
@@ -322,9 +319,7 @@ Contains the following tables : \n"""
                         )
                         if len(record_batches) <= batch_index:
                             msg = f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
-                            raise NoMoreDataError(
-                                msg
-                            )
+                            raise NoMoreDataError(msg)
                         df = record_batches[batch_index].to_pandas()
                         # iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
                         # index = 0

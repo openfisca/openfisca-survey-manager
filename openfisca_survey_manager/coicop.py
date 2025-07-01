@@ -38,9 +38,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
         raise
 
     data_frame = data_frame.reset_index(drop=True)
-    data_frame = data_frame.rename(
-        columns={0: "code_coicop", 1: f"label_{level[:-1]}"}
-    )
+    data_frame = data_frame.rename(columns={0: "code_coicop", 1: f"label_{level[:-1]}"})
     data_frame = data_frame.iloc[2:].copy()
 
     index, stop = 0, False
@@ -69,9 +67,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     data_frame = data_frame.reset_index(drop=True)
     if to_csv:
         data_frame.to_csv(
-            os.path.join(
-                legislation_directory, f"nomenclature_coicop_by_{level}.csv"
-            ),
+            os.path.join(legislation_directory, f"nomenclature_coicop_by_{level}.csv"),
         )
 
     return data_frame

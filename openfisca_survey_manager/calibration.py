@@ -71,8 +71,7 @@ class Calibration:
             ]
         elif len(entities) == 2:
             assert (
-                "id_variable" in parameters
-                and parameters["id_variable"] is not None
+                "id_variable" in parameters and parameters["id_variable"] is not None
             ), (
                 "With two entities involved, an id variable of the largest entity is needed"
             )
@@ -100,8 +99,7 @@ class Calibration:
                 parameters["id_variable_link"], period
             )
             assert (
-                np.unique(id_variable_link).sort()
-                == np.unique(id_variable).sort()
+                np.unique(id_variable_link).sort() == np.unique(id_variable).sort()
             ), "There is no inclusion of one entity in the other"
             assert len(id_variable) < len(id_variable_link), (
                 f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'"
@@ -219,7 +217,7 @@ class Calibration:
         if margins_by_variable is not None:
             simple_margins_by_variable = {
                 variable: margins_by_type["target"]
-                    for variable, margins_by_type in margins_by_variable.items()
+                for variable, margins_by_type in margins_by_variable.items()
             }
         else:
             simple_margins_by_variable = {}
@@ -251,12 +249,8 @@ class Calibration:
             p["lo"] = 1 / self.parameters.get("invlo")
         p["up"] = self.parameters.get("up")
         if p["method"] == "logit":
-            assert (
-                self.parameters.get("invlo") is not None
-            )
-            assert (
-                self.parameters.get("up") is not None
-            )
+            assert self.parameters.get("invlo") is not None
+            assert self.parameters.get("up") is not None
             p["lo"] = 1 / self.parameters.get("invlo")
             p["up"] = self.parameters.get("up")
         if p["method"] == "hyperbolic sinus":
@@ -280,9 +274,10 @@ class Calibration:
 
         filter_by = self.filter_by
         target_by_category = None
-        categorical_variable = (
-            variable_instance.value_type in [bool, Enum] or variable_instance.unit in {"years", "months"}
-        )
+        categorical_variable = variable_instance.value_type in [
+            bool,
+            Enum,
+        ] or variable_instance.unit in {"years", "months"}
         if categorical_variable:
             value = simulation.calculate(variable, period=period)
             filtered_value = (
@@ -365,9 +360,7 @@ class Calibration:
             if filter_by != 1:
                 if weight_variable != self.weight_name:
                     msg = "No filtering possible so far when target varaible is not on the same entity as varying weights"
-                    raise NotImplementedError(
-                        msg
-                    )
+                    raise NotImplementedError(msg)
 
                 weight = weight[filter_by]
                 initial_weight = initial_weight[filter_by]
@@ -413,9 +406,7 @@ class Calibration:
 
         if self.weight_name != weight_variable:
             msg = "Calmar needs to be adapted. Consider using a projected target on the entity with changing weights"
-            raise NotImplementedError(
-                msg
-            )
+            raise NotImplementedError(msg)
 
         data = self._build_calmar_data()
 
