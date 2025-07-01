@@ -1,11 +1,12 @@
 """Tests for the survey scenario functionality in OpenFisca Survey Manager."""
 
-import shutil
+from typing import Any, Callable, Dict, List, Optional
+
 import logging
 import os
-import pytest
-from typing import Dict, Any, List, Optional, Callable
+import shutil
 
+import pytest
 
 from openfisca_core import periods
 from openfisca_core.tools import assert_near
@@ -24,7 +25,6 @@ from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyS
 from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 
-
 log = logging.getLogger(__name__)
 
 
@@ -37,8 +37,7 @@ def create_randomly_initialized_survey_scenario(
     use_marginal_tax_rate: bool = False,
     reform: Optional[Callable] = None,
 ) -> AbstractSurveyScenario:
-    """
-    Create a randomly initialized survey scenario.
+    """Create a randomly initialized survey scenario.
 
     Args:
         nb_persons (int): Number of persons
@@ -82,8 +81,7 @@ def create_randomly_initialized_survey_scenario_from_table(
     use_marginal_tax_rate: bool,
     reform: Optional[Callable] = None,
 ) -> AbstractSurveyScenario:
-    """
-    Create a randomly initialized survey scenario from a table.
+    """Create a randomly initialized survey scenario from a table.
 
     Args:
         nb_persons (int): Number of persons
@@ -132,10 +130,10 @@ def create_randomly_initialized_survey_scenario_from_table(
     else:
         survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(
-            dict(
-                reform=reform(tax_benefit_system),
-                baseline=tax_benefit_system,
-            )
+            {
+                "reform": reform(tax_benefit_system),
+                "baseline": tax_benefit_system,
+            }
         )
 
     survey_scenario.used_as_input_variables = [
@@ -172,8 +170,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     use_marginal_tax_rate: bool = False,
     reform: Optional[Callable] = None,
 ) -> AbstractSurveyScenario:
-    """
-        Create a randomly initialized survey scenario from a data frame.
+    """Create a randomly initialized survey scenario from a data frame.
 
     Args:
         nb_persons (int): Number of persons
@@ -189,7 +186,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(
         nb_persons, nb_groups, salary_max_value, rent_max_value
     )
-    for entity in input_data_frame_by_entity.keys():
+    for entity in input_data_frame_by_entity:
         if entity == "person":
             input_data_frame_by_entity[entity]["household_id_ind"] = (
                 input_data_frame_by_entity[entity]["household_id"]
@@ -209,10 +206,10 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     else:
         survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(
-            dict(
-                reform=reform(tax_benefit_system),
-                baseline=tax_benefit_system,
-            )
+            {
+                "reform": reform(tax_benefit_system),
+                "baseline": tax_benefit_system,
+            }
         )
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = [
@@ -255,8 +252,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
 def generate_input_input_dataframe_by_entity(
     nb_persons: int, nb_groups: int, salary_max_value: float, rent_max_value: float
 ) -> Dict[str, Any]:
-    """
-    Generate input dataframe by entity with randomly initialized variables.
+    """Generate input dataframe by entity with randomly initialized variables.
 
     Args:
         nb_persons (int): Number of persons
@@ -346,8 +342,7 @@ def test_init_from_data(
     salary_max_value: float = 50000,
     rent_max_value: float = 1000,
 ) -> None:
-    """
-    Test the initialization of data in the survey scenario.
+    """Test the initialization of data in the survey scenario.
 
     Args:
         nb_persons: Number of persons to generate in the test data.
@@ -417,8 +412,7 @@ def test_survey_scenario_input_dataframe_import(
     salary_max_value: float = 50000,
     rent_max_value: float = 1000,
 ) -> None:
-    """
-    Test the import of input dataframes into a survey scenario.
+    """Test the import of input dataframes into a survey scenario.
 
     Args:
         nb_persons: Number of persons to generate.

@@ -1,13 +1,20 @@
-
-
-from numpy import argsort, asarray, cumsum, linspace, logical_and as and_, ones, repeat, zeros
-import pandas as pd
-import wquantiles
-import weightedcalcs as wc
 import numpy as np
+import pandas as pd
+import weightedcalcs as wc
+import wquantiles
+from numpy import (
+    argsort,
+    asarray,
+    cumsum,
+    linspace,
+    logical_and as and_,
+    ones,
+    repeat,
+    zeros,
+)
 
 
-def gini(values, weights = None):
+def gini(values, weights=None):
     """Computes Gini coefficient (normalized to 1).
     # Using fastgini formula :
     #             i=N      j=i
@@ -30,10 +37,10 @@ def gini(values, weights = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = pd.DataFrame({'x': values, 'w': weights})
-    df = df.sort_values(by='x')
-    x = df['x']
-    w = df['w']
+    df = pd.DataFrame({"x": values, "w": weights})
+    df = df.sort_values(by="x")
+    x = df["x"]
+    w = df["w"]
     wx = w * x
 
     cdf = cumsum(wx) - 0.5 * wx
@@ -44,7 +51,7 @@ def gini(values, weights = None):
     return gini
 
 
-def kakwani(values, ineq_axis, weights = None):
+def kakwani(values, ineq_axis, weights=None):
     """Computes the Kakwani index
 
     Args:
@@ -68,7 +75,7 @@ def kakwani(values, ineq_axis, weights = None):
     return simps((LCy - PLCy), LCx)
 
 
-def lorenz(values, weights = None):
+def lorenz(values, weights=None):
     """Computes Lorenz curve coordinates (x, y)
 
     Args:
@@ -81,11 +88,11 @@ def lorenz(values, weights = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = pd.DataFrame({'v': values, 'w': weights})
-    df = df.sort_values(by = 'v')
-    x = cumsum(df['w'])
+    df = pd.DataFrame({"v": values, "w": weights})
+    df = df.sort_values(by="v")
+    x = cumsum(df["w"])
     x = x / float(x[-1:])
-    y = cumsum(df['v'] * df['w'])
+    y = cumsum(df["v"] * df["w"])
     y = y / float(y[-1:])
 
     return x, y
@@ -119,7 +126,6 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
     # First method, "vanilla" weights from Wikipedia article.
     if method == 1:
-
         # Sort the values and apply the same sort to the weights.
         N = len(a)
         sort_indx = argsort(a)
@@ -164,11 +170,9 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 v = tmp_a[i_low]
             else:
                 # If there are two brackets, then apply the formula as per Wikipedia.
-                v = (
-                    tmp_a[i_low]
-                    + (
-                        (brk - p_vals[i_low]) / (p_vals[i_high] - p_vals[i_low])) * (tmp_a[i_high] - tmp_a[i_low])
-                    )
+                v = tmp_a[i_low] + (
+                    (brk - p_vals[i_low]) / (p_vals[i_high] - p_vals[i_low])
+                ) * (tmp_a[i_high] - tmp_a[i_low])
 
             # Append the result.
             quantiles.append(v)
@@ -188,7 +192,6 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
     # The stats.stackexchange suggestion.
     elif method == 2:
-
         N = len(a)
         sort_indx = argsort(a)
         tmp_a = a[sort_indx].copy()
@@ -236,13 +239,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 v = tmp_a[i_low]
             else:
                 # Interpolate as in the method 1 method, but using the s_vals instead.
-                v = (
-                    tmp_a[i_low]
-                    + (
-                        ((brk * s_vals[-1]) - s_vals[i_low])
-                        / (s_vals[i_high] - s_vals[i_low])
-                        ) * (tmp_a[i_high] - tmp_a[i_low])
-                    )
+                v = tmp_a[i_low] + (
+                    ((brk * s_vals[-1]) - s_vals[i_low])
+                    / (s_vals[i_high] - s_vals[i_low])
+                ) * (tmp_a[i_high] - tmp_a[i_low])
             quantiles.append(v)
 
         # Now that the weighted breakpoints are set, just categorize
@@ -262,7 +262,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
 
 
-def pseudo_lorenz(values, ineq_axis, weights = None):
+def pseudo_lorenz(values, ineq_axis, weights=None):
     """Computes The pseudo Lorenz Curve coordinates
 
     Args:
@@ -275,17 +275,17 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     """
     if weights is None:
         weights = ones(len(values))
-    df = pd.DataFrame({'v': values, 'a': ineq_axis, 'w': weights})
-    df = df.sort_values(by = 'a')
-    x = cumsum(df['w'])
+    df = pd.DataFrame({"v": values, "a": ineq_axis, "w": weights})
+    df = df.sort_values(by="a")
+    x = cumsum(df["w"])
     x = x / float(x[-1:])
-    y = cumsum(df['v'] * df['w'])
+    y = cumsum(df["v"] * df["w"])
     y = y / float(y[-1:])
 
     return x, y
 
 
-def bottom_share(values, rank_from_bottom, weights = None):
+def bottom_share(values, rank_from_bottom, weights=None):
     """
 
     Args:
@@ -300,23 +300,20 @@ def bottom_share(values, rank_from_bottom, weights = None):
         weights = ones(len(values))
 
     calc = wc.Calculator("weights")
-    data_frame = pd.DataFrame({
-        'weights': weights,
-        'data': values,
-        })
-    quantile = calc.quantile(data_frame, 'data', rank_from_bottom)
+    data_frame = pd.DataFrame(
+        {
+            "weights": weights,
+            "data": values,
+        }
+    )
+    quantile = calc.quantile(data_frame, "data", rank_from_bottom)
 
     return (
-        (data_frame["data"] < quantile)
-        * data_frame["data"]
-        * data_frame["weights"]
-        ).sum() / (
-            data_frame["data"]
-            * data_frame["weights"]
-            ).sum()
+        (data_frame["data"] < quantile) * data_frame["data"] * data_frame["weights"]
+    ).sum() / (data_frame["data"] * data_frame["weights"]).sum()
 
 
-def top_share(values, rank_from_top, weights = None):
+def top_share(values, rank_from_top, weights=None):
     """
 
     Args:
@@ -331,27 +328,24 @@ def top_share(values, rank_from_top, weights = None):
         weights = ones(len(values))
 
     calc = wc.Calculator("weights")
-    data_frame = pd.DataFrame({
-        'weights': weights,
-        'data': values,
-        })
-    quantile = calc.quantile(data_frame, 'data', 1 - rank_from_top)
+    data_frame = pd.DataFrame(
+        {
+            "weights": weights,
+            "data": values,
+        }
+    )
+    quantile = calc.quantile(data_frame, "data", 1 - rank_from_top)
     return (
-        (data_frame["data"] >= quantile)
-        * data_frame["data"]
-        * data_frame["weights"]
-        ).sum() / (
-            data_frame["data"]
-            * data_frame["weights"]
-            ).sum()
+        (data_frame["data"] >= quantile) * data_frame["data"] * data_frame["weights"]
+    ).sum() / (data_frame["data"] * data_frame["weights"]).sum()
 
 
-def weighted_quantiles(data, labels, weights, return_quantiles = False):
+def weighted_quantiles(data, labels, weights, return_quantiles=False):
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
     quantiles = [
         wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
-        ]
+    ]
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):
         lower = quantiles[i]
@@ -364,17 +358,17 @@ def weighted_quantiles(data, labels, weights, return_quantiles = False):
         return ret + 1
 
 
-def weightedcalcs_quantiles(data, labels, weights, return_quantiles = False):
+def weightedcalcs_quantiles(data, labels, weights, return_quantiles=False):
     calc = wc.Calculator("weights")
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
-    data_frame = pd.DataFrame({
-        'weights': weights,
-        'data': data,
-        })
-    quantiles = [
-        calc.quantile(data_frame, 'data', mybreak) for mybreak in breaks[1:]
-        ]
+    data_frame = pd.DataFrame(
+        {
+            "weights": weights,
+            "data": data,
+        }
+    )
+    quantiles = [calc.quantile(data_frame, "data", mybreak) for mybreak in breaks[1:]]
 
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):

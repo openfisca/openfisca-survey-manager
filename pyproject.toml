@@ -21,14 +21,16 @@ requires-python = ">= 3.9"
 dependencies = [
     'chardet >=5.1.0, < 6.0',
     'configparser >=5.3.0, < 8.0',
+    "flake8>=7.1.1",
     'humanize >=4.6.0, < 5.0',
+    "isort>=6.0.1",
     'numpy >=1.24.2, <2.0',
     'openfisca-core >=43.0.0, <44.0.0',
     'pandas >=2.0.3, < 3.0',
     'pyarrow >=13.0.0, < 19.0.0',
     'pyxdg >=0.28, < 0.29',
     'PyYAML >=6.0, < 7.0',
-    "sas7bdat>=2.2.3",
+    "ruff>=0.12.1",
     'tables >=3.8.0, < 4.0',
     'tabulate >=0.9.0, < 0.10.0',
     'weightedcalcs >=0.1.2, < 0.2.0',
@@ -115,7 +117,7 @@ ignore       = ["E128","E251","F403","F405","E501","W503"]
 in-place     = true
 
 [tool.pytest.ini_options]
-addopts      = "--doctest-modules --disable-pytest-warnings --showlocals"
+addopts      = "--doctest-modules --disable-pytest-warnings --showlocals --import-mode importlib"
 testpaths    = "openfisca_survey_manager"
 doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
 python_files = ["**/*.py"]
@@ -140,3 +142,106 @@ skip_empty = true
 
 [tool.setuptools.packages.find]
 include = ["openfisca_survey_manager*"]
+
+[tool.ruff]
+target-version = "py39"
+format.docstring-code-line-length = 72
+format.docstring-code-format = true
+# format.quote-style = "single"
+lint.select = [ "ALL" ]
+lint.ignore = [
+    "ANN",
+    "COM812",
+    "D101",
+    "D102",
+    "D104",
+    "E501",
+    "ERA001",
+    "F403",
+    "F405",
+    "FIX002",
+    "I001",
+    "ISC001",
+    "N801",
+    "N805",
+    "N806",
+    "PLR2004",
+    "PTH100",
+    "PTH118",
+    "PTH120",
+    "PTH123",
+    "RUF001",
+    "RUF003",
+    "RUF012",
+    "TD002",
+    "TD003",
+]
+lint.pydocstyle.convention = "google"
+
+[tool.isort]
+case_sensitive = true
+combine_as_imports = true
+force_alphabetical_sort_within_sections = false
+group_by_package = true
+honor_noqa = true
+include_trailing_comma = true
+known_first_party = [ "openfisca-nouvelle_caledonie" ]
+known_openfisca = [ "openfisca_core", "openfisca_nouvelle_caledonie" ]
+known_typing = [ "*collections.abc*", "*typing*", "*typing_extensions*" ]
+known_types = [ "*types*" ]
+multi_line_output = 3
+profile = "black"
+py_version = 39
+sections = [
+    "FUTURE",
+    "TYPING",
+    "TYPES",
+    "STDLIB",
+    "THIRDPARTY",
+    "OPENFISCA",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+
+[tool.pyproject-fmt]
+column_width = 79
+indent = 4
+max_supported_python = "3.11"
+
+
+[tool.tox]
+requires = [ "tox>=4.20" ]
+env_list = [ "py39", "py310", "py311", "lint", "dist" ]
+
+[tool.tox.env_run_base]
+allowlist_externals = [ "make" ]
+commands = [ [ "make", "test" ] ]
+commands_pre = [
+    [
+        "pip",
+        "install",
+        "--find-links",
+        ".",
+        "openfisca-nouvelle_caledonie",
+    ],
+]
+
+[tool.tox.env.lint]
+allowlist_externals = [ "make" ]
+basepython = [ "py39" ]
+commands = [ [ "make", "lint" ] ]
+commands_pre = [
+    [
+        "pip",
+        "install",
+        "--find-links",
+        ".",
+        "openfisca-nouvelle_caledonie[dev]",
+    ],
+]
+
+[tool.tox.env.dist]
+basepython = [ "py39" ]
+commands = [ [ "twine", "check", "dist/*" ] ]
+commands_pre = [ [ "python", "-m", "build" ] ]
+deps = [ "build", "twine" ]

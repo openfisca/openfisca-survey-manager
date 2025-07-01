@@ -1,7 +1,7 @@
 """Read SPSS data."""
 
-
 from pandas import DataFrame
+
 try:
     from savReaderWriter import SavReader
 except ModuleNotFoundError:

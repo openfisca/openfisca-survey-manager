@@ -48,3 +48,16 @@ test: clean check-syntax-errors check-style
 	rm -rf ./openfisca_survey_manager/tests/data_files/config.ini
 	rm -rf ./openfisca_survey_manager/tests/data_files/dump
 	pytest
+
+format:
+	@# Do not analyse .gitignored files.
+	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
+	ruff format `git ls-files | grep "\.py$$"`
+	isort `git ls-files | grep "\.py$$"`
+
+lint:
+	@# Do not analyse .gitignored files.
+	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
+	isort --check `git ls-files | grep "\.py$$"`
+	ruff check `git ls-files | grep "\.py$$"`
+	yamllint `git ls-files | grep "\.yaml$$"`

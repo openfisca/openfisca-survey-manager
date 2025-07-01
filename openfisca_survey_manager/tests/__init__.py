@@ -1,6 +1,7 @@
-from openfisca_core.model_api import ETERNITY, Variable, Reform  # noqa analysis:ignore
 from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import Person, Household
+from openfisca_country_template.entities import Household, Person
+
+from openfisca_core.model_api import ETERNITY, Reform, Variable  # noqa analysis:ignore
 
 
 class Plugin(Reform):
@@ -13,7 +14,7 @@ class Plugin(Reform):
             definition_period = ETERNITY
 
             def formula(person, period):
-                return person.household('household_weight', period)
+                return person.household("household_weight", period)
 
         class household_weight(Variable):
             is_period_size_independent = True
