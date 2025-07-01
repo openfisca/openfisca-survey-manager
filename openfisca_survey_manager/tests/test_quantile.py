@@ -56,12 +56,12 @@ class decile_salaire(Variable):
 
 
 class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
-    """PPDLand tax and benefit system"""
+    """PPDLand tax and benefit system."""
 
     CURRENCY = ""
 
     def __init__(self):
-        super(QuantileTestTaxBenefitSystem, self).__init__(entities)
+        super().__init__(entities)
         for variable in [
             decile_salaire_from_quantile,
             decile_salaire,
@@ -78,7 +78,7 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
         baseline_tax_benefit_system=None,
         period=None,
     ):
-        super(QuantileTestSurveyScenario, self).__init__()
+        super().__init__()
         assert input_data_frame is not None
         assert period is not None
         self.period = period
@@ -86,9 +86,9 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
             tax_benefit_system = QuantileTestTaxBenefitSystem()
 
         tax_benefit_systems = (
-            dict(reform=tax_benefit_system, baseline=baseline_tax_benefit_system)
+            {"reform": tax_benefit_system, "baseline": baseline_tax_benefit_system}
             if baseline_tax_benefit_system
-            else dict(baseline=tax_benefit_system)
+            else {"baseline": tax_benefit_system}
         )
 
         self.set_tax_benefit_systems(tax_benefit_systems)
@@ -106,8 +106,7 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
 
 
 def create_input_dataframe(size=9):
-    """Create input dataframe with variable salaire and pension_retraite
-    """
+    """Create input dataframe with variable salaire and pension_retraite."""
     np.random.seed(216)
     household_weight = 1.0
     number_of_indididual = size

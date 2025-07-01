@@ -1,3 +1,4 @@
+from __future__ import annotations
 import collections
 import logging
 import os
@@ -35,7 +36,7 @@ class AbstractAggregates:
 
         self.simulations = survey_scenario.simulations
 
-        for name in survey_scenario.tax_benefit_systems.keys():
+        for name in survey_scenario.tax_benefit_systems:
             assert survey_scenario.simulations[name] is not None
 
         self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
@@ -91,7 +92,7 @@ class AbstractAggregates:
         if actual:
             self.totals_df = self.load_actual_data(period=self.period)
 
-        simulation_types = list()
+        simulation_types = []
         if use_baseline:
             assert self.simulations["baseline"] is not None
             simulation_types.append("baseline")
@@ -100,7 +101,7 @@ class AbstractAggregates:
         if actual:
             simulation_types.append("actual")
 
-        data_frame_by_simulation_type = dict()
+        data_frame_by_simulation_type = {}
 
         for simulation_type in simulation_types:
             if simulation_type == "actual":
@@ -108,7 +109,7 @@ class AbstractAggregates:
                     self.totals_df.copy() if self.totals_df is not None else None
                 )
             else:
-                use_baseline = False if simulation_type == "reform" else True
+                use_baseline = simulation_type != "reform"
                 data_frame = pd.DataFrame()
                 assert self.aggregate_variables is not None
                 for variable in self.aggregate_variables:
@@ -117,12 +118,11 @@ class AbstractAggregates:
                     )
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
-                data_frame.rename(
+                data_frame = data_frame.rename(
                     columns={
                         "amount": f"{simulation_type}_amount",
                         "beneficiaries": f"{simulation_type}_beneficiaries",
                     },
-                    inplace=True,
                 )
                 data_frame_by_simulation_type[simulation_type] = data_frame
 
@@ -173,7 +173,7 @@ class AbstractAggregates:
             :, ~difference_data_frame.columns.duplicated()
         ].copy()
 
-        quantities = list()
+        quantities = []
         quantities += ["amount"] if amount else None
         quantities += ["beneficiaries"] if beneficiaries else None
 
@@ -195,7 +195,7 @@ class AbstractAggregates:
         return difference_data_frame
 
     def compute_variable_aggregates(
-        self, variable: str, use_baseline: bool = False, filter_by: str = None
+        self, variable: str, use_baseline: bool = False, filter_by: str | None = None
     ) -> pd.DataFrame:
         """Return aggregate spending, and number of beneficiaries for the relevant entity level.
 
@@ -208,7 +208,7 @@ class AbstractAggregates:
             pd.DataFrame: The amount and beneficiaries for the variable
         """
         if len(self.simulations) == 1:
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
         elif use_baseline:
             simulation = self.simulations["baseline"]
         else:
@@ -284,7 +284,7 @@ class AbstractAggregates:
                 / self.beneficiaries_unit
             ).sum()
         )
-        variable_data_frame = pd.DataFrame(
+        return pd.DataFrame(
             data={
                 "label": variables[variable].label,
                 "entity": variables[variable].entity.key,
@@ -294,7 +294,6 @@ class AbstractAggregates:
             index=[variable],
         )
 
-        return variable_data_frame
 
     def create_description(self):
         """Create a description dataframe."""
@@ -302,10 +301,9 @@ class AbstractAggregates:
         return pd.DataFrame(
             [
                 "OpenFisca",
-                "Calculé le %s à %s"
-                % (now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
-                "Système socio-fiscal au %s" % self.simulation.period.start.year,
-                "Données d'enquêtes de l'année %s" % str(self.data_year),
+                "Calculé le {} à {}".format(now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
+                f"Système socio-fiscal au {self.simulation.period.start.year}",
+                f"Données d'enquêtes de l'année {self.data_year!s}",
             ]
         )
 
@@ -325,7 +323,7 @@ class AbstractAggregates:
         if os.path.isdir(path):
             now = datetime.now()
             file_path = os.path.join(
-                path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".csv")
+                path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".csv")
             )
         else:
             file_path = path
@@ -356,7 +354,7 @@ class AbstractAggregates:
         if os.path.isdir(path):
             now = datetime.now()
             file_path = os.path.join(
-                path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".xlsx")
+                path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".xlsx")
             )
         else:
             file_path = path
@@ -398,7 +396,7 @@ class AbstractAggregates:
         if path is not None and os.path.isdir(path):
             now = datetime.now()
             file_path = os.path.join(
-                path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".html")
+                path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".html")
             )
         else:
             file_path = path
@@ -431,7 +429,7 @@ class AbstractAggregates:
         if path is not None and os.path.isdir(path):
             now = datetime.now()
             file_path = os.path.join(
-                path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".md")
+                path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".md")
             )
         else:
             file_path = path
@@ -542,7 +540,7 @@ class AbstractAggregates:
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
                     df[column] = df[column].apply(
-                        lambda x: f"{int(round(x)):d}"
+                        lambda x: f"{round(x):d}"
                         if str(x) != "nan"
                         else "nan"
                     )

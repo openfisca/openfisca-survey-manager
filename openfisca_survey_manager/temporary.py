@@ -10,7 +10,7 @@ from openfisca_survey_manager.paths import default_config_files_directory
 log = logging.getLogger(__name__)
 
 
-temporary_store_by_file_path = dict()
+temporary_store_by_file_path = {}
 
 
 def temporary_store_decorator(
@@ -47,8 +47,8 @@ def temporary_store_decorator(
 
             try:
                 return func(*args, temporary_store=temporary_store, **kwargs)
-            except Exception as e:
-                raise e
+            except Exception:
+                raise
             finally:
                 gc.collect()
                 if just_openned:

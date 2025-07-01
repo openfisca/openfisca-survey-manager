@@ -31,15 +31,15 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
             sep=";",
             header=None,
         )
-    except Exception as e:
+    except Exception:
         log.info(
             f"Error when reading nomenclature coicop source data for level {level}"
         )
-        raise e
+        raise
 
-    data_frame.reset_index(inplace=True, drop=True)
-    data_frame.rename(
-        columns={0: "code_coicop", 1: f"label_{level[:-1]}"}, inplace=True
+    data_frame = data_frame.reset_index(drop=True)
+    data_frame = data_frame.rename(
+        columns={0: "code_coicop", 1: f"label_{level[:-1]}"}
     )
     data_frame = data_frame.iloc[2:].copy()
 
@@ -66,7 +66,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     else:
         del data_frame["code_coicop"]
 
-    data_frame.reset_index(inplace=True, drop=True)
+    data_frame = data_frame.reset_index(drop=True)
     if to_csv:
         data_frame.to_csv(
             os.path.join(
@@ -78,7 +78,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
 
 
 def build_raw_coicop_nomenclature():
-    """Builds raw COICOP nomenclature"""
+    """Builds raw COICOP nomenclature."""
     for index in range(len(sub_levels) - 1):
         level = sub_levels[index]
         next_level = sub_levels[index + 1]

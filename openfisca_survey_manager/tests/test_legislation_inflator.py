@@ -6,8 +6,7 @@ from openfisca_survey_manager.utils import inflate_parameters, parameters_asof
 
 
 def test_asof_simple_annual_parameter():
-    """Test parameters_asof on a simple parameter
-    """
+    """Test parameters_asof on a simple parameter."""
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     income_tax_rate_2014 = parameters.taxes.income_tax_rate(2014)
@@ -23,8 +22,7 @@ def test_asof_simple_annual_parameter():
 
 
 def test_asof_scale_parameters():
-    """Test parameters_asof on a scale parameter
-    """
+    """Test parameters_asof on a scale parameter."""
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     social_security_contribution_2016 = parameters.taxes.social_security_contribution(
@@ -46,8 +44,7 @@ def test_asof_scale_parameters():
 
 
 def test_inflate_simple_parameter():
-    """Test parameters inflator on a simple parameter as the basic income
-    """
+    """Test parameters inflator on a simple parameter as the basic income."""
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     basic_income_2016 = parameters.benefits.basic_income(2016)
@@ -60,8 +57,7 @@ def test_inflate_simple_parameter():
 
 
 def test_inflate_scale():
-    """Test parameters inflator on a scale parameter as the social security contributions tax_scale
-    """
+    """Test parameters inflator on a scale parameter as the social security contributions tax_scale."""
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     inflate_parameters(parameters, inflator=0.3, base_year=2015, last_year=2016)
@@ -73,7 +69,7 @@ def test_inflate_scale():
 
 
 def test_inflate_scale_with_changing_number_of_brackets():
-    """Test parameters inflator on a scale parameter when the number of brackets changes
+    """Test parameters inflator on a scale parameter when the number of brackets changes.
 
     Use parameters_asof to use the present legislation the future pre-inflated legislation
     Test on the social security contributions tax_scale
@@ -92,8 +88,7 @@ def test_inflate_scale_with_changing_number_of_brackets():
 
 
 def test_inflate_start_instant_option():
-    """Test parameters inflator with a specific start_instant
-    """
+    """Test parameters inflator with a specific start_instant."""
     tax_benefit_system = CountryTaxBenefitSystem()
     parameters = tax_benefit_system.parameters
     parameters_asof(

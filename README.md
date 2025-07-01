@@ -269,7 +269,7 @@ This repository adheres to a certain coding style, and we invite you to follow i
 To run the style checker:
 
 ```sh
-make check-style
+make lint
 ```
 
 To automatically style-format your code changes:

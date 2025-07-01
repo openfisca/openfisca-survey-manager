@@ -12,13 +12,13 @@ log = logging.getLogger(__name__)
 
 
 class SurveyCollection:
-    """A collection of Surveys"""
+    """A collection of Surveys."""
 
     config = None
     json_file_path = None
     label = None
     name = None
-    surveys = list()
+    surveys = []
 
     def __init__(
         self,
@@ -38,7 +38,7 @@ class SurveyCollection:
         if json_file_path is not None:
             self.json_file_path = json_file_path
             if "collections" not in config.sections():
-                config["collections"] = dict()
+                config["collections"] = {}
             config.set("collections", self.name, self.json_file_path)
             config.save()
         elif config is not None:
@@ -65,7 +65,7 @@ Contains the following surveys :
 
     def dump(self, config_files_directory=None, json_file_path=None):
         """Dump the survey collection to a json file
-        And set the json file path in the config file
+        And set the json file path in the config file.
         """
         if self.config is not None:
             config = self.config
@@ -131,7 +131,7 @@ Contains the following surveys :
                 log.debug(
                     f"Looking for config file in {config_files_directory}"
                 )
-                log.error(error)
+                log.exception(error)
                 raise
 
         with open(json_file_path) as _file:

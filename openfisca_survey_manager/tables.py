@@ -8,7 +8,7 @@ import gc
 import logging
 import os
 
-import pandas
+import pandas as pd
 from chardet.universaldetector import UniversalDetector
 from pyarrow import parquet as pq
 
@@ -23,14 +23,14 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-reader_by_source_format = dict(
+reader_by_source_format = {
     # Rdata = pandas.rpy.common.load_data,
-    csv=pandas.read_csv,
-    sas=read_sas.read_sas,
-    spss=read_spss,
-    stata=pandas.read_stata,
-    parquet=pandas.read_parquet,
-)
+    "csv": pd.read_csv,
+    "sas": read_sas.read_sas,
+    "spss": read_spss,
+    "stata": pd.read_stata,
+    "parquet": pd.read_parquet,
+}
 
 
 class Table:
@@ -98,7 +98,7 @@ class Table:
 
     def _is_stored(self):
         if self.survey.hdf5_file_path is not None:
-            store = pandas.HDFStore(self.survey.hdf5_file_path)
+            store = pd.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
                 log.info(
                     f"Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}"
@@ -110,9 +110,8 @@ class Table:
             return False
         return False
 
-    def _save(self, data_frame: pandas.DataFrame = None, store_format="hdf5"):
-        """Save a data frame in the store according to is format (HDF5 or Parque).
-        """
+    def _save(self, data_frame: pd.DataFrame = None, store_format="hdf5"):
+        """Save a data frame in the store according to is format (HDF5 or Parque)."""
         assert data_frame is not None
         variables = self.variables
 
@@ -172,11 +171,10 @@ class Table:
             )
         except Exception as e:
             log.info(f"Skipping file {data_file} because of following error \n {e}")
-            raise e
+            raise
 
     def read_parquet_columns(self, parquet_file=None) -> list:
-        """Initialize the table from a parquet file.
-        """
+        """Initialize the table from a parquet file."""
         if parquet_file is None:
             parquet_file = self.parquet_file
         log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
@@ -204,8 +202,9 @@ class Table:
                     if len(data_frame.columns) == 1 and ";" in len(
                         data_frame.columns[0]
                     ):
+                        msg = "A ';' is present in the unique column name. Looks like we got the wrong separator."
                         raise ValueError(
-                            "A ';' is present in the unique column name. Looks like we got the wrong separator."
+                            msg
                         )
 
                 except Exception:
@@ -252,9 +251,9 @@ class Table:
             else:
                 data_frame = reader(data_file, **kwargs)
 
-        except Exception as e:
+        except Exception:
             log.info(f"Error while reading {data_file}")
-            raise e
+            raise
 
         gc.collect()
         return data_frame
@@ -325,20 +324,19 @@ def clean_data_frame(data_frame):
     for column_name in object_column_names:
         if data_frame[column_name].isnull().all():
             log.info(f"Drop empty column {column_name}")
-            data_frame.drop(column_name, axis=1, inplace=True)
+            data_frame = data_frame.drop(column_name, axis=1)
             continue
 
-        values = [str(value) for value in data_frame[column_name].value_counts().keys()]
+        values = [str(value) for value in data_frame[column_name].value_counts()]
         empty_string_present = "" in values
         if empty_string_present:
             values.remove("")
-        all_digits = all([value.strip().isdigit() for value in values])
-        no_zero = all([value != 0 for value in values])
+        all_digits = all(value.strip().isdigit() for value in values)
+        no_zero = all(value != 0 for value in values)
         if all_digits and no_zero:
             log.info(f"Replacing empty string with zero for variable {column_name}")
-            data_frame.replace(
+            data_frame = data_frame.replace(
                 to_replace={column_name: {"": 0}},
-                inplace=True,
             )
             log.info(f"Converting string variable {column_name} to integer")
             try:

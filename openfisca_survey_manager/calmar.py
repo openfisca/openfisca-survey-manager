@@ -162,8 +162,8 @@ def calmar(
     target_entity = data_in["target_entity_name"]
     smaller_entity = None
     entities = [target_entity]
-    for key in data_in.keys():
-        if key != "target_entity_name" and key != target_entity:
+    for key in data_in:
+        if key not in ("target_entity_name", target_entity):
             smaller_entity = key
             entities += [smaller_entity]
 
@@ -197,7 +197,7 @@ def calmar(
     if not is_non_zero_weight.all():
         log.info(f"We drop {(~is_non_zero_weight).sum()} observations.")
 
-    data = dict()
+    data = {}
     if smaller_entity:
         data[smaller_entity] = pd.DataFrame()
         for col in data_in[smaller_entity].columns:
@@ -209,7 +209,8 @@ def calmar(
         )
 
     if not margins:
-        raise Exception("Calmar requires non empty dict of margins")
+        msg = "Calmar requires non empty dict of margins"
+        raise Exception(msg)
 
     # choose method
     assert method in ["linear", "raking ratio", "logit", "hyperbolic sinus"], (
@@ -298,8 +299,9 @@ def calmar(
                                 margins_new[cat_varname] = nb * population / pop
                                 margins_new_dict[var][cat] = nb * population / pop
                         else:
+                            msg = f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
                             raise Exception(
-                                f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
+                                msg
                             )
                 else:
                     margins_new[var] = val
@@ -310,8 +312,9 @@ def calmar(
     if hasattr(data, "dummy_is_in_pop") or hasattr(
         data, "dummy_is_in_pop_smaller_entity"
     ):
+        msg = "dummy_is_in_pop and dummy_is_in_pop_smaller_entity are not valid variable names"
         raise Exception(
-            "dummy_is_in_pop and dummy_is_in_pop_smaller_entity are not valid variable names"
+            msg
         )
 
     data[target_entity]["dummy_is_in_pop"] = ones(nk)
@@ -360,7 +363,7 @@ def calmar(
     tries, ier = 0, 2
     err_max = 1
     conv = 1
-    while (ier == 2 or ier == 5 or ier == 4) and not (
+    while (ier in {2, 5, 4}) and not (
         tries >= 10 or (err_max < 1e-6 and conv < 1e-8)
     ):
         lambdasol, infodict, ier, mesg = fsolve(
@@ -386,7 +389,7 @@ def calmar(
         conv = abs(err_max - sorted_err[0][1])
         err_max = sorted_err[0][1]
 
-    if ier == 2 or ier == 5 or ier == 4:
+    if ier in {2, 5, 4}:
         log.debug(f"optimization converged after {tries} tries")
 
     # rebuilding a weight vector with the same size of the initial one
@@ -401,13 +404,11 @@ def calmar(
 def check_calmar(margins, margins_new_dict=None):
     """Args:
       margins:
-      margins_new_dict:  (Default value = None)
+      margins_new_dict:  (Default value = None).
 
     Returns:
 
     """
-    for variable, margin in margins.items():
+    for variable in margins:
         if variable != "total_population":
-            print(
-                variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin)
-            )
+            pass

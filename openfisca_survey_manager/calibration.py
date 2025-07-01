@@ -1,6 +1,6 @@
 import logging
 
-import numpy
+import numpy as np
 import pandas as pd
 from numpy import logical_not
 
@@ -17,9 +17,9 @@ class Calibration:
     filter_by = None
     initial_entity_count = None
     _initial_weight_name = None
-    initial_weight_by_entity = dict()
-    target_margins = dict()
-    margins_by_variable = dict()
+    initial_weight_by_entity = {}
+    target_margins = {}
+    margins_by_variable = {}
     parameters = {
         "use_proportions": True,
         "initial_weight": None,
@@ -53,16 +53,13 @@ class Calibration:
         self.parameters = parameters
         self.period = period
         self.simulation = simulation
-        if target_margins:
-            margin_variables = list(target_margins.keys())
-        else:
-            margin_variables = []
+        margin_variables = list(target_margins.keys()) if target_margins else []
 
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
-        entities = set(
+        entities = {
             variable_instance_by_variable_name[variable].entity.key
             for variable in margin_variables
-        )
+        }
         if entity is not None:
             entities.add(entity)
         self.entities = list(entities)
@@ -74,13 +71,13 @@ class Calibration:
             ]
         elif len(entities) == 2:
             assert (
-                "id_variable" in parameters.keys()
+                "id_variable" in parameters
                 and parameters["id_variable"] is not None
             ), (
                 "With two entities involved, an id variable of the largest entity is needed"
             )
             assert (
-                "id_variable_link" in parameters.keys()
+                "id_variable_link" in parameters
                 and parameters["id_variable_link"] is not None
             ), "With two entities involved, an id variable linking entity is needed"
             entity_id_variable = variable_instance_by_variable_name[
@@ -103,18 +100,19 @@ class Calibration:
                 parameters["id_variable_link"], period
             )
             assert (
-                numpy.unique(id_variable_link).sort()
-                == numpy.unique(id_variable).sort()
+                np.unique(id_variable_link).sort()
+                == np.unique(id_variable).sort()
             ), "There is no inclusion of one entity in the other"
             assert len(id_variable) < len(id_variable_link), (
                 f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'"
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
-            raise NotImplementedError("Cannot hande multiple entites")
+            msg = "Cannot hande multiple entites"
+            raise NotImplementedError(msg)
         else:
-            target_entity = list(entities)[0]
-            if "id_variable" in parameters.keys():
+            target_entity = next(iter(entities))
+            if "id_variable" in parameters:
                 assert (
                     variable_instance_by_variable_name[
                         parameters["id_variable"]
@@ -137,7 +135,7 @@ class Calibration:
         if filter_by:
             self.filter_by = simulation.calculate(filter_by, period=period)
         else:
-            self.filter_by = numpy.array(1.0)
+            self.filter_by = np.array(1.0)
 
         assert weight_name is not None, (
             "A calibration needs a weight variable name to act on"
@@ -171,7 +169,7 @@ class Calibration:
         """
         # Select only filtered entities
         assert self._initial_weight_name is not None
-        data = dict()
+        data = {}
         for entity in self.entities:
             data[entity] = pd.DataFrame()
         data[self.target_entity][self._initial_weight_name] = (
@@ -219,14 +217,12 @@ class Calibration:
         parameters = self.get_parameters()
 
         if margins_by_variable is not None:
-            simple_margins_by_variable = dict(
-                [
-                    (variable, margins_by_type["target"])
+            simple_margins_by_variable = {
+                variable: margins_by_type["target"]
                     for variable, margins_by_type in margins_by_variable.items()
-                ]
-            )
+            }
         else:
-            simple_margins_by_variable = dict()
+            simple_margins_by_variable = {}
 
         if self.target_entity_count is not None:
             simple_margins_by_variable["total_population"] = self.target_entity_count
@@ -257,7 +253,9 @@ class Calibration:
         if p["method"] == "logit":
             assert (
                 self.parameters.get("invlo") is not None
-                and self.parameters.get("up") is not None
+            )
+            assert (
+                self.parameters.get("up") is not None
             )
             p["lo"] = 1 / self.parameters.get("invlo")
             p["up"] = self.parameters.get("up")
@@ -283,24 +281,22 @@ class Calibration:
         filter_by = self.filter_by
         target_by_category = None
         categorical_variable = (
-            (variable_instance.value_type in [bool, Enum])
-            or (variable_instance.unit == "years")
-            or (variable_instance.unit == "months")
+            variable_instance.value_type in [bool, Enum] or variable_instance.unit in {"years", "months"}
         )
         if categorical_variable:
             value = simulation.calculate(variable, period=period)
             filtered_value = (
                 value
-                if (filter_by == numpy.array(1.0) or all(filter_by))
+                if (filter_by == np.array(1.0) or all(filter_by))
                 else value[filter_by.astype(bool)]
             )
-            categories = numpy.sort(numpy.unique(filtered_value))
+            categories = np.sort(np.unique(filtered_value))
             target_by_category = dict(zip(categories, target))
 
         if not self.margins_by_variable:
-            self.margins_by_variable = dict()
+            self.margins_by_variable = {}
         if variable not in self.margins_by_variable:
-            self.margins_by_variable[variable] = dict()
+            self.margins_by_variable[variable] = {}
         self.margins_by_variable[variable]["target"] = target_by_category or target
         self._update_margins()
 
@@ -309,7 +305,7 @@ class Calibration:
         simulation = self.simulation
         simulation.delete_arrays(self.weight_name, self.period)
         simulation.set_input(
-            self.weight_name, self.period, numpy.array(self.initial_weight)
+            self.weight_name, self.period, np.array(self.initial_weight)
         )
 
     def set_calibrated_weights(self):
@@ -368,8 +364,9 @@ class Calibration:
 
             if filter_by != 1:
                 if weight_variable != self.weight_name:
-                    NotImplementedError(
-                        "No filtering possible so far when target varaible is not on the same entity as varying weights"
+                    msg = "No filtering possible so far when target varaible is not on the same entity as varying weights"
+                    raise NotImplementedError(
+                        msg
                     )
 
                 weight = weight[filter_by]
@@ -391,10 +388,10 @@ class Calibration:
                 ).sum()
                 margin_by_type = margins_data_frame.to_dict()
             else:
-                margin_by_type = dict(
-                    actual=(weight * value).sum(),
-                    initial=(initial_weight * value).sum(),
-                )
+                margin_by_type = {
+                    "actual": (weight * value).sum(),
+                    "initial": (initial_weight * value).sum(),
+                }
             self.margins_by_variable[variable].update(margin_by_type)
 
     def _update_weights(self, margins, parameters=None):
@@ -409,14 +406,15 @@ class Calibration:
 
         """
         if parameters is None:
-            parameters = dict()
+            parameters = {}
 
         target_entity = self.target_entity
         weight_variable = self.simulation.weight_variable_by_entity[target_entity]
 
         if self.weight_name != weight_variable:
+            msg = "Calmar needs to be adapted. Consider using a projected target on the entity with changing weights"
             raise NotImplementedError(
-                "Calmar needs to be adapted. Consider using a projected target on the entity with changing weights"
+                msg
             )
 
         data = self._build_calmar_data()
