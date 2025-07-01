@@ -300,9 +300,7 @@ def calmar(
                                 margins_new_dict[var][cat] = nb * population / pop
                         else:
                             msg = f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
-                            raise Exception(
-                                msg
-                            )
+                            raise Exception(msg)
                 else:
                     margins_new[var] = val
                     margins_new_dict[var] = val
@@ -313,9 +311,7 @@ def calmar(
         data, "dummy_is_in_pop_smaller_entity"
     ):
         msg = "dummy_is_in_pop and dummy_is_in_pop_smaller_entity are not valid variable names"
-        raise Exception(
-            msg
-        )
+        raise Exception(msg)
 
     data[target_entity]["dummy_is_in_pop"] = ones(nk)
     margins_new["dummy_is_in_pop"] = total_population
@@ -363,9 +359,7 @@ def calmar(
     tries, ier = 0, 2
     err_max = 1
     conv = 1
-    while (ier in {2, 5, 4}) and not (
-        tries >= 10 or (err_max < 1e-6 and conv < 1e-8)
-    ):
+    while (ier in {2, 5, 4}) and not (tries >= 10 or (err_max < 1e-6 and conv < 1e-8)):
         lambdasol, infodict, ier, mesg = fsolve(
             constraint,
             lambda0,

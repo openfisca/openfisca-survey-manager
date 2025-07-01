@@ -271,14 +271,15 @@ class AbstractAggregates:
             index=[variable],
         )
 
-
     def create_description(self):
         """Create a description dataframe."""
         now = datetime.now()
         return pd.DataFrame(
             [
                 "OpenFisca",
-                "Calculé le {} à {}".format(now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
+                "Calculé le {} à {}".format(
+                    now.strftime("%d-%m-%Y"), now.strftime("%H:%M")
+                ),
                 f"Système socio-fiscal au {self.simulation.period.start.year}",
                 f"Données d'enquêtes de l'année {self.data_year!s}",
             ]
@@ -518,9 +519,7 @@ class AbstractAggregates:
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
                     df[column] = df[column].apply(
-                        lambda x: f"{round(x):d}"
-                        if str(x) != "nan"
-                        else "nan"
+                        lambda x: f"{round(x):d}" if str(x) != "nan" else "nan"
                     )
         return df
 

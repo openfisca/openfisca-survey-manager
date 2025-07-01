@@ -1,3 +1,6 @@
+"""Survey collections."""
+
+from pathlib import Path
 import codecs
 import collections
 import json
@@ -58,8 +61,7 @@ Survey collection of {self.label}
 Contains the following surveys :
 """
         surveys = [
-            f"       {survey.name} : {survey.label} \n"
-            for survey in self.surveys
+            f"       {survey.name} : {survey.label} \n" for survey in self.surveys
         ]
         return header + "".join(surveys)
 
@@ -121,16 +123,14 @@ Contains the following surveys :
         collection=None,
         config_files_directory=default_config_files_directory,
     ):
-        assert os.path.exists(config_files_directory)
+        assert Path(config_files_directory).exists()
         config = Config(config_files_directory=config_files_directory)
         if json_file_path is None:
             assert collection is not None, "A collection is needed"
             try:
                 json_file_path = config.get("collections", collection)
             except Exception as error:
-                log.debug(
-                    f"Looking for config file in {config_files_directory}"
-                )
+                log.debug(f"Looking for config file in {config_files_directory}")
                 log.exception(error)
                 raise
 

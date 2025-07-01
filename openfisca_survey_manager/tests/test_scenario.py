@@ -1,10 +1,11 @@
 """Tests for the survey scenario functionality in OpenFisca Survey Manager."""
+
 from __future__ import annotations
 
 from typing import Any, Callable
 
 import logging
-import os
+from pathlib import Path
 import shutil
 
 import pytest
@@ -497,7 +498,7 @@ def test_dump_survey_scenario() -> None:
         "data_files",
         "dump",
     )
-    if os.path.exists(directory):
+    if Path(directory).exists():
         shutil.rmtree(directory)
 
     survey_scenario.dump_simulations(directory=directory)

@@ -1,5 +1,7 @@
-"""Monkey-patch openfisca_core.simulations.Simulation to work with pandas."""
 from __future__ import annotations
+
+"""Monkey-patch openfisca_core.simulations.Simulation to work with pandas."""
+
 
 from typing import Callable, TYPE_CHECKING
 
@@ -28,7 +30,12 @@ from openfisca_survey_manager.utils import do_nothing, load_table
 
 if TYPE_CHECKING:
     from openfisca_core.memory_config import MemoryConfig
-    from openfisca_core.types import Array, CoreEntity as Entity, Period, TaxBenefitSystem
+    from openfisca_core.types import (
+        Array,
+        CoreEntity as Entity,
+        Period,
+        TaxBenefitSystem,
+    )
 
 log = logging.getLogger(__name__)
 
@@ -568,7 +575,9 @@ def compute_pivot_table(
                     )
 
             elif aggfunc in ["min", "max"]:
-                data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
+                data_frame[value] = data_frame[value].fillna(
+                    missing_variable_default_value
+                )
                 result = data_frame.pivot_table(
                     index=index, columns=columns, values=value, aggfunc=aggfunc
                 )
@@ -684,8 +693,8 @@ def create_data_frame_by_entity(
         openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
             {
                 column_name: simulation.adaptative_calculate_variable(
-                        column_name, period=period
-                    )
+                    column_name, period=period
+                )
                 for column_name in column_names
             }
         )
@@ -719,7 +728,9 @@ def create_data_frame_by_entity(
 
             # Set index names as entity_id
             openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
-            openfisca_data_frame_by_entity_key[entity.key] = openfisca_data_frame_by_entity_key[entity.key].reset_index()
+            openfisca_data_frame_by_entity_key[entity.key] = (
+                openfisca_data_frame_by_entity_key[entity.key].reset_index()
+            )
         person_data_frame = person_data_frame.reset_index()
 
     for entity_key, expressions in expressions_by_entity_key.items():
@@ -753,7 +764,6 @@ def create_data_frame_by_entity(
 
 class SecretViolationError(Exception):
     """Raised if the result of the simulation do not comform with regulators rules."""
-
 
 
 def compute_winners_loosers(
@@ -1079,9 +1089,7 @@ def _input_data_table_by_entity_by_period_batch(
         or not filtered_entity_on_key
     ):
         msg = "batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
     simulation_datasets = {
         batch_entity: {
             "table_key": batch_entity_key,
@@ -1413,9 +1421,7 @@ def new_from_tax_benefit_system(
     simulation = Simulation.init_simulation(tax_benefit_system, period, data)
     simulation.debug = debug
     simulation.trace = trace
-    simulation.opt_out_cache = (
-        simulation.tax_benefit_system.cache_blacklist is not None
-    )
+    simulation.opt_out_cache = simulation.tax_benefit_system.cache_blacklist is not None
     simulation.memory_config = memory_config
 
     if custom_initialize:
@@ -1584,7 +1590,6 @@ def summarize_variable(
                     ]
                     print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                     continue
-
 
 
 # Monkey patching
