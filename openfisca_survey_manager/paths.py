@@ -59,7 +59,6 @@ except PermissionError:
     log.debug(
         f"config.ini can't be written in the test config files directory{test_config_files_directory}"
     )
-    pass
 
 # GitHub Actions test
 is_in_ci = "CI" in os.environ

@@ -1,5 +1,4 @@
-"""
-Test the ability to store parquet files in collections, without converting them to HDF5.
+"""Test the ability to store parquet files in collections, without converting them to HDF5.
 """
 
 import logging
@@ -202,8 +201,7 @@ class TestParquet(TestCase):
         ]
 
     def test_load_parquet_batch(self):
-        """
-        Test the batch loading of data from parquet files.
+        """Test the batch loading of data from parquet files.
 
         This allow loading larger than memory datasets.
         """

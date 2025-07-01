@@ -61,15 +61,14 @@ def create_randomly_initialized_survey_scenario(
             use_marginal_tax_rate,
             reform=reform,
         )
-    else:
-        return create_randomly_initialized_survey_scenario_from_data_frame(
-            nb_persons,
-            nb_groups,
-            salary_max_value,
-            rent_max_value,
-            use_marginal_tax_rate,
-            reform=reform,
-        )
+    return create_randomly_initialized_survey_scenario_from_data_frame(
+        nb_persons,
+        nb_groups,
+        salary_max_value,
+        rent_max_value,
+        use_marginal_tax_rate,
+        reform=reform,
+    )
 
 
 def create_randomly_initialized_survey_scenario_from_table(
@@ -451,8 +450,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(
     salary_max_value: float = 50000,
     rent_max_value: float = 1000,
 ) -> None:
-    """
-    Test survey scenario input dataframe import with scrambled IDs.
+    """Test survey scenario input dataframe import with scrambled IDs.
 
     Args:
         nb_persons: Number of persons to generate.
@@ -541,12 +539,7 @@ def test_inflate() -> None:
         rent_after_inflate,
         inflator * rent_before_inflate,
         relative_error_margin=1e-6,
-        message="Failing inflate with inflator_by_variable: rent_after_inflate = {} != {} = rent_before_inflate ({}) x inflator ({})".format(
-            rent_after_inflate,
-            rent_before_inflate * inflator,
-            rent_before_inflate,
-            inflator,
-        ),
+        message=f"Failing inflate with inflator_by_variable: rent_after_inflate = {rent_after_inflate} != {rent_before_inflate * inflator} = rent_before_inflate ({rent_before_inflate}) x inflator ({inflator})",
     )
 
     target = 3e5
@@ -559,11 +552,7 @@ def test_inflate() -> None:
         salary_after_inflate,
         target,
         relative_error_margin=1e-6,
-        message="Failing inflate with inflator_by_variable: salary_after_inflate = {} != {} = target (salary_before_inflate = {})\n".format(
-            salary_after_inflate,
-            target,
-            salary_before_inflate,
-        ),
+        message=f"Failing inflate with inflator_by_variable: salary_after_inflate = {salary_after_inflate} != {target} = target (salary_before_inflate = {salary_before_inflate})\n",
     )
 
 

@@ -1,5 +1,4 @@
-"""
-Example from page 23 of calmar documentation
+"""Example from page 23 of calmar documentation
 https://www.insee.fr/fr/statistiques/fichier/2021902/doccalmar.pdf
 """
 

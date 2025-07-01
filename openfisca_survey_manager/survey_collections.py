@@ -11,7 +11,7 @@ from openfisca_survey_manager.surveys import Survey
 log = logging.getLogger(__name__)
 
 
-class SurveyCollection(object):
+class SurveyCollection:
     """A collection of Surveys"""
 
     config = None
@@ -28,9 +28,7 @@ class SurveyCollection(object):
         json_file_path=None,
     ):
         log.debug(
-            "Initializing SurveyCollection from config file found in {} ..".format(
-                config_files_directory
-            )
+            f"Initializing SurveyCollection from config file found in {config_files_directory} .."
         )
         config = Config(config_files_directory=config_files_directory)
         if label is not None:
@@ -55,19 +53,18 @@ class SurveyCollection(object):
         self.config = config
 
     def __repr__(self):
-        header = """{}
-Survey collection of {}
+        header = f"""{self.name}
+Survey collection of {self.label}
 Contains the following surveys :
-""".format(self.name, self.label)
+"""
         surveys = [
-            "       {} : {} \n".format(survey.name, survey.label)
+            f"       {survey.name} : {survey.label} \n"
             for survey in self.surveys
         ]
         return header + "".join(surveys)
 
     def dump(self, config_files_directory=None, json_file_path=None):
-        """
-        Dump the survey collection to a json file
+        """Dump the survey collection to a json file
         And set the json file path in the config file
         """
         if self.config is not None:
@@ -113,9 +110,7 @@ Contains the following surveys :
     def get_survey(self, survey_name):
         available_surveys_names = [survey.name for survey in self.surveys]
         assert survey_name in available_surveys_names, (
-            "Survey {} cannot be found for survey collection {}.\nAvailable surveys are :{}".format(
-                survey_name, self.name, available_surveys_names
-            )
+            f"Survey {survey_name} cannot be found for survey collection {self.name}.\nAvailable surveys are :{available_surveys_names}"
         )
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
@@ -134,18 +129,18 @@ Contains the following surveys :
                 json_file_path = config.get("collections", collection)
             except Exception as error:
                 log.debug(
-                    "Looking for config file in {}".format(config_files_directory)
+                    f"Looking for config file in {config_files_directory}"
                 )
                 log.error(error)
                 raise
 
-        with open(json_file_path, "r") as _file:
+        with open(json_file_path) as _file:
             self_json = json.load(_file)
             name = self_json["name"]
 
         self = cls(config_files_directory=config_files_directory, name=name)
         self.config = config
-        with open(json_file_path, "r") as _file:
+        with open(json_file_path) as _file:
             self_json = json.load(_file)
             self.json_file_path = json_file_path
             self.label = self_json.get("label")

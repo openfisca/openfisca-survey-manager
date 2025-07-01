@@ -42,8 +42,7 @@ def create_quantile(x, nquantiles, weight_variable, entity_name):
 
 
 def quantile(q, variable, weight_variable=None, filter_variable=None):
-    """
-    Return quantile of a variable with weight provided by a specific wieght variable potentially filtered
+    """Return quantile of a variable with weight provided by a specific wieght variable potentially filtered
     """
 
     def formula(entity, period):

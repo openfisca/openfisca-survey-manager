@@ -106,8 +106,7 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
 
 
 def create_input_dataframe(size=9):
-    """
-    Create input dataframe with variable salaire and pension_retraite
+    """Create input dataframe with variable salaire and pension_retraite
     """
     np.random.seed(216)
     household_weight = 1.0
@@ -139,12 +138,7 @@ def test_quantile():
     assert all(
         (result == target)
         + (abs(result - target + 1) < 0.001)  # Finite size problem handling
-    ), "{} != {}, \n{} , \n{},".format(
-        result[result != target],
-        target[result != target],
-        data[result != target],
-        abs(result - target + 1)[result != target],
-    )
+    ), f"{result[result != target]} != {target[result != target]}, \n{data[result != target]} , \n{abs(result - target + 1)[result != target]},"
 
     # No reason that method coincides so close to the quantiles thresholds
     # assert all(survey_scenario.calculate_variable(

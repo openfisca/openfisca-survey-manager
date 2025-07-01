@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 #  * Localisation
 
 
-class AbstractAggregates(object):
+class AbstractAggregates:
     aggregate_variables = None
     amount_unit = 1e6
     currency = None
@@ -40,8 +40,8 @@ class AbstractAggregates(object):
 
         self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         if self.labels is None:
-            amount_unit_str = "({} {})".format(self.amount_unit, self.currency)
-            beneficiaries_unit_str = "({})".format(self.beneficiaries_unit)
+            amount_unit_str = f"({self.amount_unit} {self.currency})"
+            beneficiaries_unit_str = f"({self.beneficiaries_unit})"
             self.labels = collections.OrderedDict((
                 ('label', "Mesure"),
                 ('entity', "Entité"),
@@ -60,8 +60,7 @@ class AbstractAggregates(object):
     def compute_aggregates(
         self, use_baseline: bool = True, reform: bool = True, actual: bool = True
     ) -> pd.DataFrame:
-        """
-        Compute aggregate amounts.
+        """Compute aggregate amounts.
 
         Args:
             use_baseline (bool, optional): _description_. Defaults to True.
@@ -103,8 +102,8 @@ class AbstractAggregates(object):
 
                 data_frame.rename(
                     columns={
-                        "amount": "{}_amount".format(simulation_type),
-                        "beneficiaries": "{}_beneficiaries".format(simulation_type),
+                        "amount": f"{simulation_type}_amount",
+                        "beneficiaries": f"{simulation_type}_beneficiaries",
                     },
                     inplace=True,
                 )
@@ -130,8 +129,7 @@ class AbstractAggregates(object):
         absolute: bool = True,
         relative: bool = True,
     ) -> pd.DataFrame:
-        """
-        Compute and add relative and/or absolute differences to the data_frame.
+        """Compute and add relative and/or absolute differences to the data_frame.
 
         Args:
             target (str, optional): Target simulation. Defaults to "baseline".
@@ -175,8 +173,7 @@ class AbstractAggregates(object):
     def compute_variable_aggregates(
         self, variable: str, use_baseline: bool = False, filter_by: str = None
     ) -> pd.DataFrame:
-        """
-        Return aggregate spending, and number of beneficiaries for the relevant entity level.
+        """Return aggregate spending, and number of beneficiaries for the relevant entity level.
 
         Args:
             variable (str): Name of the variable aggregated according to its entity
@@ -237,7 +234,7 @@ class AbstractAggregates(object):
                 filter_by
                 if filter_by in variables
                 else self.survey_scenario.filtering_variable_by_entity[
-                    column.entity.key
+                    variable_instance.entity.key
                 ]
             )
             filter_dummy_array = simulation.calculate(
@@ -248,9 +245,7 @@ class AbstractAggregates(object):
             filter_dummy_array = 1
 
         assert np.isfinite(filter_dummy_array).all(), (
-            "The are non finite values in variable {} for entity {}".format(
-                filter_dummy_variable, column.entity.key
-            )
+            f"The are non finite values in variable {filter_dummy_variable} for entity {variable_instance.entity.key}"
         )
 
         amount = int(
@@ -427,10 +422,10 @@ class AbstractAggregates(object):
     def get_calibration_coeffcient(self, target: str = "reform") -> pd.DataFrame:
         df = self.compute_aggregates(
             actual=True,
-            use_baseline="baseline" == target,
-            reform="reform" == target,
+            use_baseline=target == "baseline",
+            reform=target == "reform",
         )
-        return df["{}_amount".format(target)] / df["actual_amount"]
+        return df[f"{target}_amount"] / df["actual_amount"]
 
     def get_data_frame(
             self,
@@ -520,12 +515,12 @@ class AbstractAggregates(object):
         if formatting:
             relative_columns = [column for column in df.columns if "relative" in column]
             df[relative_columns] = df[relative_columns].applymap(
-                lambda x: "{:.2%}".format(x) if str(x) != "nan" else "nan"
+                lambda x: f"{x:.2%}" if str(x) != "nan" else "nan"
             )
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
                     df[column] = df[column].apply(
-                        lambda x: "{:d}".format(int(round(x)))
+                        lambda x: f"{int(round(x)):d}"
                         if str(x) != "nan"
                         else "nan"
                     )

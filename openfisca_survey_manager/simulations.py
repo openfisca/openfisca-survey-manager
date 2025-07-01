@@ -36,8 +36,7 @@ log = logging.getLogger(__name__)
 def assert_variables_in_same_entity(
     tax_benefit_system: TaxBenefitSystem, variables: List
 ):
-    """
-    Assert that variables are in the same entity.
+    """Assert that variables are in the same entity.
 
     Args:
         tax_benefit_system (TaxBenefitSystem): Host tax benefit system
@@ -53,9 +52,7 @@ def assert_variables_in_same_entity(
         if entity is None:
             entity = variable.entity
         assert variable.entity == entity, (
-            "{} are not from the same entity: {} doesn't belong to {}".format(
-                variables, variable_name, entity.key
-            )
+            f"{variables} are not from the same entity: {variable_name} doesn't belong to {entity.key}"
         )
     return entity.key
 
@@ -70,8 +67,7 @@ def get_words(text: str):
 def adaptative_calculate_variable(
     simulation: Simulation, variable: str, period: Optional[Union[int, str, Period]]
 ) -> Array:
-    """
-    Calculate variable by adpating it definition period to the target period.
+    """Calculate variable by adpating it definition period to the target period.
 
     Args:
         simulation (Simulation): Simulation to suse
@@ -88,7 +84,7 @@ def adaptative_calculate_variable(
     assert tax_benefit_system is not None
 
     assert variable in tax_benefit_system.variables, (
-        "{} is not a valid variable".format(variable)
+        f"{variable} is not a valid variable"
     )
     period_size_independent = tax_benefit_system.get_variable(
         variable
@@ -145,8 +141,7 @@ def compute_aggregate(
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
     filtering_variable_by_entity: Dict = None,
 ) -> Optional[Union[None, float]]:
-    """
-    Compute aggregate of a variable.
+    """Compute aggregate of a variable.
 
     Args:
         simulation (Simulation): Simulation to use for the computation
@@ -196,11 +191,9 @@ def compute_aggregate(
         if filter_by in tax_benefit_system.variables:
             filter_entity_key = tax_benefit_system.variables.get(filter_by).entity.key
             assert filter_entity_key == entity_key, (
-                "You tried to compute agregates for variable '{0}', of entity {1}"
-                " filtering by variable '{2}', of entity {3}. This is not possible."
-                " Please choose a filter-by variable of same entity as '{0}'.".format(
-                    variable, entity_key, filter_by_variable, filter_by_entity_key
-                )
+                f"You tried to compute agregates for variable '{variable}', of entity {entity_key}"
+                f" filtering by variable '{filter_by_variable}', of entity {filter_by_entity_key}. This is not possible."
+                f" Please choose a filter-by variable of same entity as '{variable}'."
             )
         else:
             filter_entity_key = assert_variables_in_same_entity(
@@ -215,9 +208,7 @@ def compute_aggregate(
     weight_variable = None
     if weighted:
         assert or_(alternative_weights, weight_variable_by_entity), (
-            "The weighted option is set at True but there is no weight variable for entity {} nor alternative weights. Either define a weight variable or switch to unweighted".format(
-                entity_key
-            )
+            f"The weighted option is set at True but there is no weight variable for entity {entity_key} nor alternative weights. Either define a weight variable or switch to unweighted"
         )
         if alternative_weights:
             if isinstance(alternative_weights, str):
@@ -240,9 +231,7 @@ def compute_aggregate(
         )
     else:
         log.debug(
-            "Variable {} not found. Assigning {}".format(
-                variable, missing_variable_default_value
-            )
+            f"Variable {variable} not found. Assigning {missing_variable_default_value}"
         )
         return missing_variable_default_value
 
@@ -295,8 +284,7 @@ def compute_quantiles(
     alternative_weights=None,
     filtering_variable_by_entity=None,
 ) -> List[float]:
-    """
-    Compute quantiles of a variable.
+    """Compute quantiles of a variable.
 
     Args:
         simulation (Simulation, optional): Simulation to be used. Defaults to None.
@@ -367,8 +355,7 @@ def compute_pivot_table(
     alternative_weights=None,
     filtering_variable_by_entity=None,
 ):
-    """
-    Compute pivot table.
+    """Compute pivot table.
 
     Args:
         simulation (Simulation, optional): Main simulation. Defaults to None.
@@ -449,17 +436,14 @@ def compute_pivot_table(
                 weight_variable = None
                 uniform_weight = float(alternative_weights)
 
-        else:
-            if weight_variable_by_entity:
-                weight_variable = weight_variable_by_entity[entity_key]
-                variables.add(weight_variable)
+        elif weight_variable_by_entity:
+            weight_variable = weight_variable_by_entity[entity_key]
+            variables.add(weight_variable)
 
-            else:
-                log.warn(
-                    "There is no weight variable for entity {} nor alternative weights. Switch to unweighted".format(
-                        entity_key
-                    )
-                )
+        else:
+            log.warning(
+                f"There is no weight variable for entity {entity_key} nor alternative weights. Switch to unweighted"
+            )
 
     expressions = []
     if filter_by is not None:
@@ -488,10 +472,7 @@ def compute_pivot_table(
     for variable in variables | set(values):
         if variable in tax_benefit_system.variables:
             assert tax_benefit_system.variables[variable].entity.key == entity_key, (
-                "The variable {} does not belong to entity {}".format(
-                    variable,
-                    entity_key,
-                )
+                f"The variable {variable} does not belong to entity {entity_key}"
             )
 
     if difference:
@@ -510,16 +491,15 @@ def compute_pivot_table(
 
         data_frame = reform_data_frame - baseline_data_frame
 
+    elif values:
+        data_frame = simulation.create_data_frame_by_entity(
+            values, period=period, index=False
+        )[entity_key]
+        for value_variable in values:
+            if value_variable not in data_frame:
+                data_frame[value_variable] = missing_variable_default_value
     else:
-        if values:
-            data_frame = simulation.create_data_frame_by_entity(
-                values, period=period, index=False
-            )[entity_key]
-            for value_variable in values:
-                if value_variable not in data_frame:
-                    data_frame[value_variable] = missing_variable_default_value
-        else:
-            data_frame = None
+        data_frame = None
 
     use_baseline_data = difference or use_baseline_for_columns
 
@@ -595,17 +575,14 @@ def compute_pivot_table(
         if len(list(data_frame_by_value.keys())) > 1:
             if concat_axis is None:
                 return data_frame_by_value
-            else:
-                assert concat_axis in [0, 1]
-                return pd.concat(data_frame_by_value.values(), axis=concat_axis)
-        else:
-            return next(iter(data_frame_by_value.values()))
+            assert concat_axis in [0, 1]
+            return pd.concat(data_frame_by_value.values(), axis=concat_axis)
+        return next(iter(data_frame_by_value.values()))
 
-    else:
-        assert aggfunc == "count", "Can only use count for aggfunc if no values"
-        return data_frame.pivot_table(
-            index=index, columns=columns, values=weight_variable, aggfunc="sum"
-        )
+    assert aggfunc == "count", "Can only use count for aggfunc if no values"
+    return data_frame.pivot_table(
+        index=index, columns=columns, values=weight_variable, aggfunc="sum"
+    )
 
 
 def create_data_frame_by_entity(
@@ -617,8 +594,7 @@ def create_data_frame_by_entity(
     period: Optional[Union[int, str, Period]] = None,
     merge: bool = False,
 ) -> Union[pd.DataFrame, Dict]:
-    """
-    Create dataframe(s) of variables for the whole selected population.
+    """Create dataframe(s) of variables for the whole selected population.
 
     Args:
         simulation (Simulation): Simulation to use.
@@ -676,11 +652,9 @@ def create_data_frame_by_entity(
     )
     if missing_variables:
         log.info(
-            "These variables aren't part of the tax-benefit system: {}".format(
-                missing_variables
-            )
+            f"These variables aren't part of the tax-benefit system: {missing_variables}"
         )
-        log.info("These variables are ignored: {}".format(missing_variables))
+        log.info(f"These variables are ignored: {missing_variables}")
 
     columns_to_fetch = [
         tax_benefit_system.variables.get(variable_name)
@@ -689,9 +663,7 @@ def create_data_frame_by_entity(
     ]
 
     assert len(columns_to_fetch) >= 1, (
-        "None of the requested variables {} are in the tax-benefit-system {}".format(
-            variables, list(tax_benefit_system.variables.keys())
-        )
+        f"None of the requested variables {variables} are in the tax-benefit-system {list(tax_benefit_system.variables.keys())}"
     )
 
     assert simulation is not None
@@ -764,26 +736,24 @@ def create_data_frame_by_entity(
 
     if not merge:
         return openfisca_data_frame_by_entity_key
-    else:
-        for (
-            entity_key,
-            openfisca_data_frame,
-        ) in openfisca_data_frame_by_entity_key.items():
-            if entity_key != person_entity.key:
-                entity_key_id = id_variable_by_entity_key[entity_key]
-                if len(openfisca_data_frame) > 0:
-                    person_data_frame = person_data_frame.merge(
-                        openfisca_data_frame.reset_index(),
-                        left_on=entity_key_id,
-                        right_on=entity_key_id,
-                    )
-        return person_data_frame
+    for (
+        entity_key,
+        openfisca_data_frame,
+    ) in openfisca_data_frame_by_entity_key.items():
+        if entity_key != person_entity.key:
+            entity_key_id = id_variable_by_entity_key[entity_key]
+            if len(openfisca_data_frame) > 0:
+                person_data_frame = person_data_frame.merge(
+                    openfisca_data_frame.reset_index(),
+                    left_on=entity_key_id,
+                    right_on=entity_key_id,
+                )
+    return person_data_frame
 
 
 class SecretViolationError(Exception):
     """Raised if the result of the simulation do not comform with regulators rules."""
 
-    pass
 
 
 def compute_winners_loosers(
@@ -799,8 +769,7 @@ def compute_winners_loosers(
     alternative_weights=None,
     filtering_variable_by_entity=None,
 ) -> Dict[str, int]:
-    """
-    Compute the number of winners and loosers for a given variable.
+    """Compute the number of winners and loosers for a given variable.
 
     Args:
         simulation (_type_): The main simulation.
@@ -854,10 +823,8 @@ def compute_winners_loosers(
             weight_variable = weight_variable_by_entity[entity_key]
             weight = baseline_simulation.calculate(weight_variable, period=period)
         else:
-            log.warn(
-                "There is no weight variable for entity {} nor alternative weights. Switch to unweighted".format(
-                    entity_key
-                )
+            log.warning(
+                f"There is no weight variable for entity {entity_key} nor alternative weights. Switch to unweighted"
             )
 
     # Compute the weigthed number of zeros or non zeros
@@ -928,8 +895,7 @@ def init_entity_data(
     period: Period,
     used_as_input_variables_by_entity: Dict,
 ):
-    """
-    Initialize entity in simulation at some period with input provided by a dataframe.
+    """Initialize entity in simulation at some period with input provided by a dataframe.
 
     Args:
         simulation (Simulation): The simulation to initialize.
@@ -951,9 +917,7 @@ def init_entity_data(
 
         if variable_instance.entity.key != entity.key:
             log.info(
-                "Ignoring variable {} which is not part of entity {} but {}".format(
-                    column_name, entity.key, variable_instance.entity.key
-                )
+                f"Ignoring variable {column_name} which is not part of entity {entity.key} but {variable_instance.entity.key}"
             )
             continue
         init_variable_in_entity(
@@ -972,9 +936,7 @@ def inflate(
         set(target_by_variable.keys())
     ):
         assert variable_name in tax_benefit_system.variables, (
-            "Variable {} is not a valid variable of the tax-benefit system".format(
-                variable_name
-            )
+            f"Variable {variable_name} is not a valid variable of the tax-benefit system"
         )
         if variable_name in target_by_variable:
             inflator = inflator_by_variable[variable_name] = target_by_variable[
@@ -1043,8 +1005,7 @@ def _input_data_table_by_entity_by_period_monolithic(
     collection,
     survey=None,
 ):
-    """
-    Initialize simulation with input data from a table for each entity and period.
+    """Initialize simulation with input data from a table for each entity and period.
     """
     period = periods.period(period)
     simulation_datasets = {}
@@ -1104,8 +1065,7 @@ def _input_data_table_by_entity_by_period_batch(
     collection,
     survey=None,
 ):
-    """
-    Initialize simulation with input data from a table for each entity and period.
+    """Initialize simulation with input data from a table for each entity and period.
     """
     period = periods.period(period)
     batch_size = input_data_table_by_entity.get("batch_size")
@@ -1219,9 +1179,7 @@ def init_simulation(tax_benefit_system, period, data):
     ]
     assert len(source_types) < 2, "There are too many data source types"
     assert len(source_types) >= 1, (
-        "There should be one data source type included in {}".format(
-            default_source_types
-        )
+        f"There should be one data source type included in {default_source_types}"
     )
     source_type = source_types[0]
     source = data[source_type]
@@ -1243,7 +1201,7 @@ def init_simulation(tax_benefit_system, period, data):
         if input_data_survey_prefix is not None:
             openfisca_survey_collection = SurveyCollection.load(collection=collection)
             openfisca_survey = openfisca_survey_collection.get_survey(
-                "{}_{}".format(input_data_survey_prefix, data_year)
+                f"{input_data_survey_prefix}_{data_year}"
             )
             input_data_frame = openfisca_survey.get_values(table="input").reset_index(
                 drop=True
@@ -1261,7 +1219,7 @@ def init_simulation(tax_benefit_system, period, data):
         input_data_table_by_period = data.get("input_data_table_by_period")
         for period, table in input_data_table_by_period.items():
             period = periods.period(period)
-            log.debug("From survey {} loading table {}".format(survey, table))
+            log.debug(f"From survey {survey} loading table {table}")
             input_data_frame = load_table(
                 config_files_directory=config_files_directory,
                 collection=collection,
@@ -1298,9 +1256,7 @@ def init_simulation(tax_benefit_system, period, data):
                 input_data_frame = input_data_frame_by_entity.get(entity.key)
                 if input_data_frame is None:
                     log.debug(
-                        "No input_data_frame found for entity {} at period {}".format(
-                            entity, period
-                        )
+                        f"No input_data_frame found for entity {entity} at period {period}"
                     )
                     continue
                 custom_input_data_frame(
@@ -1373,8 +1329,8 @@ def init_variable_in_entity(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
             )
             series.fillna(variable.default_value, inplace=True)
-        assert series.notna().all(), (
-            f"There are {series.isna().sum()} NaN values for {series.notna().sum()} non NaN values in variable {variable_name}"
+        assert series.notnull().all(), (
+            f"There are {series.isnull().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
         )
 
     enum_variable_imputed_as_enum = variable.value_type == Enum and (
@@ -1418,7 +1374,7 @@ def init_variable_in_entity(
     if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
-        log.warn(
+        log.warning(
             f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. The  montly values you provided will be summed."
         )
 
@@ -1552,7 +1508,7 @@ def summarize_variable(
     """
     tax_benefit_system = simulation.tax_benefit_system
     variable_instance = tax_benefit_system.variables.get(variable)
-    assert variable_instance is not None, "{} is not a valid variable".format(variable)
+    assert variable_instance is not None, f"{variable} is not a valid variable"
 
     default_value = variable_instance.default_value
     value_type = variable_instance.value_type
@@ -1605,7 +1561,7 @@ def summarize_variable(
         if holder.variable.definition_period == ETERNITY:
             array = holder.get_array(ETERNITY)
             print(
-                "permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(  # noqa analysis:ignore
+                "permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
                     # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
                     array.astype(float).mean()
                     if not weighted
@@ -1654,7 +1610,7 @@ def summarize_variable(
                     continue
 
                 print(
-                    "{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
+                    "{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
                         period,
                         array.astype(float).mean()
                         if not weighted

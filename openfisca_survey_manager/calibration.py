@@ -11,7 +11,7 @@ from openfisca_survey_manager.calmar import calmar
 log = logging.getLogger(__name__)
 
 
-class Calibration(object):
+class Calibration:
     """An object to calibrate survey data of a SurveyScenario."""
 
     filter_by = None
@@ -107,9 +107,7 @@ class Calibration(object):
                 == numpy.unique(id_variable).sort()
             ), "There is no inclusion of one entity in the other"
             assert len(id_variable) < len(id_variable_link), (
-                "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(
-                    entity_id_variable_link, entity_id_variable
-                )
+                f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'"
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
@@ -241,7 +239,7 @@ class Calibration(object):
         self._update_margins()
         if inplace:
             self.set_calibrated_weights()
-            return
+            return None
 
         return self.weight
 

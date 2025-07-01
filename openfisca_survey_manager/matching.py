@@ -14,8 +14,7 @@ config_files_directory = os.path.join(openfisca_survey_manager_location)
 def nnd_hotdeck_using_feather(
     receiver=None, donor=None, matching_variables=None, z_variables=None
 ):
-    """
-    Not working
+    """Not working
     """
     import feather
 
@@ -29,13 +28,13 @@ def nnd_hotdeck_using_feather(
     feather.write_dataframe(receiver, receiver_path)
     feather.write_dataframe(donor, donor_path)
     if isinstance(matching_variables, str):
-        match_vars = '"{}"'.format(matching_variables)
+        match_vars = f'"{matching_variables}"'
     elif len(matching_variables) == 1:
-        match_vars = '"{}"'.format(matching_variables[0])
+        match_vars = f'"{matching_variables[0]}"'
     else:
         match_vars = '"{}"'.format("todo")
 
-    r_script = """
+    r_script = f"""
 rm(list=ls())
 gc()
 devtools::install_github("wesm/feather/R")
@@ -67,12 +66,7 @@ fused.nnd.m <- create.fused(
     z.vars = "{z_variables}"
     )
 summary(fused.nnd.m)
-""".format(
-        receiver_path=receiver_path,
-        donor_path=donor_path,
-        match_vars=match_vars,
-        z_variables=z_variables,
-    )
+"""
     print(r_script)  # noqa analysis:ignore
 
 

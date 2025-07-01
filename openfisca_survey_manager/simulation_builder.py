@@ -32,20 +32,14 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
     )
     if variables_mismatch:
         log.info(
-            "The following variables are used as input variables are not present in the input data frame: \n {}".format(
-                sorted(variables_mismatch)
-            )
+            f"The following variables are used as input variables are not present in the input data frame: \n {sorted(variables_mismatch)}"
         )
     if variables_mismatch:
         log.debug(
-            "The following variables are used as input variables: \n {}".format(
-                sorted(used_as_input_variables)
-            )
+            f"The following variables are used as input variables: \n {sorted(used_as_input_variables)}"
         )
         log.debug(
-            "The input_data_frame contains the following variables: \n {}".format(
-                sorted(list(input_data_frame.columns))
-            )
+            f"The input_data_frame contains the following variables: \n {sorted(list(input_data_frame.columns))}"
         )
 
 
@@ -78,7 +72,7 @@ def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
 def _set_used_as_input_variables_by_entity(builder) -> Dict[str, List[str]]:
     """Identify and sets the correct input variables for the different entities."""
     if builder.used_as_input_variables_by_entity is not None:
-        return
+        return None
 
     tax_benefit_system = builder.tax_benefit_system
 
@@ -131,9 +125,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
     ]
 
     log.debug(
-        "Variable used_as_input_variables in filter: \n {}".format(
-            used_as_input_variables
-        )
+        f"Variable used_as_input_variables in filter: \n {used_as_input_variables}"
     )
 
     unknown_columns = []
@@ -147,9 +139,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 
     if unknown_columns:
         log.debug(
-            "The following unknown columns {}, are dropped from input table".format(
-                sorted(unknown_columns)
-            )
+            f"The following unknown columns {sorted(unknown_columns)}, are dropped from input table"
         )
 
     used_columns = []
@@ -170,30 +160,26 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 
     if used_columns:
         log.debug(
-            "These columns are not dropped because present in used_as_input_variables:\n {}".format(
-                sorted(used_columns)
-            )
+            f"These columns are not dropped because present in used_as_input_variables:\n {sorted(used_columns)}"
         )
     if dropped_columns:
         log.debug(
-            "These columns in survey are set to be calculated, we drop them from the input table:\n {}".format(
-                sorted(dropped_columns)
-            )
+            f"These columns in survey are set to be calculated, we drop them from the input table:\n {sorted(dropped_columns)}"
         )
 
     log.info(
-        "Keeping the following variables in the input_data_frame:\n {}".format(
-            sorted(list(input_data_frame.columns))
-        )
+        f"Keeping the following variables in the input_data_frame:\n {sorted(list(input_data_frame.columns))}"
     )
     return input_data_frame
 
 
 def init_all_entities(builder, input_data_frame, period=None):
     assert period is not None
-    log.debug(f"Initialasing simulation using input_data_frame for period {period}")
-    builder._set_id_variable_by_entity_key()
-    builder._set_role_variable_by_entity_key()
+    log.info(
+        f"Initialasing simulation using input_data_frame for period {period}"  # noqa: G004
+    )
+    builder._set_id_variable_by_entity_key()  # noqa: SLF001
+    builder._set_role_variable_by_entity_key()  # noqa: SLF001
 
     if period.unit == YEAR:  # 1. year
         simulation = builder.init_simulation_with_data_frame(
@@ -213,7 +199,8 @@ def init_all_entities(builder, input_data_frame, period=None):
             period=period,
         )
     else:
-        raise ValueError("Invalid period {}".format(period))
+        msg = f"Invalid period {period}"
+        raise ValueError(msg)
 
     simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key
     return simulation
@@ -230,9 +217,9 @@ def init_entity_structure(builder, entity, input_data_frame):
 
     """
     tax_benefit_system = builder.tax_benefit_system
-    builder._set_id_variable_by_entity_key()
-    builder._set_role_variable_by_entity_key()
-    builder._set_used_as_input_variables_by_entity()
+    builder._set_id_variable_by_entity_key()  # noqa: SLF001
+    builder._set_role_variable_by_entity_key()  # noqa: SLF001
+    builder._set_used_as_input_variables_by_entity()  # noqa: SLF001
 
     input_data_frame = builder.filter_input_variables(
         input_data_frame, tax_benefit_system
@@ -250,7 +237,7 @@ def init_entity_structure(builder, entity, input_data_frame):
     if entity.is_person:
         for id_variable in id_variables + role_variables:
             assert id_variable in input_data_frame.columns, (
-                "Variable {} is not present in input dataframe".format(id_variable)
+                f"Variable {id_variable} is not present in input dataframe"
             )
 
     ids = range(len(input_data_frame))
@@ -292,7 +279,7 @@ def init_simulation_with_data_frame(builder, input_data_frame, period):
 
     for id_variable in id_variables + role_variables:
         assert id_variable in input_data_frame.columns, (
-            "Variable {} is not present in input dataframe".format(id_variable)
+            f"Variable {id_variable} is not present in input dataframe"
         )
 
     input_data_frame = builder.filter_input_variables(
@@ -307,15 +294,14 @@ def init_simulation_with_data_frame(builder, input_data_frame, period):
         if entity.is_person:
             continue
 
-        else:
-            index_by_entity_key[entity.key] = (
-                input_data_frame.loc[
-                    input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
-                    id_variable_by_entity_key[entity.key],
-                ]
-                .sort_values()
-                .index
-            )
+        index_by_entity_key[entity.key] = (
+            input_data_frame.loc[
+                input_data_frame[role_variable_by_entity_key[entity.key]] == 0,
+                id_variable_by_entity_key[entity.key],
+            ]
+            .sort_values()
+            .index
+        )
 
     for column_name, column_serie in input_data_frame.items():
         if role_variable_by_entity_key is not None:
