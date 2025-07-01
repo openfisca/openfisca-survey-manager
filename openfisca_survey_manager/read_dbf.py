@@ -1,5 +1,3 @@
-
-
 try:
     import pysal as ps
 except ModuleNotFoundError:
@@ -7,7 +5,7 @@ except ModuleNotFoundError:
 import pandas as pd
 
 
-def read_dbf(dbf_path, index = None, cols = False, incl_index = False):
+def read_dbf(dbf_path, index=None, cols=False, incl_index=False):
     """
     Read a dbf file as a pandas.DataFrame, optionally selecting the index
     variable and which columns are to be loaded.
