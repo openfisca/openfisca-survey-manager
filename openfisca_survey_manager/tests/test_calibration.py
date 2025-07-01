@@ -27,7 +27,7 @@ def test_calibration_variable_entity_is_weight_entity():
         parameters={"method": "raking ratio"},
     )
 
-    for _, simulation in survey_scenario.simulations.items():
+    for simulation in survey_scenario.simulations.values():
         assert all(
             simulation.calibration.weight != simulation.calibration.initial_weight
         )
@@ -91,7 +91,7 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
     period = "2017-01"
     survey_scenario.period = period
-    simulation = list(survey_scenario.simulations.values())[0]
+    simulation = next(iter(survey_scenario.simulations.values()))
     person_weight_before = simulation.calculate("person_weight", period)
 
     # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)
@@ -128,7 +128,7 @@ def test_simulation_calibration_variable_entity_is_weight_entity_with_hyperbolic
     survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
     period = "2017-01"
     survey_scenario.period = period
-    simulation = list(survey_scenario.simulations.values())[0]
+    simulation = next(iter(survey_scenario.simulations.values()))
     person_weight_before = simulation.calculate("person_weight", period)
 
     # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)
@@ -170,7 +170,7 @@ def test_simulation_calibration_input_from_data():
         "person": "person_weight",
         "household": "household_weight",
     }
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = "2017-01"
     survey_scenario.used_as_input_variables = ["salary", "rent", "household_weight"]
     period = periods.period("2017-01")

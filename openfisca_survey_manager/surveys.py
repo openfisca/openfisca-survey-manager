@@ -7,7 +7,7 @@ import logging
 import os
 import re
 
-import pandas
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
@@ -19,14 +19,14 @@ ident_re = re.compile(r"(?i)ident\d{2,4}$")
 log = logging.getLogger(__name__)
 
 
-source_format_by_extension = dict(
-    csv="csv",
-    sas7bdat="sas",
-    dta="stata",
-    Rdata="Rdata",
-    spss="sav",
-    parquet="parquet",
-)
+source_format_by_extension = {
+    "csv": "csv",
+    "sas7bdat": "sas",
+    "dta": "stata",
+    "Rdata": "Rdata",
+    "spss": "sav",
+    "parquet": "parquet",
+}
 
 admissible_source_formats = list(source_format_by_extension.values())
 
@@ -37,15 +37,15 @@ class NoMoreDataError(Exception):
 
 
 class Survey:
-    """An object to describe survey data"""
+    """An object to describe survey data."""
 
     hdf5_file_path = None
     parquet_file_path = None
-    informations = dict()
+    informations = {}
     label = None
     name = None
     tables = collections.OrderedDict()
-    tables_index = dict()
+    tables_index = {}
     survey_collection = None
 
     def __init__(
@@ -59,7 +59,7 @@ class Survey:
     ):
         assert name is not None, "A survey should have a name"
         self.name = name
-        self.tables = dict()
+        self.tables = {}
 
         if label is not None:
             self.label = label
@@ -89,7 +89,7 @@ Contains the following tables : \n"""
             label=survey_json.get("label"),
             hdf5_file_path=survey_json.get("hdf5_file_path"),
             parquet_file_path=survey_json.get("parquet_file_path"),
-            **survey_json.get("informations", dict()),
+            **survey_json.get("informations", {}),
         )
         self.tables = survey_json.get("tables")
         return self
@@ -111,7 +111,7 @@ Contains the following tables : \n"""
         If the source is in parquet, the data is not converted.
         """
         assert self.survey_collection is not None
-        assert isinstance(overwrite, bool) or isinstance(overwrite, list)
+        assert isinstance(overwrite, (bool, list))
         survey = self
         # Create folder if it does not exist
         config = survey.survey_collection.config
@@ -210,7 +210,7 @@ Contains the following tables : \n"""
         batch_size=None,
         batch_index=0,
         filter_by=None,
-    ) -> pandas.DataFrame:
+    ) -> pd.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -230,12 +230,13 @@ Contains the following tables : \n"""
 
         """
         if self.parquet_file_path is None and self.hdf5_file_path is None:
-            raise Exception(f"No data file found for survey {self.name}")
+            msg = f"No data file found for survey {self.name}"
+            raise Exception(msg)
         if self.hdf5_file_path is not None:
             assert os.path.exists(self.hdf5_file_path), (
                 f"{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code."
             )
-            store = pandas.HDFStore(self.hdf5_file_path, "r")
+            store = pd.HDFStore(self.hdf5_file_path, "r")
             if ignorecase:
                 keys = store.keys()
                 eligible_tables = []
@@ -244,17 +245,19 @@ Contains the following tables : \n"""
                     if match:
                         eligible_tables.append(match[0])
                 if len(eligible_tables) > 1:
+                    msg = f"{table} is ambiguious since the following tables are available: {eligible_tables}"
                     raise ValueError(
-                        f"{table} is ambiguious since the following tables are available: {eligible_tables}"
+                        msg
                     )
                 if len(eligible_tables) == 0:
-                    raise ValueError(f"No eligible available table in {keys}")
+                    msg = f"No eligible available table in {keys}"
+                    raise ValueError(msg)
                 table = eligible_tables[0]
             try:
                 df = store.select(table)
             except KeyError:
-                log.error(f"No table {table} in the file {self.hdf5_file_path}")
-                log.error(
+                log.exception(f"No table {table} in the file {self.hdf5_file_path}")
+                log.exception(
                     f"This could happen because your data were not builded yet. Available tables are: {store.keys()}"
                 )
                 store.close()
@@ -264,8 +267,9 @@ Contains the following tables : \n"""
 
         elif self.parquet_file_path is not None:
             if table is None:
+                msg = "A table name is needed to retrieve data from a parquet file"
                 raise Exception(
-                    "A table name is needed to retrieve data from a parquet file"
+                    msg
                 )
             for table_name, table_content in self.tables.items():
                 if table == table_name:
@@ -278,7 +282,8 @@ Contains the following tables : \n"""
                                 one_parquet_file = os.path.join(parquet_file, file)
                                 break
                         else:
-                            raise Exception(f"No parquet file found in {parquet_file}")
+                            msg = f"No parquet file found in {parquet_file}"
+                            raise Exception(msg)
                     else:
                         one_parquet_file = parquet_file
                     parquet_schema = pq.read_schema(one_parquet_file)
@@ -316,8 +321,9 @@ Contains the following tables : \n"""
                             max_chunksize=batch_size
                         )
                         if len(record_batches) <= batch_index:
+                            msg = f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
                             raise NoMoreDataError(
-                                f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
+                                msg
                             )
                         df = record_batches[batch_index].to_pandas()
                         # iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
@@ -340,16 +346,17 @@ Contains the following tables : \n"""
                         )
                     break
             else:
-                raise Exception(f"No table {table} found in {self.parquet_file_path}")
+                msg = f"No table {table} found in {self.parquet_file_path}"
+                raise Exception(msg)
 
         if lowercase:
-            columns = dict((column_name, column_name.lower()) for column_name in df)
-            df.rename(columns=columns, inplace=True)
+            columns = {column_name: column_name.lower() for column_name in df}
+            df = df.rename(columns=columns)
 
         if rename_ident is True:
             for column_name in df:
                 if ident_re.match(str(column_name)) is not None:
-                    df.rename(columns={column_name: "ident"}, inplace=True)
+                    df = df.rename(columns={column_name: "ident"})
                     log.info(f"{column_name} column have been replaced by ident")
                     break
 
@@ -357,10 +364,10 @@ Contains the following tables : \n"""
             return df
         diff = set(variables) - set(df.columns)
         if diff:
-            raise Exception(f"The following variable(s) {diff} are missing")
+            msg = f"The following variable(s) {diff} are missing"
+            raise Exception(msg)
         variables = list(set(variables).intersection(df.columns))
-        df = df[variables]
-        return df
+        return df[variables]
 
     def insert_table(self, label=None, name=None, **kwargs):
         """Insert a table in the Survey object.
@@ -374,7 +381,7 @@ Contains the following tables : \n"""
             data_frame = kwargs.pop("dataframe", None)
 
         if data_frame is not None:
-            assert isinstance(data_frame, pandas.DataFrame)
+            assert isinstance(data_frame, pd.DataFrame)
             variables = kwargs.pop("variables", None)
             if variables is not None:
                 assert set(variables) < set(data_frame.columns)
@@ -397,11 +404,11 @@ Contains the following tables : \n"""
                 data_frame.to_parquet(parquet_file)
             else:
                 log.debug(f"Saving table {name} in {table.survey.hdf5_file_path}")
-                to_hdf_kwargs = kwargs.pop("to_hdf_kwargs", dict())
+                to_hdf_kwargs = kwargs.pop("to_hdf_kwargs", {})
                 table.save_data_frame_to_hdf5(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
-            self.tables[name] = dict()
+            self.tables[name] = {}
         for key, val in kwargs.items():
             self.tables[name][key] = val
 

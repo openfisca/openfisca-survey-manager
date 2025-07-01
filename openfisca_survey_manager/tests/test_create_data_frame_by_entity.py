@@ -29,8 +29,8 @@ def test_create_data_frame_by_entity_with_index():
         variables=["salary", "rent", "person_id"], period=period, index=True
     )
     for entity, input_dataframe in data_frame_by_entity.items():
-        print(f"{entity} for {period}")  # noqa T201
-        print(input_dataframe.columns)  # noqa T201
+        print(f"{entity} for {period}")  # noqa: T201
+        print(input_dataframe.columns)  # noqa: T201
         if entity == "person":
             assert "person_id" in input_dataframe.columns.to_list()
         if entity == "household":

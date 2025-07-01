@@ -14,7 +14,7 @@ def check_max_instant_leaf(sub_parameter, instant):
 
 
 def check_max_instant(parameters, instant):
-    for _, sub_parameter in parameters.children.items():
+    for sub_parameter in parameters.children.values():
         if isinstance(sub_parameter, ParameterNode):
             check_max_instant(sub_parameter, instant)
         elif isinstance(sub_parameter, Scale):

@@ -2,7 +2,6 @@ import configparser
 import logging
 import os
 import random
-from builtins import range
 
 import numpy as np
 import pandas as pd
@@ -44,12 +43,12 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         >>> sorted(input_dataframe_by_entity["household"].columns.tolist())
         []
     """
-    input_dataframe_by_entity = dict()
-    person_entity = [
+    input_dataframe_by_entity = {}
+    person_entity = next(
         entity for entity in tax_benefit_system.entities if entity.is_person
-    ][0]
+    )
     person_id = np.arange(nb_persons)
-    input_dataframe_by_entity = dict()
+    input_dataframe_by_entity = {}
     input_dataframe_by_entity[person_entity.key] = pd.DataFrame(
         {
             person_entity.key + "_id": person_id,
@@ -58,7 +57,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     input_dataframe_by_entity[person_entity.key].set_index("person_id")
     seed = 42
     random.seed(seed)
-    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
+    adults = [0, *sorted(random.sample(range(1, nb_persons), nb_groups - 1))]
     members_entity_id = np.empty(nb_persons, dtype=int)
     # A role index is an index that every person within an entity has.
     # For instance, the 'first_parent' has role index 0, the 'second_parent' 1, the first 'child' 2, the second 2, etc.
@@ -86,7 +85,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
             entity.flattened_roles[-1].key,
         )
         input_dataframe_by_entity[key] = pd.DataFrame({key + "_id": range(nb_groups)})
-        input_dataframe_by_entity[key].set_index(key + "_id", inplace=True)
+        input_dataframe_by_entity[key] = input_dataframe_by_entity[key].set_index(key + "_id")
 
     return input_dataframe_by_entity
 
@@ -113,10 +112,10 @@ def random_data_generator(
     initial_input_dataframe_by_entity = make_input_dataframe_by_entity(
         tax_benefit_system, nb_persons, nb_groups
     )
-    table_by_entity_by_period = dict()
+    table_by_entity_by_period = {}
     for period, variable_generators in sorted(variable_generators_by_period.items()):
         input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
-        table_by_entity_by_period[period] = table_by_entity = dict()
+        table_by_entity_by_period[period] = table_by_entity = {}
         for variable_generator in variable_generators:
             variable = variable_generator["variable"]
             max_value = variable_generator["max_value"]
@@ -313,14 +312,14 @@ def build_input_dataframe_from_test_case(
     survey_scenario, test_case_scenario_kwargs, period=None, computed_variables=None
 ):
     if computed_variables is None:
-        computed_variables = list()
+        computed_variables = []
     tax_benefit_system = survey_scenario.tax_benefit_system
     simulation = (
         tax_benefit_system.new_scenario()
         .init_single_entity(**test_case_scenario_kwargs)
         .new_simulation()
     )
-    array_by_variable = dict()
+    array_by_variable = {}
     period = periods.period(period)
 
     def compute_variable(variable):

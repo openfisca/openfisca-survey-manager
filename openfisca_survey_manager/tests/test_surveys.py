@@ -72,7 +72,7 @@ def test_survey_load():
         collection=collection, config_files_directory=data_dir
     )
     survey = survey_collection.get_survey(survey_name)
-    for table_name, _ in survey.tables.items():
+    for table_name in survey.tables:
         assert table_name == "foyer_2021"
 
 

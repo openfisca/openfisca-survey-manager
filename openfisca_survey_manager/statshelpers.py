@@ -25,7 +25,7 @@ def gini(values, weights=None):
     #                 SUM W_i*X_i  *  SUM W_i
     #                 i=1             i=1
     # where observations are sorted in ascending order of X.
-    # From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    # From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html.
 
     Args:
       values: Vector of values
@@ -46,13 +46,12 @@ def gini(values, weights=None):
     cdf = cumsum(wx) - 0.5 * wx
     numerator = (w * cdf).sum()
     denominator = ((wx).sum()) * (w.sum())
-    gini = 1 - 2 * (numerator / denominator)
+    return 1 - 2 * (numerator / denominator)
 
-    return gini
 
 
 def kakwani(values, ineq_axis, weights=None):
-    """Computes the Kakwani index
+    """Computes the Kakwani index.
 
     Args:
       values: Vector of values
@@ -76,7 +75,7 @@ def kakwani(values, ineq_axis, weights=None):
 
 
 def lorenz(values, weights=None):
-    """Computes Lorenz curve coordinates (x, y)
+    """Computes Lorenz curve coordinates (x, y).
 
     Args:
       values: Vector of values
@@ -104,7 +103,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
       labels:
       weights:
       method:
-      return_quantiles:  (Default value = False)
+      return_quantiles:  (Default value = False).
 
     Returns:
 
@@ -257,10 +256,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         if return_quantiles:
             return ret, quantiles
         return ret
+    return None
 
 
 def pseudo_lorenz(values, ineq_axis, weights=None):
-    """Computes The pseudo Lorenz Curve coordinates
+    """Computes The pseudo Lorenz Curve coordinates.
 
     Args:
       values:
@@ -286,7 +286,7 @@ def bottom_share(values, rank_from_bottom, weights=None):
     """Args:
       values(np.array): Vector of values
       rank_from_bottom(float): Rank from bottom (bottom is 0 and top is 1)
-      weights(np.array): Weights vector (Default value = None)
+      weights(np.array): Weights vector (Default value = None).
 
     Returns:
 
@@ -312,7 +312,7 @@ def top_share(values, rank_from_top, weights=None):
     """Args:
       values(np.array): Vector of values
       rank_from_top(float): Rank from top (bottom is 1 and top is 0)
-      weights(np.array): Weights vector (Default value = None)
+      weights(np.array): Weights vector (Default value = None).
 
     Returns:
 

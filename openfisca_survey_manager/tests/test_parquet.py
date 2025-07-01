@@ -1,5 +1,4 @@
-"""Test the ability to store parquet files in collections, without converting them to HDF5.
-"""
+"""Test the ability to store parquet files in collections, without converting them to HDF5."""
 
 import logging
 import os
@@ -96,7 +95,7 @@ class TestParquet(TestCase):
         survey = survey_collection.get_survey(survey_name)
         table = survey.get_values(table="household", ignorecase=True)
         input_data_frame_by_entity = table
-        survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+        survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
         survey_scenario.period = 2020
         survey_scenario.used_as_input_variables = ["rent"]
         survey_scenario.collection = self.collection_name
@@ -155,7 +154,7 @@ class TestParquet(TestCase):
         survey = survey_collection.get_survey(survey_name)
         table = survey.get_values(table="household", ignorecase=True)
         input_data_frame_by_entity = table
-        survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+        survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
         survey_scenario.period = 2020
         survey_scenario.used_as_input_variables = ["rent"]
         survey_scenario.collection = collection_name
@@ -219,7 +218,7 @@ class TestParquet(TestCase):
         data_dir = os.path.join(self.data_dir, collection_name)
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
-        survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+        survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
         survey_scenario.period = 2020
         survey_scenario.used_as_input_variables = ["rent"]
         survey_scenario.collection = collection_name

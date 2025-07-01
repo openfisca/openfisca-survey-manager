@@ -1,8 +1,8 @@
 """Abstract survey scenario definition."""
+from __future__ import annotations
 
-from typing import Optional, Union
+from typing import TYPE_CHECKING
 
-from openfisca_core.types import Array, Period
 
 import logging
 
@@ -12,6 +12,9 @@ import pandas as pd
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.simulations import Simulation
 
+if TYPE_CHECKING:
+    from openfisca_core.types import Array, Period
+
 log = logging.getLogger(__name__)
 
 
@@ -19,13 +22,13 @@ class ReformScenario(AbstractSurveyScenario):
     """Reform survey scenario."""
 
     def _get_simulation(self, use_baseline: bool = False):
-        """Get relevant simulation
+        """Get relevant simulation.
 
         Args:
             use_baseline (bool, optional): Whether to get baseline or reform simulation. Defaults to False.
         """
         if len(self.simulations) == 1:
-            return list(self.simulations.values())[0]
+            return next(iter(self.simulations.values()))
 
         simulation_name = "baseline" if use_baseline else "reform"
         simulation = self.simulations[simulation_name]
@@ -70,15 +73,15 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_aggregate(
         self,
-        variable: str = None,
+        variable: str | None = None,
         aggfunc: str = "sum",
-        filter_by: str = None,
-        period: Optional[Union[int, str, Period]] = None,
+        filter_by: str | None = None,
+        period: int | str | Period | None = None,
         use_baseline: bool = False,
         difference: bool = False,
         missing_variable_default_value=np.nan,
         weighted: bool = True,
-        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+        alternative_weights: str | float | Array | None = None,
     ):
         """Compute variable aggregate.
 
@@ -138,7 +141,7 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_quantiles(
         self,
-        variable: str = None,
+        variable: str | None = None,
         nquantiles=None,
         period=None,
         use_baseline=False,
@@ -162,7 +165,7 @@ class ReformScenario(AbstractSurveyScenario):
     def compute_marginal_tax_rate(
         self,
         target_variable: str,
-        period: Optional[Union[int, str, Period]],
+        period: int | str | Period | None,
         use_baseline: bool = False,
         value_for_zero_varying_variable: float = 0.0,
     ) -> Array:
@@ -178,13 +181,13 @@ class ReformScenario(AbstractSurveyScenario):
             numpy.array: Vector of marginal rates
         """
         if use_baseline:
-            return super(ReformScenario, self).compute_marginal_tax_rate(
+            return super().compute_marginal_tax_rate(
                 target_variable=target_variable,
                 period=period,
                 simulation="baseline",
                 value_for_zero_varying_variable=value_for_zero_varying_variable,
             )
-        return super(ReformScenario, self).compute_marginal_tax_rate(
+        return super().compute_marginal_tax_rate(
             target_variable=target_variable,
             period=period,
             simulation="reform",
@@ -238,7 +241,7 @@ class ReformScenario(AbstractSurveyScenario):
         weighted=True,
         alternative_weights=None,
     ):
-        return super(ReformScenario, self).compute_winners_loosers(
+        return super().compute_winners_loosers(
             simulation="reform",
             baseline_simulation="baseline",
             variable=variable,

@@ -1,11 +1,10 @@
 """Read SPSS data."""
 
 from pandas import DataFrame
+import contextlib
 
-try:
+with contextlib.suppress(ModuleNotFoundError):
     from savReaderWriter import SavReader
-except ModuleNotFoundError:
-    pass
 
 
 def read_spss(spss_file_path):

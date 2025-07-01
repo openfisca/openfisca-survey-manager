@@ -200,8 +200,7 @@ def build_survey_collection(
 
 
 def check_template_config_files(config_files_directory: str):
-    """Create template config files if they do not exist.
-    """
+    """Create template config files if they do not exist."""
     raw_data_ini_path = os.path.join(config_files_directory, "raw_data.ini")
     config_ini_path = os.path.join(config_files_directory, "config.ini")
     raw_data_template_ini_path = os.path.join(
@@ -236,9 +235,6 @@ def check_template_config_files(config_files_directory: str):
                         os.path.join(templates_config_files_directory, template_file),
                         os.path.join(config_files_directory, template_file),
                     )
-            print(
-                f"Rename and fill the template files in {config_files_directory}"
-            )
             return False
     else:
         os.makedirs(config_files_directory)
@@ -298,10 +294,7 @@ def main():
         level=logging.DEBUG if args.verbose else logging.WARNING, stream=sys.stdout
     )
 
-    if args.path:
-        config_files_directory = args.path
-    else:
-        config_files_directory = default_config_files_directory
+    config_files_directory = args.path or default_config_files_directory
 
     if not check_template_config_files(config_files_directory=config_files_directory):
         return None
@@ -336,7 +329,7 @@ def main():
     except Exception as e:
         log.info(e)
         pdb.post_mortem(sys.exc_info()[2])
-        raise e
+        raise
 
     log.info(
         f"The program has been executed in {datetime.datetime.now() - start_time}"

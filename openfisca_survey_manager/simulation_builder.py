@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 import logging
 
@@ -39,37 +38,37 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
             f"The following variables are used as input variables: \n {sorted(used_as_input_variables)}"
         )
         log.debug(
-            f"The input_data_frame contains the following variables: \n {sorted(list(input_data_frame.columns))}"
+            f"The input_data_frame contains the following variables: \n {sorted(input_data_frame.columns)}"
         )
 
 
 # SimulationBuilder monkey-patched methods
 
 
-def _set_id_variable_by_entity_key(builder) -> Dict[str, str]:
+def _set_id_variable_by_entity_key(builder) -> dict[str, str]:
     """Identify and sets the correct ids for the different entities."""
     if builder.id_variable_by_entity_key is None:
         log.debug("Use default id_variable names")
-        builder.id_variable_by_entity_key = dict(
-            (entity.key, entity.key + "_id")
+        builder.id_variable_by_entity_key = {
+            entity.key: entity.key + "_id"
             for entity in builder.tax_benefit_system.entities
-        )
+        }
 
     return builder.id_variable_by_entity_key
 
 
-def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
+def _set_role_variable_by_entity_key(builder) -> dict[str, str]:
     """Identify and sets the correct roles for the different entities."""
     if builder.role_variable_by_entity_key is None:
-        builder.role_variable_by_entity_key = dict(
-            (entity.key, entity.key + "_role_index")
+        builder.role_variable_by_entity_key = {
+            entity.key: entity.key + "_role_index"
             for entity in builder.tax_benefit_system.entities
-        )
+        }
 
     return builder.role_variable_by_entity_key
 
 
-def _set_used_as_input_variables_by_entity(builder) -> Dict[str, List[str]]:
+def _set_used_as_input_variables_by_entity(builder) -> dict[str, list[str]]:
     """Identify and sets the correct input variables for the different entities."""
     if builder.used_as_input_variables_by_entity is not None:
         return None
@@ -86,7 +85,7 @@ def _set_used_as_input_variables_by_entity(builder) -> Dict[str, List[str]]:
         )
     )
 
-    builder.used_as_input_variables_by_entity = dict()
+    builder.used_as_input_variables_by_entity = {}
 
     for entity in tax_benefit_system.entities:
         builder.used_as_input_variables_by_entity[entity.key] = [
@@ -135,7 +134,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
         if column_name not in variables:
             unknown_columns.append(column_name)
 
-    input_data_frame.drop(unknown_columns, axis=1, inplace=True)
+    input_data_frame = input_data_frame.drop(unknown_columns, axis=1)
 
     if unknown_columns:
         log.debug(
@@ -156,7 +155,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 
             dropped_columns.append(column_name)
 
-    input_data_frame.drop(dropped_columns, axis=1, inplace=True)
+    input_data_frame = input_data_frame.drop(dropped_columns, axis=1)
 
     if used_columns:
         log.debug(
@@ -168,7 +167,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
         )
 
     log.info(
-        f"Keeping the following variables in the input_data_frame:\n {sorted(list(input_data_frame.columns))}"
+        f"Keeping the following variables in the input_data_frame:\n {sorted(input_data_frame.columns)}"
     )
     return input_data_frame
 
@@ -286,7 +285,7 @@ def init_simulation_with_data_frame(builder, input_data_frame, period):
         input_data_frame, tax_benefit_system
     )
 
-    index_by_entity_key = dict()
+    index_by_entity_key = {}
 
     for entity in tax_benefit_system.entities:
         builder.init_entity_structure(entity, input_data_frame)

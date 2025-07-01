@@ -1,6 +1,7 @@
 """Tests for the survey scenario functionality in OpenFisca Survey Manager."""
+from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 import logging
 import os
@@ -33,9 +34,9 @@ def create_randomly_initialized_survey_scenario(
     nb_groups: int = 5,
     salary_max_value: float = 50000,
     rent_max_value: float = 1000,
-    collection: Optional[str] = "test_random_generator",
+    collection: str | None = "test_random_generator",
     use_marginal_tax_rate: bool = False,
-    reform: Optional[Callable] = None,
+    reform: Callable | None = None,
 ) -> AbstractSurveyScenario:
     """Create a randomly initialized survey scenario.
 
@@ -78,7 +79,7 @@ def create_randomly_initialized_survey_scenario_from_table(
     rent_max_value: float,
     collection: str,
     use_marginal_tax_rate: bool,
-    reform: Optional[Callable] = None,
+    reform: Callable | None = None,
 ) -> AbstractSurveyScenario:
     """Create a randomly initialized survey scenario from a table.
 
@@ -125,7 +126,7 @@ def create_randomly_initialized_survey_scenario_from_table(
     )
     if reform is None:
         survey_scenario = AbstractSurveyScenario()
-        survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+        survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     else:
         survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(
@@ -167,7 +168,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     salary_max_value: float,
     rent_max_value: float,
     use_marginal_tax_rate: bool = False,
-    reform: Optional[Callable] = None,
+    reform: Callable | None = None,
 ) -> AbstractSurveyScenario:
     """Create a randomly initialized survey scenario from a data frame.
 
@@ -201,7 +202,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     }
     if reform is None:
         survey_scenario = AbstractSurveyScenario()
-        survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+        survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     else:
         survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(
@@ -250,7 +251,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
 
 def generate_input_input_dataframe_by_entity(
     nb_persons: int, nb_groups: int, salary_max_value: float, rent_max_value: float
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate input dataframe by entity with randomly initialized variables.
 
     Args:
@@ -371,7 +372,7 @@ def test_init_from_data(
     # print(table_ind)
 
     # We must add a TBS to the scenario to indicate what are the entities
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     assert len(survey_scenario.tax_benefit_systems) == 1
     assert list(survey_scenario.tax_benefit_systems.keys()) == ["baseline"]
     assert survey_scenario.simulations is None
@@ -394,14 +395,14 @@ def test_init_from_data(
         if cols in data_out["person"]:
             pass
         else:
-            print("Columns lost in person table: ", cols)  # noqa T201
+            print("Columns lost in person table: ", cols)  # noqa: T201
     assert data_out["person"]["salary"].equals(table_ind["salary"])
 
     for cols in table_men:
         if cols in data_out["household"]:
             pass
         else:
-            print("Columns lost in household table: ", cols)  # noqa T201
+            print("Columns lost in household table: ", cols)  # noqa: T201
     assert data_out["household"]["rent"].equals(table_men["rent"])
 
 
@@ -423,7 +424,7 @@ def test_survey_scenario_input_dataframe_import(
         nb_persons, nb_groups, salary_max_value, rent_max_value
     )
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ["salary", "rent"]
     period = periods.period("2017-01")
@@ -465,7 +466,7 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(
         4 - input_data_frame_by_entity["person"]["household_id"]
     )
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = 2017
     survey_scenario.used_as_input_variables = ["salary", "rent"]
     period = periods.period("2017-01")
@@ -510,7 +511,7 @@ def test_dump_survey_scenario() -> None:
     assert not person.empty
     del survey_scenario
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.used_as_input_variables = ["salary", "rent"]
     survey_scenario.period = 2017
     survey_scenario.restore_simulations(directory=directory)
@@ -579,18 +580,17 @@ def test_compute_pivot_table() -> None:
     assert pivot_table.values.round() == 13570.0
 
 
-def test_compute_quantile() -> List[float]:
+def test_compute_quantile() -> list[float]:
     """Test the compute_quantiles method of the survey scenario."""
     survey_scenario = create_randomly_initialized_survey_scenario()
     period = "2017-01"
-    quintiles = survey_scenario.compute_quantiles(
+    return survey_scenario.compute_quantiles(
         variable="salary",
         nquantiles=5,
         period=period,
         weighted=False,
         simulation="baseline",
     )
-    return quintiles
 
 
 if __name__ == "__main__":

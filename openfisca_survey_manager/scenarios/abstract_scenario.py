@@ -1,8 +1,8 @@
 """Abstract survey scenario definition."""
+from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 
-from openfisca_core.types import Array, Period, TaxBenefitSystem
 
 import logging
 import os
@@ -17,6 +17,9 @@ from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simu
 from openfisca_survey_manager.calibration import Calibration
 from openfisca_survey_manager.simulations import Simulation
 from openfisca_survey_manager.surveys import Survey
+
+if TYPE_CHECKING:
+    from openfisca_core.types import Array, Period, TaxBenefitSystem
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +86,7 @@ class AbstractSurveyScenario:
         """
         if simulation is None:
             assert len(self.simulations.keys()) == 1
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
         else:
             simulation = self.simulations[simulation]
         assert simulation is not None
@@ -91,12 +94,12 @@ class AbstractSurveyScenario:
 
     def calibrate(
         self,
-        period: int = None,
-        target_margins_by_variable: dict = None,
-        parameters: dict = None,
-        target_entity_count: float = None,
-        other_entity_count: float = None,
-        entity: str = None,
+        period: int | None = None,
+        target_margins_by_variable: dict | None = None,
+        parameters: dict | None = None,
+        target_entity_count: float | None = None,
+        other_entity_count: float | None = None,
+        entity: str | None = None,
     ):
         """Calibrate the scenario data.
 
@@ -129,7 +132,7 @@ class AbstractSurveyScenario:
             elif parameters["method"] == "hyperbolic sinus":
                 assert parameters["alpha"] is not None
         else:
-            parameters = dict(method="logit", up=3, invlo=3)
+            parameters = {"method": "logit", "up": 3, "invlo": 3}
 
         # TODO: filtering using filtering_variable_by_entity
         for simulation in self.simulations.values():
@@ -150,15 +153,15 @@ class AbstractSurveyScenario:
 
     def compute_aggregate(
         self,
-        variable: str = None,
+        variable: str | None = None,
         aggfunc: str = "sum",
-        filter_by: str = None,
-        period: Optional[Union[int, str, Period]] = None,
-        simulation: str = None,
-        baseline_simulation: str = None,
+        filter_by: str | None = None,
+        period: int | str | Period | None = None,
+        simulation: str | None = None,
+        baseline_simulation: str | None = None,
         missing_variable_default_value=np.nan,
         weighted: bool = True,
-        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+        alternative_weights: str | float | Array | None = None,
     ):
         """Compute variable aggregate.
 
@@ -182,7 +185,7 @@ class AbstractSurveyScenario:
         assert variable is not None
         if simulation is None:
             assert len(self.simulations.keys()) == 1
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
         else:
             simulation = self.simulations[simulation]
 
@@ -225,13 +228,13 @@ class AbstractSurveyScenario:
         self,
         simulation: Simulation,
         variable: str,
-        nquantiles: int = None,
-        period: Optional[Union[int, str, Period]] = None,
+        nquantiles: int | None = None,
+        period: int | str | Period | None = None,
         filter_by=None,
         weighted: bool = True,
         alternative_weights=None,
         filtering_variable_by_entity=None,
-    ) -> List[float]:
+    ) -> list[float]:
         """Compute quantiles of a variable.
 
         Args:
@@ -264,8 +267,8 @@ class AbstractSurveyScenario:
     def compute_marginal_tax_rate(
         self,
         target_variable: str,
-        period: Optional[Union[int, str, Period]],
-        simulation: str = None,
+        period: int | str | Period | None,
+        simulation: str | None = None,
         value_for_zero_varying_variable: float = 0.0,
     ) -> Array:
         """Compute marginal a rate of a target (MTR) with respect to a varying variable.
@@ -282,11 +285,11 @@ class AbstractSurveyScenario:
         varying_variable = self.varying_variable
         if simulation is None:
             assert len(self.simulations.keys()) == 2
-            simulation_name = [
+            simulation_name = next(
                 name
-                for name in self.simulations.keys()
+                for name in self.simulations
                 if not name.startswith("_modified_")
-            ][0]
+            )
             simulation = self.simulations[simulation_name]
         else:
             simulation_name = simulation
@@ -331,10 +334,9 @@ class AbstractSurveyScenario:
                     .groupby("members_entity_id")
                     .sum()
                 )
-                varying_variable_for_target_entity = df.loc[
+                return df.loc[
                     population.ids, varying_variable
                 ].values
-                return varying_variable_for_target_entity
 
             modified_varying = cast_to_target_entity(modified_simulation)
             varying = cast_to_target_entity(simulation)
@@ -346,7 +348,7 @@ class AbstractSurveyScenario:
 
         numerator = modified_target - target
         denominator = modified_varying - varying
-        marginal_rate = 1 - np.divide(
+        return 1 - np.divide(
             numerator,
             denominator,
             out=np.full_like(
@@ -355,7 +357,6 @@ class AbstractSurveyScenario:
             where=(denominator != 0),
         )
 
-        return marginal_rate
 
     def compute_pivot_table(
         self,
@@ -480,7 +481,7 @@ class AbstractSurveyScenario:
         """
         if simulation is None:
             assert len(self.simulations.keys()) == 1
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
         else:
             simulation = self.simulations[simulation]
 
@@ -523,7 +524,7 @@ class AbstractSurveyScenario:
             directory (str, optional): Dump directory
         """
         assert directory is not None
-        use_sub_directories = True if len(self.simulations) >= 2 else False
+        use_sub_directories = len(self.simulations) >= 2
 
         if use_sub_directories:
             for simulation_name, simulation in self.simulations.items():
@@ -532,13 +533,14 @@ class AbstractSurveyScenario:
                 )
         else:
             assert len(self.simulations.keys()) == 1
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
             dump_simulation(simulation, directory)
 
     def generate_performance_data(self, output_dir: str):
         if not self.trace:
+            msg = "Method generate_performance_data cannot be used if trace hasn't been activated."
             raise ValueError(
-                "Method generate_performance_data cannot be used if trace hasn't been activated."
+                msg
             )
 
         for simulation_name, simulation in self.simulations.items():
@@ -554,15 +556,15 @@ class AbstractSurveyScenario:
         assert inflator_by_variable or target_by_variable
         assert period is not None
         inflator_by_variable = (
-            dict() if inflator_by_variable is None else inflator_by_variable
+            {} if inflator_by_variable is None else inflator_by_variable
         )
         target_by_variable = (
-            dict() if target_by_variable is None else target_by_variable
+            {} if target_by_variable is None else target_by_variable
         )
         self.inflator_by_variable = inflator_by_variable
         self.target_by_variable = target_by_variable
 
-        for _, simulation in self.simulations.items():
+        for simulation in self.simulations.values():
             simulation.inflate(inflator_by_variable, period, target_by_variable)
 
     def init_from_data(
@@ -609,8 +611,8 @@ class AbstractSurveyScenario:
 
         # Inverting reform and baseline because we are more likely
         # to use baseline input in reform than the other way around
-        self.simulations = dict()
-        for simulation_name, _ in self.tax_benefit_systems.items():
+        self.simulations = {}
+        for simulation_name in self.tax_benefit_systems:
             self.new_simulation(
                 simulation_name,
                 debug=debug,
@@ -630,20 +632,18 @@ class AbstractSurveyScenario:
 
         if calibration_kwargs is not None:
             assert set(calibration_kwargs.keys()).issubset(
-                set(
-                    [
+                {
                         "target_margins_by_variable",
                         "parameters",
                         "target_entity_count",
                         "other_entity_count",
                         "entity",
-                    ]
-                )
+                    }
             )
 
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(
-                set(["inflator_by_variable", "target_by_variable", "period"])
+                {"inflator_by_variable", "target_by_variable", "period"}
             )
 
         if calibration_kwargs:
@@ -745,9 +745,9 @@ class AbstractSurveyScenario:
         assert os.path.exists(directory), (
             "Cannot restore simulations from non existent directory"
         )
-        use_sub_directories = True if len(self.tax_benefit_systems) >= 2 else False
+        use_sub_directories = len(self.tax_benefit_systems) >= 2
 
-        self.simulations = dict()
+        self.simulations = {}
         if use_sub_directories:
             for simulation_name, tax_benefit_system in self.tax_benefit_systems.items():
                 simulation = restore_simulation(
@@ -759,7 +759,7 @@ class AbstractSurveyScenario:
                 self.simulations[simulation_name] = simulation
         else:
             simulation = restore_simulation(
-                directory, list(self.tax_benefit_systems.values())[0], **kwargs
+                directory, next(iter(self.tax_benefit_systems.values())), **kwargs
             )
             simulation.id_variable_by_entity_key = self.id_variable_by_entity_key
             self.simulations["unique_simulation"] = simulation
@@ -773,7 +773,7 @@ class AbstractSurveyScenario:
         """
         self.input_data_frame = input_data_frame
 
-    def set_tax_benefit_systems(self, tax_benefit_systems: Dict[str, TaxBenefitSystem]):
+    def set_tax_benefit_systems(self, tax_benefit_systems: dict[str, TaxBenefitSystem]):
         """Set the tax and benefit systems of the scenario.
 
         Args:
@@ -826,7 +826,7 @@ class AbstractSurveyScenario:
             <BLANKLINE>
             age: neutralized variable (int64, default = 0)
         """
-        for _simulation_name, simulation in self.simulations.items():
+        for simulation in self.simulations.values():
             simulation.summarize_variable(variable, weighted, force_compute)
 
     def _apply_modification(self, simulation, period):
@@ -860,4 +860,4 @@ class AbstractSurveyScenario:
             ]:
                 set_variable(varying_variable, varying_variable_value / 12, period_)
         else:
-            ValueError()
+            raise ValueError

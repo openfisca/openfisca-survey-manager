@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 import logging
 import os
@@ -33,7 +33,7 @@ def inflate_parameters(
     ::last_year::  last year of inflation
     ::ignore_missing_units:: if True, a parameter leaf without unit in metadata will not be inflate
     ::start_instant :: Instant of the year when the update should start, if None will be Junuary 1st
-    ::round_ndigits:: Number of digits to keep in the rounded result
+    ::round_ndigits:: Number of digits to keep in the rounded result.
     """
     if (last_year is not None) and (last_year > base_year + 1):
         for year in range(
@@ -86,15 +86,13 @@ def inflate_parameters(
                 f"No admissible unit in metadata for parameter {parameters.name}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function."
             )
             if len(unit_types) > 1:
-                assert unit_types == set(["threshold_unit", "rate_unit"]), (
+                assert unit_types == {"threshold_unit", "rate_unit"}, (
                     f"Too much admissible units in metadata for parameter {parameters.name}"
                 )
-            unit_by_type = dict(
-                [
-                    (unit_type, parameters.metadata[unit_type])
+            unit_by_type = {
+                unit_type: parameters.metadata[unit_type]
                     for unit_type in unit_types
-                ]
-            )
+            }
             for unit_type in unit_by_type:
                 if parameters.metadata[unit_type].startswith("currency"):
                     inflate_parameter_leaf(
@@ -121,7 +119,7 @@ def inflate_parameter_leaf(
     ::inflator:: rate used to inflate the parameter
     ::unit_type:: unit supposed by default. Other admissible unit types are threshold_unit and rate_unit
     ::start_instant:: Instant of the year when the update should start, if None will be Junuary 1st
-    ::round_ndigits:: Number of digits to keep in the rounded result
+    ::round_ndigits:: Number of digits to keep in the rounded result.
     """
     if isinstance(sub_parameter, Scale):
         if unit_type == "threshold_unit":
@@ -282,11 +280,11 @@ def stata_files_to_data_frames(data, period=None):
     if stata_file_by_entity is None:
         return None
 
-    variables_from_stata_files = list()
-    input_data_frame_by_entity_by_period = dict()
+    variables_from_stata_files = []
+    input_data_frame_by_entity_by_period = {}
     input_data_frame_by_entity_by_period[periods.period(period)] = (
         input_data_frame_by_entity
-    ) = dict()
+    ) = {}
     for entity, file_path in stata_file_by_entity.items():
         assert os.path.exists(file_path), f"Invalid file path: {file_path}"
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(
@@ -300,12 +298,12 @@ def stata_files_to_data_frames(data, period=None):
 
 def load_table(
     config_files_directory,
-    variables: Optional[List] = None,
-    collection: Optional[str] = None,
-    survey: Optional[str] = None,
-    input_data_survey_prefix: Optional[str] = None,
+    variables: list | None = None,
+    collection: str | None = None,
+    survey: str | None = None,
+    input_data_survey_prefix: str | None = None,
     data_year=None,
-    table: Optional[str] = None,
+    table: str | None = None,
     batch_size=None,
     batch_index=0,
     filter_by=None,
@@ -327,10 +325,7 @@ def load_table(
     survey_collection = SurveyCollection.load(
         collection=collection, config_files_directory=config_files_directory
     )
-    if survey is not None:
-        survey = survey
-    else:
-        survey = f"{input_data_survey_prefix}_{data_year}"
+    survey = survey if survey is not None else f"{input_data_survey_prefix}_{data_year}"
     survey_ = survey_collection.get_survey(survey)
     log.debug(
         f"Loading table {table} in survey {survey} from collection {collection}"

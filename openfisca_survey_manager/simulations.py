@@ -1,8 +1,8 @@
 """Monkey-patch openfisca_core.simulations.Simulation to work with pandas."""
+from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, TYPE_CHECKING
 
-from openfisca_core.types import Array, CoreEntity as Entity, Period, TaxBenefitSystem
 
 import logging
 import re
@@ -15,7 +15,6 @@ from numpy import logical_or as or_
 
 from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.periods import ETERNITY, MONTH, YEAR
 from openfisca_core.simulations import Simulation
 
@@ -27,6 +26,10 @@ from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.utils import do_nothing, load_table
 
+if TYPE_CHECKING:
+    from openfisca_core.memory_config import MemoryConfig
+    from openfisca_core.types import Array, CoreEntity as Entity, Period, TaxBenefitSystem
+
 log = logging.getLogger(__name__)
 
 
@@ -34,7 +37,7 @@ log = logging.getLogger(__name__)
 
 
 def assert_variables_in_same_entity(
-    tax_benefit_system: TaxBenefitSystem, variables: List
+    tax_benefit_system: TaxBenefitSystem, variables: list
 ):
     """Assert that variables are in the same entity.
 
@@ -65,7 +68,7 @@ def get_words(text: str):
 
 
 def adaptative_calculate_variable(
-    simulation: Simulation, variable: str, period: Optional[Union[int, str, Period]]
+    simulation: Simulation, variable: str, period: int | str | Period | None
 ) -> Array:
     """Calculate variable by adpating it definition period to the target period.
 
@@ -132,15 +135,15 @@ def adaptative_calculate_variable(
 
 def compute_aggregate(
     simulation: Simulation,
-    variable: str = None,
+    variable: str | None = None,
     aggfunc: str = "sum",
-    filter_by: str = None,
-    period: Optional[Union[int, str, Period]] = None,
+    filter_by: str | None = None,
+    period: int | str | Period | None = None,
     missing_variable_default_value=np.nan,
     weighted: bool = True,
-    alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Dict = None,
-) -> Optional[Union[None, float]]:
+    alternative_weights: str | float | Array | None = None,
+    filtering_variable_by_entity: dict | None = None,
+) -> None | float:
     """Compute aggregate of a variable.
 
     Args:
@@ -277,13 +280,13 @@ def compute_aggregate(
 def compute_quantiles(
     simulation: Simulation,
     variable: str,
-    nquantiles: int = None,
-    period: Optional[Union[int, str, Period]] = None,
+    nquantiles: int | None = None,
+    period: int | str | Period | None = None,
     filter_by=None,
     weighted: bool = True,
     alternative_weights=None,
     filtering_variable_by_entity=None,
-) -> List[float]:
+) -> list[float]:
     """Compute quantiles of a variable.
 
     Args:
@@ -316,9 +319,8 @@ def compute_quantiles(
     else:
         weight = np.ones(len(variable_values))
 
-    if filtering_variable_by_entity is not None:
-        if filter_by is None:
-            filter_by = filtering_variable_by_entity.get(entity_key)
+    if filtering_variable_by_entity is not None and filter_by is None:
+        filter_by = filtering_variable_by_entity.get(entity_key)
 
     if filter_by is not None:
         filter_entity_key = simulation.tax_benefit_system.variables.get(
@@ -342,15 +344,15 @@ def compute_pivot_table(
     simulation: Simulation = None,
     baseline_simulation: Simulation = None,
     aggfunc="mean",
-    columns: Optional[List[str]] = None,
+    columns: list[str] | None = None,
     difference: bool = False,
     filter_by=None,
-    index: Optional[List[str]] = None,
-    period: Optional[Union[int, str, Period]] = None,
-    use_baseline_for_columns: bool = None,
-    values: Optional[List[str]] = None,
+    index: list[str] | None = None,
+    period: int | str | Period | None = None,
+    use_baseline_for_columns: bool | None = None,
+    values: list[str] | None = None,
     missing_variable_default_value=np.nan,
-    concat_axis: Optional[int] = None,
+    concat_axis: int | None = None,
     weighted: bool = True,
     alternative_weights=None,
     filtering_variable_by_entity=None,
@@ -476,7 +478,8 @@ def compute_pivot_table(
             )
 
     if difference:
-        assert simulation is not None and baseline_simulation is not None
+        assert simulation is not None
+        assert baseline_simulation is not None
         reform_data_frame = simulation.create_data_frame_by_entity(
             values, period=period, index=False
         )[entity_key].fillna(missing_variable_default_value)
@@ -527,7 +530,7 @@ def compute_pivot_table(
     dropped_columns = [
         column for column in baseline_vars_data_frame.columns if column in values
     ]
-    baseline_vars_data_frame.drop(columns=dropped_columns, inplace=True)
+    baseline_vars_data_frame = baseline_vars_data_frame.drop(columns=dropped_columns)
 
     data_frame = pd.concat(
         [baseline_vars_data_frame, data_frame],
@@ -535,7 +538,7 @@ def compute_pivot_table(
     )
 
     if values:
-        data_frame_by_value = dict()
+        data_frame_by_value = {}
         for value in values:
             if aggfunc in ["mean", "sum", "sum_abs", "count"]:
                 data_frame[value] = (
@@ -565,7 +568,7 @@ def compute_pivot_table(
                     )
 
             elif aggfunc in ["min", "max"]:
-                data_frame[value].fillna(missing_variable_default_value, inplace=True)
+                data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
                 result = data_frame.pivot_table(
                     index=index, columns=columns, values=value, aggfunc=aggfunc
                 )
@@ -587,13 +590,13 @@ def compute_pivot_table(
 
 def create_data_frame_by_entity(
     simulation: Simulation,
-    variables: Optional[List] = None,
-    expressions: Optional[List[str]] = None,
+    variables: list | None = None,
+    expressions: list[str] | None = None,
     filter_by=None,
     index: bool = False,
-    period: Optional[Union[int, str, Period]] = None,
+    period: int | str | Period | None = None,
     merge: bool = False,
-) -> Union[pd.DataFrame, Dict]:
+) -> pd.DataFrame | dict:
     """Create dataframe(s) of variables for the whole selected population.
 
     Args:
@@ -633,7 +636,7 @@ def create_data_frame_by_entity(
             )
             expressions.append(filter_by)
 
-    expressions_by_entity_key = dict()
+    expressions_by_entity_key = {}
     for expression in expressions:
         expression_variables = get_words(expression)
         entity_key = assert_variables_in_same_entity(
@@ -668,8 +671,8 @@ def create_data_frame_by_entity(
 
     assert simulation is not None
 
-    openfisca_data_frame_by_entity_key = dict()
-    non_person_entities = list()
+    openfisca_data_frame_by_entity_key = {}
+    non_person_entities = []
 
     for entity in tax_benefit_system.entities:
         entity_key = entity.key
@@ -679,15 +682,12 @@ def create_data_frame_by_entity(
             if column.entity.key == entity_key
         ]
         openfisca_data_frame_by_entity_key[entity_key] = pd.DataFrame(
-            dict(
-                (
-                    column_name,
-                    simulation.adaptative_calculate_variable(
+            {
+                column_name: simulation.adaptative_calculate_variable(
                         column_name, period=period
-                    ),
-                )
+                    )
                 for column_name in column_names
-            )
+            }
         )
         if entity.is_person:
             person_entity = entity
@@ -707,9 +707,9 @@ def create_data_frame_by_entity(
                 entity.key
             ].members_entity_id
             flattened_roles = entity.flattened_roles
-            index_by_role = dict(
-                (flattened_roles[index], index) for index in range(len(flattened_roles))
-            )
+            index_by_role = {
+                flattened_roles[index]: index for index in range(len(flattened_roles))
+            }
             person_data_frame["{}_{}".format(entity.key, "role")] = pd.Series(
                 simulation.populations[entity.key].members_role
             ).map(index_by_role)
@@ -719,8 +719,8 @@ def create_data_frame_by_entity(
 
             # Set index names as entity_id
             openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
-            openfisca_data_frame_by_entity_key[entity.key].reset_index(inplace=True)
-        person_data_frame.reset_index(inplace=True)
+            openfisca_data_frame_by_entity_key[entity.key] = openfisca_data_frame_by_entity_key[entity.key].reset_index()
+        person_data_frame = person_data_frame.reset_index()
 
     for entity_key, expressions in expressions_by_entity_key.items():
         data_frame = openfisca_data_frame_by_entity_key[entity_key]
@@ -760,15 +760,15 @@ def compute_winners_loosers(
     simulation: Simulation,
     baseline_simulation: Simulation,
     variable: str,
-    filter_by: Optional[str] = None,
-    period: Optional[Union[int, str, Period]] = None,
+    filter_by: str | None = None,
+    period: int | str | Period | None = None,
     absolute_minimal_detected_variation: float = 0,
     relative_minimal_detected_variation: float = 0.01,
-    observations_threshold: int = None,
+    observations_threshold: int | None = None,
     weighted: bool = True,
     alternative_weights=None,
     filtering_variable_by_entity=None,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Compute the number of winners and loosers for a given variable.
 
     Args:
@@ -798,9 +798,8 @@ def compute_winners_loosers(
     before = baseline_simulation.adaptative_calculate_variable(variable, period=period)
 
     # Filter if needed
-    if filtering_variable_by_entity is not None:
-        if filter_by is None:
-            filter_by = filtering_variable_by_entity.get(entity_key)
+    if filtering_variable_by_entity is not None and filter_by is None:
+        filter_by = filtering_variable_by_entity.get(entity_key)
 
     if filter_by is not None:
         filter_entity_key = baseline_simulation.tax_benefit_system.variables.get(
@@ -828,10 +827,10 @@ def compute_winners_loosers(
             )
 
     # Compute the weigthed number of zeros or non zeros
-    value_by_simulation = dict(after=after, before=before)
-    stats_by_simulation = dict()
+    value_by_simulation = {"after": after, "before": before}
+    stats_by_simulation = {}
     for simulation_prefix, value in value_by_simulation.items():
-        stats = dict()
+        stats = {}
         stats["count_zero"] = (
             weight.astype("float64")
             * (absolute_minimal_detected_variation > np.abs(value))
@@ -868,7 +867,8 @@ def compute_winners_loosers(
             above_after.sum() > 0
         )
         if not_legit_below | not_legit_above:
-            raise SecretViolationError("Not enough observations involved")
+            msg = "Not enough observations involved"
+            raise SecretViolationError(msg)
 
     # Apply weights
     above_after_count = (above_after.astype("float64") * weight.astype("float64")).sum()
@@ -893,7 +893,7 @@ def init_entity_data(
     entity: Entity,
     filtered_input_data_frame: pd.DataFrame,
     period: Period,
-    used_as_input_variables_by_entity: Dict,
+    used_as_input_variables_by_entity: dict,
 ):
     """Initialize entity in simulation at some period with input provided by a dataframe.
 
@@ -927,9 +927,9 @@ def init_entity_data(
 
 def inflate(
     simulation: Simulation,
-    inflator_by_variable: Optional[Dict] = None,
-    period: Optional[Union[int, str, Period]] = None,
-    target_by_variable: Optional[Dict] = None,
+    inflator_by_variable: dict | None = None,
+    period: int | str | Period | None = None,
+    target_by_variable: dict | None = None,
 ):
     tax_benefit_system = simulation.tax_benefit_system
     for variable_name in set(inflator_by_variable.keys()).union(
@@ -1005,8 +1005,7 @@ def _input_data_table_by_entity_by_period_monolithic(
     collection,
     survey=None,
 ):
-    """Initialize simulation with input data from a table for each entity and period.
-    """
+    """Initialize simulation with input data from a table for each entity and period."""
     period = periods.period(period)
     simulation_datasets = {}
     entities = tax_benefit_system.entities
@@ -1065,8 +1064,7 @@ def _input_data_table_by_entity_by_period_batch(
     collection,
     survey=None,
 ):
-    """Initialize simulation with input data from a table for each entity and period.
-    """
+    """Initialize simulation with input data from a table for each entity and period."""
     period = periods.period(period)
     batch_size = input_data_table_by_entity.get("batch_size")
     batch_index = input_data_table_by_entity.get("batch_index", 0)
@@ -1080,8 +1078,9 @@ def _input_data_table_by_entity_by_period_batch(
         or not filtered_entity
         or not filtered_entity_on_key
     ):
+        msg = "batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required"
         raise ValueError(
-            "batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required"
+            msg
         )
     simulation_datasets = {
         batch_entity: {
@@ -1140,7 +1139,7 @@ def _input_data_table_by_entity_by_period_batch(
         simulation.id_variable_by_entity_key = (
             builder.id_variable_by_entity_key
         )  # Should be propagated to enhanced build
-    for _entity_name, entity_data in simulation_datasets.items():
+    for entity_data in simulation_datasets.values():
         simulation.init_entity_data(
             entity_data["entity"],
             entity_data["input_data_frame"],
@@ -1328,7 +1327,7 @@ def init_variable_in_entity(
             log.debug(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
             )
-            series.fillna(variable.default_value, inplace=True)
+            series = series.fillna(variable.default_value)
         assert series.notnull().all(), (
             f"There are {series.isnull().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
         )
@@ -1349,7 +1348,7 @@ def init_variable_in_entity(
             log.debug(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value._name_} its default value"
             )
-            series.fillna(variable.default_value._name_, inplace=True)
+            series = series.fillna(variable.default_value._name_)
         possible_values = variable.possible_values
         if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
@@ -1392,10 +1391,10 @@ def new_from_tax_benefit_system(
     tax_benefit_system: TaxBenefitSystem,
     debug: bool = False,
     trace: bool = False,
-    data: Dict = None,
+    data: dict | None = None,
     memory_config: MemoryConfig = None,
-    period: Optional[Union[int, str, Period]] = None,
-    custom_initialize: Callable = None,
+    period: int | str | Period | None = None,
+    custom_initialize: Callable | None = None,
 ) -> Simulation:
     """Create and initialize a simulation from a tax and benefit system and data.
 
@@ -1415,7 +1414,7 @@ def new_from_tax_benefit_system(
     simulation.debug = debug
     simulation.trace = trace
     simulation.opt_out_cache = (
-        True if simulation.tax_benefit_system.cache_blacklist is not None else False
+        simulation.tax_benefit_system.cache_blacklist is not None
     )
     simulation.memory_config = memory_config
 
@@ -1439,7 +1438,7 @@ def print_memory_usage(simulation: Simulation):
             "The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits)."
         )
         usage_stats = None
-    infos_lines = list()
+    infos_lines = []
 
     for variable, infos in memory_usage_by_variable.items():
         hits = usage_stats[variable]["nb_requests"] if usage_stats else None
@@ -1465,7 +1464,7 @@ def print_memory_usage(simulation: Simulation):
 
 def set_weight_variable_by_entity(
     simulation: Simulation,
-    weight_variable_by_entity: Dict,
+    weight_variable_by_entity: dict,
 ):
     """Set weight variable for each entity.
 
@@ -1515,9 +1514,6 @@ def summarize_variable(
 
     if variable_instance.is_neutralized:
         print("")  # noqa analysis:ignore
-        print(
-            f"{variable}: neutralized variable ({str(np.dtype(value_type))}, default = {default_value})"
-        )  # noqa analysis:ignore
         return
 
     if weighted:
@@ -1536,11 +1532,7 @@ def summarize_variable(
             )
             simulation.summarize_variable(variable=variable, weighted=weighted)
             return
-        else:
-            print(
-                f"{variable} is not computed yet. Use keyword argument force_compute = True"
-            )  # noqa analysis:ignore
-            return
+        return
 
     header_line = (
         "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
@@ -1560,22 +1552,6 @@ def summarize_variable(
     if holder is not None:
         if holder.variable.definition_period == ETERNITY:
             array = holder.get_array(ETERNITY)
-            print(
-                "permanent: mean = {}, min = {}, max = {}, median = {}, default = {:.1%}".format(
-                    # Need to use float to avoid hit the int16/int32 limit. np.average handles it without conversion
-                    array.astype(float).mean()
-                    if not weighted
-                    else np.average(array, weights=weights),
-                    array.min(),
-                    array.max(),
-                    np.median(array.astype(float)),
-                    (
-                        (array == default_value).sum() / len(array)
-                        if not weighted
-                        else ((array == default_value) * weights).sum() / weights.sum()
-                    ),
-                )
-            )
         else:
             for period in sorted(simulation.get_known_periods(variable)):
                 array = holder.get_array(period)
@@ -1609,26 +1585,6 @@ def summarize_variable(
                     print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                     continue
 
-                print(
-                    "{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
-                        period,
-                        array.astype(float).mean()
-                        if not weighted
-                        else np.average(array, weights=weights),
-                        array.min(),
-                        array.max(),
-                        array.astype(float).sum()
-                        if not weighted
-                        else np.sum(array * weights),
-                        (
-                            (array == default_value).sum() / len(array)
-                            if not weighted
-                            else ((array == default_value) * weights).sum()
-                            / weights.sum()
-                        ),
-                        np.median(array),
-                    )
-                )
 
 
 # Monkey patching

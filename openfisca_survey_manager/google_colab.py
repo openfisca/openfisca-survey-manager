@@ -7,7 +7,7 @@ from openfisca_survey_manager.paths import (
 
 
 def create_raw_data_ini(value_by_option_by_section=None):
-    """Creates raw_data.ini configureation file
+    """Creates raw_data.ini configureation file.
 
     Args:
       value_by_option_by_section(dict(dict)): Options value by section (Default value = None)
