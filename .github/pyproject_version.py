@@ -11,13 +11,12 @@ NUMPY_VERSION = ">=1.24.3,<2"
 
 
 def get_versions():
-    """
-    Read package version and deps in pyproject.toml
+    """Read package version and deps in pyproject.toml
     """
     # openfisca_core_api = None
     openfisca_survey_manager = None
     # numpy = None
-    with open("./pyproject.toml", "r") as file:
+    with open("./pyproject.toml") as file:
         content = file.read()
     # Extract the version of openfisca_survey_manager
     version_match = re.search(r'^version\s*=\s*"([\d.]*)"', content, re.MULTILINE)

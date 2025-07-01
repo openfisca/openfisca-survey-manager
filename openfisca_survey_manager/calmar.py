@@ -10,9 +10,7 @@ log = logging.getLogger(__name__)
 
 
 def linear(u):
-    """
-
-    Args:
+    """Args:
       u:
 
     Returns:
@@ -22,9 +20,7 @@ def linear(u):
 
 
 def linear_prime(u):
-    """
-
-    Args:
+    """Args:
       u:
 
     Returns:
@@ -34,9 +30,7 @@ def linear_prime(u):
 
 
 def raking_ratio(u):
-    """
-
-    Args:
+    """Args:
       u:
 
     Returns:
@@ -46,9 +40,7 @@ def raking_ratio(u):
 
 
 def raking_ratio_prime(u):
-    """
-
-    Args:
+    """Args:
       u:
 
     Returns:
@@ -58,9 +50,7 @@ def raking_ratio_prime(u):
 
 
 def logit(u, low, up):
-    """
-
-    Args:
+    """Args:
       u:
       low:
       up:
@@ -75,9 +65,7 @@ def logit(u, low, up):
 
 
 def logit_prime(u, low, up):
-    """
-
-    Args:
+    """Args:
       u:
       low:
       up:
@@ -111,9 +99,7 @@ def hyperbolic_sinus_prime(u, alpha):
 
 
 def build_dummies_dict(data):
-    """
-
-    Args:
+    """Args:
       data:
 
     Returns:
@@ -185,9 +171,7 @@ def calmar(
     null_weight_observations = data_in[target_entity][initial_weight].isnull().sum()
     if null_weight_observations > 0:
         log.info(
-            "{} observations have a NaN weight. Not used in the calibration.".format(
-                null_weight_observations
-            )
+            f"{null_weight_observations} observations have a NaN weight. Not used in the calibration."
         )
 
     is_non_zero_weight = data_in[target_entity][initial_weight].fillna(0) > 0
@@ -204,16 +188,14 @@ def calmar(
         null_value_observations = data_in[target_entity][variable].isnull().sum()
         if null_value_observations > 0:
             log.info(
-                "For variable {}, {} observations have a NaN value. Not used in the calibration.".format(
-                    variable, null_value_observations
-                )
+                f"For variable {variable}, {null_value_observations} observations have a NaN value. Not used in the calibration."
             )
             is_non_zero_weight = (
                 is_non_zero_weight & data_in[target_entity][variable].notnull()
             )
 
     if not is_non_zero_weight.all():
-        log.info("We drop {} observations.".format((~is_non_zero_weight).sum()))
+        log.info(f"We drop {(~is_non_zero_weight).sum()} observations.")
 
     data = dict()
     if smaller_entity:
@@ -309,9 +291,7 @@ def calmar(
                     if pop != population:
                         if use_proportions:
                             log.info(
-                                "calmar: categorical variable {} is inconsistent with population; using proportions".format(
-                                    var
-                                )
+                                f"calmar: categorical variable {var} is inconsistent with population; using proportions"
                             )
                             for cat, nb in val.items():
                                 cat_varname = var + "_" + str(cat)
@@ -319,9 +299,7 @@ def calmar(
                                 margins_new_dict[var][cat] = nb * population / pop
                         else:
                             raise Exception(
-                                "calmar: categorical variable {} weights sums up to {} != {}".format(
-                                    var, pop, population
-                                )
+                                f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
                             )
                 else:
                     margins_new[var] = val
@@ -409,7 +387,7 @@ def calmar(
         err_max = sorted_err[0][1]
 
     if ier == 2 or ier == 5 or ier == 4:
-        log.debug("optimization converged after {} tries".format(tries))
+        log.debug(f"optimization converged after {tries} tries")
 
     # rebuilding a weight vector with the same size of the initial one
     pondfin_out = array(data_in[target_entity][initial_weight], dtype=float64)
@@ -421,9 +399,7 @@ def calmar(
 
 
 def check_calmar(margins, margins_new_dict=None):
-    """
-
-    Args:
+    """Args:
       margins:
       margins_new_dict:  (Default value = None)
 
@@ -434,4 +410,4 @@ def check_calmar(margins, margins_new_dict=None):
         if variable != "total_population":
             print(
                 variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin)
-            )  # noqa analysis:ignore
+            )

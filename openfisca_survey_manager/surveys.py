@@ -14,7 +14,7 @@ import yaml
 
 from .tables import Table
 
-ident_re = re.compile(r"(?i)ident\d{2,4}$")  # noqa
+ident_re = re.compile(r"(?i)ident\d{2,4}$")
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class NoMoreDataError(Exception):
     pass
 
 
-class Survey(object):
+class Survey:
     """An object to describe survey data"""
 
     hdf5_file_path = None
@@ -107,8 +107,7 @@ Contains the following tables : \n"""
         encoding=None,
         store_format="hdf5",
     ):
-        """
-        Convert data from the source files to store format either hdf5 or parquet.
+        """Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
         """
         assert self.survey_collection is not None
@@ -118,7 +117,7 @@ Contains the following tables : \n"""
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
         if not os.path.isdir(directory_path):
-            log.warn(
+            log.warning(
                 f"{directory_path} who should be the store data directory does not exist: we create the directory"
             )
             os.makedirs(directory_path)
@@ -248,10 +247,9 @@ Contains the following tables : \n"""
                     raise ValueError(
                         f"{table} is ambiguious since the following tables are available: {eligible_tables}"
                     )
-                elif len(eligible_tables) == 0:
+                if len(eligible_tables) == 0:
                     raise ValueError(f"No eligible available table in {keys}")
-                else:
-                    table = eligible_tables[0]
+                table = eligible_tables[0]
             try:
                 df = store.select(table)
             except KeyError:
@@ -357,13 +355,12 @@ Contains the following tables : \n"""
 
         if variables is None:
             return df
-        else:
-            diff = set(variables) - set(df.columns)
-            if diff:
-                raise Exception(f"The following variable(s) {diff} are missing")
-            variables = list(set(variables).intersection(df.columns))
-            df = df[variables]
-            return df
+        diff = set(variables) - set(df.columns)
+        if diff:
+            raise Exception(f"The following variable(s) {diff} are missing")
+        variables = list(set(variables).intersection(df.columns))
+        df = df[variables]
+        return df
 
     def insert_table(self, label=None, name=None, **kwargs):
         """Insert a table in the Survey object.

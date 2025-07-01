@@ -15,13 +15,13 @@ from openfisca_core.periods import MONTH, YEAR
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager.simulations import Simulation  # noqa analysis:ignore
+from openfisca_survey_manager.simulations import Simulation
 from openfisca_survey_manager.surveys import Survey
 
 log = logging.getLogger(__name__)
 
 
-class AbstractSurveyScenario(object):
+class AbstractSurveyScenario:
     """Abstract survey scenario."""
 
     cache_blacklist = None
@@ -232,8 +232,7 @@ class AbstractSurveyScenario(object):
         alternative_weights=None,
         filtering_variable_by_entity=None,
     ) -> List[float]:
-        """
-        Compute quantiles of a variable.
+        """Compute quantiles of a variable.
 
         Args:
             simulation (Simulation, optional): Simulation to be used. Defaults to None.
@@ -269,8 +268,7 @@ class AbstractSurveyScenario(object):
         simulation: str = None,
         value_for_zero_varying_variable: float = 0.0,
     ) -> Array:
-        """
-        Compute marginal a rate of a target (MTR) with respect to a varying variable.
+        """Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
         Args:
             target_variable (str): the variable which marginal tax rate is computed
@@ -502,7 +500,6 @@ class AbstractSurveyScenario(object):
           input_data_frame: original input data frame.
           kwargs: keyword arguments.
         """
-        pass
 
     def dump_data_frame_by_entity(
         self, variables=None, survey_collection=None, survey_name=None
@@ -520,8 +517,7 @@ class AbstractSurveyScenario(object):
             survey_collection.dump(collection="openfisca")
 
     def dump_simulations(self, directory: str):
-        """
-        Dump simulations.
+        """Dump simulations.
 
         Args:
             directory (str, optional): Dump directory
@@ -778,8 +774,7 @@ class AbstractSurveyScenario(object):
         self.input_data_frame = input_data_frame
 
     def set_tax_benefit_systems(self, tax_benefit_systems: Dict[str, TaxBenefitSystem]):
-        """
-        Set the tax and benefit systems of the scenario.
+        """Set the tax and benefit systems of the scenario.
 
         Args:
             tax_benefit_systems (Dict[str, TaxBenefitSystem]): The tax benefit systems
@@ -788,7 +783,6 @@ class AbstractSurveyScenario(object):
             assert tax_benefit_system is not None
             if self.cache_blacklist is not None:
                 tax_benefit_system.cache_blacklist = self.cache_blacklist
-        #
         self.tax_benefit_systems = tax_benefit_systems
 
     def set_weight_variable_by_entity(self, weight_variable_by_entity=None):

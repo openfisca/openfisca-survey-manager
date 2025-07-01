@@ -17,15 +17,14 @@ def check_max_instant(parameters, instant):
     for _, sub_parameter in parameters.children.items():
         if isinstance(sub_parameter, ParameterNode):
             check_max_instant(sub_parameter, instant)
+        elif isinstance(sub_parameter, Scale):
+            for bracket in sub_parameter.brackets:
+                threshold = bracket.children["threshold"]
+                rate = bracket.children["rate"]
+                check_max_instant_leaf(threshold, instant)
+                check_max_instant_leaf(rate, instant)
         else:
-            if isinstance(sub_parameter, Scale):
-                for bracket in sub_parameter.brackets:
-                    threshold = bracket.children["threshold"]
-                    rate = bracket.children["rate"]
-                    check_max_instant_leaf(threshold, instant)
-                    check_max_instant_leaf(rate, instant)
-            else:
-                check_max_instant_leaf(sub_parameter, instant)
+            check_max_instant_leaf(sub_parameter, instant)
 
 
 def test_parameters_as_of():

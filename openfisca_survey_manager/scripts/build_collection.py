@@ -148,11 +148,11 @@ def build_survey_collection(
         data_directory_path,
     ) in data_directory_path_by_survey_suffix.items():
         assert os.path.isdir(data_directory_path), (
-            "{} is not a valid directory path".format(data_directory_path)
+            f"{data_directory_path} is not a valid directory path"
         )
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
-        survey_name = "{}_{}".format(collection_name, survey_suffix)
+        survey_name = f"{collection_name}_{survey_suffix}"
         # Save the originals files list in the survey collection
         add_survey_to_collection(
             survey_name=survey_name,
@@ -166,23 +166,21 @@ def build_survey_collection(
         valid_source_format = [
             _format
             for _format in list(data_file_by_format.keys())
-            if data_file_by_format.get((_format))
+            if data_file_by_format.get(_format)
         ]
-        log.info("Valid source formats are: {}".format(valid_source_format))
+        log.info(f"Valid source formats are: {valid_source_format}")
         source_format = valid_source_format[0]
-        log.info("Using the following format: {}".format(source_format))
+        log.info(f"Using the following format: {source_format}")
         collections_directory = survey_collection.config.get(
             "collections", "collections_directory"
         )
         if os.path.isdir(collections_directory) is False:
             log.info(
-                "{} who should be the collections' directory does not exist. Creating directory.".format(
-                    collections_directory
-                )
+                f"{collections_directory} who should be the collections' directory does not exist. Creating directory."
             )
             os.mkdir(collections_directory)
         collection_json_path = os.path.join(
-            collections_directory, "{}.json".format(collection_name)
+            collections_directory, f"{collection_name}.json"
         )
         survey_collection.dump(json_file_path=collection_json_path)
         surveys = []
@@ -202,8 +200,7 @@ def build_survey_collection(
 
 
 def check_template_config_files(config_files_directory: str):
-    """
-    Create template config files if they do not exist.
+    """Create template config files if they do not exist.
     """
     raw_data_ini_path = os.path.join(config_files_directory, "raw_data.ini")
     config_ini_path = os.path.join(config_files_directory, "config.ini")
@@ -226,9 +223,7 @@ def check_template_config_files(config_files_directory: str):
         if config_files_do_not_exist:
             if templates_config_files_do_not_exist:
                 log.info(
-                    "Creating configuration template files in {}".format(
-                        config_files_directory
-                    )
+                    f"Creating configuration template files in {config_files_directory}"
                 )
                 template_files = ["raw_data_template.ini", "config_template.ini"]
                 templates_config_files_directory = os.path.join(
@@ -242,10 +237,8 @@ def check_template_config_files(config_files_directory: str):
                         os.path.join(config_files_directory, template_file),
                     )
             print(
-                "Rename and fill the template files in {}".format(
-                    config_files_directory
-                )
-            )  # noqa analysis:ignore
+                f"Rename and fill the template files in {config_files_directory}"
+            )
             return False
     else:
         os.makedirs(config_files_directory)
@@ -311,19 +304,17 @@ def main():
         config_files_directory = default_config_files_directory
 
     if not check_template_config_files(config_files_directory=config_files_directory):
-        return
+        return None
 
     config_parser = configparser.ConfigParser()
     config_parser.read(os.path.join(config_files_directory, "raw_data.ini"))
     assert config_parser.has_section(args.collection), (
-        "{} is an unkown collection. Please add a section to raw_data.ini configuration file".format(
-            args.collection
-        )
+        f"{args.collection} is an unkown collection. Please add a section to raw_data.ini configuration file"
     )
     data_directory_path_by_survey_suffix = dict(config_parser.items(args.collection))
     if args.survey is not None:
         assert args.survey in data_directory_path_by_survey_suffix, (
-            "Unknown survey data directory for {}".format(args.collection)
+            f"Unknown survey data directory for {args.collection}"
         )
         data_directory_path_by_survey_suffix = {
             args.survey: data_directory_path_by_survey_suffix[args.survey],
@@ -348,9 +339,7 @@ def main():
         raise e
 
     log.info(
-        "The program has been executed in {}".format(
-            datetime.datetime.now() - start_time
-        )
+        f"The program has been executed in {datetime.datetime.now() - start_time}"
     )
 
     return 0

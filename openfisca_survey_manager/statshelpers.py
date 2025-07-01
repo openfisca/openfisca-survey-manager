@@ -99,9 +99,7 @@ def lorenz(values, weights=None):
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
-    """
-
-    Args:
+    """Args:
       a:
       labels:
       weights:
@@ -162,7 +160,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_high = N - 1
             else:
                 for ii in range(N - 1):
-                    if (p_vals[ii] <= brk) and (brk < p_vals[ii + 1]):
+                    if (p_vals[ii] <= brk < p_vals[ii + 1]):
                         i_low = ii
                         i_high = ii + 1
 
@@ -179,7 +177,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Now that the weighted breakpoints are set, just categorize
         # the elements of a with logical indexing.
-        for i in range(0, len(quantiles) - 1):
+        for i in range(len(quantiles) - 1):
             lower = quantiles[i]
             upper = quantiles[i + 1]
             ret[and_(a >= lower, a < upper)] = labels[i]
@@ -191,7 +189,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         return ret
 
     # The stats.stackexchange suggestion.
-    elif method == 2:
+    if method == 2:
         N = len(a)
         sort_indx = argsort(a)
         tmp_a = a[sort_indx].copy()
@@ -213,7 +211,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Set up the output variable.
         ret = repeat(0, N)
-        if N < num_categories:
+        if num_categories > N:
             return ret
 
         # Set up space for the values at the breakpoints.
@@ -231,7 +229,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_high = N - 1
             else:
                 for ii in range(N - 1):
-                    if (norm_s_vals[ii] <= brk) and (brk < norm_s_vals[ii + 1]):
+                    if (norm_s_vals[ii] <= brk < norm_s_vals[ii + 1]):
                         i_low = ii
                         i_high = ii + 1
 
@@ -247,7 +245,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Now that the weighted breakpoints are set, just categorize
         # the elements of a as usual.
-        for i in range(0, len(quantiles) - 1):
+        for i in range(len(quantiles) - 1):
             lower = quantiles[i]
             upper = quantiles[i + 1]
             ret[and_(a >= lower, a < upper)] = labels[i]
@@ -258,8 +256,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         if return_quantiles:
             return ret, quantiles
-        else:
-            return ret
+        return ret
 
 
 def pseudo_lorenz(values, ineq_axis, weights=None):
@@ -286,9 +283,7 @@ def pseudo_lorenz(values, ineq_axis, weights=None):
 
 
 def bottom_share(values, rank_from_bottom, weights=None):
-    """
-
-    Args:
+    """Args:
       values(np.array): Vector of values
       rank_from_bottom(float): Rank from bottom (bottom is 0 and top is 1)
       weights(np.array): Weights vector (Default value = None)
@@ -314,9 +309,7 @@ def bottom_share(values, rank_from_bottom, weights=None):
 
 
 def top_share(values, rank_from_top, weights=None):
-    """
-
-    Args:
+    """Args:
       values(np.array): Vector of values
       rank_from_top(float): Rank from top (bottom is 1 and top is 0)
       weights(np.array): Weights vector (Default value = None)
@@ -347,15 +340,14 @@ def weighted_quantiles(data, labels, weights, return_quantiles=False):
         wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]
     ]
     ret = zeros(len(data))
-    for i in range(0, len(quantiles) - 1):
+    for i in range(len(quantiles) - 1):
         lower = quantiles[i]
         upper = quantiles[i + 1]
         ret[and_(data >= lower, data < upper)] = labels[i]
 
     if return_quantiles:
         return ret + 1, quantiles
-    else:
-        return ret + 1
+    return ret + 1
 
 
 def weightedcalcs_quantiles(data, labels, weights, return_quantiles=False):
@@ -371,12 +363,11 @@ def weightedcalcs_quantiles(data, labels, weights, return_quantiles=False):
     quantiles = [calc.quantile(data_frame, "data", mybreak) for mybreak in breaks[1:]]
 
     ret = zeros(len(data))
-    for i in range(0, len(quantiles) - 1):
+    for i in range(len(quantiles) - 1):
         lower = quantiles[i]
         upper = quantiles[i + 1]
         ret[and_(data > lower, data <= upper)] = labels[i]
 
     if return_quantiles:
         return ret + 1, quantiles
-    else:
-        return ret + 1
+    return ret + 1

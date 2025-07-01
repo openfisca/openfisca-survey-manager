@@ -24,23 +24,23 @@ def test_compute_aggregate():
     survey_scenario.calculate_variable("social_security_contribution", period=period)
     survey_scenario.calculate_variable("salary", period=period, use_baseline=True)
 
-    assert 0 == survey_scenario.compute_aggregate(
+    assert survey_scenario.compute_aggregate(
         "social_security_contribution",
         period=period,
         filter_by="salary < 3000",
-    )
+    ) == 0
 
-    assert 34489 == survey_scenario.compute_aggregate(
+    assert survey_scenario.compute_aggregate(
         "social_security_contribution",
         period=period,
         filter_by="3000 < salary < 10000",
-    ).astype(int)
+    ).astype(int) == 34489
 
     del survey_scenario.weight_variable_by_entity
     survey_scenario.set_weight_variable_by_entity()
-    assert 576 == survey_scenario.compute_aggregate(
+    assert survey_scenario.compute_aggregate(
         "social_security_contribution",
         period=period,
         filter_by="3000 < salary < 10000",
         weighted=False,
-    ).astype(int)
+    ).astype(int) == 576

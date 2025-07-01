@@ -16,32 +16,30 @@ legislation_directory = os.path.join(
 
 
 sub_levels = ["divisions", "groupes", "classes", "sous_classes", "postes"]
-divisions = ["0{}".format(i) for i in range(1, 10)] + ["11", "12"]
+divisions = [f"0{i}" for i in range(1, 10)] + ["11", "12"]
 
 
 def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     assert level in sub_levels
-    log.debug("Reading nomenclature coicop source data for level {}".format(level))
+    log.debug(f"Reading nomenclature coicop source data for level {level}")
     try:
         data_frame = pd.read_csv(
             os.path.join(
                 legislation_directory,
-                "nomenclature_coicop_source_by_{}.csv".format(level),
+                f"nomenclature_coicop_source_by_{level}.csv",
             ),
             sep=";",
             header=None,
         )
     except Exception as e:
         log.info(
-            "Error when reading nomenclature coicop source data for level {}".format(
-                level
-            )
+            f"Error when reading nomenclature coicop source data for level {level}"
         )
         raise e
 
     data_frame.reset_index(inplace=True, drop=True)
     data_frame.rename(
-        columns={0: "code_coicop", 1: "label_{}".format(level[:-1])}, inplace=True
+        columns={0: "code_coicop", 1: f"label_{level[:-1]}"}, inplace=True
     )
     data_frame = data_frame.iloc[2:].copy()
 
@@ -72,7 +70,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     if to_csv:
         data_frame.to_csv(
             os.path.join(
-                legislation_directory, "nomenclature_coicop_by_{}.csv".format(level)
+                legislation_directory, f"nomenclature_coicop_by_{level}.csv"
             ),
         )
 
@@ -104,7 +102,7 @@ def build_raw_coicop_nomenclature():
 
     coicop_nomenclature = coicop_nomenclature[
         ["code_coicop"]
-        + ["label_{}".format(sub_level[:-1]) for sub_level in sub_levels]
+        + [f"label_{sub_level[:-1]}" for sub_level in sub_levels]
         + sub_levels
     ].copy()
 

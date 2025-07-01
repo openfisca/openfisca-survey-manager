@@ -19,13 +19,11 @@ class ReformScenario(AbstractSurveyScenario):
     """Reform survey scenario."""
 
     def _get_simulation(self, use_baseline: bool = False):
-        """
-        Get relevant simulation
+        """Get relevant simulation
 
         Args:
             use_baseline (bool, optional): Whether to get baseline or reform simulation. Defaults to False.
         """
-
         if len(self.simulations) == 1:
             return list(self.simulations.values())[0]
 
@@ -168,8 +166,7 @@ class ReformScenario(AbstractSurveyScenario):
         use_baseline: bool = False,
         value_for_zero_varying_variable: float = 0.0,
     ) -> Array:
-        """
-        Compute marginal a rate of a target (MTR) with respect to a varying variable.
+        """Compute marginal a rate of a target (MTR) with respect to a varying variable.
 
         Args:
             target_variable (str): the variable which marginal tax rate is computed
@@ -187,13 +184,12 @@ class ReformScenario(AbstractSurveyScenario):
                 simulation="baseline",
                 value_for_zero_varying_variable=value_for_zero_varying_variable,
             )
-        else:
-            return super(ReformScenario, self).compute_marginal_tax_rate(
-                target_variable=target_variable,
-                period=period,
-                simulation="reform",
-                value_for_zero_varying_variable=value_for_zero_varying_variable,
-            )
+        return super(ReformScenario, self).compute_marginal_tax_rate(
+            target_variable=target_variable,
+            period=period,
+            simulation="reform",
+            value_for_zero_varying_variable=value_for_zero_varying_variable,
+        )
 
     def compute_pivot_table(
         self,

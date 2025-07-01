@@ -33,7 +33,7 @@ reader_by_source_format = dict(
 )
 
 
-class Table(object):
+class Table:
     """A table of a survey."""
 
     label = None
@@ -77,8 +77,7 @@ class Table(object):
         )
 
     def _check_and_log(self, data_file_path, store_file_path):
-        """
-        Check if the file exists and log the insertion.
+        """Check if the file exists and log the insertion.
 
         Args:
             data_file_path: Data file path
@@ -109,12 +108,10 @@ class Table(object):
 
             store.close()
             return False
-        else:
-            return False
+        return False
 
     def _save(self, data_frame: pandas.DataFrame = None, store_format="hdf5"):
-        """
-        Save a data frame in the store according to is format (HDF5 or Parque).
+        """Save a data frame in the store according to is format (HDF5 or Parque).
         """
         assert data_frame is not None
         variables = self.variables
@@ -144,8 +141,7 @@ class Table(object):
     def fill_store(
         self, data_file, overwrite: bool = False, clean: bool = False, **kwargs
     ):
-        """
-        Fill the store (HDF5 or parquet file) with the table.
+        """Fill the store (HDF5 or parquet file) with the table.
         Read the `data_file` in parameter and save it to the store.
 
         Args:
@@ -179,8 +175,7 @@ class Table(object):
             raise e
 
     def read_parquet_columns(self, parquet_file=None) -> list:
-        """
-        Initialize the table from a parquet file.
+        """Initialize the table from a parquet file.
         """
         if parquet_file is None:
             parquet_file = self.parquet_file
@@ -233,7 +228,7 @@ class Table(object):
                     # Sniff dialect
                     try:
                         with open(
-                            data_file, "r", newline="", encoding=encoding
+                            data_file, newline="", encoding=encoding
                         ) as csvfile:
                             dialect = csv.Sniffer().sniff(
                                 csvfile.read(1024), delimiters=";,"
@@ -302,7 +297,7 @@ class Table(object):
         parquet_file_path = self.survey.parquet_file_path
 
         if not os.path.isdir(parquet_file_path):
-            log.warn(
+            log.warning(
                 f"{parquet_file_path} where to store table {self.name} data does not exist: we create the directory"
             )
             os.makedirs(parquet_file_path)
@@ -328,7 +323,7 @@ def clean_data_frame(data_frame):
         f"The following variables are to be cleaned or left as strings : \n {object_column_names}"
     )
     for column_name in object_column_names:
-        if data_frame[column_name].isnull().all():  #
+        if data_frame[column_name].isnull().all():
             log.info(f"Drop empty column {column_name}")
             data_frame.drop(column_name, axis=1, inplace=True)
             continue

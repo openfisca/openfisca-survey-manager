@@ -26,8 +26,7 @@ def inflate_parameters(
     start_instant=None,
     round_ndigits=2,
 ):
-    """
-    Inflate a Parameter node or a Parameter lead according for the years between base_year and last_year
+    """Inflate a Parameter node or a Parameter lead according for the years between base_year and last_year
     ::parameters:: af Parameter node or a Parameter leaf
     ::inflator:: rate used to inflate the parameter. The rate is unique for all the years
     ::base_year:: base year of the parameter
@@ -36,7 +35,6 @@ def inflate_parameters(
     ::start_instant :: Instant of the year when the update should start, if None will be Junuary 1st
     ::round_ndigits:: Number of digits to keep in the rounded result
     """
-
     if (last_year is not None) and (last_year > base_year + 1):
         for year in range(
             base_year + 1, last_year + 1
@@ -80,22 +78,16 @@ def inflate_parameters(
                 # Empty intersection: not unit present in metadata
                 if not bool(set(parameters.metadata.keys()) & set(acceptable_units)):
                     return
-            assert hasattr(parameters, "metadata"), "{} doesn't have metadata".format(
-                parameters.name
-            )
+            assert hasattr(parameters, "metadata"), f"{parameters.name} doesn't have metadata"
             unit_types = set(parameters.metadata.keys()).intersection(
                 set(acceptable_units)
             )
             assert unit_types, (
-                "No admissible unit in metadata for parameter {}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function.".format(
-                    parameters.name
-                )
+                f"No admissible unit in metadata for parameter {parameters.name}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function."
             )
             if len(unit_types) > 1:
                 assert unit_types == set(["threshold_unit", "rate_unit"]), (
-                    "Too much admissible units in metadata for parameter {}".format(
-                        parameters.name
-                    )
+                    f"Too much admissible units in metadata for parameter {parameters.name}"
                 )
             unit_by_type = dict(
                 [
@@ -103,7 +95,7 @@ def inflate_parameters(
                     for unit_type in unit_types
                 ]
             )
-            for unit_type in unit_by_type.keys():
+            for unit_type in unit_by_type:
                 if parameters.metadata[unit_type].startswith("currency"):
                     inflate_parameter_leaf(
                         parameters,
@@ -123,8 +115,7 @@ def inflate_parameter_leaf(
     start_instant=None,
     round_ndigits=2,
 ):
-    """
-    Inflate a Parameter leaf according to unit type for the year after base_year
+    """Inflate a Parameter leaf according to unit type for the year after base_year
     ::sub_parameter:: af Parameter leaf
     ::base_year:: base year of the parameter
     ::inflator:: rate used to inflate the parameter
@@ -165,10 +156,10 @@ def inflate_parameter_leaf(
             )
             value = (
                 round(
-                    sub_parameter("{}-12-31".format(base_year)) * (1 + inflator),
+                    sub_parameter(f"{base_year}-12-31") * (1 + inflator),
                     round_ndigits,
                 )
-                if sub_parameter("{}-12-31".format(base_year)) is not None
+                if sub_parameter(f"{base_year}-12-31") is not None
                 else None
             )
             sub_parameter.update(
@@ -205,14 +196,14 @@ def inflate_parameter_leaf(
             else:
                 value = (
                     round(
-                        sub_parameter("{}-12-31".format(base_year)) * (1 + inflator),
+                        sub_parameter(f"{base_year}-12-31") * (1 + inflator),
                         round_ndigits,
                     )
-                    if sub_parameter("{}-12-31".format(base_year)) is not None
+                    if sub_parameter(f"{base_year}-12-31") is not None
                     else None
                 )
                 sub_parameter.update(
-                    start="{}-01-01".format(base_year + 1),
+                    start=f"{base_year + 1}-01-01",
                     value=value,
                 )
 
@@ -249,19 +240,18 @@ def parameters_asof(parameters, instant):
     for sub_parameter in parameters.children.values():
         if isinstance(sub_parameter, ParameterNode):
             parameters_asof(sub_parameter, instant)
+        elif isinstance(sub_parameter, Scale):
+            for bracket in sub_parameter.brackets:
+                threshold = bracket.children["threshold"]
+                rate = bracket.children.get("rate")
+                amount = bracket.children.get("amount")
+                leaf_asof(threshold, instant)
+                if rate:
+                    leaf_asof(rate, instant)
+                if amount:
+                    leaf_asof(amount, instant)
         else:
-            if isinstance(sub_parameter, Scale):
-                for bracket in sub_parameter.brackets:
-                    threshold = bracket.children["threshold"]
-                    rate = bracket.children.get("rate")
-                    amount = bracket.children.get("amount")
-                    leaf_asof(threshold, instant)
-                    if rate:
-                        leaf_asof(rate, instant)
-                    if amount:
-                        leaf_asof(amount, instant)
-            else:
-                leaf_asof(sub_parameter, instant)
+            leaf_asof(sub_parameter, instant)
 
 
 def variables_asof(tax_benefit_system, instant, variables_list=None):
@@ -290,7 +280,7 @@ def stata_files_to_data_frames(data, period=None):
 
     stata_file_by_entity = data.get("stata_file_by_entity")
     if stata_file_by_entity is None:
-        return
+        return None
 
     variables_from_stata_files = list()
     input_data_frame_by_entity_by_period = dict()
@@ -298,7 +288,7 @@ def stata_files_to_data_frames(data, period=None):
         input_data_frame_by_entity
     ) = dict()
     for entity, file_path in stata_file_by_entity.items():
-        assert os.path.exists(file_path), "Invalid file path: {}".format(file_path)
+        assert os.path.exists(file_path), f"Invalid file path: {file_path}"
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(
             file_path
         )
@@ -320,8 +310,7 @@ def load_table(
     batch_index=0,
     filter_by=None,
 ) -> pd.DataFrame:
-    """
-    Load values from table from a survey in a collection.
+    """Load values from table from a survey in a collection.
 
     Args:
         config_files_directory : _description_.
@@ -344,9 +333,7 @@ def load_table(
         survey = f"{input_data_survey_prefix}_{data_year}"
     survey_ = survey_collection.get_survey(survey)
     log.debug(
-        "Loading table {} in survey {} from collection {}".format(
-            table, survey, collection
-        )
+        f"Loading table {table} in survey {survey} from collection {collection}"
     )
     if batch_size:
         return survey_.get_values(
@@ -356,5 +343,4 @@ def load_table(
             batch_index=batch_index,
             filter_by=filter_by,
         )
-    else:
-        return survey_.get_values(table=table, variables=variables, filter_by=filter_by)
+    return survey_.get_values(table=table, variables=variables, filter_by=filter_by)

@@ -30,8 +30,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     Returns:
       A dictionary whose keys are entities and values the corresponding data frames
 
-      Example:
-
+    Example:
         >>> from openfisca_survey_manager.input_dataframe_generator import (
         ...     make_input_dataframe_by_entity,
         ... )
@@ -57,7 +56,6 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         }
     )
     input_dataframe_by_entity[person_entity.key].set_index("person_id")
-    #
     seed = 42
     random.seed(seed)
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
@@ -100,8 +98,7 @@ def random_data_generator(
     variable_generators_by_period,
     collection=None,
 ):
-    """
-    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
+    """Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
 
     Args:
         tax_benefit_system (TaxBenefitSystem): tax_benefit_system: the tax_benefit_system to use
@@ -162,7 +159,7 @@ def randomly_init_variable(
       condition: Boolean vector of obersvations to modify (Default value = None)
       seed: Random seed used whe ndrawing the values (Default value = None)
 
-    Examples
+    Examples:
         >>> from openfisca_survey_manager.input_dataframe_generator import (
         ...     make_input_dataframe_by_entity,
         ... )
@@ -196,7 +193,6 @@ def randomly_init_variable(
         >>> len(input_dataframe_by_entity["household"].rent)
         100
     """
-
     variable = tax_benefit_system.variables[variable_name]
     entity = variable.entity
 
