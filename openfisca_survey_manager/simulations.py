@@ -1080,16 +1080,11 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
                 variable_name, variable.default_value._name_))
             series.fillna(variable.default_value._name_, inplace = True)
         possible_values = variable.possible_values
-        # index_by_category = dict(zip(
-        #     possible_values._member_names_,
-        #     range(len(possible_values._member_names_))
-        #     ))
-
         if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
         else:
             assert series.isin(list(possible_values._member_names_)).all()
-            series = series.astype("category").cat.codes
+            series = series.apply(lambda v: variable.possible_values[v].index)
 
     if series.values.dtype != variable.dtype:
         log.debug(
