@@ -148,13 +148,13 @@ def test_calmar():
     )
     null_target_weight_ratio = target_weight_ratio.isna()
 
-    assert weight_ratio.loc[null_target_weight_ratio.values].isna().all(), (
+    assert weight_ratio.loc[null_target_weight_ratio.to_numpy()].isna().all(), (
         "Error on Nan"
     )
 
     assert (
-        target_weight_ratio.loc[~null_target_weight_ratio.values].values
-        == weight_ratio.loc[~null_target_weight_ratio.values].values
+        target_weight_ratio.loc[~null_target_weight_ratio.to_numpy()].to_numpy()
+        == weight_ratio.loc[~null_target_weight_ratio.to_numpy()].to_numpy()
     ).all(), "Errors on non NaN values"
 
 

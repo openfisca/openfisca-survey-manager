@@ -201,7 +201,7 @@ def randomly_init_variable(
     if condition is None:
         condition = True
     else:
-        condition = input_dataframe_by_entity[entity.key].eval(condition).values
+        condition = input_dataframe_by_entity[entity.key].eval(condition).to_numpy()
 
     if seed is None:
         seed = 42

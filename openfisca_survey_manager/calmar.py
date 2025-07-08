@@ -337,7 +337,7 @@ def calmar(
     lambda0 = zeros(nj)
 
     # initial weights
-    d = data_final[initial_weight].values
+    d = data_final[initial_weight].to_numpy()
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}

@@ -333,7 +333,7 @@ class AbstractSurveyScenario:
                     .groupby("members_entity_id")
                     .sum()
                 )
-                return df.loc[population.ids, varying_variable].values
+                return df.loc[population.ids, varying_variable].to_numpy()
 
             modified_varying = cast_to_target_entity(modified_simulation)
             varying = cast_to_target_entity(simulation)
@@ -540,9 +540,9 @@ class AbstractSurveyScenario:
         for simulation_name, simulation in self.simulations.items():
             simulation_dir = os.path.join(output_dir, f"{simulation_name}_perf_log")
             if not Path(output_dir).exists():
-                os.mkdir(output_dir)
+                Path(output_dir).mkdir()
             if not Path(simulation_dir).exists():
-                os.mkdir(simulation_dir)
+                Path(simulation_dir).mkdir()
             simulation.tracer.generate_performance_graph(simulation_dir)
             simulation.tracer.generate_performance_tables(simulation_dir)
 
