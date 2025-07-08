@@ -1,6 +1,7 @@
 import configparser
 import logging
 import os
+from pathlib import Path
 import random
 
 import numpy as np
@@ -268,20 +269,20 @@ def set_table_in_survey(
     if survey.hdf5_file_path is None and survey.parquet_file_path is None:
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
-        if not os.path.isdir(directory_path):
+        if not Path(directory_path).is_dir():
             log.warning(
                 f"{directory_path} who should be the data directory does not exist: we create the directory"
             )
-            os.makedirs(directory_path)
+            Path(directory_path).mkdir(parents=True, exist_ok=True)
         if source_format is None:
             survey.hdf5_file_path = os.path.join(directory_path, survey.name + ".h5")
         elif source_format == "parquet":
             survey.parquet_file_path = os.path.join(directory_path, survey.name)
-            if not os.path.isdir(survey.parquet_file_path):
+            if not Path(survey.parquet_file_path).is_dir():
                 log.warning(
                     f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory"
                 )
-                os.makedirs(survey.parquet_file_path)
+                Path(survey.parquet_file_path).mkdir(parents=True, exist_ok=True)
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
     if source_format == "parquet" and parquet_file is None:

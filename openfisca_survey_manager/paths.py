@@ -20,7 +20,7 @@ try:
 except ImportError:
     taxipp_location = None
 
-if taxipp_location is None or not os.path.exists(default_config_files_directory):
+if taxipp_location is None or not Path(default_config_files_directory).exists():
     default_config_files_directory = None
 
 
@@ -37,7 +37,7 @@ try:
 except ImportError:
     france_data_location = None
 
-if france_data_location is None or not os.path.exists(default_config_files_directory):
+if france_data_location is None or not Path(default_config_files_directory).exists():
     default_config_files_directory = None
 
 # Run CI when testing openfisca-survey-manager for example GitHub Actions

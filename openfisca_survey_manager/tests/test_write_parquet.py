@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import unittest
 
 import pandas as pd
@@ -16,7 +17,7 @@ class TestWriteParquet(unittest.TestCase):
             "data_files",
             "test_parquet_collection",
         )
-        os.makedirs(data_dir, exist_ok=True)
+        Path(data_dir, exist_ok=True).mkdir(parents=True, exist_ok=True)
         df = pd.DataFrame(
             {
                 "household_id": [1, 2, 3, 4],
@@ -50,8 +51,8 @@ class TestWriteParquet(unittest.TestCase):
             "data_files",
             collection_name,
         )
-        os.makedirs(os.path.join(data_dir, "person"), exist_ok=True)
-        os.makedirs(os.path.join(data_dir, "household"), exist_ok=True)
+        Path(data_dir, "person").mkdir(parents=True, exist_ok=True)
+        Path(data_dir, "household").mkdir(parents=True, exist_ok=True)
         # Create a file config.ini in the current directory
         config = os.path.join(
             data_dir,

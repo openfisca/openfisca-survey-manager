@@ -7,6 +7,7 @@ import errno
 import gc
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 from chardet.universaldetector import UniversalDetector
@@ -88,7 +89,7 @@ class Table:
             Exception: File not found
         """
         assert store_file_path is not None, "Store file path cannot be None"
-        if not os.path.isfile(data_file_path):
+        if not Path(data_file_path).is_file():
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), data_file_path
             )
@@ -292,11 +293,11 @@ class Table:
         """Save a data frame in the Parquet file format."""
         parquet_file_path = self.survey.parquet_file_path
 
-        if not os.path.isdir(parquet_file_path):
+        if not Path(parquet_file_path).is_dir():
             log.warning(
                 f"{parquet_file_path} where to store table {self.name} data does not exist: we create the directory"
             )
-            os.makedirs(parquet_file_path)
+            Path(parquet_file_path).mkdir(parents=True, exist_ok=True)
         self.parquet_file = parquet_file_path + "/" + self.name
         data_frame.to_parquet(self.parquet_file)
         self.variables = list(data_frame.columns)
