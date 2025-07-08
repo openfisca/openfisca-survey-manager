@@ -145,7 +145,7 @@ def build_survey_collection(
         survey_suffix,
         data_directory_path,
     ) in data_directory_path_by_survey_suffix.items():
-        assert os.path.isdir(data_directory_path), (
+        assert Path(data_directory_path).is_dir(), (
             f"{data_directory_path} is not a valid directory path"
         )
 
@@ -172,11 +172,11 @@ def build_survey_collection(
         collections_directory = survey_collection.config.get(
             "collections", "collections_directory"
         )
-        if os.path.isdir(collections_directory) is False:
+        if Path(collections_directory).is_dir() is False:
             log.info(
                 f"{collections_directory} who should be the collections' directory does not exist. Creating directory."
             )
-            os.mkdir(collections_directory)
+            Path(collections_directory).mkdir()
         collection_json_path = os.path.join(
             collections_directory, f"{collection_name}.json"
         )
