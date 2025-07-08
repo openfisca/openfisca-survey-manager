@@ -3,10 +3,8 @@
 import logging
 import operator
 
-
 import pandas as pd
 from numpy import array, dot, exp, float64, log as ln, ones, sqrt, unique, zeros
-
 
 log = logging.getLogger(__name__)
 

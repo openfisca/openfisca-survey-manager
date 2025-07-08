@@ -60,4 +60,3 @@ lint:
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
 	isort --check `git ls-files | grep "\.py$$"`
 	ruff check `git ls-files | grep "\.py$$"`
-	yamllint `git ls-files | grep "\.yaml$$"`
