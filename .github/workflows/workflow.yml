@@ -57,7 +57,7 @@ jobs:
           key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
       - run: pip install -e .[dev]  # Need to install linter
       - run: make check-syntax-errors
-      - run: make check-style
+      - run: make lint
 
   test-python:
     runs-on: ${{ matrix.os }}

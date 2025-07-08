@@ -1,57 +1,72 @@
-#! /usr/bin/env python
-
-
 import collections
-import os
-import re
-import glob
 import logging
-import pandas
-import yaml
-import pyarrow.parquet as pq
+import re
+from pathlib import Path
+
+import pandas as pd
 import pyarrow as pa
+import pyarrow.parquet as pq
+import yaml
 
 from .tables import Table
 
-
-ident_re = re.compile(r"(?i)ident\d{2,4}$")  # noqa
+ident_re = re.compile(r"(?i)ident\d{2,4}$")
 
 log = logging.getLogger(__name__)
 
 
-source_format_by_extension = dict(
-    csv = 'csv',
-    sas7bdat = "sas",
-    dta = 'stata',
-    Rdata = 'Rdata',
-    spss = 'sav',
-    parquet = 'parquet',
-    )
+source_format_by_extension = {
+    "csv": "csv",
+    "sas7bdat": "sas",
+    "dta": "stata",
+    "Rdata": "Rdata",
+    "spss": "sav",
+    "parquet": "parquet",
+}
 
 admissible_source_formats = list(source_format_by_extension.values())
 
 
 class NoMoreDataError(Exception):
-    # Exception when the user ask for more data than available in file
-    pass
+    """Exception when the user ask for more data than available in file."""
+
+class TableNotFoundError(Exception):
+    """Exception raised when a table is not found in the survey."""
+
+class VariableMissingError(Exception):
+    """Exception raised when requested variables are missing from the table."""
+
+class ParquetFileNotFoundError(Exception):
+    """Exception raised when no parquet file is found in the specified directory."""
+
+class SurveyDataFileNotFoundError(Exception):
+    """Exception raised when no data file is found for the survey."""
 
 
-class Survey(object):
-    """An object to describe survey data"""
+class Survey:
+    """An object to describe survey data."""
+
     hdf5_file_path = None
     parquet_file_path = None
-    informations = dict()
+    informations = {}
     label = None
     name = None
     tables = collections.OrderedDict()
-    tables_index = dict()
+    tables_index = {}
     survey_collection = None
 
-    def __init__(self, name = None, label = None, hdf5_file_path = None, parquet_file_path = None,
-            survey_collection = None, **kwargs):
+    def __init__(
+        self,
+        name=None,
+        label=None,
+        hdf5_file_path=None,
+        parquet_file_path=None,
+        survey_collection=None,
+        **kwargs,
+    ):
         assert name is not None, "A survey should have a name"
         self.name = name
-        self.tables = dict()
+        self.tables = {}
 
         if label is not None:
             self.label = label
@@ -70,102 +85,115 @@ class Survey(object):
     def __repr__(self):
         header = f"""{self.name} : survey data {self.label}
 Contains the following tables : \n"""
-        tables = yaml.safe_dump(
-            list(self.tables.keys()),
-            default_flow_style = False)
-        informations = yaml.safe_dump(self.informations, default_flow_style = False)
+        tables = yaml.safe_dump(list(self.tables.keys()), default_flow_style=False)
+        informations = yaml.safe_dump(self.informations, default_flow_style=False)
         return header + tables + informations
 
     @classmethod
     def create_from_json(cls, survey_json):
         self = cls(
-            name = survey_json.get('name'),
-            label = survey_json.get('label'),
-            hdf5_file_path = survey_json.get('hdf5_file_path'),
-            parquet_file_path = survey_json.get('parquet_file_path'),
-            **survey_json.get('informations', dict())
-            )
-        self.tables = survey_json.get('tables')
+            name=survey_json.get("name"),
+            label=survey_json.get("label"),
+            hdf5_file_path=survey_json.get("hdf5_file_path"),
+            parquet_file_path=survey_json.get("parquet_file_path"),
+            **survey_json.get("informations", {}),
+        )
+        self.tables = survey_json.get("tables")
         return self
 
     def dump(self):
         assert self.survey_collection is not None
         self.survey_collection.dump()
 
-    def fill_store(self, source_format = None, tables = None, overwrite = True, keep_original_parquet_file = False,
-            encoding = None, store_format = "hdf5"):
-        """
-        Convert data from the source files to store format either hdf5 or parquet.
+    def fill_store(
+        self,
+        source_format=None,
+        tables=None,
+        overwrite=True,
+        keep_original_parquet_file=False,
+        encoding=None,
+        store_format="hdf5",
+    ):
+        """Convert data from the source files to store format either hdf5 or parquet.
         If the source is in parquet, the data is not converted.
         """
         assert self.survey_collection is not None
-        assert isinstance(overwrite, bool) or isinstance(overwrite, list)
+        assert isinstance(overwrite, (bool, list))
         survey = self
         # Create folder if it does not exist
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
-        if not os.path.isdir(directory_path):
-            log.warn(f"{directory_path} who should be the store data directory does not exist: we create the directory")
-            os.makedirs(directory_path)
+        if not Path(directory_path).is_dir():
+            log.warning(
+                f"{directory_path} who should be the store data directory does not exist: we create the directory"
+            )
+            Path(directory_path).mkdir(parents=True, exist_ok=True)
 
         if source_format == "parquet":
             store_format = "parquet"
 
         if store_format == "hdf5" and survey.hdf5_file_path is None:
-            survey.hdf5_file_path = os.path.join(directory_path, survey.name + '.h5')
+            survey.hdf5_file_path = Path(directory_path, survey.name + ".h5")
 
         if store_format == "parquet" and survey.parquet_file_path is None:
-            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+            survey.parquet_file_path = Path(directory_path, survey.name)
 
         self.store_format = store_format
 
         if source_format is not None:
-            assert source_format in admissible_source_formats, f"Data source format {source_format} is unknown"
+            assert source_format in admissible_source_formats, (
+                f"Data source format {source_format} is unknown"
+            )
             source_formats = [source_format]
         else:
             source_formats = admissible_source_formats
 
-        for source_format in source_formats:
-            files = f"{source_format}_files"
+        for fmt in source_formats:
+            files = f"{fmt}_files"
             for data_file in survey.informations.get(files, []):
-                path_name, extension = os.path.splitext(data_file)
-                name = os.path.basename(path_name)
+                path = Path(data_file)
+                name = path.stem
+                extension = path.suffix
                 if tables is None or name in tables:
                     if keep_original_parquet_file:
                         # Use folder instead of files if numeric at end of file
                         if re.match(r".*-\d$", name):
                             name = name.split("-")[0]
-                            parquet_file = os.path.dirname(data_file)
+                            parquet_file = Path(data_file).parent
                             # Get the parent folder
-                            survey.parquet_file_path = "/".join(os.path.dirname(data_file).split(os.sep)[:-1])
+                            survey.parquet_file_path = "/".join(
+                                Path(data_file).parent.as_posix().split("/")[:-1]
+                            )
                         else:
                             parquet_file = data_file
-                            survey.parquet_file_path = os.path.dirname(data_file)
+                            survey.parquet_file_path = Path(data_file).parent
                         table = Table(
-                            label = name,
-                            name = name,
-                            source_format = source_format_by_extension[extension[1:]],
-                            survey = survey,
-                            parquet_file = parquet_file,
-                            )
+                            label=name,
+                            name=name,
+                            source_format=source_format_by_extension[extension[1:]],
+                            survey=survey,
+                            parquet_file=parquet_file,
+                        )
                         table.read_parquet_columns(data_file)
 
                     else:
                         table = Table(
-                            label = name,
-                            name = name,
-                            source_format = source_format_by_extension[extension[1:]],
-                            survey = survey,
-                            )
+                            label=name,
+                            name=name,
+                            source_format=source_format_by_extension[extension[1:]],
+                            survey=survey,
+                        )
                         table.fill_store(
                             data_file,
-                            clean = True,
-                            overwrite = overwrite if isinstance(overwrite, bool) else table.name in overwrite,
-                            encoding = encoding,
-                            )
+                            clean=True,
+                            overwrite=overwrite
+                            if isinstance(overwrite, bool)
+                            else table.name in overwrite,
+                            encoding=encoding,
+                        )
         self.dump()
 
-    def get_value(self, variable, table, lowercase = False, ignorecase = False):
+    def get_value(self, variable, table, lowercase=False, ignorecase=False):
         """Get variable value from a survey table.
 
         Args:
@@ -178,9 +206,19 @@ Contains the following tables : \n"""
           pd.DataFrame: dataframe containing the variable
 
         """
-        return self.get_values([variable], table)
+        return self.get_values([variable], table, lowercase=lowercase, ignorecase=ignorecase)
 
-    def get_values(self, variables = None, table = None, lowercase = False, ignorecase = False, rename_ident = True, batch_size = None, batch_index=0, filter_by=None) -> pandas.DataFrame:
+    def get_values(
+        self,
+        variables=None,
+        table=None,
+        lowercase=False,
+        ignorecase=False,
+        rename_ident=True,
+        batch_size=None,
+        batch_index=0,
+        filter_by=None,
+    ) -> pd.DataFrame:
         """Get variables values from a survey table.
 
         Args:
@@ -200,10 +238,13 @@ Contains the following tables : \n"""
 
         """
         if self.parquet_file_path is None and self.hdf5_file_path is None:
-            raise Exception(f"No data file found for survey {self.name}")
+            msg = f"No data file found for survey {self.name}"
+            raise SurveyDataFileNotFoundError(msg)
         if self.hdf5_file_path is not None:
-            assert os.path.exists(self.hdf5_file_path), f'{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code.'
-            store = pandas.HDFStore(self.hdf5_file_path, "r")
+            assert Path(self.hdf5_file_path).exists(), (
+                f"{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code."
+            )
+            store = pd.HDFStore(self.hdf5_file_path, "r")
             if ignorecase:
                 keys = store.keys()
                 eligible_tables = []
@@ -212,47 +253,55 @@ Contains the following tables : \n"""
                     if match:
                         eligible_tables.append(match[0])
                 if len(eligible_tables) > 1:
-                    raise ValueError(f"{table} is ambiguious since the following tables are available: {eligible_tables}")
-                elif len(eligible_tables) == 0:
-                    raise ValueError(f"No eligible available table in {keys}")
-                else:
-                    table = eligible_tables[0]
+                    msg = f"{table} is ambiguious since the following tables are available: {eligible_tables}"
+                    raise ValueError(msg)
+                if len(eligible_tables) == 0:
+                    msg = f"No eligible available table in {keys}"
+                    raise ValueError(msg)
+                table = eligible_tables[0]
             try:
                 df = store.select(table)
             except KeyError:
-                log.error(f'No table {table} in the file {self.hdf5_file_path}')
-                log.error(f'This could happen because your data were not builded yet. Available tables are: {store.keys()}')
+                log.exception(f"No table {table} in the file {self.hdf5_file_path}")
+                log.exception(
+                    f"This could happen because your data were not builded yet. Available tables are: {store.keys()}"
+                )
                 store.close()
                 raise
 
             store.close()
 
         elif self.parquet_file_path is not None:
-            if table is None:
-                raise Exception("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
                 if table == table_name:
                     parquet_file = table_content.get("parquet_file")
                     # Is parquet_file a folder or a file?
-                    if os.path.isdir(parquet_file):
+                    if Path(parquet_file).is_dir():
                         # find first parquet file in folder
-                        for file in os.listdir(parquet_file):
-                            if file.endswith('.parquet'):
-                                one_parquet_file = os.path.join(parquet_file, file)
+                        for file in list(Path(parquet_file).iterdir()):
+                            if file.endswith(".parquet"):
+                                one_parquet_file = Path(parquet_file, file)
                                 break
                         else:
-                            raise Exception(f"No parquet file found in {parquet_file}")
+                            msg = f"No parquet file found in {parquet_file}"
+                            raise ParquetFileNotFoundError(msg)
                     else:
                         one_parquet_file = parquet_file
                     parquet_schema = pq.read_schema(one_parquet_file)
-                    assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
+                    assert len(parquet_schema.names) >= 1, (
+                        f"The parquet file {table_content.get('parquet_file')} is empty"
+                    )
                     if variables is None:
-                        variables = table_content.get('variables')
+                        variables = table_content.get("variables")
                     if filter_by:
-                        df = pq.ParquetDataset(parquet_file, filters=filter_by).read(columns=variables).to_pandas()
+                        df = (
+                            pq.ParquetDataset(parquet_file, filters=filter_by)
+                            .read(columns=variables)
+                            .to_pandas()
+                        )
                     elif batch_size:
-                        if os.path.isdir(parquet_file):
-                            parquet_file = glob.glob(os.path.join(parquet_file, '*.parquet'))
+                        if Path(parquet_file).is_dir():
+                            parquet_file = list(Path(parquet_file).glob("*.parquet"))
                         else:
                             parquet_file = [parquet_file]
                         # Initialize an empty list to store the Parquet tables
@@ -267,9 +316,12 @@ Contains the following tables : \n"""
                             final_table = pa.concat_tables(tables)
                         else:
                             final_table = tables[0]
-                        record_batches = final_table.to_batches(max_chunksize=batch_size)
+                        record_batches = final_table.to_batches(
+                            max_chunksize=batch_size
+                        )
                         if len(record_batches) <= batch_index:
-                            raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}")
+                            msg = f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
+                            raise NoMoreDataError(msg)
                         df = record_batches[batch_index].to_pandas()
                         # iter_parquet = parquet_file.iter_batches(batch_size=batch_size, columns=variables)
                         # index = 0
@@ -284,75 +336,88 @@ Contains the following tables : \n"""
                         #         break
                         #     index += 1
                     else:
-                        df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
+                        df = (
+                            pq.ParquetDataset(parquet_file)
+                            .read(columns=variables)
+                            .to_pandas()
+                        )
                     break
             else:
-                raise Exception(f"No table {table} found in {self.parquet_file_path}")
+                msg = f"No table {table} found in {self.parquet_file_path}"
+                raise TableNotFoundError(msg)
 
         if lowercase:
-            columns = dict((column_name, column_name.lower()) for column_name in df)
-            df.rename(columns = columns, inplace = True)
+            columns = {column_name: column_name.lower() for column_name in df}
+            df = df.rename(columns=columns)
 
         if rename_ident is True:
             for column_name in df:
                 if ident_re.match(str(column_name)) is not None:
-                    df.rename(columns = {column_name: "ident"}, inplace = True)
+                    df = df.rename(columns={column_name: "ident"})
                     log.info(f"{column_name} column have been replaced by ident")
                     break
 
         if variables is None:
             return df
-        else:
-            diff = set(variables) - set(df.columns)
-            if diff:
-                raise Exception(f"The following variable(s) {diff} are missing")
-            variables = list(set(variables).intersection(df.columns))
-            df = df[variables]
-            return df
+        diff = set(variables) - set(df.columns)
+        if diff:
+            msg = f"The following variable(s) {diff} are missing"
+            raise VariableMissingError(msg)
+        variables = list(set(variables).intersection(df.columns))
+        return df[variables]
 
-    def insert_table(self, label = None, name = None, **kwargs):
+    def insert_table(self, label=None, name=None, **kwargs):
         """Insert a table in the Survey object.
 
         If a pandas dataframe is provided, it is saved in the store file
         """
-        parquet_file = kwargs.pop('parquet_file', None)
-        data_frame = kwargs.pop('data_frame', None)
+        parquet_file = kwargs.pop("parquet_file", None)
+        data_frame = kwargs.pop("data_frame", None)
         if data_frame is None:
             # Try without underscore
-            data_frame = kwargs.pop('dataframe', None)
+            data_frame = kwargs.pop("dataframe", None)
 
         if data_frame is not None:
-            assert isinstance(data_frame, pandas.DataFrame)
-            variables = kwargs.pop('variables', None)
+            assert isinstance(data_frame, pd.DataFrame)
+            variables = kwargs.pop("variables", None)
             if variables is not None:
                 assert set(variables) < set(data_frame.columns)
             else:
                 variables = list(data_frame.columns)
             if label is None:
                 label = name
-            table = Table(label = label, name = name, survey = self, variables = variables, parquet_file = parquet_file)
-            assert (table.survey.hdf5_file_path is not None) or (table.survey.parquet_file_path is not None)
+            table = Table(
+                label=label,
+                name=name,
+                survey=self,
+                variables=variables,
+                parquet_file=parquet_file,
+            )
+            assert (table.survey.hdf5_file_path is not None) or (
+                table.survey.parquet_file_path is not None
+            )
             if parquet_file is not None:
                 log.debug(f"Saving table {name} in {table.survey.parquet_file_path}")
                 data_frame.to_parquet(parquet_file)
             else:
                 log.debug(f"Saving table {name} in {table.survey.hdf5_file_path}")
-                to_hdf_kwargs = kwargs.pop('to_hdf_kwargs', dict())
+                to_hdf_kwargs = kwargs.pop("to_hdf_kwargs", {})
                 table.save_data_frame_to_hdf5(data_frame, **to_hdf_kwargs)
 
         if name not in self.tables:
-            self.tables[name] = dict()
+            self.tables[name] = {}
         for key, val in kwargs.items():
             self.tables[name][key] = val
 
     def to_json(self):
         """Convert the survey to a JSON object."""
-        self_json = collections.OrderedDict((
-            ))
-        self_json['hdf5_file_path'] = self.hdf5_file_path
-        self_json['parquet_file_path'] = self.parquet_file_path
-        self_json['label'] = self.label
-        self_json['name'] = self.name
-        self_json['tables'] = self.tables
-        self_json['informations'] = collections.OrderedDict(sorted(self.informations.items()))
+        self_json = collections.OrderedDict(())
+        self_json["hdf5_file_path"] = self.hdf5_file_path
+        self_json["parquet_file_path"] = self.parquet_file_path
+        self_json["label"] = self.label
+        self_json["name"] = self.name
+        self_json["tables"] = self.tables
+        self_json["informations"] = collections.OrderedDict(
+            sorted(self.informations.items())
+        )
         return self_json
