@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-
-
 import collections
 import glob
 import logging
-import os
 import re
 from pathlib import Path
 
@@ -145,8 +141,9 @@ Contains the following tables : \n"""
         for source_format in source_formats:
             files = f"{source_format}_files"
             for data_file in survey.informations.get(files, []):
-                path_name, extension = os.path.splitext(data_file)
-                name = Path(path_name).name
+                path = Path(data_file)
+                name = path.stem
+                extension = path.suffix
                 if tables is None or name in tables:
                     if keep_original_parquet_file:
                         # Use folder instead of files if numeric at end of file
@@ -155,7 +152,7 @@ Contains the following tables : \n"""
                             parquet_file = Path(data_file).parent
                             # Get the parent folder
                             survey.parquet_file_path = "/".join(
-                                Path(data_file).parent.split(os.sep)[:-1]
+                                Path(data_file).parent.as_posix().split("/")[:-1]
                             )
                         else:
                             parquet_file = data_file
@@ -199,7 +196,7 @@ Contains the following tables : \n"""
           pd.DataFrame: dataframe containing the variable
 
         """
-        return self.get_values([variable], table)
+        return self.get_values([variable], table, lowercase=lowercase, ignorecase=ignorecase)
 
     def get_values(
         self,

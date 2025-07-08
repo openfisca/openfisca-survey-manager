@@ -1,8 +1,8 @@
 import configparser
 import logging
 import os
-from pathlib import Path
 import random
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -205,9 +205,9 @@ def randomly_init_variable(
 
     if seed is None:
         seed = 42
-    np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     count = len(input_dataframe_by_entity[entity.key])
-    value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
+    value = (rng.random(count) * max_value * condition).astype(variable.dtype)
     input_dataframe_by_entity[entity.key][variable_name] = value
 
 

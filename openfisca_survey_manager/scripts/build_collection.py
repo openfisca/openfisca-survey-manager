@@ -5,11 +5,11 @@ import configparser
 import datetime
 import logging
 import os
-from pathlib import Path
 import pdb
 import re
 import shutil
 import sys
+from pathlib import Path
 
 from openfisca_survey_manager.paths import (
     default_config_files_directory,
@@ -18,7 +18,7 @@ from openfisca_survey_manager.paths import (
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
-app_name = os.path.splitext(Path(__file__).name)[0]
+app_name = Path(__file__).stem
 log = logging.getLogger(app_name)
 
 
@@ -311,7 +311,7 @@ def main():
             args.survey: data_directory_path_by_survey_suffix[args.survey],
         }
 
-    start_time = datetime.datetime.now()
+    start_time = datetime.datetime.now(datetime.timezone.utc)
 
     try:
         build_survey_collection(
@@ -329,7 +329,7 @@ def main():
         pdb.post_mortem(sys.exc_info()[2])
         raise
 
-    log.info(f"The program has been executed in {datetime.datetime.now() - start_time}")
+    log.info(f"The program has been executed in {datetime.datetime.now(datetime.timezone.utc) - start_time}")
 
     return 0
 

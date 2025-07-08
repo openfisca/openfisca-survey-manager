@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Abstract survey scenario definition."""
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -53,7 +53,7 @@ class AbstractSurveyScenario:
 
     def build_input_data(self, **kwargs):
         """Build input data."""
-        NotImplementedError
+        raise NotImplementedError
 
     def calculate_series(self, variable, period=None, simulation=None):
         """Compute variable values for period for a given simulation.

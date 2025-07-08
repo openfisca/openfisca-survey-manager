@@ -107,7 +107,7 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
 
 def create_input_dataframe(size=9):
     """Create input dataframe with variable salaire and pension_retraite."""
-    np.random.seed(216)
+    np.random.default_rng(216)
     household_weight = 1.0
     number_of_indididual = size
     size = int(number_of_indididual / household_weight)
