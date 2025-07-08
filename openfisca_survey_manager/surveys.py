@@ -146,20 +146,20 @@ Contains the following tables : \n"""
             files = f"{source_format}_files"
             for data_file in survey.informations.get(files, []):
                 path_name, extension = os.path.splitext(data_file)
-                name = os.path.basename(path_name)
+                name = Path(path_name).name
                 if tables is None or name in tables:
                     if keep_original_parquet_file:
                         # Use folder instead of files if numeric at end of file
                         if re.match(r".*-\d$", name):
                             name = name.split("-")[0]
-                            parquet_file = os.path.dirname(data_file)
+                            parquet_file = Path(data_file).parent
                             # Get the parent folder
                             survey.parquet_file_path = "/".join(
-                                os.path.dirname(data_file).split(os.sep)[:-1]
+                                Path(data_file).parent.split(os.sep)[:-1]
                             )
                         else:
                             parquet_file = data_file
-                            survey.parquet_file_path = os.path.dirname(data_file)
+                            survey.parquet_file_path = Path(data_file).parent
                         table = Table(
                             label=name,
                             name=name,
@@ -274,7 +274,7 @@ Contains the following tables : \n"""
                     # Is parquet_file a folder or a file?
                     if Path(parquet_file).is_dir():
                         # find first parquet file in folder
-                        for file in os.listdir(parquet_file):
+                        for file in list(Path(parquet_file).iterdir()):
                             if file.endswith(".parquet"):
                                 one_parquet_file = Path(parquet_file, file)
                                 break

@@ -18,7 +18,7 @@ from openfisca_survey_manager.paths import (
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 
-app_name = os.path.splitext(os.path.basename(__file__))[0]
+app_name = os.path.splitext(Path(__file__).name)[0]
 log = logging.getLogger(app_name)
 
 
@@ -85,23 +85,23 @@ def create_data_file_by_format(directory_path=None):
     for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
             file_path = Path(root, file_name)
-            if os.path.basename(file_name).endswith(".csv"):
+            if Path(file_name).name.endswith(".csv"):
                 log.info(f"Found csv file {file_path}")
                 csv_files.append(file_path)
-            if os.path.basename(file_name).endswith(".dta"):
+            if Path(file_name).name.endswith(".dta"):
                 log.info(f"Found stata file {file_path}")
                 stata_files.append(file_path)
-            if os.path.basename(file_name).endswith(".sas7bdat"):
+            if Path(file_name).name.endswith(".sas7bdat"):
                 log.info(f"Found sas file {file_path}")
                 sas_files.append(file_path)
-            if os.path.basename(file_name).endswith(".parquet"):
+            if Path(file_name).name.endswith(".parquet"):
                 log.info(f"Found parquet file {file_path}")
                 relative = file_name[file_name.find(directory_path) :]
                 if ("/" in relative or "\\" in relative) and re.match(
                     r".*-\d$", file_name
                 ):
                     # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
-                    file_path = os.path.dirname(file_name)
+                    file_path = Path(file_name).parent
                 parquet_files.append(file_path)
     return {
         "csv": csv_files,
