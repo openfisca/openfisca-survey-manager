@@ -232,25 +232,26 @@ class TestParquet(TestCase):
         }
         batch_size = 2
         batch_index = 0
-        while True:
+        no_more_data = False
+        while not no_more_data:
+            data = {
+                "collection": collection_name,
+                "survey": collection_name + "_2020",
+                "input_data_table_by_entity_by_period": {
+                    period: {
+                        "household": "household",
+                        "person": "person",
+                        "batch_size": batch_size,
+                        "batch_index": batch_index,
+                        "batch_entity": "household",
+                        "batch_entity_key": "household_id",
+                        "filtered_entity": "person",
+                        "filtered_entity_on_key": "household_id",
+                    }
+                },
+                "config_files_directory": data_dir,
+            }
             try:
-                data = {
-                    "collection": collection_name,
-                    "survey": collection_name + "_2020",
-                    "input_data_table_by_entity_by_period": {
-                        period: {
-                            "household": "household",
-                            "person": "person",
-                            "batch_size": batch_size,
-                            "batch_index": batch_index,
-                            "batch_entity": "household",
-                            "batch_entity_key": "household_id",
-                            "filtered_entity": "person",
-                            "filtered_entity_on_key": "household_id",
-                        }
-                    },
-                    "config_files_directory": data_dir,
-                }
                 survey_scenario.init_from_data(data=data)
 
                 simulation = survey_scenario.simulations["baseline"]
@@ -268,7 +269,7 @@ class TestParquet(TestCase):
                 batch_index += 1
             except NoMoreDataError:
                 logger.debug("No more data")
-                break
+                no_more_data = True
         logger.debug(f"{results=}")
         assert len(results["rent"]) == 4
         # We check the sum as in CI the results are not in the same order

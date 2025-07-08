@@ -37,11 +37,9 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
             sep=";",
             header=None,
         )
-    except Exception:
-        log.info(
-            f"Error when reading nomenclature coicop source data for level {level}"
-        )
-        raise
+    except (FileNotFoundError, pd.errors.ParserError) as error:
+        msg = f"Error when reading nomenclature coicop source data for level {level}: {error}"
+        raise RuntimeError(msg) from error
 
     data_frame = data_frame.reset_index(drop=True)
     data_frame = data_frame.rename(columns={0: "code_coicop", 1: f"label_{level[:-1]}"})
@@ -86,16 +84,14 @@ def build_raw_coicop_nomenclature():
         next_level = sub_levels[index + 1]
         on = sub_levels[: index + 1]
         if index == 0:
-            coicop_nomenclature = pd.merge(
-                build_coicop_level_nomenclature(level),
+            coicop_nomenclature = build_coicop_level_nomenclature(level).merge(
                 build_coicop_level_nomenclature(next_level),
                 on=on,
                 left_index=False,
                 right_index=False,
             )
         else:
-            coicop_nomenclature = pd.merge(
-                coicop_nomenclature,
+            coicop_nomenclature = coicop_nomenclature.merge(
                 build_coicop_level_nomenclature(next_level),
                 on=on,
                 left_index=False,

@@ -1,5 +1,4 @@
 import collections
-import glob
 import logging
 import re
 from pathlib import Path
@@ -29,8 +28,19 @@ admissible_source_formats = list(source_format_by_extension.values())
 
 
 class NoMoreDataError(Exception):
-    # Exception when the user ask for more data than available in file
-    pass
+    """Exception when the user ask for more data than available in file."""
+
+class TableNotFoundError(Exception):
+    """Exception raised when a table is not found in the survey."""
+
+class VariableMissingError(Exception):
+    """Exception raised when requested variables are missing from the table."""
+
+class ParquetFileNotFoundError(Exception):
+    """Exception raised when no parquet file is found in the specified directory."""
+
+class SurveyDataFileNotFoundError(Exception):
+    """Exception raised when no data file is found for the survey."""
 
 
 class Survey:
@@ -138,8 +148,8 @@ Contains the following tables : \n"""
         else:
             source_formats = admissible_source_formats
 
-        for source_format in source_formats:
-            files = f"{source_format}_files"
+        for fmt in source_formats:
+            files = f"{fmt}_files"
             for data_file in survey.informations.get(files, []):
                 path = Path(data_file)
                 name = path.stem
@@ -229,7 +239,7 @@ Contains the following tables : \n"""
         """
         if self.parquet_file_path is None and self.hdf5_file_path is None:
             msg = f"No data file found for survey {self.name}"
-            raise Exception(msg)
+            raise SurveyDataFileNotFoundError(msg)
         if self.hdf5_file_path is not None:
             assert Path(self.hdf5_file_path).exists(), (
                 f"{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code."
@@ -262,9 +272,6 @@ Contains the following tables : \n"""
             store.close()
 
         elif self.parquet_file_path is not None:
-            if table is None:
-                msg = "A table name is needed to retrieve data from a parquet file"
-                raise Exception(msg)
             for table_name, table_content in self.tables.items():
                 if table == table_name:
                     parquet_file = table_content.get("parquet_file")
@@ -277,7 +284,7 @@ Contains the following tables : \n"""
                                 break
                         else:
                             msg = f"No parquet file found in {parquet_file}"
-                            raise Exception(msg)
+                            raise ParquetFileNotFoundError(msg)
                     else:
                         one_parquet_file = parquet_file
                     parquet_schema = pq.read_schema(one_parquet_file)
@@ -294,9 +301,7 @@ Contains the following tables : \n"""
                         )
                     elif batch_size:
                         if Path(parquet_file).is_dir():
-                            parquet_file = glob.glob(
-                                Path(parquet_file, "*.parquet")
-                            )
+                            parquet_file = list(Path(parquet_file).glob("*.parquet"))
                         else:
                             parquet_file = [parquet_file]
                         # Initialize an empty list to store the Parquet tables
@@ -339,7 +344,7 @@ Contains the following tables : \n"""
                     break
             else:
                 msg = f"No table {table} found in {self.parquet_file_path}"
-                raise Exception(msg)
+                raise TableNotFoundError(msg)
 
         if lowercase:
             columns = {column_name: column_name.lower() for column_name in df}
@@ -357,7 +362,7 @@ Contains the following tables : \n"""
         diff = set(variables) - set(df.columns)
         if diff:
             msg = f"The following variable(s) {diff} are missing"
-            raise Exception(msg)
+            raise VariableMissingError(msg)
         variables = list(set(variables).intersection(df.columns))
         return df[variables]
 

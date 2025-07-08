@@ -207,7 +207,7 @@ class Table:
                         msg = "A ';' is present in the unique column name. Looks like we got the wrong separator."
                         raise ValueError(msg)
 
-                except Exception:
+                except (UnicodeDecodeError, csv.Error):
                     log.debug(
                         f"Failing to read {data_file}, Trying to infer encoding and dialect/separator"
                     )
@@ -230,7 +230,7 @@ class Table:
                             dialect = csv.Sniffer().sniff(
                                 csvfile.read(1024), delimiters=";,"
                             )
-                    except Exception:
+                    except (csv.Error, UnicodeDecodeError):
                         # Sometimes the sniffer fails, we switch back to the default ... of french statistical data
                         dialect = None
                         delimiter = ";"
@@ -249,9 +249,9 @@ class Table:
             else:
                 data_frame = reader(data_file, **kwargs)
 
-        except Exception:
-            log.info(f"Error while reading {data_file}")
-            raise
+        except (FileNotFoundError, ValueError, OSError) as error:
+            msg = f"Error while reading {data_file}"
+            raise type(error)(msg) from error
 
         gc.collect()
         return data_frame

@@ -163,11 +163,13 @@ lint.ignore = [
     "F405",
     "FBT001", # Boolean-typed positional argument in function definition
     "FIX002",
+    "FIX004", # Line contains HACK, consider resolving the issue
     "I001",
     "ISC001",
     "N801",
     "N805",
     "N806",
+    "N999", # Invalid module name
     "PGH004",
     "PLR2004",
     "PLR0912",

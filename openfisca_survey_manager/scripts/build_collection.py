@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Build or update a collection from raw surveys data."""
 
 import argparse
@@ -5,7 +6,6 @@ import configparser
 import datetime
 import logging
 import os
-import pdb
 import re
 import shutil
 import sys
@@ -181,12 +181,11 @@ def build_survey_collection(
             collections_directory, f"{collection_name}.json"
         )
         survey_collection.dump(json_file_path=collection_json_path)
-        surveys = []
-        for survey in survey_collection.surveys:
-            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(
-                collection_name
-            ):
-                surveys.append(survey)
+        surveys = [
+            survey
+            for survey in survey_collection.surveys
+            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name)
+        ]
         survey_collection.fill_store(
             source_format=source_format,
             surveys=surveys,
@@ -313,21 +312,16 @@ def main():
 
     start_time = datetime.datetime.now(datetime.timezone.utc)
 
-    try:
-        build_survey_collection(
-            collection_name=args.collection,
-            data_directory_path_by_survey_suffix=data_directory_path_by_survey_suffix,
-            replace_metadata=args.replace_metadata,
-            replace_data=args.replace_data,
-            source_format="sas",
-            config_files_directory=config_files_directory,
-            keep_original_parquet_file=args.keep_original_parquet_file,
-            encoding=args.encoding,
-        )
-    except Exception as e:
-        log.info(e)
-        pdb.post_mortem(sys.exc_info()[2])
-        raise
+    build_survey_collection(
+        collection_name=args.collection,
+        data_directory_path_by_survey_suffix=data_directory_path_by_survey_suffix,
+        replace_metadata=args.replace_metadata,
+        replace_data=args.replace_data,
+        source_format="sas",
+        config_files_directory=config_files_directory,
+        keep_original_parquet_file=args.keep_original_parquet_file,
+        encoding=args.encoding,
+    )
 
     log.info(f"The program has been executed in {datetime.datetime.now(datetime.timezone.utc) - start_time}")
 

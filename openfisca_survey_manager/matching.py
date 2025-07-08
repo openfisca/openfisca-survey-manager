@@ -16,7 +16,7 @@ def nnd_hotdeck_using_feather(
     receiver=None, donor=None, matching_variables=None, z_variables=None
 ):
     """Not working."""
-    import feather
+    import feather  # noqa
 
     assert receiver is not None
     assert donor is not None
@@ -78,8 +78,8 @@ def nnd_hotdeck_using_rpy2(
     z_variables=None,
     donor_classes=None,
 ):
-    from rpy2.robjects import pandas2ri
-    from rpy2.robjects.packages import importr
+    from rpy2.robjects import pandas2ri  # noqa
+    from rpy2.robjects.packages import importr # noqa
 
     assert receiver is not None
     assert donor is not None
@@ -107,7 +107,7 @@ def nnd_hotdeck_using_rpy2(
                 match_vars=pd.Series(matching_variables),
                 # don_class = pd.Series(donor_classes)
             )
-    except Exception as e:
+    except RuntimeError as e:
         print(1)  # noqa analysis:ignore
         print(receiver)  # noqa analysis:ignore
         print(2)  # noqa analysis:ignore

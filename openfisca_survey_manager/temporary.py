@@ -49,8 +49,6 @@ def temporary_store_decorator(
 
             try:
                 return func(*args, temporary_store=temporary_store, **kwargs)
-            except Exception:
-                raise
             finally:
                 gc.collect()
                 if just_openned:

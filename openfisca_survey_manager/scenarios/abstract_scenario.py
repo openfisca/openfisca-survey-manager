@@ -233,8 +233,7 @@ class AbstractSurveyScenario:
         filter_by=None,
         weighted: bool = True,
         alternative_weights=None,
-        filtering_variable_by_entity=None,
-    ) -> list[float]:
+     ) -> list[float]:
         """Compute quantiles of a variable.
 
         Args:

@@ -3,17 +3,23 @@
 import logging
 import operator
 
+
 import pandas as pd
 from numpy import array, dot, exp, float64, log as ln, ones, sqrt, unique, zeros
+
 
 log = logging.getLogger(__name__)
 
 
+class CalmarError(Exception):
+    """Custom exception for CALMAR calibration errors."""
+
+
 def linear(u):
     """Args:
-      u:
+      u: Argument of the function.
 
-    Returns:
+    Returns: 1 + u
 
     """
     return 1 + u
@@ -21,9 +27,9 @@ def linear(u):
 
 def linear_prime(u):
     """Args:
-      u:
+      u: Argument of the function.
 
-    Returns:
+    Returns: 1
 
     """
     return ones(u.shape, dtype=float)
@@ -31,9 +37,9 @@ def linear_prime(u):
 
 def raking_ratio(u):
     """Args:
-      u:
+      u: Argument of the function.
 
-    Returns:
+    Returns: exp(u)
 
     """
     return exp(u)
@@ -41,9 +47,9 @@ def raking_ratio(u):
 
 def raking_ratio_prime(u):
     """Args:
-      u:
+      u: Argument of the function.
 
-    Returns:
+    Returns: exp(u)
 
     """
     return exp(u)
@@ -51,11 +57,11 @@ def raking_ratio_prime(u):
 
 def logit(u, low, up):
     """Args:
-      u:
-      low:
-      up:
+      u: Argument of the function.
+      low: Lower bound.
+      up: Upper bound.
 
-    Returns:
+    Returns: Logit transformation.
 
     """
     a = (up - low) / ((1 - low) * (up - 1))
@@ -66,12 +72,11 @@ def logit(u, low, up):
 
 def logit_prime(u, low, up):
     """Args:
-      u:
-      low:
-      up:
+      u: Argument of the function.
+      low: Lower bound.
+      up: Upper bound.
 
-    Returns:
-
+    Returns: Derivative of Logit transformation.
     """
     a = (up - low) / ((1 - low) * (up - 1))
     return (
@@ -99,12 +104,13 @@ def hyperbolic_sinus_prime(u, alpha):
 
 
 def build_dummies_dict(data):
-    """Args:
-      data:
+    """Build a dictionary of dummy variables from the input data.
+
+    Args:
+      data: A pandas Series or DataFrame.
 
     Returns:
-
-
+      A dictionary where the keys are the unique values in the data and the values are boolean masks.
     """
     unique_val_list = unique(data)
     output = {}
@@ -157,7 +163,7 @@ def calmar(
     Sources:
         https://github.com/InseeFrLab/Calmar2/blob/main/manuel_utilisation.pdf
     """
-    from scipy.optimize import fsolve
+    from scipy.optimize import fsolve  # noqa
 
     target_entity = data_in["target_entity_name"]
     smaller_entity = None
@@ -177,10 +183,9 @@ def calmar(
     is_non_zero_weight = data_in[target_entity][initial_weight].fillna(0) > 0
     if is_non_zero_weight.sum() > null_weight_observations:
         log.info(
-            "{} observations have a zero weight. Not used in the calibration.".format(
-                (data_in[target_entity][initial_weight].fillna(0) <= 0).sum()
-                - null_weight_observations
-            )
+            "%s observations have a zero weight. Not used in the calibration.",
+            (data_in[target_entity][initial_weight].fillna(0) <= 0).sum()
+            - null_weight_observations
         )
 
     variables = set(margins.keys()).intersection(set(data_in[target_entity].columns))
@@ -210,28 +215,28 @@ def calmar(
 
     if not margins:
         msg = "Calmar requires non empty dict of margins"
-        raise Exception(msg)
+        raise CalmarError(msg)
 
     # choose method
     assert method in ["linear", "raking ratio", "logit", "hyperbolic sinus"], (
         "method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
     )
     if method == "linear":
-        F = linear
-        F_prime = linear_prime
+        f = linear
+        f_prime = linear_prime
     elif method == "raking ratio":
-        F = raking_ratio
-        F_prime = raking_ratio_prime
+        f = raking_ratio
+        f_prime = raking_ratio_prime
     elif method == "logit":
         assert up is not None, "When method == 'logit', a value > 1 for up is mandatory"
         assert up > 1, "up should be > 1"
         assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
         assert lo < 1, "lo should be < 1"
 
-        def F(x):
+        def f(x):
             return logit(x, lo, up)
 
-        def F_prime(x):
+        def f_prime(x):
             return logit_prime(x, lo, up)
     elif method == "hyperbolic sinus":
         assert alpha is not None, (
@@ -239,10 +244,10 @@ def calmar(
         )
         assert alpha > 0, "alpha should be > 0"
 
-        def F(x):
+        def f(x):
             return hyperbolic_sinus(x, alpha)
 
-        def F_prime(x):
+        def f_prime(x):
             return hyperbolic_sinus_prime(x, alpha)
 
     margins = margins.copy()
@@ -274,8 +279,8 @@ def calmar(
             if var in data[entity].columns:
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
-                    k, pop = 0, 0
-                    for cat, nb in val.items():
+                    pop = 0
+                    for _k, (cat, nb) in enumerate(val.items()):
                         cat_varname = var + "_" + str(cat)
                         data[entity][cat_varname] = dummies_dict[cat]
                         margins_new[cat_varname] = nb
@@ -283,7 +288,6 @@ def calmar(
                             margins_new_dict[var] = {}
                         margins_new_dict[var][cat] = nb
                         pop += nb
-                        k += 1
                         nj += 1
                     # Check total popualtion
                     population = (entity == target_entity) * total_population + (
@@ -300,7 +304,7 @@ def calmar(
                                 margins_new_dict[var][cat] = nb * population / pop
                         else:
                             msg = f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
-                            raise Exception(msg)
+                            raise CalmarError(msg)
                 else:
                     margins_new[var] = val
                     margins_new_dict[var] = val
@@ -311,7 +315,7 @@ def calmar(
         data, "dummy_is_in_pop_smaller_entity"
     ):
         msg = "dummy_is_in_pop and dummy_is_in_pop_smaller_entity are not valid variable names"
-        raise Exception(msg)
+        raise CalmarError(msg)
 
     data[target_entity]["dummy_is_in_pop"] = ones(nk)
     margins_new["dummy_is_in_pop"] = total_population
@@ -330,7 +334,7 @@ def calmar(
         for variable_to_sum in liste_col_to_sum:
             dic_agg[variable_to_sum] = "sum"
         data_second = data[smaller_entity].groupby("id_variable").agg(dic_agg)
-        data_final = pd.merge(data_second, data[target_entity], on="id_variable")
+        data_final = data_second.merge(data[target_entity], on="id_variable")
         nk = len(data_final[initial_weight])
 
     # paramètres de Lagrange initialisés à zéro
@@ -341,19 +345,17 @@ def calmar(
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
-    j = 0
-    for var, val in margins_new.items():
+    for j, (var, val) in enumerate(margins_new.items()):
         x[:, j] = data_final[var]
         xmargins[j] = val
         margins_dict[var] = val
-        j += 1
 
     # Résolution des équations du premier ordre
     def constraint(lambda_):
-        return dot(d * F(dot(x, lambda_)), x) - xmargins
+        return dot(d * f(dot(x, lambda_)), x) - xmargins
 
     def constraint_prime(lambda_):
-        return dot(d * (x.T * F_prime(dot(x, lambda_))), x)
+        return dot(d * (x.T * f_prime(dot(x, lambda_))), x)
         # le jacobien ci-dessus est constraintprime = @(lambda) x*(d.*Fprime(x'*lambda)*x');
 
     tries, ier = 0, 2
@@ -371,7 +373,7 @@ def calmar(
         lambda0 = 1 * lambdasol
         tries += 1
 
-        pondfin = d * F(dot(x, lambdasol))
+        pondfin = d * f(dot(x, lambdasol))
         rel_error = {}
         for var, val in margins_new.items():  # noqa analysis:ignore
             rel_error[var] = (
@@ -393,16 +395,3 @@ def calmar(
     del infodict, mesg  # TODO: better exploit this information
 
     return pondfin_out, lambdasol, margins_new_dict
-
-
-def check_calmar(margins, margins_new_dict=None):
-    """Args:
-      margins:
-      margins_new_dict:  (Default value = None).
-
-    Returns:
-
-    """
-    for variable in margins:
-        if variable != "total_population":
-            pass

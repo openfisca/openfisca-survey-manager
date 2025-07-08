@@ -16,6 +16,5 @@ class Config(configparser.ConfigParser):
     def save(self):
         assert self.config_ini, "configuration file path is not defined"
         assert Path(self.config_ini).exists()
-        config_file = open(self.config_ini, "w")
-        self.write(config_file)
-        config_file.close()
+        with open(self.config_ini, "w") as config_file:
+            self.write(config_file)

@@ -5,15 +5,15 @@ from pandas.core.frame import DataFrame
 log = logging.getLogger(__name__)
 
 
-def read_sas(sas_file_path, clean=False) -> DataFrame:
+def read_sas(sas_file_path) -> DataFrame:
     try:
-        import pyreadstat
+        import pyreadstat  # noqa
 
         data_frame, _ = pyreadstat.read_sas7bdat(sas_file_path)
     except ImportError as e1:
         log.info("pyreadstat not available trying SAS7BDAT")
         try:
-            from sas7bdat import SAS7BDAT
+            from sas7bdat import SAS7BDAT  # noqa
 
             data_frame = SAS7BDAT(sas_file_path).to_data_frame()
         except ImportError:

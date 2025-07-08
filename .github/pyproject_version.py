@@ -6,10 +6,14 @@ import re
 import sys
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
 PACKAGE_VERSION = "X.X.X"
 CORE_VERSION = ">=43,<44"
 NUMPY_VERSION = ">=1.24.3,<2"
 
+
+class PyprojectVersionError(Exception):
+    """Custom exception for pyproject version errors."""
 
 def get_versions():
     """Read package version and deps in pyproject.toml."""
@@ -24,7 +28,7 @@ def get_versions():
         openfisca_survey_manager = version_match.group(1)
     else:
         msg = "Package version not found in pyproject.toml"
-        raise Exception(msg)
+        raise PyprojectVersionError(msg)
     # Extract dependencies
     # version = re.search(r'openfisca-core\s*(>=\s*[\d\.]*,\s*<\d*)"', content, re.MULTILINE)
     # if version:
@@ -71,5 +75,4 @@ if __name__ == "__main__":
     if args.only_package_version:
         print(f"{info['openfisca_survey_manager']}")  # noqa: T201
         sys.exit()
-    logging.info("Versions :")
-    print(info)  # noqa: T201
+    logger.info(f"Versions : {info}")
