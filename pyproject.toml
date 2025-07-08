@@ -151,6 +151,7 @@ format.docstring-code-format = true
 lint.select = [ "ALL" ]
 lint.ignore = [
     "ANN",
+    "C901",
     "COM812",
     "D101",
     "D102",
@@ -169,6 +170,8 @@ lint.ignore = [
     "N806",
     "PGH004",
     "PLR2004",
+    "PLR0912",
+    "PLR0915",
     "PT028",
     "PTH100",
     "PTH118",
@@ -184,6 +187,8 @@ lint.ignore = [
     "FBT002",  # boolean-default-value-positional-argument
     "G004",    # logging-f-string
     "D100",    # missing-docstring
+    "D105",    # Missing docstring in magic method
+    "D107",    # missing docstring in __init__
     "D101",    # missing-public-method-docstring
     "D102",    # missing-public-module-docstring
     "D104",    # missing-module-docstring
@@ -191,6 +196,7 @@ lint.ignore = [
     "D414",    # missing-parameter-docstring
     "D417",  # missing-function-docstring
     "PLR0913",  # too-many-arguments
+    "SLF001",  # Private member accessed
 ]
 lint.pydocstyle.convention = "google"
 

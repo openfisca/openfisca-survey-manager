@@ -149,7 +149,7 @@ class Calibration:
 
         self.weight = initial_weight.copy()
 
-        # TODO does not work
+        # TODO: does not work
         for entity, weight_variable in simulation.weight_variable_by_entity.items():
             self.initial_weight_by_entity[entity] = simulation.calculate(
                 weight_variable, period=period

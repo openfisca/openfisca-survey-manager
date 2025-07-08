@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import logging
+import os
 import shutil
 from pathlib import Path
-import os
 
 import pytest
 

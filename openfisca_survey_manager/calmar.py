@@ -191,7 +191,7 @@ def calmar(
                 f"For variable {variable}, {null_value_observations} observations have a NaN value. Not used in the calibration."
             )
             is_non_zero_weight = (
-                is_non_zero_weight & data_in[target_entity][variable].notnull()
+                is_non_zero_weight & data_in[target_entity][variable].notna()
             )
 
     if not is_non_zero_weight.all():
@@ -390,7 +390,7 @@ def calmar(
     pondfin_out = array(data_in[target_entity][initial_weight], dtype=float64)
     pondfin_out[is_non_zero_weight] = pondfin
 
-    del infodict, mesg  # TODO better exploit this information
+    del infodict, mesg  # TODO: better exploit this information
 
     return pondfin_out, lambdasol, margins_new_dict
 

@@ -160,7 +160,7 @@ class Table:
             )
             return
 
-        start_table_time = datetime.datetime.now()
+        start_table_time = datetime.datetime.now(datetime.timezone.utc)
         if self.source_format in ["sas", "parquet"]:
             del kwargs["encoding"]
         data_frame = self.read_source(data_file, **kwargs)
@@ -169,7 +169,7 @@ class Table:
                 clean_data_frame(data_frame)
             self._save(data_frame=data_frame, store_format=self.survey.store_format)
             log.info(
-                f"File {data_file} has been processed in {datetime.datetime.now() - start_table_time}"
+                f"File {data_file} has been processed in {datetime.datetime.now(datetime.timezone.utc) - start_table_time}"
             )
         except Exception as e:
             log.info(f"Skipping file {data_file} because of following error \n {e}")

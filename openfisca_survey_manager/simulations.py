@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 """Monkey-patch openfisca_core.simulations.Simulation to work with pandas."""
 
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable
 
@@ -1041,7 +1040,7 @@ def _input_data_table_by_entity_by_period_monolithic(
             custom_input_data_frame(input_data_frame, period=period, entity=entity.key)
             builder.init_entity_structure(
                 entity, simulation_datasets[entity.key]
-            )  # TODO complete args
+            )  # TODO: complete args
         simulation = builder.build(tax_benefit_system)
         simulation.id_variable_by_entity_key = (
             builder.id_variable_by_entity_key
@@ -1214,7 +1213,7 @@ def init_simulation(tax_benefit_system, period, data):
                 drop=True
             )
         else:
-            NotImplementedError
+            raise NotImplementedError
 
         custom_input_data_frame(input_data_frame, period=period)
         simulation = builder.init_all_entities(
@@ -1251,7 +1250,7 @@ def init_simulation(tax_benefit_system, period, data):
                 )
                 builder.init_entity_structure(
                     entity, input_data_frame
-                )  # TODO complete args
+                )  # TODO: complete args
 
         simulation = builder.build(tax_benefit_system)
         simulation.id_variable_by_entity_key = (
@@ -1326,25 +1325,25 @@ def init_variable_in_entity(
 
     # np.issubdtype cannot handles categorical variables
     if (not isinstance(series.dtype, pd.CategoricalDtype)) and np.issubdtype(
-        series.values.dtype, np.floating
+        series.to_numpy().dtype, np.floating
     ):
         if series.isna().any():
             log.debug(
-                f"There are {series.isna().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
+                f"There are {series.isna().sum()} NaN values for {series.notna().sum()} non NaN values in variable {variable_name}"
             )
             log.debug(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
             )
             series = series.fillna(variable.default_value)
-        assert series.notnull().all(), (
-            f"There are {series.isna().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
+        assert series.notna().all(), (
+            f"There are {series.isna().sum()} NaN values for {series.notna().sum()} non NaN values in variable {variable_name}"
         )
 
     enum_variable_imputed_as_enum = variable.value_type == Enum and (
         isinstance(series.dtype, pd.CategoricalDtype)
         or not (
-            np.issubdtype(series.values.dtype, np.integer)
-            or np.issubdtype(series.values.dtype, float)
+            np.issubdtype(series.to_numpy().dtype, np.integer)
+            or np.issubdtype(series.to_numpy().dtype, float)
         )
     )
 
@@ -1364,17 +1363,17 @@ def init_variable_in_entity(
             assert series.isin(list(possible_values._member_names_)).all()
             series = series.apply(lambda v: variable.possible_values[v].index)
 
-    if series.values.dtype != variable.dtype:
+    if series.to_numpy().dtype != variable.dtype:
         log.debug(
-            f"Converting {variable_name} from dtype {series.values.dtype} to {variable.dtype}"
+            f"Converting {variable_name} from dtype {series.to_numpy().dtype} to {variable.dtype}"
         )
 
-    array = series.values.astype(variable.dtype)
+    array = series.to_numpy().astype(variable.dtype)
     np_array = np.array(array, dtype=variable.dtype)
 
     if (variable.value_type == Enum) and (
-        np.issubdtype(series.values.dtype, np.integer)
-        or np.issubdtype(series.values.dtype, float)
+        np.issubdtype(series.to_numpy().dtype, np.integer)
+        or np.issubdtype(series.to_numpy().dtype, float)
     ):
         np_array = EnumArray(np_array, variable.possible_values)
 

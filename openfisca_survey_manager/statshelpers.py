@@ -60,7 +60,7 @@ def kakwani(values, ineq_axis, weights=None):
     Returns:
         float: Kakwani index
     """
-    from scipy.integrate import simps
+    from scipy.integrate import simps  # noqa
 
     if weights is None:
         weights = ones(len(values))
@@ -118,7 +118,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
     # labels[i] inserted into spot j if a[j] falls in x-tile i.
     # The number of xtiles requested is inferred from the length of 'labels'.
 
-    np.random.seed(42)
+    np.random.default_rng(42)
 
     # First method, "vanilla" weights from Wikipedia article.
     if method == 1:

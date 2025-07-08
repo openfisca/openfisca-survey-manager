@@ -526,4 +526,4 @@ class AbstractAggregates:
         return df
 
     def load_actual_data(self, period=None):
-        NotImplementedError
+        raise NotImplementedError
