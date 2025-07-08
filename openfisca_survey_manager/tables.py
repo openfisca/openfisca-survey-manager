@@ -61,7 +61,8 @@ class Table:
         self.parquet_file = parquet_file
         self.informations = kwargs
 
-        from .surveys import Survey  # Keep it here to avoid infinite recursion
+        # Keep it here to avoid infinite recursion
+        from .surveys import Survey  # noqa
 
         assert isinstance(survey, Survey), (
             f"survey is of type {type(survey)} and not {Survey}"
@@ -318,7 +319,7 @@ def clean_data_frame(data_frame):
         f"The following variables are to be cleaned or left as strings : \n {object_column_names}"
     )
     for column_name in object_column_names:
-        if data_frame[column_name].isnull().all():
+        if data_frame[column_name].isna().all():
             log.info(f"Drop empty column {column_name}")
             data_frame = data_frame.drop(column_name, axis=1)
             continue

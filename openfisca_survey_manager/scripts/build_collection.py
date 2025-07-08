@@ -5,11 +5,11 @@ import configparser
 import datetime
 import logging
 import os
-from pathlib import Path
 import pdb
 import re
 import shutil
 import sys
+from pathlib import Path
 
 from openfisca_survey_manager.paths import (
     default_config_files_directory,

@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-
-from pathlib import Path
-
 import logging
+from pathlib import Path
 
 import pandas as pd
 
@@ -16,7 +14,8 @@ log = logging.getLogger(__name__)
 
 
 def do_nothing(*args, **kwargs):
-    return None
+    """A function that does nothing, used as a placeholder."""
+    _, __ = args, kwargs
 
 
 def inflate_parameters(
@@ -270,9 +269,8 @@ def variables_asof(tax_benefit_system, instant, variables_list=None):
                 if periods.instant(instant_str) > instant:
                     del formulas[instant_str]
 
-            if variable.end is not None:
-                if periods.instant(variable.end) >= instant:
-                    variable.end = None
+            if variable.end is not None and periods.instant(variable.end) >= instant:
+                variable.end = None
 
 
 def stata_files_to_data_frames(data, period=None):

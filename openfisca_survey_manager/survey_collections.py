@@ -1,11 +1,11 @@
 """Survey collections."""
 
-from pathlib import Path
 import codecs
 import collections
 import json
 import logging
 import os
+from pathlib import Path
 
 from openfisca_survey_manager.config import Config
 from openfisca_survey_manager.paths import default_config_files_directory

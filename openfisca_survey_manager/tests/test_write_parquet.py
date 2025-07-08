@@ -129,7 +129,6 @@ class TestWriteParquet(unittest.TestCase):
         df.to_parquet(filepath)
         df2 = pd.read_parquet(filepath)
         assert df.equals(df2)
-        collection_name = collection_name
         data_directory_path_by_survey_suffix = {
             "2020": os.path.join(data_dir),
         }

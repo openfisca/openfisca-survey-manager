@@ -146,9 +146,9 @@ def test_calmar():
         .sort_values(["X", "Y", "Z"])["weight_ratio"]
         .round(5)
     )
-    null_target_weight_ratio = target_weight_ratio.isnull()
+    null_target_weight_ratio = target_weight_ratio.isna()
 
-    assert weight_ratio.loc[null_target_weight_ratio.values].isnull().all(), (
+    assert weight_ratio.loc[null_target_weight_ratio.values].isna().all(), (
         "Error on Nan"
     )
 

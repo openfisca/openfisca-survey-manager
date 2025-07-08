@@ -168,7 +168,7 @@ def calmar(
             entities += [smaller_entity]
 
     # remove null weights and keep original data
-    null_weight_observations = data_in[target_entity][initial_weight].isnull().sum()
+    null_weight_observations = data_in[target_entity][initial_weight].isna().sum()
     if null_weight_observations > 0:
         log.info(
             f"{null_weight_observations} observations have a NaN weight. Not used in the calibration."
@@ -185,7 +185,7 @@ def calmar(
 
     variables = set(margins.keys()).intersection(set(data_in[target_entity].columns))
     for variable in variables:
-        null_value_observations = data_in[target_entity][variable].isnull().sum()
+        null_value_observations = data_in[target_entity][variable].isna().sum()
         if null_value_observations > 0:
             log.info(
                 f"For variable {variable}, {null_value_observations} observations have a NaN value. Not used in the calibration."
