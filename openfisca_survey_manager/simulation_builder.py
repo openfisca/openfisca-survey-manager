@@ -304,13 +304,11 @@ def init_simulation_with_data_frame(builder, input_data_frame, period):
         )
 
     for column_name, column_serie in input_data_frame.items():
-        if role_variable_by_entity_key is not None:
-            if column_name in role_variable_by_entity_key.values():
-                continue
+        if role_variable_by_entity_key is not None and column_name in role_variable_by_entity_key.values():
+            continue
 
-        if id_variable_by_entity_key is not None:
-            if column_name in id_variable_by_entity_key.values():
-                continue
+        if id_variable_by_entity_key is not None and column_name in id_variable_by_entity_key.values():
+            continue
 
         simulation = builder.build(tax_benefit_system)
         entity = tax_benefit_system.variables[column_name].entity

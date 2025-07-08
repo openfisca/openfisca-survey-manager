@@ -129,9 +129,9 @@ Contains the following surveys :
             assert collection is not None, "A collection is needed"
             try:
                 json_file_path = config.get("collections", collection)
-            except Exception as error:
+            except Exception:
                 log.debug(f"Looking for config file in {config_files_directory}")
-                log.exception(error)
+                log.exception("Exception occurred while retrieving collection config")
                 raise
 
         with open(json_file_path) as _file:

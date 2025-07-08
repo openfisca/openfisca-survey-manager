@@ -200,8 +200,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Formula from stats.stackexchange.com post.
         s_vals = [0.0]
-        for ii in range(1, N):
-            s_vals.append(ii * tmp_weights[ii] + (N - 1) * cu_weights[ii - 1])
+        s_vals.extend([ii * tmp_weights[ii] + (N - 1) * cu_weights[ii - 1] for ii in range(1, N)])
         s_vals = asarray(s_vals)
 
         # Normalized s_vals for comapring with the breakpoint.

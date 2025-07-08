@@ -718,10 +718,10 @@ def create_data_frame_by_entity(
             index_by_role = {
                 flattened_roles[index]: index for index in range(len(flattened_roles))
             }
-            person_data_frame["{}_{}".format(entity.key, "role")] = pd.Series(
+            person_data_frame[f"{entity.key}_role"] = pd.Series(
                 simulation.populations[entity.key].members_role
             ).map(index_by_role)
-            person_data_frame["{}_{}".format(entity.key, "position")] = (
+            person_data_frame[f"{entity.key}_position"] = (
                 simulation.populations[entity.key].members_position
             )
 
@@ -1223,8 +1223,8 @@ def init_simulation(tax_benefit_system, period, data):
     elif source_type == "input_data_table_by_period":
         # Case 2: fill simulation with input_data_frame by period containing all entity variables
         input_data_table_by_period = data.get("input_data_table_by_period")
-        for period, table in input_data_table_by_period.items():
-            period = periods.period(period)
+        for period_, table in input_data_table_by_period.items():
+            period = periods.period(period_)
             log.debug(f"From survey {survey} loading table {table}")
             input_data_frame = load_table(
                 config_files_directory=config_files_directory,
@@ -1239,8 +1239,8 @@ def init_simulation(tax_benefit_system, period, data):
             )  # monolithic dataframes
 
     elif source_type == "input_data_frame_by_entity_by_period":
-        for period, input_data_frame_by_entity in source.items():
-            period = periods.period(period)
+        for period_, input_data_frame_by_entity in source.items():
+            period = periods.period(period_)
             for entity in tax_benefit_system.entities:
                 input_data_frame = input_data_frame_by_entity.get(entity.key)
                 if input_data_frame is None:
@@ -1319,7 +1319,7 @@ def init_simulation(tax_benefit_system, period, data):
 
 
 def init_variable_in_entity(
-    simulation: Simulation, entity, variable_name, series, period
+    simulation: Simulation, variable_name, series, period
 ):
     variable = simulation.tax_benefit_system.variables[variable_name]
 

@@ -12,8 +12,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-# TODO:
-#  * Localisation
+# TODO: Localisation
 
 
 class AbstractAggregates:
@@ -275,7 +274,7 @@ class AbstractAggregates:
 
     def create_description(self):
         """Create a description dataframe."""
-        now = datetime.now()
+        now = datetime.now(tz=datetime.timezone.utc)
         return pd.DataFrame(
             [
                 "OpenFisca",
@@ -301,7 +300,7 @@ class AbstractAggregates:
         assert path is not None
 
         if Path(path).is_dir():
-            now = datetime.now()
+            now = datetime.now(tz=datetime.timezone.utc)
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".csv")
             )
@@ -332,7 +331,7 @@ class AbstractAggregates:
         assert path is not None
 
         if Path(path).is_dir():
-            now = datetime.now()
+            now = datetime.now(tz=datetime.timezone.utc)
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".xlsx")
             )
@@ -374,7 +373,7 @@ class AbstractAggregates:
         )
 
         if path is not None and Path(path).is_dir():
-            now = datetime.now()
+            now = datetime.now(tz=datetime.timezone.utc)
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".html")
             )
@@ -407,7 +406,7 @@ class AbstractAggregates:
         )
 
         if path is not None and Path(path).is_dir():
-            now = datetime.now()
+            now = datetime.now(tz=datetime.timezone.utc)
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".md")
             )

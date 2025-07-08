@@ -70,15 +70,18 @@ class Calibration:
                 entity.key for entity in simulation.tax_benefit_system.entities
             ]
         elif len(entities) == 2:
-            assert (
-                "id_variable" in parameters and parameters["id_variable"] is not None
-            ), (
+            assert "id_variable" in parameters, (
                 "With two entities involved, an id variable of the largest entity is needed"
             )
-            assert (
-                "id_variable_link" in parameters
-                and parameters["id_variable_link"] is not None
-            ), "With two entities involved, an id variable linking entity is needed"
+            assert parameters["id_variable"] is not None, (
+                "With two entities involved, an id variable of the largest entity is needed"
+            )
+            assert "id_variable_link" in parameters, (
+                "With two entities involved, an id variable linking entity is needed"
+            )
+            assert parameters["id_variable_link"] is not None, (
+                "With two entities involved, an id variable linking entity is needed"
+            )
             entity_id_variable = variable_instance_by_variable_name[
                 parameters["id_variable"]
             ].entity.key
@@ -98,9 +101,11 @@ class Calibration:
             id_variable_link = simulation.calculate(
                 parameters["id_variable_link"], period
             )
-            assert (
-                np.unique(id_variable_link).sort() == np.unique(id_variable).sort()
-            ), "There is no inclusion of one entity in the other"
+            unique_id_variable_link = np.unique(id_variable_link)
+            unique_id_variable = np.unique(id_variable)
+            assert np.array_equal(np.sort(unique_id_variable_link), np.sort(unique_id_variable)), (
+                "There is no inclusion of one entity in the other"
+            )
             assert len(id_variable) < len(id_variable_link), (
                 f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'"
             )
@@ -150,8 +155,8 @@ class Calibration:
         self.weight = initial_weight.copy()
 
         # TODO: does not work
-        for entity, weight_variable in simulation.weight_variable_by_entity.items():
-            self.initial_weight_by_entity[entity] = simulation.calculate(
+        for _entity, weight_variable in simulation.weight_variable_by_entity.items():
+            self.initial_weight_by_entity[_entity] = simulation.calculate(
                 weight_variable, period=period
             )
 

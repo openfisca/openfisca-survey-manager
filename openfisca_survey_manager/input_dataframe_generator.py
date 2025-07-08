@@ -303,8 +303,7 @@ def set_table_in_survey(
     collections_directory = survey_collection.config.get(
         "collections", "collections_directory"
     )
-    assert os.path.isdir(
-        collections_directory
+    assert Path(collections_directory).is_dir(
     ), f"""{collections_directory} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file."""
     collection_json_path = Path(collections_directory, f"{collection}.json")
@@ -333,13 +332,13 @@ def build_input_dataframe_from_test_case(
                 array_by_variable[variable] = simulation.calculate(
                     variable, period=period
                 )
-            except Exception as e:
+            except (ValueError, KeyError) as e:
                 log.debug(e)
                 try:
                     array_by_variable[variable] = simulation.calculate_add(
                         variable, period=period
                     )
-                except Exception as e:
+                except (ValueError, KeyError) as e:
                     log.debug(e)
                     array_by_variable[variable] = simulation.calculate(
                         variable, period=period.first_month
