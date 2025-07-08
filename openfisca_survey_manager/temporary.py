@@ -25,7 +25,7 @@ def temporary_store_decorator(
     assert tmp_directory is not None, (
         f"tmp_directory is not set: {tmp_directory!r} in {read_config_file_name}"
     )
-    assert os.path.isabs(tmp_directory), (
+    assert Path(tmp_directory).is_absolute(), (
         f"tmp_directory should be an absolut path: {tmp_directory!r} in {read_config_file_name}"
     )
     if not Path(tmp_directory).is_dir():
