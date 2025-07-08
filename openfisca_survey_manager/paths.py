@@ -48,12 +48,12 @@ test_config_files_directory = os.path.join(
     "data_files",
 )
 
-with open(os.path.join(test_config_files_directory, "config_template.ini")) as file:
+with open(Path(test_config_files_directory, "config_template.ini")) as file:
     config_ini = file.read()
 
 config_ini = config_ini.format(location=openfisca_survey_manager_location)
 try:
-    with open(os.path.join(test_config_files_directory, "config.ini"), "w+") as file:
+    with open(Path(test_config_files_directory, "config.ini"), "w+") as file:
         file.write(config_ini)
 except PermissionError:
     log.debug(

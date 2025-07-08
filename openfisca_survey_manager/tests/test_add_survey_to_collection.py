@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -22,7 +23,7 @@ def test_add_survey_to_collection_parquet():
         "data_files",
     )
     survey_collection = SurveyCollection(name=name)
-    saved_fake_survey_file_path = os.path.join(data_dir, "test.parquet")
+    saved_fake_survey_file_path = Path(data_dir, "test.parquet")
     add_survey_to_collection(
         survey_name=survey_name,
         survey_collection=survey_collection,
@@ -40,7 +41,7 @@ def test_set_table_in_survey_parquet():
         openfisca_survey_manager_location,
         "openfisca_survey_manager/tests/data_files",
     )
-    filepath = os.path.join(data_dir, "test_parquet_collection", "household.parquet")
+    filepath = Path(data_dir, "test_parquet_collection", "household.parquet")
     input_dataframe = pd.read_parquet(filepath)
     survey_name = "test_parquet"
     collection = "fake"
@@ -77,7 +78,7 @@ def test_add_survey_to_collection():
         "data_files",
     )
     survey_collection = SurveyCollection(name=name)
-    saved_fake_survey_file_path = os.path.join(data_dir, "help.sas7bdat")
+    saved_fake_survey_file_path = Path(data_dir, "help.sas7bdat")
     add_survey_to_collection(
         survey_name=survey_name,
         survey_collection=survey_collection,

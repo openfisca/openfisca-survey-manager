@@ -5,11 +5,11 @@ import configparser
 import datetime
 import logging
 import os
+from pathlib import Path
 import pdb
 import re
 import shutil
 import sys
-from pathlib import Path
 
 from openfisca_survey_manager.paths import (
     default_config_files_directory,
@@ -84,7 +84,7 @@ def create_data_file_by_format(directory_path=None):
 
     for root, _subdirs, files in os.walk(directory_path):
         for file_name in files:
-            file_path = os.path.join(root, file_name)
+            file_path = Path(root, file_name)
             if os.path.basename(file_name).endswith(".csv"):
                 log.info(f"Found csv file {file_path}")
                 csv_files.append(file_path)
@@ -199,8 +199,8 @@ def build_survey_collection(
 
 def check_template_config_files(config_files_directory: str):
     """Create template config files if they do not exist."""
-    raw_data_ini_path = os.path.join(config_files_directory, "raw_data.ini")
-    config_ini_path = os.path.join(config_files_directory, "config.ini")
+    raw_data_ini_path = Path(config_files_directory, "raw_data.ini")
+    config_ini_path = Path(config_files_directory, "config.ini")
     raw_data_template_ini_path = os.path.join(
         config_files_directory, "raw_data_template.ini"
     )
@@ -230,8 +230,8 @@ def check_template_config_files(config_files_directory: str):
                 )
                 for template_file in template_files:
                     shutil.copy(
-                        os.path.join(templates_config_files_directory, template_file),
-                        os.path.join(config_files_directory, template_file),
+                        Path(templates_config_files_directory, template_file),
+                        Path(config_files_directory, template_file),
                     )
             return False
     else:
@@ -298,7 +298,7 @@ def main():
         return None
 
     config_parser = configparser.ConfigParser()
-    config_parser.read(os.path.join(config_files_directory, "raw_data.ini"))
+    config_parser.read(Path(config_files_directory, "raw_data.ini"))
     assert config_parser.has_section(args.collection), (
         f"{args.collection} is an unkown collection. Please add a section to raw_data.ini configuration file"
     )

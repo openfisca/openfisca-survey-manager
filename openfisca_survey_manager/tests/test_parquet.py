@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 from unittest import TestCase
 
 import pandas as pd
@@ -43,7 +44,7 @@ class TestParquet(TestCase):
     def test_add_survey_to_collection_parquet(self):
         """Test adding a parquet survey to a collection."""
         survey_collection = SurveyCollection(name=self.collection_name)
-        survey_file_path = os.path.join(self.data_dir, self.collection_name)
+        survey_file_path = Path(self.data_dir, self.collection_name)
         add_survey_to_collection(
             survey_name=self.survey_name,
             survey_collection=survey_collection,
@@ -71,7 +72,7 @@ class TestParquet(TestCase):
     """.replace("collection_name", collection_name)
             )
         data_directory_path_by_survey_suffix = {
-            "2020": os.path.join(self.data_dir, collection_name),
+            "2020": Path(self.data_dir, collection_name),
         }
         build_survey_collection(
             collection_name=collection_name,
@@ -143,7 +144,7 @@ class TestParquet(TestCase):
     def test_load_multiple_parquet_monolithic(self):
         """Test loading all data from parquet files in memory."""
         collection_name = "test_multiple_parquet_collection"
-        data_dir = os.path.join(self.data_dir, collection_name)
+        data_dir = Path(self.data_dir, collection_name)
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
         survey_name = collection_name + "_2020"
@@ -205,7 +206,7 @@ class TestParquet(TestCase):
         This allow loading larger than memory datasets.
         """
         df = pd.read_parquet(
-            os.path.join(self.data_dir, self.collection_name, "household.parquet")
+            Path(self.data_dir, self.collection_name, "household.parquet")
         )
         assert len(df) == 4
         assert (
@@ -215,7 +216,7 @@ class TestParquet(TestCase):
         assert df.rent.sum() == 10300
 
         collection_name = "test_multiple_parquet_collection"
-        data_dir = os.path.join(self.data_dir, collection_name)
+        data_dir = Path(self.data_dir, collection_name)
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
         survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})

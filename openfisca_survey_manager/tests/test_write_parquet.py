@@ -26,7 +26,7 @@ class TestWriteParquet(unittest.TestCase):
                 "accommodation_size": [50, 100, 150, 200],
             }
         )
-        filepath = os.path.join(data_dir, "household.parquet")
+        filepath = Path(data_dir, "household.parquet")
         df.to_parquet(filepath)
         df = pd.DataFrame(
             {
@@ -37,7 +37,7 @@ class TestWriteParquet(unittest.TestCase):
                 "household_role_index": [0, 1, 0, 0, 0],
             }
         )
-        filepath = os.path.join(data_dir, "person.parquet")
+        filepath = Path(data_dir, "person.parquet")
         df.to_parquet(filepath)
         df2 = pd.read_parquet(filepath)
         assert df.equals(df2)
@@ -94,7 +94,7 @@ class TestWriteParquet(unittest.TestCase):
                 "accommodation_size": [50, 100],
             }
         )
-        filepath = os.path.join(data_dir, "household", "household-0.parquet")
+        filepath = Path(data_dir, "household", "household-0.parquet")
         df.to_parquet(filepath)
         df = pd.DataFrame(
             {
@@ -104,7 +104,7 @@ class TestWriteParquet(unittest.TestCase):
                 "accommodation_size": [150, 200],
             }
         )
-        filepath = os.path.join(data_dir, "household", "household-1.parquet")
+        filepath = Path(data_dir, "household", "household-1.parquet")
         df.to_parquet(filepath)
         df = pd.DataFrame(
             {
@@ -115,7 +115,7 @@ class TestWriteParquet(unittest.TestCase):
                 "household_role_index": [0, 1],
             }
         )
-        filepath = os.path.join(data_dir, "person", "person-0.parquet")
+        filepath = Path(data_dir, "person", "person-0.parquet")
         df.to_parquet(filepath)
         df = pd.DataFrame(
             {
@@ -126,7 +126,7 @@ class TestWriteParquet(unittest.TestCase):
                 "household_role_index": [0, 0, 0],
             }
         )
-        filepath = os.path.join(data_dir, "person", "person-1.parquet")
+        filepath = Path(data_dir, "person", "person-1.parquet")
         df.to_parquet(filepath)
         df2 = pd.read_parquet(filepath)
         assert df.equals(df2)

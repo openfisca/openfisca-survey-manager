@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from openfisca_survey_manager.paths import openfisca_survey_manager_location
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -17,11 +18,11 @@ def test_survey_parquet():
     survey_collection = SurveyCollection(
         name=name,
         config_files_directory=data_dir,
-        json_file_path=os.path.join(data_dir, "fake.json"),
+        json_file_path=Path(data_dir, "fake.json"),
     )
 
-    saved_fake_survey_hdf5_file_path = os.path.join(data_dir, "fake.hdf5")
-    saved_fake_survey_file_path = os.path.join(data_dir, "test.parquet")
+    saved_fake_survey_hdf5_file_path = Path(data_dir, "fake.hdf5")
+    saved_fake_survey_file_path = Path(data_dir, "test.parquet")
     survey = Survey(
         hdf5_file_path=saved_fake_survey_hdf5_file_path,
         name="fake_survey",
@@ -44,11 +45,11 @@ def test_survey():
     survey_collection = SurveyCollection(
         name=name,
         config_files_directory=data_dir,
-        json_file_path=os.path.join(data_dir, "fake.json"),
+        json_file_path=Path(data_dir, "fake.json"),
     )
 
-    saved_fake_survey_hdf5_file_path = os.path.join(data_dir, "fake.hdf5")
-    saved_fake_survey_file_path = os.path.join(data_dir, "help.sas7bdat")
+    saved_fake_survey_hdf5_file_path = Path(data_dir, "fake.hdf5")
+    saved_fake_survey_file_path = Path(data_dir, "help.sas7bdat")
     survey = Survey(
         hdf5_file_path=saved_fake_survey_hdf5_file_path,
         name="fake_survey",

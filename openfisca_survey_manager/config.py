@@ -1,5 +1,4 @@
 import configparser
-import os
 from pathlib import Path
 
 
@@ -9,7 +8,7 @@ class Config(configparser.ConfigParser):
     def __init__(self, config_files_directory=None):
         configparser.ConfigParser.__init__(self)
         if config_files_directory is not None:
-            config_ini = os.path.join(config_files_directory, "config.ini")
+            config_ini = Path(config_files_directory, "config.ini")
             assert Path(config_ini).exists(), f"{config_ini} is not a valid path"
             self.config_ini = config_ini
             self.read([config_ini])
