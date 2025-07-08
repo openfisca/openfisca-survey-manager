@@ -2,7 +2,6 @@ import numpy as np
 
 from openfisca_survey_manager.statshelpers import bottom_share, top_share
 
-
 size = 1000
 rng = np.random.default_rng()
 x = np.ones(size) + rng.uniform(0, 0.00000001, size)

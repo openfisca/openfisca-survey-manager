@@ -1,8 +1,8 @@
 """Test the ability to store parquet files in collections, without converting them to HDF5."""
 
 import logging
-import os
 import math
+import os
 from pathlib import Path
 from unittest import TestCase
 
