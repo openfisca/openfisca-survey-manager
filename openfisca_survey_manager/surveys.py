@@ -127,10 +127,10 @@ Contains the following tables : \n"""
             store_format = "parquet"
 
         if store_format == "hdf5" and survey.hdf5_file_path is None:
-            survey.hdf5_file_path = os.path.join(directory_path, survey.name + ".h5")
+            survey.hdf5_file_path = Path(directory_path, survey.name + ".h5")
 
         if store_format == "parquet" and survey.parquet_file_path is None:
-            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+            survey.parquet_file_path = Path(directory_path, survey.name)
 
         self.store_format = store_format
 
@@ -276,7 +276,7 @@ Contains the following tables : \n"""
                         # find first parquet file in folder
                         for file in os.listdir(parquet_file):
                             if file.endswith(".parquet"):
-                                one_parquet_file = os.path.join(parquet_file, file)
+                                one_parquet_file = Path(parquet_file, file)
                                 break
                         else:
                             msg = f"No parquet file found in {parquet_file}"
@@ -298,7 +298,7 @@ Contains the following tables : \n"""
                     elif batch_size:
                         if Path(parquet_file).is_dir():
                             parquet_file = glob.glob(
-                                os.path.join(parquet_file, "*.parquet")
+                                Path(parquet_file, "*.parquet")
                             )
                         else:
                             parquet_file = [parquet_file]

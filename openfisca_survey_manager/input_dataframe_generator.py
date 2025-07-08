@@ -275,9 +275,9 @@ def set_table_in_survey(
             )
             Path(directory_path).mkdir(parents=True, exist_ok=True)
         if source_format is None:
-            survey.hdf5_file_path = os.path.join(directory_path, survey.name + ".h5")
+            survey.hdf5_file_path = Path(directory_path, survey.name + ".h5")
         elif source_format == "parquet":
-            survey.parquet_file_path = os.path.join(directory_path, survey.name)
+            survey.parquet_file_path = Path(directory_path, survey.name)
             if not Path(survey.parquet_file_path).is_dir():
                 log.warning(
                     f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory"
@@ -286,7 +286,7 @@ def set_table_in_survey(
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
     if source_format == "parquet" and parquet_file is None:
-        parquet_file = os.path.join(survey.parquet_file_path, table_name + ".parquet")
+        parquet_file = Path(survey.parquet_file_path, table_name + ".parquet")
     survey.insert_table(
         label=table_label,
         name=table_name,
@@ -307,7 +307,7 @@ def set_table_in_survey(
         collections_directory
     ), f"""{collections_directory} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file."""
-    collection_json_path = os.path.join(collections_directory, f"{collection}.json")
+    collection_json_path = Path(collections_directory, f"{collection}.json")
     survey_collection.dump(json_file_path=collection_json_path)
 
 

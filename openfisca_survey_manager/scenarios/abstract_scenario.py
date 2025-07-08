@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import logging
-import os
 from pathlib import Path
 
 import numpy as np
@@ -525,7 +524,7 @@ class AbstractSurveyScenario:
         if use_sub_directories:
             for simulation_name, simulation in self.simulations.items():
                 dump_simulation(
-                    simulation, directory=os.path.join(directory, simulation_name)
+                    simulation, directory=Path(directory, simulation_name)
                 )
         else:
             assert len(self.simulations.keys()) == 1
@@ -538,7 +537,7 @@ class AbstractSurveyScenario:
             raise ValueError(msg)
 
         for simulation_name, simulation in self.simulations.items():
-            simulation_dir = os.path.join(output_dir, f"{simulation_name}_perf_log")
+            simulation_dir = Path(output_dir, f"{simulation_name}_perf_log")
             if not Path(output_dir).exists():
                 Path(output_dir).mkdir()
             if not Path(simulation_dir).exists():
@@ -743,7 +742,7 @@ class AbstractSurveyScenario:
         if use_sub_directories:
             for simulation_name, tax_benefit_system in self.tax_benefit_systems.items():
                 simulation = restore_simulation(
-                    os.path.join(directory, simulation_name),
+                    Path(directory, simulation_name),
                     tax_benefit_system,
                     **kwargs,
                 )

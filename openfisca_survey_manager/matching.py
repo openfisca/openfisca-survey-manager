@@ -22,10 +22,10 @@ def nnd_hotdeck_using_feather(
     assert donor is not None
     assert matching_variables is not None
 
-    temporary_directory_path = os.path.join(config_files_directory, "tmp")
+    temporary_directory_path = Path(config_files_directory, "tmp")
     assert Path(temporary_directory_path).exists()
-    receiver_path = os.path.join(temporary_directory_path, "receiver.feather")
-    donor_path = os.path.join(temporary_directory_path, "donor.feather")
+    receiver_path = Path(temporary_directory_path, "receiver.feather")
+    donor_path = Path(temporary_directory_path, "donor.feather")
     feather.write_dataframe(receiver, receiver_path)
     feather.write_dataframe(donor, donor_path)
     if isinstance(matching_variables, str):

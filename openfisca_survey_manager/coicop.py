@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -8,7 +9,12 @@ from openfisca_survey_manager.paths import openfisca_survey_manager_location
 log = logging.getLogger(__name__)
 
 
-legislation_directory = os.path.join(
+legislation_directory = Path(
+    openfisca_survey_manager_location,
+    "openfisca_survey_manager",
+    "assets",
+)
+legislation_directory = Path(
     openfisca_survey_manager_location,
     "openfisca_survey_manager",
     "assets",
@@ -67,7 +73,7 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     data_frame = data_frame.reset_index(drop=True)
     if to_csv:
         data_frame.to_csv(
-            os.path.join(legislation_directory, f"nomenclature_coicop_by_{level}.csv"),
+            Path(legislation_directory, f"nomenclature_coicop_by_{level}.csv"),
         )
 
     return data_frame
