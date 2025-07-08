@@ -235,7 +235,7 @@ def check_template_config_files(config_files_directory: str):
                     )
             return False
     else:
-        os.makedirs(config_files_directory)
+        Path(config_files_directory).mkdir(parents=True, exist_ok=True)
         return check_template_config_files(config_files_directory)
 
     return True

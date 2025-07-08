@@ -117,11 +117,11 @@ Contains the following tables : \n"""
         # Create folder if it does not exist
         config = survey.survey_collection.config
         directory_path = config.get("data", "output_directory")
-        if not os.path.isdir(directory_path):
+        if not Path(directory_path).is_dir():
             log.warning(
                 f"{directory_path} who should be the store data directory does not exist: we create the directory"
             )
-            os.makedirs(directory_path)
+            Path(directory_path).mkdir(parents=True, exist_ok=True)
 
         if source_format == "parquet":
             store_format = "parquet"
@@ -272,7 +272,7 @@ Contains the following tables : \n"""
                 if table == table_name:
                     parquet_file = table_content.get("parquet_file")
                     # Is parquet_file a folder or a file?
-                    if os.path.isdir(parquet_file):
+                    if Path(parquet_file).is_dir():
                         # find first parquet file in folder
                         for file in os.listdir(parquet_file):
                             if file.endswith(".parquet"):
@@ -296,7 +296,7 @@ Contains the following tables : \n"""
                             .to_pandas()
                         )
                     elif batch_size:
-                        if os.path.isdir(parquet_file):
+                        if Path(parquet_file).is_dir():
                             parquet_file = glob.glob(
                                 os.path.join(parquet_file, "*.parquet")
                             )

@@ -28,11 +28,11 @@ def temporary_store_decorator(
     assert os.path.isabs(tmp_directory), (
         f"tmp_directory should be an absolut path: {tmp_directory!r} in {read_config_file_name}"
     )
-    if not os.path.isdir(tmp_directory):
+    if not Path(tmp_directory).is_dir():
         log.info(
             f"tmp_directory does not exist: {tmp_directory!r} in {read_config_file_name}. Creating it."
         )
-        os.makedirs(tmp_directory)
+        Path(tmp_directory).mkdir(parents=True, exist_ok=True)
 
     assert file_name is not None
     if not file_name.endswith(".h5"):

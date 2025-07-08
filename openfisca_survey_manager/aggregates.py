@@ -4,6 +4,7 @@ import collections
 import logging
 import os
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -299,7 +300,7 @@ class AbstractAggregates:
         """Saves the table to csv."""
         assert path is not None
 
-        if os.path.isdir(path):
+        if Path(path).is_dir():
             now = datetime.now()
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".csv")
@@ -330,7 +331,7 @@ class AbstractAggregates:
         """Save the table to excel."""
         assert path is not None
 
-        if os.path.isdir(path):
+        if Path(path).is_dir():
             now = datetime.now()
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".xlsx")
@@ -372,7 +373,7 @@ class AbstractAggregates:
             target=target,
         )
 
-        if path is not None and os.path.isdir(path):
+        if path is not None and Path(path).is_dir():
             now = datetime.now()
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".html")
@@ -405,7 +406,7 @@ class AbstractAggregates:
             target=target,
         )
 
-        if path is not None and os.path.isdir(path):
+        if path is not None and Path(path).is_dir():
             now = datetime.now()
             file_path = os.path.join(
                 path, "Aggregates_{}.{}".format(now.strftime("%d-%m-%Y"), ".md")
