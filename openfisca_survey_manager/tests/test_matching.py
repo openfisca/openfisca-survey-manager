@@ -37,7 +37,6 @@ def test_reproduction():
             iris.loc[101:115],
         ]
     )
-    iris_rec.columns
     del iris_rec["Petal.Width"]
 
     # donor data.frame
@@ -116,7 +115,6 @@ def test_nnd_hotdeck_using_rpy2():
             iris.loc[101:115],
         ]
     )
-    iris_rec.columns
     del iris_rec["Petal.Width"]
 
     # donor data.frame

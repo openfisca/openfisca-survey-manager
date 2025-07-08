@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-
 """Abstract survey scenario definition."""
 
 from typing import TYPE_CHECKING
-
 
 import logging
 import os

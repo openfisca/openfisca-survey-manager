@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import logging
-from pathlib import Path
 import shutil
+from pathlib import Path
+import os
 
 import pytest
 
@@ -168,7 +169,6 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     nb_groups: int,
     salary_max_value: float,
     rent_max_value: float,
-    use_marginal_tax_rate: bool = False,
     reform: Callable | None = None,
 ) -> AbstractSurveyScenario:
     """Create a randomly initialized survey scenario from a data frame.
@@ -178,7 +178,6 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
         nb_groups (int): Number of groups
         salary_max_value (float): Maximum salary value
         rent_max_value (float): Maximum rent value
-        use_marginal_tax_rate (bool): Use marginal tax rate
         reform (Optional[Callable]): Reform function
 
     Returns:

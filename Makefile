@@ -30,7 +30,7 @@ build: clean deps
 	find dist -name "*.whl" -exec pip install {}[dev,sas] \;
 
 check-syntax-errors:
-	python -m compileall -q .
+	python -m compileall -q ./openfisca_survey_manager/.
 
 # format-style:
 # 	@# Do not analyse .gitignored files.

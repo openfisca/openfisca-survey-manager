@@ -3,8 +3,7 @@ from __future__ import annotations
 """Monkey-patch openfisca_core.simulations.Simulation to work with pandas."""
 
 
-from typing import Callable, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Callable
 
 import logging
 import re
@@ -29,13 +28,14 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.utils import do_nothing, load_table
 
 if TYPE_CHECKING:
-    from openfisca_core.memory_config import MemoryConfig
     from openfisca_core.types import (
         Array,
         CoreEntity as Entity,
         Period,
         TaxBenefitSystem,
     )
+
+    from openfisca_core.memory_config import MemoryConfig
 
 log = logging.getLogger(__name__)
 
@@ -1328,16 +1328,16 @@ def init_variable_in_entity(
     if (not isinstance(series.dtype, pd.CategoricalDtype)) and np.issubdtype(
         series.values.dtype, np.floating
     ):
-        if series.isnull().any():
+        if series.isna().any():
             log.debug(
-                f"There are {series.isnull().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
+                f"There are {series.isna().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
             )
             log.debug(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
             )
             series = series.fillna(variable.default_value)
         assert series.notnull().all(), (
-            f"There are {series.isnull().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
+            f"There are {series.isna().sum()} NaN values for {series.notnull().sum()} non NaN values in variable {variable_name}"
         )
 
     enum_variable_imputed_as_enum = variable.value_type == Enum and (
@@ -1349,9 +1349,9 @@ def init_variable_in_entity(
     )
 
     if enum_variable_imputed_as_enum:
-        if series.isnull().any():
+        if series.isna().any():
             log.debug(
-                f"There are {series.isnull().sum()} NaN values ({series.isnull().mean() * 100}% of the array) in variable {variable_name}"
+                f"There are {series.isna().sum()} NaN values ({series.isna().mean() * 100}% of the array) in variable {variable_name}"
             )
             log.debug(
                 f"We convert these NaN values of variable {variable_name} to {variable.default_value._name_} its default value"

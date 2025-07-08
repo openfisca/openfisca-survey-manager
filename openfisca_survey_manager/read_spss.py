@@ -1,7 +1,8 @@
 """Read SPSS data."""
 
-from pandas import DataFrame
 import contextlib
+
+from pandas import DataFrame
 
 with contextlib.suppress(ModuleNotFoundError):
     from savReaderWriter import SavReader
