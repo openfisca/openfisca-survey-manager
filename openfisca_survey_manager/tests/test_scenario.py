@@ -164,14 +164,15 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
         if entity == "household":
             input_data_frame_by_entity[entity]["household_id"] = input_data_frame_by_entity[entity].index
 
-    survey_scenario = AbstractSurveyScenario()
     weight_variable_by_entity = {
         "person": "person_weight",
         "household": "household_weight",
         }
     if reform is None:
+        survey_scenario = AbstractSurveyScenario()
         survey_scenario.set_tax_benefit_systems(dict(baseline = tax_benefit_system))
     else:
+        survey_scenario = ReformScenario()
         survey_scenario.set_tax_benefit_systems(dict(
             reform = reform(tax_benefit_system),
             baseline = tax_benefit_system,
@@ -191,7 +192,11 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     survey_scenario.init_from_data(data = data)
     for simulation_name, simulation in survey_scenario.simulations.items():
         assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
-        assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
+        if isinstance(survey_scenario, ReformScenario):
+            assert (survey_scenario.calculate_series("household_weight", period, use_baseline=True) != 0).all()
+            break
+        else:
+            assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
     return survey_scenario
 
 
