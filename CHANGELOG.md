@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.5 [#335](https://github.com/openfisca/openfisca-survey-manager/pull/335)
+
+* Technical changes
+  - Add Python 3.11 to tested versions.
+
 ### 3.0.4 [#326](https://github.com/openfisca/openfisca-survey-manager/pull/326)
 
 * Technical changes
