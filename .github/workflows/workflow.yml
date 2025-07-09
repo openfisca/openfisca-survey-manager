@@ -88,6 +88,8 @@ jobs:
         run: make test
       - name : coverage
         run: coveralls --service=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   check-version-and-changelog:
     runs-on: ubuntu-24.04
