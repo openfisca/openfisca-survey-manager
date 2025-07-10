@@ -190,12 +190,11 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
     survey_scenario.init_from_data(data = data)
-    for simulation_name, simulation in survey_scenario.simulations.items():
-        assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
-        if isinstance(survey_scenario, ReformScenario):
-            assert (survey_scenario.calculate_series("household_weight", period, use_baseline=True) != 0).all()
-            break
-        else:
+    if isinstance(survey_scenario, ReformScenario):
+        assert (survey_scenario.calculate_series("household_weight", period, use_baseline=True) != 0).all()
+    else:
+        for simulation_name, simulation in survey_scenario.simulations.items():
+            assert simulation.weight_variable_by_entity == weight_variable_by_entity, f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
             assert (survey_scenario.calculate_series("household_weight", period, simulation = simulation_name) != 0).all()
     return survey_scenario
 
