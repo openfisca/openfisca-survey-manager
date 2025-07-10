@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.6 [#336](https://github.com/openfisca/openfisca-survey-manager/pull/336)
+
+* Technical changes
+  - Fix `test_scenario` to use correct `SurveyScenario` class.
+
 ### 3.0.5 [#335](https://github.com/openfisca/openfisca-survey-manager/pull/335)
 
 * Technical changes
