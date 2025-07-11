@@ -237,6 +237,12 @@ def generate_input_input_dataframe_by_entity(
         'household_weight',
         max_value = 100,
         )
+    randomly_init_variable(
+        tax_benefit_system,
+        input_dataframe_by_entity,
+        'housing_occupancy_status',
+        max_value = 4,
+        )
     return input_dataframe_by_entity
 
 
@@ -266,7 +272,7 @@ def test_input_dataframe_generator(
 
     assert (input_dataframe_by_entity['household']['rent'] > 0).all()
     assert (input_dataframe_by_entity['household']['rent'] < rent_max_value).all()
-
+    assert (input_dataframe_by_entity['household']['housing_occupancy_status'].isin([0, 1, 2, 3]).all())
 
 # On vérifie que l'attribut `used_as_input_variables` correspond à la liste des variables
 # qui sont employées dans le calcul des simulations, les autres variables n'étant pas utilisées dans le calcul,
