@@ -93,7 +93,7 @@ sas = [
 # -; RST301:           We use Google Python Style (see https://pypi.org/project/flake8-rst-docstrings/)
 # -; W503/504:         We break lines before binary operators (Knuth's style).
 hang-closing = true
-ignore              = ["E128", "E251", "F403", "F405", "E501", "RST301", "W503", "W504", "T001"]
+ignore              = ["E128", "E133", "E251", "F403", "F405", "E501", "RST301", "W503", "W504", "T001"]
 docstring-quotes    = "single"
 inline-quotes       = "single"
 multiline-quotes    = "single"
