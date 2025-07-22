@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.0.7 [#334](https://github.com/openfisca/openfisca-survey-manager/pull/334)
+
+* Technical changes
+  -  Fix incomplete enum generation.
+
 ### 3.0.6 [#336](https://github.com/openfisca/openfisca-survey-manager/pull/336)
 
 * Technical changes
