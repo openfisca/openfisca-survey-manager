@@ -1,9 +1,14 @@
 ﻿# Changelog
 
+## 3.1.0 [#337](https://github.com/openfisca/openfisca-survey-manager/pull/337)
+
+* Technical changes
+  - Add variability across variable `housing_occupancy_status` in the input dataframe to the test scenario.
+
 ### 3.0.7 [#334](https://github.com/openfisca/openfisca-survey-manager/pull/334)
 
 * Technical changes
-  -  Fix incomplete enum generation.
+  - Fix incomplete enum generation.
 
 ### 3.0.6 [#336](https://github.com/openfisca/openfisca-survey-manager/pull/336)
 
