@@ -819,11 +819,9 @@ def inflate(simulation: Simulation, inflator_by_variable: Optional[Dict] = None,
                 "variable_name is not in inflator_by_variable"
             )
             log.debug(
-                "Using inflator %s for %s.  The target is thus %s",
-                inflator_by_variable[variable_name],
-                variable_name, inflator_by_variable[variable_name] * simulation.compute_aggregate(
-                    variable = variable_name, period = period)
-                ))
+                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(
+                    variable = variable_name, period = period)}"
+                )
             inflator = inflator_by_variable[variable_name]
 
         array = simulation.calculate_add(variable_name, period = period)

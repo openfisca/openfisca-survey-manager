@@ -7,9 +7,9 @@ keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey
 authors = [
   {name = "OpenFisca Team", email = "contact@openfisca.fr"},
 ]
+license = "AGPL-3.0-or-later"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: POSIX",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.9",
@@ -136,3 +136,7 @@ fail_under = 75
 show_missing = true
 skip_covered = true
 skip_empty = true
+
+
+[tool.setuptools.packages.find]
+include = ["openfisca_survey_manager*"]
