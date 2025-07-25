@@ -555,8 +555,9 @@ def create_data_frame_by_entity(simulation: Simulation, variables: Optional[List
 
     missing_variables = set(variables).difference(set(tax_benefit_system.variables.keys()))
     if missing_variables:
-        log.info("These variables aren't part of the tax-benefit system: {}".format(missing_variables))
-        log.info("These variables are ignored: {}".format(missing_variables))
+        log.info(
+            f"These variables aren't part of the tax-benefit system: {missing_variables} and thus ignored"
+        )
 
     columns_to_fetch = [
         tax_benefit_system.variables.get(variable_name) for variable_name in variables
@@ -789,12 +790,13 @@ def init_entity_data(simulation: Simulation, entity: Entity, filtered_input_data
     for column_name, column_serie in input_data_frame.items():
         variable_instance = simulation.tax_benefit_system.variables.get(column_name)
         if variable_instance is None:
-            log.info(f"Ignoring {column_name} in input data")
+            log.debug(f"Ignoring {column_name} in input data")
             continue
 
         if variable_instance.entity.key != entity.key:
-            log.info("Ignoring variable {} which is not part of entity {} but {}".format(
-                column_name, entity.key, variable_instance.entity.key))
+            log.debug(
+                f"Ignoring variable {column_name} which is not part of entity {entity.key} but {variable_instance.entity.key}"
+            )
             continue
         init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
 
@@ -806,14 +808,18 @@ def inflate(simulation: Simulation, inflator_by_variable: Optional[Dict] = None,
         assert variable_name in tax_benefit_system.variables, \
             "Variable {} is not a valid variable of the tax-benefit system".format(variable_name)
         if variable_name in target_by_variable:
-            inflator = inflator_by_variable[variable_name] = \
-                target_by_variable[variable_name] / simulation.compute_aggregate(
-                    variable = variable_name, period = period)
-            log.info('Using {} as inflator for {} to reach the target {} '.format(
-                inflator, variable_name, target_by_variable[variable_name]))
+            inflator = inflator_by_variable[variable_name] = target_by_variable[
+                variable_name
+            ] / simulation.compute_aggregate(variable=variable_name, period=period)
+            log.debug(
+                f"Using {inflator} as inflator for {variable_name} to reach the target {target_by_variable[variable_name]} "
+            )
         else:
-            assert variable_name in inflator_by_variable, 'variable_name is not in inflator_by_variable'
-            log.info('Using inflator {} for {}.  The target is thus {}'.format(
+            assert variable_name in inflator_by_variable, (
+                "variable_name is not in inflator_by_variable"
+            )
+            log.debug(
+                "Using inflator %s for %s.  The target is thus %s",
                 inflator_by_variable[variable_name],
                 variable_name, inflator_by_variable[variable_name] * simulation.compute_aggregate(
                     variable = variable_name, period = period)
