@@ -819,8 +819,7 @@ def inflate(simulation: Simulation, inflator_by_variable: Optional[Dict] = None,
                 "variable_name is not in inflator_by_variable"
             )
             log.debug(
-                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(
-                    variable = variable_name, period = period)}"
+                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(variable = variable_name, period = period)}"
                 )
             inflator = inflator_by_variable[variable_name]
 
@@ -1060,7 +1059,7 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
                 series.isnull().sum(), series.notnull().sum(), variable_name))
             log.debug('We convert these NaN values of variable {} to {} its default value'.format(
                 variable_name, variable.default_value))
-            series.fillna(variable.default_value, inplace = True)
+            series.astype(variable.value_type).fillna(variable.default_value, inplace = True)
         assert series.notnull().all(), \
             'There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name)

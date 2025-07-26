@@ -178,10 +178,10 @@ class AbstractAggregates(object):
             simulation = self.simulations['reform']
 
         variables = simulation.tax_benefit_system.variables
-        variable = variables.get(variable)
+        variable_instance = variables.get(variable)
 
-        if variable is None:
-            msg = "Variable {} is not available".format(variable)
+        if variable_instance is None:
+            msg = f"Variable {variable} is not available"
             if use_baseline:
                 msg += " in baseline simulation"
             log.info(msg)
@@ -194,21 +194,24 @@ class AbstractAggregates(object):
                     },
                 index = [variable],
                 )
+
+        entity_key = variable_instance.entity.key
+
         if self.weight_variable_by_entity is not None:
-            weight = self.weight_variable_by_entity[variable.entity.key]
+            weight = self.weight_variable_by_entity[entity_key]
             assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
             weight_array = simulation.calculate(weight, period = self.period).astype('float')
-            assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {variable.entity.key}"
+            assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {entity_key}"
             # amounts and beneficiaries from current data and default data if exists
             # Build weights for each entity
         else:
             log.debug(
-                f"No weight variable defined for entity {variable.entity.key}, using 1 as weight.")
+                f"No weight variable defined for entity {entity_key}, using 1 as weight.")
             weight = 'weight'
-            weight_array = pd.Series(1, index = simulation.entities[variable.entity.key].index)
+            weight_array = 1
 
         variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
-        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {variable.entity.key}"
+        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {entity_key}"
         data = pd.DataFrame({
             variable: variable_array,
             weight: weight_array,
@@ -217,7 +220,7 @@ class AbstractAggregates(object):
             filter_dummy_variable = (
                 filter_by
                 if filter_by in variables
-                else self.survey_scenario.filtering_variable_by_entity[variable.entity.key]
+                else self.survey_scenario.filtering_variable_by_entity[entity_key]
                 )
             filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.period)
 
@@ -225,7 +228,7 @@ class AbstractAggregates(object):
             filter_dummy_array = 1
 
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
-            filter_dummy_variable, variable.entity.key)
+            filter_dummy_variable, entity_key)
 
         amount = int(
             (
@@ -440,7 +443,7 @@ class AbstractAggregates(object):
 
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
-            df[relative_columns] = df[relative_columns].applymap(
+            df[relative_columns] = df[relative_columns].map(
                 lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan'
                 )
             for column in df.columns:
