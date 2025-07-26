@@ -378,6 +378,7 @@ class AbstractAggregates(object):
             formatting: bool = True,
             relative: bool = True,
             target: str = "reform",
+            ignore_labels: bool = False,
             ):
         assert target is None or target in ['reform', 'baseline']
 
@@ -439,7 +440,10 @@ class AbstractAggregates(object):
             columns = [column for column in columns if column in aggregates_data_frame.columns]
             df = aggregates_data_frame[columns]
 
-        df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all').rename(columns = self.labels)
+        df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all')
+
+        if not ignore_labels:
+            df = df.rename(columns = self.labels)
 
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
