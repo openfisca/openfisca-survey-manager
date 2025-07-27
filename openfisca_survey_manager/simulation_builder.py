@@ -27,8 +27,8 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
     variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns)) if used_as_input_variables else None
     if variables_mismatch:
         log.info(
-            'The following variables are used as input variables are not present in the input data frame: \n {}'.format(
-                sorted(variables_mismatch)))
+            f"The following variables used as input variables are not present in the input data frame: \n {sorted(variables_mismatch)}"
+        )
     if variables_mismatch:
         log.debug('The following variables are used as input variables: \n {}'.format(
             sorted(used_as_input_variables)))
@@ -143,14 +143,15 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
             'These columns in survey are set to be calculated, we drop them from the input table:\n {}'.format(
                 sorted(dropped_columns)))
 
-    log.info('Keeping the following variables in the input_data_frame:\n {}'.format(
-        sorted(list(input_data_frame.columns))))
+    log.debug(
+        f"Keeping the following variables in the input_data_frame:\n {sorted(input_data_frame.columns)}"
+    )
     return input_data_frame
 
 
 def init_all_entities(builder, input_data_frame, period = None):
     assert period is not None
-    log.info('Initialasing simulation using input_data_frame for period {}'.format(period))
+    log.debug(f"Initialasing simulation using input_data_frame for period {period}")
     builder._set_id_variable_by_entity_key()
     builder._set_role_variable_by_entity_key()
 

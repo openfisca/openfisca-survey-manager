@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 3.2.0 [#338](https://github.com/openfisca/openfisca-survey-manager/pull/338)
+
+* Technical changes
+  - Decrease verbosity.
+  - Anticipate deprecation in `fillna` and `map` `pandas.DataFrame` methods.
+  - Fix `compute_aggregate` to handle correctly the case when no weight is defined.
+
 ## 3.1.0 [#337](https://github.com/openfisca/openfisca-survey-manager/pull/337)
 
 * Technical changes

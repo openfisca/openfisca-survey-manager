@@ -51,10 +51,10 @@ class AbstractAggregates(object):
                 ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
                 ('actual_amount', "Dépenses\nréelles\n" + amount_unit_str),
                 ('actual_beneficiaries', "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
-                ('amount_absolute_difference', "Diff. absolue\nDépenses\n" + amount_unit_str),
-                ('beneficiaries_absolute_difference', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
-                ('amount_relative_difference', "Diff. relative\nDépenses"),
-                ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
+                ('absolute_difference_amount', "Diff. absolue\nDépenses\n" + amount_unit_str),
+                ('absolute_difference_beneficiaries', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
+                ('relative_difference_amount', "Diff. relative\nDépenses"),
+                ('relative_difference_beneficiaries', "Diff. relative\nBénéficiaires"),
                 ))
 
     def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
@@ -97,8 +97,8 @@ class AbstractAggregates(object):
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
                 data_frame.rename(columns = {
-                    'amount': '{}_amount'.format(simulation_type),
-                    'beneficiaries': '{}_beneficiaries'.format(simulation_type),
+                    'amount': f'{simulation_type}_amount',
+                    'beneficiaries': f'{simulation_type}_beneficiaries',
                     },
                     inplace = True
                     )
@@ -143,18 +143,13 @@ class AbstractAggregates(object):
         quantities += ['amount'] if amount else None
         quantities += ['beneficiaries'] if beneficiaries else None
 
-        try:
-            for quantity in quantities:
-                difference_data_frame['{}_absolute_difference'.format(quantity)] = (
-                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                    )
-                difference_data_frame['{}_relative_difference'.format(quantity)] = (
-                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                    ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
-        except KeyError as e:
-            log.debug(e)
-            log.debug("Do not computing differences")
-            return None
+        for quantity in quantities:
+            difference_data_frame[f'absolute_difference_{quantity}'] = (
+                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
+                )
+            difference_data_frame[f'relative_difference_{quantity}'] = (
+                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
+                ) / abs(base_data_frame[f'{default}_{quantity}'])
 
         return difference_data_frame
 
@@ -178,10 +173,10 @@ class AbstractAggregates(object):
             simulation = self.simulations['reform']
 
         variables = simulation.tax_benefit_system.variables
-        column = variables.get(variable)
+        variable_instance = variables.get(variable)
 
-        if column is None:
-            msg = "Variable {} is not available".format(variable)
+        if variable_instance is None:
+            msg = f"Variable {variable} is not available"
             if use_baseline:
                 msg += " in baseline simulation"
             log.info(msg)
@@ -194,15 +189,24 @@ class AbstractAggregates(object):
                     },
                 index = [variable],
                 )
-        weight = self.weight_variable_by_entity[column.entity.key]
-        assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
 
-        weight_array = simulation.calculate(weight, period = self.period).astype('float')
-        assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {column.entity.key}"
-        # amounts and beneficiaries from current data and default data if exists
-        # Build weights for each entity
+        entity_key = variable_instance.entity.key
+
+        if self.weight_variable_by_entity is not None:
+            weight = self.weight_variable_by_entity[entity_key]
+            assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
+            weight_array = simulation.calculate(weight, period = self.period).astype('float')
+            assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {entity_key}"
+            # amounts and beneficiaries from current data and default data if exists
+            # Build weights for each entity
+        else:
+            log.debug(
+                f"No weight variable defined for entity {entity_key}, using 1 as weight.")
+            weight = 'weight'
+            weight_array = 1
+
         variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
-        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {column.entity.key}"
+        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {entity_key}"
         data = pd.DataFrame({
             variable: variable_array,
             weight: weight_array,
@@ -211,7 +215,7 @@ class AbstractAggregates(object):
             filter_dummy_variable = (
                 filter_by
                 if filter_by in variables
-                else self.survey_scenario.filtering_variable_by_entity[column.entity.key]
+                else self.survey_scenario.filtering_variable_by_entity[entity_key]
                 )
             filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.period)
 
@@ -219,7 +223,7 @@ class AbstractAggregates(object):
             filter_dummy_array = 1
 
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
-            filter_dummy_variable, column.entity.key)
+            filter_dummy_variable, entity_key)
 
         amount = int(
             (
@@ -369,6 +373,7 @@ class AbstractAggregates(object):
             formatting: bool = True,
             relative: bool = True,
             target: str = "reform",
+            ignore_labels: bool = False,
             ):
         assert target is None or target in ['reform', 'baseline']
 
@@ -413,13 +418,13 @@ class AbstractAggregates(object):
             'reform_amount',
             'baseline_amount',
             'actual_amount',
-            'amount_absolute_difference',
-            'amount_relative_difference',
+            'absolute_difference_amount',
+            'relative_difference_amount',
             'reform_beneficiaries',
             'baseline_beneficiaries',
             'actual_beneficiaries',
-            'beneficiaries_absolute_difference',
-            'beneficiaries_relative_difference'
+            'absolute_difference_beneficiaries',
+            'relative_difference_beneficiaries'
             ]
         if difference_data_frame is not None:
             # Remove eventual duplication
@@ -430,11 +435,11 @@ class AbstractAggregates(object):
             columns = [column for column in columns if column in aggregates_data_frame.columns]
             df = aggregates_data_frame[columns]
 
-        df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all').rename(columns = self.labels)
+        df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all')
 
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
-            df[relative_columns] = df[relative_columns].applymap(
+            df[relative_columns] = df[relative_columns].map(
                 lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan'
                 )
             for column in df.columns:
@@ -443,6 +448,10 @@ class AbstractAggregates(object):
                         df[column]
                         .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
                         )
+
+        if not ignore_labels:
+            df = df.rename(columns = self.labels)
+
         return df
 
     def load_actual_data(self, period = None):
