@@ -1059,7 +1059,7 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
                 series.isnull().sum(), series.notnull().sum(), variable_name))
             log.debug('We convert these NaN values of variable {} to {} its default value'.format(
                 variable_name, variable.default_value))
-            series.astype(variable.value_type).fillna(variable.default_value, inplace = True)
+            series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
         assert series.notnull().all(), \
             'There are {} NaN values for {} non NaN values in variable {}'.format(
                 series.isnull().sum(), series.notnull().sum(), variable_name)

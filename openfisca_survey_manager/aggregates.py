@@ -51,10 +51,10 @@ class AbstractAggregates(object):
                 ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
                 ('actual_amount', "Dépenses\nréelles\n" + amount_unit_str),
                 ('actual_beneficiaries', "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
-                ('amount_absolute_difference', "Diff. absolue\nDépenses\n" + amount_unit_str),
-                ('beneficiaries_absolute_difference', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
-                ('amount_relative_difference', "Diff. relative\nDépenses"),
-                ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
+                ('absolute_difference_amount', "Diff. absolue\nDépenses\n" + amount_unit_str),
+                ('absolute_difference_beneficiaries', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
+                ('relative_difference_amount', "Diff. relative\nDépenses"),
+                ('relative_difference_beneficiaries', "Diff. relative\nBénéficiaires"),
                 ))
 
     def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
@@ -97,8 +97,8 @@ class AbstractAggregates(object):
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
                 data_frame.rename(columns = {
-                    'amount': '{}_amount'.format(simulation_type),
-                    'beneficiaries': '{}_beneficiaries'.format(simulation_type),
+                    'amount': f'{simulation_type}_amount',
+                    'beneficiaries': f'{simulation_type}_beneficiaries',
                     },
                     inplace = True
                     )
@@ -143,18 +143,13 @@ class AbstractAggregates(object):
         quantities += ['amount'] if amount else None
         quantities += ['beneficiaries'] if beneficiaries else None
 
-        try:
-            for quantity in quantities:
-                difference_data_frame['{}_absolute_difference'.format(quantity)] = (
-                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                    )
-                difference_data_frame['{}_relative_difference'.format(quantity)] = (
-                    abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
-                    ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
-        except KeyError as e:
-            log.debug(e)
-            log.debug("Do not computing differences")
-            return None
+        for quantity in quantities:
+            difference_data_frame[f'absolute_difference_{quantity}'] = (
+                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
+                )
+            difference_data_frame[f'relative_difference_{quantity}'] = (
+                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
+                ) / abs(base_data_frame[f'{default}_{quantity}'])
 
         return difference_data_frame
 
@@ -423,13 +418,13 @@ class AbstractAggregates(object):
             'reform_amount',
             'baseline_amount',
             'actual_amount',
-            'amount_absolute_difference',
-            'amount_relative_difference',
+            'absolute_difference_amount',
+            'relative_difference_amount',
             'reform_beneficiaries',
             'baseline_beneficiaries',
             'actual_beneficiaries',
-            'beneficiaries_absolute_difference',
-            'beneficiaries_relative_difference'
+            'absolute_difference_beneficiaries',
+            'relative_difference_beneficiaries'
             ]
         if difference_data_frame is not None:
             # Remove eventual duplication
@@ -442,9 +437,6 @@ class AbstractAggregates(object):
 
         df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all')
 
-        if not ignore_labels:
-            df = df.rename(columns = self.labels)
-
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
             df[relative_columns] = df[relative_columns].map(
@@ -456,6 +448,10 @@ class AbstractAggregates(object):
                         df[column]
                         .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
                         )
+
+        if not ignore_labels:
+            df = df.rename(columns = self.labels)
+
         return df
 
     def load_actual_data(self, period = None):
