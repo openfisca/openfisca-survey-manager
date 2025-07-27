@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 3.2.0 [#XXX](https://github.com/openfisca/openfisca-survey-manager/pull/XXX)
+## 3.2.0 [#338](https://github.com/openfisca/openfisca-survey-manager/pull/338)
 
 * Technical changes
   - Decrease verbosity.
