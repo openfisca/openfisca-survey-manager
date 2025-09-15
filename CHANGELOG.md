@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-### 3.2.1 [#339](https://github.com/openfisca/openfisca-survey-manager/pull/339) 
+### 3.2.2 [#339](https://github.com/openfisca/openfisca-survey-manager/pull/339) 
 * New features
   - Allows for the use of the 2016 coicop nomenclature instead of the 1998 one.
   - Uses the 2016 one by default but its still possible to choose for the old one
