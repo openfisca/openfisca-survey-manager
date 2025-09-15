@@ -21,28 +21,28 @@ divisions = ['0{}'.format(i) for i in range(1, 10)] + ['11', '12']
 
 def build_coicop_level_nomenclature(level, year = 2016, keep_code = False, to_csv = False):
     assert level in sub_levels
-    log.debug("Reading nomenclature coicop {} source data for level {}".format(year,level))
+    log.debug("Reading nomenclature coicop {} source data for level {}".format(year, level))
     try:
-        if year == 1998 :
+        if year == 1998:
             data_frame = pd.read_csv(
-            os.path.join(legislation_directory, 'COICOP/1998/nomenclature_coicop1998_source_by_{}.csv'.format(level)),
-            sep = ';',
-            header = None,
-            ) 
-        if year == 2016 :
+                os.path.join(legislation_directory, 'COICOP/1998/nomenclature_coicop1998_source_by_{}.csv'.format(level)),
+                sep = ';',
+                header = None,
+            )
+        if year == 2016:
             data_frame = pd.read_excel(
                 os.path.join(legislation_directory, 'COICOP/2016/nomenclature_coicop2016_source_by_{}.xls'.format(level)),
                 header = None,)
-            
+
     except Exception as e:
         log.info("Error when reading nomenclature coicop source data for level {}".format(level))
-        raise(e)
+        raise e
     
     data_frame.reset_index(inplace = True)
     data_frame.rename(columns = {0: 'code_coicop', 1: 'label_{}'.format(level[:-1])}, inplace = True)
     data_frame = data_frame.iloc[2:].copy()
-    if year== 2016 :
-        data_frame['code_coicop'] = data_frame['code_coicop'].apply(lambda x : x[1:])
+    if year == 2016:
+        data_frame['code_coicop'] = data_frame['code_coicop'].apply(lambda x: x[1:])
 
     index, stop = 0, False
     for sub_level in sub_levels:
@@ -66,10 +66,11 @@ def build_coicop_level_nomenclature(level, year = 2016, keep_code = False, to_cs
     data_frame.reset_index(inplace = True, drop = True)
     if to_csv:
         data_frame.to_csv(
-            os.path.join(legislation_directory, 'nomenclature_coicop{}_by_{}.csv'.format(year,level)),
+            os.path.join(legislation_directory, 'nomenclature_coicop{}_by_{}.csv'.format(year, level)),
             )
 
     return data_frame
+
 
 def build_raw_coicop_nomenclature():
     """Builds raw COICOP nomenclature"""
