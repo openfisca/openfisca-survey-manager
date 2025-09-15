@@ -37,7 +37,7 @@ def build_coicop_level_nomenclature(level, year = 2016, keep_code = False, to_cs
     except Exception as e:
         log.info("Error when reading nomenclature coicop source data for level {}".format(level))
         raise e
-    
+
     data_frame.reset_index(inplace = True)
     data_frame.rename(columns = {0: 'code_coicop', 1: 'label_{}'.format(level[:-1])}, inplace = True)
     data_frame = data_frame.iloc[2:].copy()
