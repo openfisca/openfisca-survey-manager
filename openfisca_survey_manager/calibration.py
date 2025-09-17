@@ -234,7 +234,7 @@ class Calibration(object):
         for var in list_var:
             expr_categ = var + '[ ]*[<>=!]+'
             true_var = simulation.tax_benefit_system.variables[var]
-            if not ([var] == list_var) and true_var.value_type on [bool, Enum] or true_var.unit in ['years', 'months']:
+            if not ([var] == list_var) and true_var.value_type in [bool, Enum] or true_var.unit in ['years', 'months']:
                 assert len(re.findall(expr_categ, variable)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
