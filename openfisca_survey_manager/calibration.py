@@ -232,9 +232,9 @@ class Calibration(object):
             or (variable_instance.unit in ['years', 'months'] and variable == list_var[0])
             )
         for var in list_var:
-            expr_categ = var + '[ ]*[<>=]+'
+            expr_categ = var + '[ ]*[<>=!]+'
             true_var = simulation.tax_benefit_system.variables[var]
-            if (var != list_var) and true_var.value_type == Enum or true_var.unit in ['years', 'months']:
+            if not ([var] == list_var) and true_var.value_type on [bool, Enum] or true_var.unit in ['years', 'months']:
                 assert len(re.findall(expr_categ, variable)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
@@ -302,7 +302,7 @@ class Calibration(object):
                 value_df = pd.DataFrame(value)
                 id_variable = self.parameters["id_variable_link"]
                 value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
-                value = value_df.groupby(id_variable).sum().to_numpy()
+                value = value_df.groupby(id_variable).sum().to_numpy().flatten()
 
             if filter_by != 1:
                 if weight_variable != self.weight_name:
