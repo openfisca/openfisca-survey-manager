@@ -72,33 +72,42 @@ def build_coicop_level_nomenclature(level, year = 2016, keep_code = False, to_cs
     return data_frame
 
 
-def build_raw_coicop_nomenclature():
-    """Builds raw COICOP nomenclature"""
+def build_raw_coicop_nomenclature(year = 2016):
+    """Builds raw COICOP nomenclature from ecoicop levels"""
+    coicop_nomenclature = None
+
     for index in range(len(sub_levels) - 1):
         level = sub_levels[index]
         next_level = sub_levels[index + 1]
-        on = sub_levels[:index + 1]
-        if index == 0:
-            coicop_nomenclature = pd.merge(
-                build_coicop_level_nomenclature(level), build_coicop_level_nomenclature(next_level),
-                on = on, left_index = False, right_index = False)
-        else:
-            coicop_nomenclature = pd.merge(
-                coicop_nomenclature,
-                build_coicop_level_nomenclature(next_level),
-                on = on,
-                left_index = False,
-                right_index = False,
-                )
+        on = sub_levels[: index + 1]
 
+        df_left = coicop_nomenclature if coicop_nomenclature is not None else build_coicop_level_nomenclature(level, year)
+        df_right = build_coicop_level_nomenclature(next_level, year)
+
+        # Drop any residual 'index' columns to avoid merge conflicts
+        for df in (df_left, df_right):
+            if "index" in df.columns:
+                df.drop(columns=["index"], inplace=True)
+
+        coicop_nomenclature = pd.merge(
+            df_left,
+            df_right,
+            on=on,
+            how="inner",
+            validate="one_to_many",  # safety check
+        )
+
+    # Reorder and select relevant columns
     coicop_nomenclature = coicop_nomenclature[
-        ['code_coicop']
-        + ['label_{}'.format(sub_level[:-1]) for sub_level in sub_levels]
+        ["code_coicop"]
+        + [f"label_{sub_level[:-1]}" for sub_level in sub_levels]
         + sub_levels
-        ].copy()
+    ].copy()
 
-    return coicop_nomenclature[['label_division', 'label_groupe', 'label_classe',
-       'label_sous_classe', 'label_poste', 'code_coicop']].copy()
+    return coicop_nomenclature[
+        ["label_division", "label_groupe", "label_classe",
+         "label_sous_classe", "label_poste", "code_coicop"]
+    ].copy()
 
 
 if __name__ == "__main__":

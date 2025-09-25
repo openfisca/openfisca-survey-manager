@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+### 3.2.3 [#340](https://github.com/openfisca/openfisca-survey-manager/pull/340) 
+* New features
+  - Update the build_raw_coicop_nomenclature function, to make it work with latest panda version in the environment
+  - Add a argument year (1998 or 2016) to the function.
 ### 3.2.2 [#339](https://github.com/openfisca/openfisca-survey-manager/pull/339) 
 * New features
   - Allows for the use of the 2016 coicop nomenclature instead of the 1998 one.
