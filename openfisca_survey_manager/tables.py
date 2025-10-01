@@ -213,10 +213,11 @@ class Table(object):
                         kwargs['dialect'] = dialect
                     else:
                         kwargs['delimiter'] = delimiter
-                    kwargs['encoding'] = encoding
                     data_frame = reader(data_file, **kwargs)
 
             else:
+                if source_format == "stata":
+                    del kwargs['encoding']
                 data_frame = reader(data_file, **kwargs)
 
         except Exception as e:
