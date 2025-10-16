@@ -54,7 +54,7 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
 
 
 def get_words(text: str):
-    return re.compile('[A-Za-z_]+').findall(text)
+    return re.compile('[A-Za-z_]+[A-Za-z0-9_]*').findall(text)
 
 
 # Main functions
