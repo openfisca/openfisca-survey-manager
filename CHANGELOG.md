@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.2.5 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
+
+* New features
+  - Introduce the possibility to use calmar on variables changed with expressions.
+
 ### 3.2.4 [#341](https://github.com/openfisca/openfisca-survey-manager/pull/341)
 
 * Technical changes
