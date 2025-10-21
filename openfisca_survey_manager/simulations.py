@@ -67,7 +67,7 @@ def assert_variables_in_same_entity(
 
 
 def get_words(text: str):
-    return re.compile("[A-Za-z_]+").findall(text)
+    return re.compile('[A-Za-z_]+[A-Za-z0-9_]*').findall(text)
 
 
 # Main functions
@@ -1358,7 +1358,8 @@ def init_variable_in_entity(simulation: Simulation, variable_name, series, perio
         if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
         else:
-            assert series.isin(list(possible_values._member_names_)).all()
+            msg = 'There are errors with {}'.format(variable_name)
+            assert series.isin(list(possible_values._member_names_)).all(), msg
             series = series.apply(lambda v: variable.possible_values[v].index)
 
     if series.to_numpy().dtype != variable.dtype:

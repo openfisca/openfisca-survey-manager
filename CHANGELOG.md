@@ -1,5 +1,29 @@
 ﻿# Changelog
 
+### 3.2.5 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
+
+* New features
+  - Introduce the possibility to use calmar on variables changed with expressions.
+
+### 3.2.4 [#341](https://github.com/openfisca/openfisca-survey-manager/pull/341)
+
+* Technical changes
+  - Add message to make debugging easier
+
+### 3.2.3 [#340](https://github.com/openfisca/openfisca-survey-manager/pull/340)
+
+* New features
+  - Update the build_raw_coicop_nomenclature function, to make it work with latest panda version in the environment
+  - Add a argument year (1998 or 2016) to the function.
+
+### 3.2.2 [#339](https://github.com/openfisca/openfisca-survey-manager/pull/339)
+
+* New features
+  - Allows for the use of the 2016 coicop nomenclature instead of the 1998 one.
+  - Uses the 2016 one by default but its still possible to choose for the old one
+* Technical changes
+  - Within the assets folder I created the COICOP folder which contains all the 1998 and 2016 nomenclature files in two separate folders.
+
 ## 3.2.0 [#338](https://github.com/openfisca/openfisca-survey-manager/pull/338)
 
 * Technical changes

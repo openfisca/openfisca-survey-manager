@@ -25,25 +25,30 @@ sub_levels = ["divisions", "groupes", "classes", "sous_classes", "postes"]
 divisions = [f"0{i}" for i in range(1, 10)] + ["11", "12"]
 
 
-def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
+def build_coicop_level_nomenclature(level, year = 2016, keep_code = False, to_csv = False):
     assert level in sub_levels
-    log.debug(f"Reading nomenclature coicop source data for level {level}")
+    log.debug("Reading nomenclature coicop {} source data for level {}".format(year, level))
     try:
-        data_frame = pd.read_csv(
-            os.path.join(
-                legislation_directory,
-                f"nomenclature_coicop_source_by_{level}.csv",
-            ),
-            sep=";",
-            header=None,
-        )
-    except (FileNotFoundError, pd.errors.ParserError) as error:
-        msg = f"Error when reading nomenclature coicop source data for level {level}: {error}"
-        raise RuntimeError(msg) from error
+        if year == 1998:
+            data_frame = pd.read_csv(
+                os.path.join(legislation_directory, 'COICOP/1998/nomenclature_coicop1998_source_by_{}.csv'.format(level)),
+                sep = ';',
+                header = None,
+            )
+        if year == 2016:
+            data_frame = pd.read_excel(
+                os.path.join(legislation_directory, 'COICOP/2016/nomenclature_coicop2016_source_by_{}.xls'.format(level)),
+                header = None,)
 
-    data_frame = data_frame.reset_index(drop=True)
-    data_frame = data_frame.rename(columns={0: "code_coicop", 1: f"label_{level[:-1]}"})
+    except Exception as e:
+        log.info("Error when reading nomenclature coicop source data for level {}".format(level))
+        raise e
+
+    data_frame.reset_index(inplace = True)
+    data_frame.rename(columns = {0: 'code_coicop', 1: 'label_{}'.format(level[:-1])}, inplace = True)
     data_frame = data_frame.iloc[2:].copy()
+    if year == 2016:
+        data_frame['code_coicop'] = data_frame['code_coicop'].apply(lambda x: x[1:])
 
     index, stop = 0, False
     for sub_level in sub_levels:
@@ -71,33 +76,38 @@ def build_coicop_level_nomenclature(level, keep_code=False, to_csv=False):
     data_frame = data_frame.reset_index(drop=True)
     if to_csv:
         data_frame.to_csv(
-            Path(legislation_directory, f"nomenclature_coicop_by_{level}.csv"),
-        )
+            os.path.join(legislation_directory, 'nomenclature_coicop{}_by_{}.csv'.format(year, level)),
+            )
 
     return data_frame
 
 
-def build_raw_coicop_nomenclature():
-    """Builds raw COICOP nomenclature."""
+def build_raw_coicop_nomenclature(year = 2016):
+    """Builds raw COICOP nomenclature from ecoicop levels"""
+    coicop_nomenclature = None
+
     for index in range(len(sub_levels) - 1):
         level = sub_levels[index]
         next_level = sub_levels[index + 1]
         on = sub_levels[: index + 1]
-        if index == 0:
-            coicop_nomenclature = build_coicop_level_nomenclature(level).merge(
-                build_coicop_level_nomenclature(next_level),
-                on=on,
-                left_index=False,
-                right_index=False,
-            )
-        else:
-            coicop_nomenclature = coicop_nomenclature.merge(
-                build_coicop_level_nomenclature(next_level),
-                on=on,
-                left_index=False,
-                right_index=False,
-            )
 
+        df_left = coicop_nomenclature if coicop_nomenclature is not None else build_coicop_level_nomenclature(level, year)
+        df_right = build_coicop_level_nomenclature(next_level, year)
+
+        # Drop any residual 'index' columns to avoid merge conflicts
+        for df in (df_left, df_right):
+            if "index" in df.columns:
+                df.drop(columns=["index"], inplace=True)
+
+        coicop_nomenclature = pd.merge(
+            df_left,
+            df_right,
+            on=on,
+            how="inner",
+            validate="one_to_many",  # safety check
+        )
+
+    # Reorder and select relevant columns
     coicop_nomenclature = coicop_nomenclature[
         ["code_coicop"]
         + [f"label_{sub_level[:-1]}" for sub_level in sub_levels]

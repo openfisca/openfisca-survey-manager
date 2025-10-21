@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from numpy import logical_not
+import re
 
 from openfisca_core.model_api import Enum
 
@@ -53,13 +54,20 @@ class Calibration:
         self.parameters = parameters
         self.period = period
         self.simulation = simulation
-        margin_variables = list(target_margins.keys()) if target_margins else []
+        if target_margins:
+            margin_variables = list(target_margins.keys())
+        else:
+            margin_variables = []
+        search_variable = '[A-Za-z_]+[A-Za-z0-9_]*'
 
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
         entities = {
             variable_instance_by_variable_name[variable].entity.key
-            for variable in margin_variables
-        }
+            for var in margin_variables for variable in re.findall(search_variable, var)
+            )
+        for var in margin_variables:
+            assert len(set([variable_instance_by_variable_name[variable].entity.key
+            for variable in re.findall(search_variable, var)])) == 1, "An expression use variables that are not based on the same entity"
         if entity is not None:
             entities.add(entity)
         self.entities = list(entities)
@@ -111,8 +119,7 @@ class Calibration:
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
-            msg = "Cannot hande multiple entites"
-            raise NotImplementedError(msg)
+            raise NotImplementedError("Cannot handle multiple entities")
         else:
             target_entity = next(iter(entities))
             if "id_variable" in parameters:
@@ -140,9 +147,9 @@ class Calibration:
         else:
             self.filter_by = np.array(1.0)
 
-        assert weight_name is not None, (
-            "A calibration needs a weight variable name to act on"
-        )
+        assert weight_name is not None, "A calibration needs a weight variable name to act on"
+        weight_variable = simulation.tax_benefit_system.variables[weight_name]
+        weight_variable.unit = ""
         self._initial_weight_name = weight_name + "_ini"
         self.initial_weight = initial_weight = simulation.calculate(
             weight_name, period=period
@@ -180,10 +187,13 @@ class Calibration:
         )
         period = self.period
         for variable in self.margins_by_variable:
-            assert variable in self.simulation.tax_benefit_system.variables
-            data[self.simulation.tax_benefit_system.variables[variable].entity.key][
-                variable
-            ] = self.simulation.adaptative_calculate_variable(variable, period=period)
+            list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
+            assert all([var in self.simulation.tax_benefit_system.variables for var in list_var])
+            dic_eval = {}
+            for var in list_var:
+                dic_eval[var] = self.simulation.adaptative_calculate_variable(var, period = period)
+            value = eval(variable, {}, dic_eval)
+            data[self.simulation.tax_benefit_system.variables[list_var[0]].entity.key][variable] = value
 
         if len(self.entities) == 2:
             for entity in self.entities:
@@ -274,24 +284,26 @@ class Calibration:
         """
         simulation = self.simulation
         period = self.period
-        assert variable in simulation.tax_benefit_system.variables
-        variable_instance = simulation.tax_benefit_system.variables[variable]
+        list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
+        assert all([var in simulation.tax_benefit_system.variables for var in list_var])
+        variable_instance = simulation.tax_benefit_system.variables[list_var[0]]
 
         filter_by = self.filter_by
         target_by_category = None
-        categorical_variable = variable_instance.value_type in [
-            bool,
-            Enum,
-        ] or variable_instance.unit in {"years", "months"}
-        if categorical_variable:
-            value = simulation.calculate(variable, period=period)
-            filtered_value = (
-                value
-                if (filter_by == np.array(1.0) or all(filter_by))
-                else value[filter_by.astype(bool)]
+        categorical_variable = (
+            (variable_instance.value_type in [bool, Enum] and variable == list_var[0])
+            or (variable_instance.unit in ['years', 'months'] and variable == list_var[0])
             )
-            categories = np.sort(np.unique(filtered_value))
-            target_by_category = dict(zip(categories, target))
+        for var in list_var:
+            expr_categ = var + '[ ]*[<>=!]+'
+            true_var = simulation.tax_benefit_system.variables[var]
+            if not ([var] == list_var) and true_var.value_type in [bool, Enum] or true_var.unit in ['years', 'months']:
+                assert len(re.findall(expr_categ, variable)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
+        if categorical_variable:
+            value = simulation.calculate(variable, period = period)
+            filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
+            categories = numpy.sort(numpy.unique(filtered_value))
+            target_by_category = dict(zip(categories, target.values()))
 
         if not self.margins_by_variable:
             self.margins_by_variable = {}
@@ -317,12 +329,10 @@ class Calibration:
             weight_variable = simulation.tax_benefit_system.variables[weight_name]
             if weight_name == self.weight_name:
                 weight_variable.unit = "base_weight"  # The weight variable is flagged as the one that have changed
-                if weight_variable.formulas:
-                    weight_variable.formulas = []  # The weight variable becomes an input variable after it changes with calibration
             # Delete other entites already computed weigths
             # to ensure that this weights a recomputed if they derive from
             # the calibrated weight variable
-            if weight_variable.formulas:
+            elif weight_variable.formulas:
                 simulation.delete_arrays(weight_variable.name, period)
 
     def summary(self):
@@ -347,20 +357,19 @@ class Calibration:
             filter_by = self.filter_by
             initial_weight = self.initial_weight
 
-            value = simulation.adaptative_calculate_variable(variable, period=period)
+            list_var = re.findall('[A-Za-z_]+[A-Za-z0-9_]*', variable)
+            dic_eval = {}
+            for var in list_var:
+                dic_eval[var] = simulation.adaptative_calculate_variable(var, period = period)
+            value = eval(variable, {}, dic_eval)
+
             weight_variable = simulation.weight_variable_by_entity[target_entity]
 
-            if (
-                len(self.entities) == 2
-                and simulation.tax_benefit_system.variables[variable].entity.key
-                != self.target_entity
-            ):
+            if len(self.entities) == 2 and simulation.tax_benefit_system.variables[list_var[0]].entity.key != self.target_entity:
                 value_df = pd.DataFrame(value)
                 id_variable = self.parameters["id_variable_link"]
-                value_df[id_variable] = simulation.adaptative_calculate_variable(
-                    id_variable, period=period
-                )
-                value = value_df.groupby(id_variable).sum().to_numpy()
+                value_df[id_variable] = simulation.adaptative_calculate_variable(id_variable, period = period)
+                value = value_df.groupby(id_variable).sum().to_numpy().flatten()
 
             if filter_by != 1:
                 if weight_variable != self.weight_name:
@@ -376,10 +385,10 @@ class Calibration:
                 ("initial", initial_weight),
             ]
 
-            variable_instance = simulation.tax_benefit_system.get_variable(variable)
+            variable_instance = simulation.tax_benefit_system.get_variable(list_var[0])
             assert variable_instance is not None
-            if variable_instance.value_type in [bool, Enum]:
-                margin_items.append(("category", value))
+            if variable_instance.value_type in [bool, Enum] and variable == list_var[0]:
+                margin_items.append(('category', value))
                 margins_data_frame = pd.DataFrame.from_items(margin_items)
                 margins_data_frame = margins_data_frame.groupby(
                     "category", sort=True
