@@ -183,7 +183,7 @@ def calmar(
         log.info(
             "%s observations have a zero weight. Not used in the calibration.",
             (data_in[target_entity][initial_weight].fillna(0) <= 0).sum()
-            - null_weight_observations
+            - null_weight_observations,
         )
 
     variables = set(margins.keys()).intersection(set(data_in[target_entity].columns))

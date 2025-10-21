@@ -103,9 +103,9 @@ class Calibration:
             )
             unique_id_variable_link = np.unique(id_variable_link)
             unique_id_variable = np.unique(id_variable)
-            assert np.array_equal(np.sort(unique_id_variable_link), np.sort(unique_id_variable)), (
-                "There is no inclusion of one entity in the other"
-            )
+            assert np.array_equal(
+                np.sort(unique_id_variable_link), np.sort(unique_id_variable)
+            ), "There is no inclusion of one entity in the other"
             assert len(id_variable) < len(id_variable_link), (
                 f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'"
             )

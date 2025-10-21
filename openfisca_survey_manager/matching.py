@@ -79,7 +79,7 @@ def nnd_hotdeck_using_rpy2(
     donor_classes=None,
 ):
     from rpy2.robjects import pandas2ri  # noqa
-    from rpy2.robjects.packages import importr # noqa
+    from rpy2.robjects.packages import importr  # noqa
 
     assert receiver is not None
     assert donor is not None

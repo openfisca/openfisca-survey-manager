@@ -44,20 +44,37 @@ class AbstractAggregates:
         if self.labels is None:
             amount_unit_str = f"({self.amount_unit} {self.currency})"
             beneficiaries_unit_str = f"({self.beneficiaries_unit})"
-            self.labels = collections.OrderedDict((
-                ('label', "Mesure"),
-                ('entity', "Entité"),
-                ('reform_amount', "Dépenses\n" + amount_unit_str),
-                ('reform_beneficiaries', "Bénéficiaires\n(milliers)"),
-                ('baseline_amount', "Dépenses initiales\n" + amount_unit_str),
-                ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
-                ('actual_amount', "Dépenses\nréelles\n" + amount_unit_str),
-                ('actual_beneficiaries', "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
-                ('absolute_difference_amount', "Diff. absolue\nDépenses\n" + amount_unit_str),
-                ('absolute_difference_beneficiaries', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
-                ('relative_difference_amount', "Diff. relative\nDépenses"),
-                ('relative_difference_beneficiaries', "Diff. relative\nBénéficiaires"),
-                ))
+            self.labels = collections.OrderedDict(
+                (
+                    ("label", "Mesure"),
+                    ("entity", "Entité"),
+                    ("reform_amount", "Dépenses\n" + amount_unit_str),
+                    ("reform_beneficiaries", "Bénéficiaires\n(milliers)"),
+                    ("baseline_amount", "Dépenses initiales\n" + amount_unit_str),
+                    (
+                        "baseline_beneficiaries",
+                        "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str,
+                    ),
+                    ("actual_amount", "Dépenses\nréelles\n" + amount_unit_str),
+                    (
+                        "actual_beneficiaries",
+                        "Bénéficiaires\nréels\n" + beneficiaries_unit_str,
+                    ),
+                    (
+                        "absolute_difference_amount",
+                        "Diff. absolue\nDépenses\n" + amount_unit_str,
+                    ),
+                    (
+                        "absolute_difference_beneficiaries",
+                        "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str,
+                    ),
+                    ("relative_difference_amount", "Diff. relative\nDépenses"),
+                    (
+                        "relative_difference_beneficiaries",
+                        "Diff. relative\nBénéficiaires",
+                    ),
+                )
+            )
 
     def compute_aggregates(
         self, use_baseline: bool = True, reform: bool = True, actual: bool = True
@@ -162,12 +179,14 @@ class AbstractAggregates:
         quantities += ["beneficiaries"] if beneficiaries else None
 
         for quantity in quantities:
-            difference_data_frame[f'absolute_difference_{quantity}'] = (
-                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
-                )
-            difference_data_frame[f'relative_difference_{quantity}'] = (
-                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
-                ) / abs(base_data_frame[f'{default}_{quantity}'])
+            difference_data_frame[f"absolute_difference_{quantity}"] = (
+                abs(base_data_frame[f"{target}_{quantity}"])
+                - base_data_frame[f"{default}_{quantity}"]
+            )
+            difference_data_frame[f"relative_difference_{quantity}"] = (
+                abs(base_data_frame[f"{target}_{quantity}"])
+                - base_data_frame[f"{default}_{quantity}"]
+            ) / abs(base_data_frame[f"{default}_{quantity}"])
 
         return difference_data_frame
 
@@ -200,36 +219,49 @@ class AbstractAggregates:
                 msg += " in baseline simulation"
             log.info(msg)
             return pd.DataFrame(
-                data = {
-                    'label': variable,
-                    'entity': 'Unknown entity',
-                    'amount': 0,
-                    'beneficiaries': 0,
-                    },
-                index = [variable],
-                )
+                data={
+                    "label": variable,
+                    "entity": "Unknown entity",
+                    "amount": 0,
+                    "beneficiaries": 0,
+                },
+                index=[variable],
+            )
 
         entity_key = variable_instance.entity.key
 
         if self.weight_variable_by_entity is not None:
             weight = self.weight_variable_by_entity[entity_key]
-            assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
-            weight_array = simulation.calculate(weight, period = self.period).astype('float')
-            assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {entity_key}"
+            assert weight in variables, (
+                f"{weight} not a variable of the tax_benefit_system"
+            )
+            weight_array = simulation.calculate(weight, period=self.period).astype(
+                "float"
+            )
+            assert not np.isnan(np.sum(weight_array)), (
+                f"The are some NaN in weights {weight} for entity {entity_key}"
+            )
             # amounts and beneficiaries from current data and default data if exists
             # Build weights for each entity
         else:
             log.debug(
-                f"No weight variable defined for entity {entity_key}, using 1 as weight.")
-            weight = 'weight'
+                f"No weight variable defined for entity {entity_key}, using 1 as weight."
+            )
+            weight = "weight"
             weight_array = 1
 
-        variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
-        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {entity_key}"
-        data = pd.DataFrame({
-            variable: variable_array,
-            weight: weight_array,
-            })
+        variable_array = simulation.calculate_add(variable, period=self.period).astype(
+            "float"
+        )
+        assert np.isfinite(variable_array).all(), (
+            f"The are non finite values in variable {variable} for entity {entity_key}"
+        )
+        data = pd.DataFrame(
+            {
+                variable: variable_array,
+                weight: weight_array,
+            }
+        )
         if filter_by:
             filter_dummy_variable = (
                 filter_by
@@ -428,17 +460,17 @@ class AbstractAggregates:
         return df[f"{target}_amount"] / df["actual_amount"]
 
     def get_data_frame(
-            self,
-            absolute: bool = True,
-            amount: bool = True,
-            beneficiaries: bool = True,
-            default: str = 'actual',
-            formatting: bool = True,
-            relative: bool = True,
-            target: str = "reform",
-            ignore_labels: bool = False,
-            ):
-        assert target is None or target in ['reform', 'baseline']
+        self,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        formatting: bool = True,
+        relative: bool = True,
+        target: str = "reform",
+        ignore_labels: bool = False,
+    ):
+        assert target is None or target in ["reform", "baseline"]
 
         columns = self.labels.keys()
         if (absolute or relative) and (target != default):
@@ -478,19 +510,19 @@ class AbstractAggregates:
             reform="reform" in [target, default],
         )
         ordered_columns = [
-            'label',
-            'entity',
-            'reform_amount',
-            'baseline_amount',
-            'actual_amount',
-            'absolute_difference_amount',
-            'relative_difference_amount',
-            'reform_beneficiaries',
-            'baseline_beneficiaries',
-            'actual_beneficiaries',
-            'absolute_difference_beneficiaries',
-            'relative_difference_beneficiaries'
-            ]
+            "label",
+            "entity",
+            "reform_amount",
+            "baseline_amount",
+            "actual_amount",
+            "absolute_difference_amount",
+            "relative_difference_amount",
+            "reform_beneficiaries",
+            "baseline_beneficiaries",
+            "actual_beneficiaries",
+            "absolute_difference_beneficiaries",
+            "relative_difference_beneficiaries",
+        ]
         if difference_data_frame is not None:
             # Remove eventual duplication
             difference_data_frame = difference_data_frame.loc[

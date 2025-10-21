@@ -184,7 +184,8 @@ def build_survey_collection(
         surveys = [
             survey
             for survey in survey_collection.surveys
-            if survey.name.endswith(str(survey_suffix)) and survey.name.startswith(collection_name)
+            if survey.name.endswith(str(survey_suffix))
+            and survey.name.startswith(collection_name)
         ]
         survey_collection.fill_store(
             source_format=source_format,
@@ -323,7 +324,9 @@ def main():
         encoding=args.encoding,
     )
 
-    log.info(f"The program has been executed in {datetime.datetime.now(datetime.timezone.utc) - start_time}")
+    log.info(
+        f"The program has been executed in {datetime.datetime.now(datetime.timezone.utc) - start_time}"
+    )
 
     return 0
 

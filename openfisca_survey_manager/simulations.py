@@ -721,9 +721,9 @@ def create_data_frame_by_entity(
             person_data_frame[f"{entity.key}_role"] = pd.Series(
                 simulation.populations[entity.key].members_role
             ).map(index_by_role)
-            person_data_frame[f"{entity.key}_position"] = (
-                simulation.populations[entity.key].members_position
-            )
+            person_data_frame[f"{entity.key}_position"] = simulation.populations[
+                entity.key
+            ].members_position
 
             # Set index names as entity_id
             openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
@@ -959,8 +959,8 @@ def inflate(
                 "variable_name is not in inflator_by_variable"
             )
             log.debug(
-                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(variable = variable_name, period = period)}"
-                )
+                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(variable=variable_name, period=period)}"
+            )
             inflator = inflator_by_variable[variable_name]
 
         array = simulation.calculate_add(variable_name, period=period)
@@ -1318,9 +1318,7 @@ def init_simulation(tax_benefit_system, period, data):
     return simulation
 
 
-def init_variable_in_entity(
-    simulation: Simulation, variable_name, series, period
-):
+def init_variable_in_entity(simulation: Simulation, variable_name, series, period):
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables

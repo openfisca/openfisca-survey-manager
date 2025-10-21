@@ -15,6 +15,7 @@ NUMPY_VERSION = ">=1.24.3,<2"
 class PyprojectVersionError(Exception):
     """Custom exception for pyproject version errors."""
 
+
 def get_versions():
     """Read package version and deps in pyproject.toml."""
     # openfisca_core_api = None

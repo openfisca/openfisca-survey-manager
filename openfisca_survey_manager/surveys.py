@@ -30,14 +30,18 @@ admissible_source_formats = list(source_format_by_extension.values())
 class NoMoreDataError(Exception):
     """Exception when the user ask for more data than available in file."""
 
+
 class TableNotFoundError(Exception):
     """Exception raised when a table is not found in the survey."""
+
 
 class VariableMissingError(Exception):
     """Exception raised when requested variables are missing from the table."""
 
+
 class ParquetFileNotFoundError(Exception):
     """Exception raised when no parquet file is found in the specified directory."""
+
 
 class SurveyDataFileNotFoundError(Exception):
     """Exception raised when no data file is found for the survey."""
@@ -206,7 +210,9 @@ Contains the following tables : \n"""
           pd.DataFrame: dataframe containing the variable
 
         """
-        return self.get_values([variable], table, lowercase=lowercase, ignorecase=ignorecase)
+        return self.get_values(
+            [variable], table, lowercase=lowercase, ignorecase=ignorecase
+        )
 
     def get_values(
         self,

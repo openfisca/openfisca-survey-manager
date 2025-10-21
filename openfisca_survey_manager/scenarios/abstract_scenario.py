@@ -233,7 +233,7 @@ class AbstractSurveyScenario:
         filter_by=None,
         weighted: bool = True,
         alternative_weights=None,
-     ) -> list[float]:
+    ) -> list[float]:
         """Compute quantiles of a variable.
 
         Args:
@@ -522,9 +522,7 @@ class AbstractSurveyScenario:
 
         if use_sub_directories:
             for simulation_name, simulation in self.simulations.items():
-                dump_simulation(
-                    simulation, directory=Path(directory, simulation_name)
-                )
+                dump_simulation(simulation, directory=Path(directory, simulation_name))
         else:
             assert len(self.simulations.keys()) == 1
             simulation = next(iter(self.simulations.values()))
