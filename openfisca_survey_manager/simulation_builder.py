@@ -176,10 +176,10 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 def init_all_entities(builder, input_data_frame, period=None):
     assert period is not None
     log.info(
-        f"Initialasing simulation using input_data_frame for period {period}"  # noqa: G004
+        f"Initialasing simulation using input_data_frame for period {period}"
     )
-    builder._set_id_variable_by_entity_key()  # noqa: SLF001
-    builder._set_role_variable_by_entity_key()  # noqa: SLF001
+    builder._set_id_variable_by_entity_key()
+    builder._set_role_variable_by_entity_key()
 
     if period.unit == YEAR:  # 1. year
         simulation = builder.init_simulation_with_data_frame(
@@ -217,9 +217,9 @@ def init_entity_structure(builder, entity, input_data_frame):
 
     """
     tax_benefit_system = builder.tax_benefit_system
-    builder._set_id_variable_by_entity_key()  # noqa: SLF001
-    builder._set_role_variable_by_entity_key()  # noqa: SLF001
-    builder._set_used_as_input_variables_by_entity()  # noqa: SLF001
+    builder._set_id_variable_by_entity_key()
+    builder._set_role_variable_by_entity_key()
+    builder._set_used_as_input_variables_by_entity()
 
     input_data_frame = builder.filter_input_variables(
         input_data_frame, tax_benefit_system

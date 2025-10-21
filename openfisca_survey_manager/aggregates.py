@@ -468,7 +468,6 @@ class AbstractAggregates:
         formatting: bool = True,
         relative: bool = True,
         target: str = "reform",
-        ignore_labels: bool = False,
     ):
         assert target is None or target in ["reform", "baseline"]
 

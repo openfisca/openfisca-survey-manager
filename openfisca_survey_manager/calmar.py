@@ -277,7 +277,7 @@ def calmar(
             if var in data[entity].columns:
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
-                    k, pop = 0, 0
+                    _k, pop = 0, 0
                     list_col_to_add = [data[entity]]
                     for cat, nb in val.items():
                         cat_varname = var + "_" + str(cat)

@@ -186,6 +186,7 @@ lint.ignore = [
     "TD003",
     # To be removed when the code is fully documented and cleaned up
     "S101",  # 	assert
+    "S307",  # Use of possibly insecure function; consider using `ast.literal_eval`
     "FBT002",  # boolean-default-value-positional-argument
     "G004",    # logging-f-string
     "D100",    # missing-docstring

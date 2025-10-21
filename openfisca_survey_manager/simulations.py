@@ -1358,7 +1358,7 @@ def init_variable_in_entity(simulation: Simulation, variable_name, series, perio
         if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
         else:
-            msg = "There are errors with {}".format(variable_name)
+            msg = f"There are errors with {variable_name}"
             assert series.isin(list(possible_values._member_names_)).all(), msg
             series = series.apply(lambda v: variable.possible_values[v].index)
 

@@ -54,10 +54,7 @@ class Calibration:
         self.parameters = parameters
         self.period = period
         self.simulation = simulation
-        if target_margins:
-            margin_variables = list(target_margins.keys())
-        else:
-            margin_variables = []
+        margin_variables = list(target_margins.keys()) if target_margins else []
         search_variable = "[A-Za-z_]+[A-Za-z0-9_]*"
 
         variable_instance_by_variable_name = simulation.tax_benefit_system.variables
@@ -127,7 +124,8 @@ class Calibration:
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
-            raise NotImplementedError("Cannot handle multiple entities")
+            msg = "Cannot handle multiple entities"
+            raise NotImplementedError(msg)
         else:
             target_entity = next(iter(entities))
             if "id_variable" in parameters:
@@ -199,10 +197,8 @@ class Calibration:
         for variable in self.margins_by_variable:
             list_var = re.findall("[A-Za-z_]+[A-Za-z0-9_]*", variable)
             assert all(
-                [
-                    var in self.simulation.tax_benefit_system.variables
+                var in self.simulation.tax_benefit_system.variables
                     for var in list_var
-                ]
             )
             dic_eval = {}
             for var in list_var:
@@ -304,7 +300,7 @@ class Calibration:
         simulation = self.simulation
         period = self.period
         list_var = re.findall("[A-Za-z_]+[A-Za-z0-9_]*", variable)
-        assert all([var in simulation.tax_benefit_system.variables for var in list_var])
+        assert all(var in simulation.tax_benefit_system.variables for var in list_var)
         variable_instance = simulation.tax_benefit_system.variables[list_var[0]]
 
         filter_by = self.filter_by
@@ -316,8 +312,8 @@ class Calibration:
             expr_categ = var + "[ ]*[<>=!]+"
             true_var = simulation.tax_benefit_system.variables[var]
             if (
-                not ([var] == list_var)
-                and true_var.value_type in [bool, Enum]
+                ([var] != list_var
+                and true_var.value_type in [bool, Enum])
                 or true_var.unit in ["years", "months"]
             ):
                 assert len(re.findall(expr_categ, variable)) > 0, (
@@ -467,7 +463,7 @@ class Calibration:
         if self.other_entity_count:
             margins["total_population_smaller_entity"] = self.other_entity_count
 
-        val_pondfin, lambdasol, updated_margins = calmar(data, margins, **parameters)
+        val_pondfin, _lambdasol, updated_margins = calmar(data, margins, **parameters)
         # Updating only after filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (
             logical_not(self.filter_by)

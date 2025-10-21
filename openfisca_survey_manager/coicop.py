@@ -28,16 +28,14 @@ divisions = [f"0{i}" for i in range(1, 10)] + ["11", "12"]
 def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=False):
     assert level in sub_levels
     log.debug(
-        "Reading nomenclature coicop {} source data for level {}".format(year, level)
+        f"Reading nomenclature coicop {year} source data for level {level}"
     )
     try:
         if year == 1998:
             data_frame = pd.read_csv(
                 os.path.join(
                     legislation_directory,
-                    "COICOP/1998/nomenclature_coicop1998_source_by_{}.csv".format(
-                        level
-                    ),
+                    f"COICOP/1998/nomenclature_coicop1998_source_by_{level}.csv",
                 ),
                 sep=";",
                 header=None,
@@ -46,24 +44,20 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
             data_frame = pd.read_excel(
                 os.path.join(
                     legislation_directory,
-                    "COICOP/2016/nomenclature_coicop2016_source_by_{}.xls".format(
-                        level
-                    ),
+                    f"COICOP/2016/nomenclature_coicop2016_source_by_{level}.xls",
                 ),
                 header=None,
             )
 
-    except Exception as e:
+    except Exception:
         log.info(
-            "Error when reading nomenclature coicop source data for level {}".format(
-                level
-            )
+            f"Error when reading nomenclature coicop source data for level {level}"
         )
-        raise e
+        raise
 
-    data_frame.reset_index(inplace=True)
-    data_frame.rename(
-        columns={0: "code_coicop", 1: "label_{}".format(level[:-1])}, inplace=True
+    data_frame = data_frame.reset_index()
+    data_frame = data_frame.rename(
+        columns={0: "code_coicop", 1: f"label_{level[:-1]}"}
     )
     data_frame = data_frame.iloc[2:].copy()
     if year == 2016:
@@ -97,7 +91,7 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
         data_frame.to_csv(
             os.path.join(
                 legislation_directory,
-                "nomenclature_coicop{}_by_{}.csv".format(year, level),
+                f"nomenclature_coicop{year}_by_{level}.csv",
             ),
         )
 
@@ -105,7 +99,7 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
 
 
 def build_raw_coicop_nomenclature(year=2016):
-    """Builds raw COICOP nomenclature from ecoicop levels"""
+    """Builds raw COICOP nomenclature from ecoicop levels."""
     coicop_nomenclature = None
 
     for index in range(len(sub_levels) - 1):
@@ -123,10 +117,9 @@ def build_raw_coicop_nomenclature(year=2016):
         # Drop any residual 'index' columns to avoid merge conflicts
         for df in (df_left, df_right):
             if "index" in df.columns:
-                df.drop(columns=["index"], inplace=True)
+                df = df.drop(columns=["index"])  # noqa: PLW2901
 
-        coicop_nomenclature = pd.merge(
-            df_left,
+        coicop_nomenclature = df_left.merge(
             df_right,
             on=on,
             how="inner",

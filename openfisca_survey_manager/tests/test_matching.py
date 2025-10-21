@@ -136,7 +136,7 @@ def test_nnd_hotdeck_using_rpy2():
     # find the closest donors using NND hot deck;
     # distances are computed on "Sepal.Length" and "Sepal.Width"
 
-    x, y = nnd_hotdeck_using_rpy2(
+    _x, _y = nnd_hotdeck_using_rpy2(
         receiver=iris_rec,
         donor=iris_don,
         donor_classes="Species",

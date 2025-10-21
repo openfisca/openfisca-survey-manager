@@ -7,7 +7,7 @@ from openfisca_survey_manager.tests import tax_benefit_system
 
 def test_generation():
     survey_scenario = AbstractSurveyScenario()
-    survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
+    survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = "2025-06"
     survey_scenario.used_as_input_variables = ["housing_occupancy_status"]
 
