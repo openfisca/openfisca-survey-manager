@@ -64,10 +64,10 @@ class Calibration:
         entities = {
             variable_instance_by_variable_name[variable].entity.key
             for var in margin_variables for variable in re.findall(search_variable, var)
-            )
+            }
         for var in margin_variables:
-            assert len(set([variable_instance_by_variable_name[variable].entity.key
-            for variable in re.findall(search_variable, var)])) == 1, "An expression use variables that are not based on the same entity"
+            assert len({variable_instance_by_variable_name[variable].entity.key
+            for variable in re.findall(search_variable, var)}) == 1, "An expression use variables that are not based on the same entity"
         if entity is not None:
             entities.add(entity)
         self.entities = list(entities)
@@ -301,8 +301,8 @@ class Calibration:
                 assert len(re.findall(expr_categ, variable)) > 0, "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
         if categorical_variable:
             value = simulation.calculate(variable, period = period)
-            filtered_value = value if (filter_by == numpy.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
-            categories = numpy.sort(numpy.unique(filtered_value))
+            filtered_value = value if (filter_by == np.array(1.0) or all(filter_by)) else value[filter_by.astype(bool)]
+            categories = np.sort(np.unique(filtered_value))
             target_by_category = dict(zip(categories, target.values()))
 
         if not self.margins_by_variable:
