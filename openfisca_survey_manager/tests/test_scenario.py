@@ -221,7 +221,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
     }
     survey_scenario.set_weight_variable_by_entity(weight_variable_by_entity)
     assert survey_scenario.weight_variable_by_entity == weight_variable_by_entity
-    survey_scenario.init_from_data(data=data)
+    survey_scenario.init_from_data(data=data, use_marginal_tax_rate=use_marginal_tax_rate)
     if isinstance(survey_scenario, ReformScenario):
         assert (survey_scenario.calculate_series("household_weight", period, use_baseline=True) != 0).all()
     else:
