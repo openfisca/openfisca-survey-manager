@@ -734,8 +734,8 @@ class AbstractSurveyScenario(object):
             <BLANKLINE>
             rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
             Details:
-            2017-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-            2018-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+            2017-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+            2018-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
             >>> survey_scenario.tax_benefit_systems["baseline"].neutralize_variable('age')
             >>> survey_scenario.summarize_variable(variable = "age")
             <BLANKLINE>
