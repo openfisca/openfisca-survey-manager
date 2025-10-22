@@ -13,21 +13,21 @@ clean:
 	find . -name '*.pyc' -exec rm \{\} \;
 
 deps:
-	uv pip install build twine
+	pip install build twine
 
 install: deps
 	@# Install OpenFisca-Survey-Manager for development.
 	@# `make install` installs the editable version of OpenFisca-Survey-Manager.
 	@# This allows contributors to test as they code.
-	uv pip install --editable .[dev,sas]
+	pip install --editable .[dev,sas]
 
 build: clean deps
 	@# Install OpenFisca-Survey-Manager for deployment and publishing.
 	@# `make build` allows us to be be sure tests are run against the packaged version
 	@# of OpenFisca-Survey-Manager, the same we put in the hands of users and reusers.
 	python -m build
-	uv pip uninstall --yes OpenFisca-Survey-Manager
-	find dist -name "*.whl" -exec uv pip install {}[dev,sas] \;
+	pip uninstall --yes OpenFisca-Survey-Manager
+	find dist -name "*.whl" -exec pip install {}[dev,sas] \;
 
 check-syntax-errors:
 	python -m compileall -q .
