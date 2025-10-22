@@ -1,13 +1,11 @@
+import contextlib
 
-
-try:
+with contextlib.suppress(ModuleNotFoundError):
     import pysal as ps
-except ModuleNotFoundError:
-    pass
 import pandas as pd
 
 
-def read_dbf(dbf_path, index = None, cols = False, incl_index = False):
+def read_dbf(dbf_path, index=None, cols=False, incl_index=False):
     """
     Read a dbf file as a pandas.DataFrame, optionally selecting the index
     variable and which columns are to be loaded.
@@ -40,7 +38,7 @@ def read_dbf(dbf_path, index = None, cols = False, incl_index = False):
         vars_to_read = cols
     else:
         vars_to_read = db.header
-    data = dict([(var, db.by_col(var)) for var in vars_to_read])
+    data = {var: db.by_col(var) for var in vars_to_read}
     if index:
         index = db.by_col(index)
         db.close()
