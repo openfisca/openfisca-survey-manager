@@ -54,65 +54,68 @@ matching = [
     'rpy2 >=3.5.10, < 4.0'
     ]
 dev = [
-    'autopep8 >=2.0.2, < 3',
     'coveralls >=3.3.1, < 5.0',
-    'Flake8-pyproject >=1.2.3, <2.0.0',  # To read flake8 configuration from pyproject.toml
-    'flake8 >=6.0.0, < 8.0',
-    'flake8-bugbear >=23.3.12, < 25.0',
-    'flake8-docstrings >=1.7.0, < 2.0',
-    'flake8-print >=5.0.0, < 6.0',
-    'flake8-rst-docstrings >=0.3.0, < 0.4.0',
     'openfisca-country-template >=7.1.5, <8.0.0',
     'pyreadstat >=1.2.1, < 1.3',
     'pytest', # Let OpenFisca-Core decide pytest version
     'pytest-cov',
     'scipy >=1.10.1, < 2.0',
-    'pytest-order'
+    'pytest-order',
+    'ruff',
+    'isort'
 ]
 casd = [
-    'autopep8 >=2.0.2, < 3',
-    'flake8 >=6.0.0, < 8.0',
-    'pycodestyle >=2.10.0, < 3.0',
     'pytest',
-    'scipy >=1.10.1, < 2.0'
+    'scipy >=1.10.1, < 2.0',
+    'ruff',
+    'isort'
 ]
 sas = [
     'pyreadstat >=1.2.1, < 1.3',
     'sas7bdat >=2.2.3, < 3.0'
 ]
 
-[tool.flake8]
-# ; C011X:            We (progressively) document the code base.
-# -; D10X:             We (progressively) check docstrings (see https://www.pydocstyle.org/en/2.1.1/error_codes.html#grouping).
-# -; DARXXX:           We (progressively) check docstrings (see https://github.com/terrencepreilly/darglint#error-codes).
-# -; E128/133:         We prefer hang-closing visual indents.
-# -; E251:             We prefer `function(x = 1)` over `function(x=1)`.
-# -; E501:             We do not enforce a maximum line length.
-# -; F403/405:         We ignore * imports.
-# -; R0401:            We avoid cyclic imports —required for unit/doc tests.
-# -; RST301:           We use Google Python Style (see https://pypi.org/project/flake8-rst-docstrings/)
-# -; W503/504:         We break lines before binary operators (Knuth's style).
-hang-closing = true
-ignore              = ["E128", "E133", "E251", "F403", "F405", "E501", "RST301", "W503", "W504", "T001"]
-docstring-quotes    = "single"
-inline-quotes       = "single"
-multiline-quotes    = "single"
-extend-ignore       = "D"
-in-place            = true
-include-in-doctest  = ["openfisca_core/commons", "openfisca_core/types"]
-rst-directives      = ["attribute", "deprecated", "seealso", "versionadded", "versionchanged"]
-rst-roles           = ["any", "attr", "class", "exc", "func", "meth", "obj"]
-strictness          = "short"
+[tool.ruff]
+line-length = 119
+extend-exclude = ["openfisca_survey_manager/tests/data_files/*", "openfisca_survey_manager/tests/storage/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I001", "B", "A", "C4", "T20", "SIM", "PTH", "N"]
+ignore = [
+    "N801", # Class name should use CapWords convention (ignored for Variable children)
+    "N805", # First argument of a method should be named `self` (ignored for Variable children)
+    "E501", # Line too long (will be fixed manually or ignored if unavoidable)
+    "B018", # Found useless expression (will be fixed manually or ignored if intended)
+    "N806", # Variable in function should be lowercase (ignored for specific cases like StatMatch, PLCx, PLCy, LCx, LCy, N)
+    "F401", # Unused imports (will be cleaned up manually)
+    "F821", # Undefined name (will be fixed manually, likely missing import or instantiation)
+    "I001", # Import block is un-sorted or un-formatted (will be fixed by isort)
+    "PTH118", # os.path.join() should be replaced by Path with / operator (will be fixed manually)
+    "PTH110", # os.path.exists() should be replaced by Path.exists() (will be fixed manually)
+    "PTH123", # open() should be replaced by Path.open() (will be fixed manually)
+    "PTH103", # os.makedirs() should be replaced by Path.mkdir(parents=True) (will be fixed manually)
+    "PTH117", # os.path.isabs() should be replaced by Path.is_absolute() (will be fixed manually)
+    "PTH112", # os.path.isdir() should be replaced by Path.is_dir() (will be fixed manually)
+    "PTH208", # Use pathlib.Path.iterdir() instead (will be fixed manually)
+    "PTH207", # Replace glob with Path.glob or Path.rglob (will be fixed manually)
+    "PTH113", # os.path.isfile() should be replaced by Path.is_file() (will be fixed manually)
+    "PTH119", # os.path.basename() should be replaced by Path.name (will be fixed manually)
+    "PTH120", # os.path.dirname() should be replaced by Path.parent (will be fixed manually)
+    "PTH206", # Replace .split(os.sep) with Path.parts (will be fixed manually)
+    "N999", # Invalid module name (ignored for __init__.py files)
+    "N802", # Function name should be lowercase (ignored for mathematical functions F and F_prime)
+    "SIM113", # Use enumerate() for index variable in for loop (ignored for simple counters)
+    "SIM115", # Use a context manager for opening files (ignored for compatibility)
+]
+
+[tool.isort]
+profile = "black"
+line_length = 119
 
 [tool.pylint.message_control]
 disable             = ["all"]
 enable              = ["C0115", "C0116", "R0401"]
 score               = ["no"]
-
-[tool.pep8]
-hang-closing = true
-ignore       = ["E128","E251","F403","F405","E501","W503"]
-in-place     = true
 
 [tool.pytest.ini_options]
 addopts      = "--doctest-modules --disable-pytest-warnings --showlocals"
