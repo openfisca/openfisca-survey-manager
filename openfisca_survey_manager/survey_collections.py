@@ -33,15 +33,13 @@ class SurveyCollection(object):
             self.json_file_path = json_file_path
             if "collections" not in config.sections():
                 config["collections"] = {}
-            config.set("collections", self.name, self.json_file_path)
+            config.set("collections", self.name, str(self.json_file_path))
             config.save()
         elif config is not None:
             if config.has_option("collections", self.name):
                 self.json_file_path = config.get("collections", self.name)
             elif config.get("collections", "collections_directory") is not None:
-                self.json_file_path = str(Path(
-                    config.get("collections", "collections_directory")) / (name + ".json")
-                )
+                self.json_file_path = str(Path(config.get("collections", "collections_directory")) / (name + ".json"))
 
         self.config = config
 
@@ -72,7 +70,7 @@ Contains the following surveys :
         else:
             self.json_file_path = json_file_path
 
-        config.set("collections", self.name, self.json_file_path)
+        config.set("collections", self.name, str(self.json_file_path))
         config.save()
         with codecs.open(self.json_file_path, "w", encoding="utf-8") as _file:
             json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
@@ -116,8 +114,11 @@ Contains the following surveys :
             try:
                 json_file_path = config.get("collections", collection)
             except Exception as error:
-                log.debug("Looking for config file in {}".format(config_files_directory))
+                msg = "Looking for config file in {}".format(config_files_directory)
+                log.debug(msg)
                 log.error(error)
+                raise Exception(msg) from error
+
         with Path(json_file_path).open("r") as _file:
             self_json = json.load(_file)
             name = self_json["name"]

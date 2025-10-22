@@ -62,7 +62,10 @@ dev = [
     'scipy >=1.10.1, < 2.0',
     'pytest-order',
     'ruff',
-    'isort'
+    'isort',
+    'pre-commit',
+    'ipdb',
+    'pdbpp'
 ]
 casd = [
     'pytest',
