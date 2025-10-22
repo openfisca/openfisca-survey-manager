@@ -56,7 +56,7 @@ except PermissionError:
     pass
 
 # GitHub Actions test
-is_in_ci = "CI" in os.environ
+is_in_ci = "CI" in os.environ or os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
 private_run_with_data = False
 
 if is_in_ci and default_config_files_directory is None:
