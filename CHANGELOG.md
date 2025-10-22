@@ -5,7 +5,6 @@
 * Technical changes
   - Remove sas7dbat dependency
 
-
 ### 3.2.5 [#324](https://github.com/openfisca/openfisca-survey-manager/pull/324)
 
 * New features
