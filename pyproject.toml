@@ -1,6 +1,6 @@
 [project]
 name = "OpenFisca-Survey-Manager"
-version = "3.2.5"
+version = "3.2.6"
 description = "A tool for managing survey/administrative data and import them in OpenFisca"
 readme = "README.md"
 keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
