@@ -75,7 +75,9 @@ def create_data_file_by_format(directory_path=None):
     csv_files = []
     parquet_files = []
 
-    for root, _subdirs, files in Path(directory_path).walk():
+    for root, _subdirs, files in os.walk(directory_path):
+        # reference _subdirs to avoid "not accessed" warnings
+        _ = _subdirs
         for file_name in files:
             file_path = Path(root) / file_name
             if file_path.suffix == ".csv":
