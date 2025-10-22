@@ -1418,6 +1418,20 @@ def summarize_variable(simulation: Simulation, variable=None, weighted=False, fo
                     print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                     continue
 
+                # Handle numeric types
+                default_array = np.array(default_value, dtype=infos["dtype"])
+                total = np.sum(array * weights) if weighted else np.sum(array)
+                print(  # noqa T201
+                    "{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(
+                        period,
+                        (array * weights).sum() / weights.sum() if weighted else array.mean(),
+                        array.min(),
+                        array.max(),
+                        total,
+                        (array == default_array).sum() / len(array),
+                        np.median(array),
+                    )
+                )
 
 
 # Monkey patching
