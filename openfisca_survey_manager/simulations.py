@@ -649,7 +649,7 @@ class SecretViolationError(Exception):
     pass
 
 
-def compute_winners_loosers(
+def compute_winners_losers(
         simulation: Simulation,
         baseline_simulation: Simulation,
         variable: str,
@@ -663,7 +663,7 @@ def compute_winners_loosers(
         filtering_variable_by_entity = None,
         ) -> Dict[str, int]:
     """
-    Compute the number of winners and loosers for a given variable.
+    Compute the number of winners and losers for a given variable.
 
     Args:
         simulation (_type_): The main simulation.
@@ -1287,7 +1287,7 @@ def summarize_variable(simulation: Simulation, variable = None, weighted = False
         else:
             for period in sorted(simulation.get_known_periods(variable)):
                 array = holder.get_array(period)
-                if array.shape == ():
+                if array.shape == (): # noqa analysis:ignore
                     print("{}: always = {}".format(period, array))  # noqa analysis:ignore
                     continue
 
@@ -1303,7 +1303,7 @@ def summarize_variable(simulation: Simulation, variable = None, weighted = False
                     groupby = df.groupby(variable)['weights'].sum()
                     total = groupby.sum()
                     expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
-                    print("{}:{}.".format(period, ",".join(expr)))  # noqa analysis:ignore
+                    print("{}:{{}}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                     continue
 
                 print("{}: mean = {}, min = {}, max = {}, mass = {:.2e}, default = {:.1%}, median = {}".format(  # noqa analysis:ignore
@@ -1328,7 +1328,7 @@ Simulation.compute_aggregate = compute_aggregate
 Simulation.compute_pivot_table = compute_pivot_table
 Simulation.create_data_frame_by_entity = create_data_frame_by_entity
 Simulation.compute_quantiles = compute_quantiles
-Simulation.compute_winners_loosers = compute_winners_loosers
+Simulation.compute_winners_losers = compute_winners_losers
 Simulation.new_from_tax_benefit_system = new_from_tax_benefit_system
 Simulation.inflate = inflate
 Simulation.init_entity_data = init_entity_data
