@@ -24,3 +24,29 @@ def test_aggregates():
         aggregate_after = survey_scenario.compute_aggregate(variable, period=period)
         assert df.loc[variable, "baseline_amount"] == int(aggregate_before)
         assert df.loc[variable, "reform_amount"] == int(aggregate_after)
+
+def test_aggregates_winners_losers():
+    survey_scenario = create_randomly_initialized_survey_scenario(reform=modify_social_security_taxation)
+    period = "2017-01"
+    variable = "social_security_contribution"
+
+    aggregates = AbstractAggregates(survey_scenario=survey_scenario)
+    aggregates.amount_unit = 1.0
+    aggregates.beneficiaries_unit = 1.0
+    aggregates.aggregate_variables = [variable]
+
+    df = aggregates.get_data_frame(target='reform', default='baseline')
+
+    assert 'Gagnants' in df.columns
+    assert 'Perdants' in df.columns
+    assert 'Neutres' in df.columns
+
+    stats = survey_scenario.simulations['reform'].compute_winners_loosers(
+        baseline_simulation=survey_scenario.simulations['baseline'],
+        variable=variable,
+        period=period
+    )
+
+    assert df.loc[0, 'Gagnants'] == str(int(round(stats['above_after'])))
+    assert df.loc[0, 'Perdants'] == str(int(round(stats['lower_after'])))
+    assert df.loc[0, 'Neutres'] == str(int(round(stats['neutral'])))
