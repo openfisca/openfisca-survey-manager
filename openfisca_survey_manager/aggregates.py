@@ -1,17 +1,17 @@
 import collections
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
-
 
 log = logging.getLogger(__name__)
 
 
 # TODO:
 #  * Localisation
+
 
 class AbstractAggregates(object):
     aggregate_variables = None
@@ -26,7 +26,7 @@ class AbstractAggregates(object):
     survey_scenario = None
     totals_df = None
 
-    def __init__(self, survey_scenario = None):
+    def __init__(self, survey_scenario=None):
         assert survey_scenario is not None
 
         self.period = survey_scenario.period
@@ -35,27 +35,29 @@ class AbstractAggregates(object):
 
         self.simulations = survey_scenario.simulations
 
-        for name in survey_scenario.tax_benefit_systems.keys():
+        for name in survey_scenario.tax_benefit_systems:
             assert survey_scenario.simulations[name] is not None
 
         self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         if self.labels is None:
             amount_unit_str = "({} {})".format(self.amount_unit, self.currency)
             beneficiaries_unit_str = "({})".format(self.beneficiaries_unit)
-            self.labels = collections.OrderedDict((
-                ('label', "Mesure"),
-                ('entity', "Entité"),
-                ('reform_amount', "Dépenses\n" + amount_unit_str),
-                ('reform_beneficiaries', "Bénéficiaires\n(milliers)"),
-                ('baseline_amount', "Dépenses initiales\n" + amount_unit_str),
-                ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
-                ('actual_amount', "Dépenses\nréelles\n" + amount_unit_str),
-                ('actual_beneficiaries', "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
-                ('absolute_difference_amount', "Diff. absolue\nDépenses\n" + amount_unit_str),
-                ('absolute_difference_beneficiaries', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
-                ('relative_difference_amount', "Diff. relative\nDépenses"),
-                ('relative_difference_beneficiaries', "Diff. relative\nBénéficiaires"),
-                ))
+            self.labels = collections.OrderedDict(
+                (
+                    ("label", "Mesure"),
+                    ("entity", "Entité"),
+                    ("reform_amount", "Dépenses\n" + amount_unit_str),
+                    ("reform_beneficiaries", "Bénéficiaires\n(milliers)"),
+                    ("baseline_amount", "Dépenses initiales\n" + amount_unit_str),
+                    ("baseline_beneficiaries", "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
+                    ("actual_amount", "Dépenses\nréelles\n" + amount_unit_str),
+                    ("actual_beneficiaries", "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
+                    ("absolute_difference_amount", "Diff. absolue\nDépenses\n" + amount_unit_str),
+                    ("absolute_difference_beneficiaries", "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
+                    ("relative_difference_amount", "Diff. relative\nDépenses"),
+                    ("relative_difference_beneficiaries", "Diff. relative\nBénéficiaires"),
+                )
+            )
 
     def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
         """
@@ -71,52 +73,61 @@ class AbstractAggregates(object):
         """
         filter_by = self.filter_by
         if actual:
-            self.totals_df = self.load_actual_data(period = self.period)
+            self.totals_df = self.load_actual_data(period=self.period)
 
-        simulation_types = list()
+        simulation_types = []
         if use_baseline:
-            assert self.simulations['baseline'] is not None
-            simulation_types.append('baseline')
+            assert self.simulations["baseline"] is not None
+            simulation_types.append("baseline")
         if reform:
-            simulation_types.append('reform')
+            simulation_types.append("reform")
         if actual:
-            simulation_types.append('actual')
+            simulation_types.append("actual")
 
-        data_frame_by_simulation_type = dict()
+        data_frame_by_simulation_type = {}
 
         for simulation_type in simulation_types:
-            if simulation_type == 'actual':
-                data_frame_by_simulation_type['actual'] = self.totals_df.copy() if self.totals_df is not None else None
+            if simulation_type == "actual":
+                data_frame_by_simulation_type["actual"] = self.totals_df.copy() if self.totals_df is not None else None
             else:
-                use_baseline = False if simulation_type == 'reform' else True
+                use_baseline = simulation_type != "reform"
                 data_frame = pd.DataFrame()
                 assert self.aggregate_variables is not None
                 for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
-                        variable, use_baseline = use_baseline, filter_by = filter_by)
+                        variable, use_baseline=use_baseline, filter_by=filter_by
+                    )
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
-                data_frame.rename(columns = {
-                    'amount': f'{simulation_type}_amount',
-                    'beneficiaries': f'{simulation_type}_beneficiaries',
+                data_frame.rename(
+                    columns={
+                        "amount": f"{simulation_type}_amount",
+                        "beneficiaries": f"{simulation_type}_beneficiaries",
                     },
-                    inplace = True
-                    )
+                    inplace=True,
+                )
                 data_frame_by_simulation_type[simulation_type] = data_frame
 
         if use_baseline and reform:
-            del data_frame_by_simulation_type['reform']['entity']
-            del data_frame_by_simulation_type['reform']['label']
+            del data_frame_by_simulation_type["reform"]["entity"]
+            del data_frame_by_simulation_type["reform"]["label"]
 
         self.base_data_frame = pd.concat(
             list(data_frame_by_simulation_type.values()),
-            axis = 1,
-            sort = True,
-            ).loc[self.aggregate_variables]
+            axis=1,
+            sort=True,
+        ).loc[self.aggregate_variables]
         return self.base_data_frame
 
-    def compute_difference(self, target: str = "baseline", default: str = 'actual', amount: bool = True,
-            beneficiaries: bool = True, absolute: bool = True, relative: bool = True) -> pd.DataFrame:
+    def compute_difference(
+        self,
+        target: str = "baseline",
+        default: str = "actual",
+        amount: bool = True,
+        beneficiaries: bool = True,
+        absolute: bool = True,
+        relative: bool = True,
+    ) -> pd.DataFrame:
         """
         Compute and add relative and/or absolute differences to the data_frame.
 
@@ -135,25 +146,27 @@ class AbstractAggregates(object):
         assert amount or beneficiaries
         base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
 
-        difference_data_frame = base_data_frame[['label', 'entity']].copy()
+        difference_data_frame = base_data_frame[["label", "entity"]].copy()
         # Remove duplicates
         difference_data_frame = difference_data_frame.loc[:, ~difference_data_frame.columns.duplicated()].copy()
 
-        quantities = list()
-        quantities += ['amount'] if amount else None
-        quantities += ['beneficiaries'] if beneficiaries else None
+        quantities = []
+        quantities += ["amount"] if amount else None
+        quantities += ["beneficiaries"] if beneficiaries else None
 
         for quantity in quantities:
-            difference_data_frame[f'absolute_difference_{quantity}'] = (
-                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
-                )
-            difference_data_frame[f'relative_difference_{quantity}'] = (
-                abs(base_data_frame[f'{target}_{quantity}']) - base_data_frame[f'{default}_{quantity}']
-                ) / abs(base_data_frame[f'{default}_{quantity}'])
+            difference_data_frame[f"absolute_difference_{quantity}"] = (
+                abs(base_data_frame[f"{target}_{quantity}"]) - base_data_frame[f"{default}_{quantity}"]
+            )
+            difference_data_frame[f"relative_difference_{quantity}"] = (
+                abs(base_data_frame[f"{target}_{quantity}"]) - base_data_frame[f"{default}_{quantity}"]
+            ) / abs(base_data_frame[f"{default}_{quantity}"])
 
         return difference_data_frame
 
-    def compute_variable_aggregates(self, variable: str, use_baseline: bool = False, filter_by: str = None) -> pd.DataFrame:
+    def compute_variable_aggregates(
+        self, variable: str, use_baseline: bool = False, filter_by: str = None
+    ) -> pd.DataFrame:
         """
         Return aggregate spending, and number of beneficiaries for the relevant entity level.
 
@@ -168,9 +181,9 @@ class AbstractAggregates(object):
         if len(self.simulations) == 1:
             simulation = list(self.simulations.values())[0]
         elif use_baseline:
-            simulation = self.simulations['baseline']
+            simulation = self.simulations["baseline"]
         else:
-            simulation = self.simulations['reform']
+            simulation = self.simulations["reform"]
 
         variables = simulation.tax_benefit_system.variables
         variable_instance = variables.get(variable)
@@ -181,149 +194,165 @@ class AbstractAggregates(object):
                 msg += " in baseline simulation"
             log.info(msg)
             return pd.DataFrame(
-                data = {
-                    'label': variable,
-                    'entity': 'Unknown entity',
-                    'amount': 0,
-                    'beneficiaries': 0,
-                    },
-                index = [variable],
-                )
+                data={
+                    "label": variable,
+                    "entity": "Unknown entity",
+                    "amount": 0,
+                    "beneficiaries": 0,
+                },
+                index=[variable],
+            )
 
         entity_key = variable_instance.entity.key
 
         if self.weight_variable_by_entity is not None:
             weight = self.weight_variable_by_entity[entity_key]
             assert weight in variables, f"{weight} not a variable of the tax_benefit_system"
-            weight_array = simulation.calculate(weight, period = self.period).astype('float')
+            weight_array = simulation.calculate(weight, period=self.period).astype("float")
             assert not np.isnan(np.sum(weight_array)), f"The are some NaN in weights {weight} for entity {entity_key}"
             # amounts and beneficiaries from current data and default data if exists
             # Build weights for each entity
         else:
-            log.debug(
-                f"No weight variable defined for entity {entity_key}, using 1 as weight.")
-            weight = 'weight'
+            log.debug(f"No weight variable defined for entity {entity_key}, using 1 as weight.")
+            weight = "weight"
             weight_array = 1
 
-        variable_array = simulation.calculate_add(variable, period = self.period).astype('float')
-        assert np.isfinite(variable_array).all(), f"The are non finite values in variable {variable} for entity {entity_key}"
-        data = pd.DataFrame({
-            variable: variable_array,
-            weight: weight_array,
-            })
+        variable_array = simulation.calculate_add(variable, period=self.period).astype("float")
+        assert np.isfinite(variable_array).all(), (
+            f"The are non finite values in variable {variable} for entity {entity_key}"
+        )
+        data = pd.DataFrame(
+            {
+                variable: variable_array,
+                weight: weight_array,
+            }
+        )
         if filter_by:
             filter_dummy_variable = (
-                filter_by
-                if filter_by in variables
-                else self.survey_scenario.filtering_variable_by_entity[entity_key]
-                )
-            filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.period)
+                filter_by if filter_by in variables else self.survey_scenario.filtering_variable_by_entity[entity_key]
+            )
+            filter_dummy_array = simulation.calculate(filter_dummy_variable, period=self.period)
 
         else:
             filter_dummy_array = 1
 
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
-            filter_dummy_variable, entity_key)
+            filter_dummy_variable, entity_key
+        )
 
-        amount = int(
-            (
-                data[variable]
-                * data[weight]
-                * filter_dummy_array
-                / self.amount_unit
-                ).sum()
-            )
+        amount = int((data[variable] * data[weight] * filter_dummy_array / self.amount_unit).sum())
         beneficiaries = int(
-            (
-                (data[variable] != 0)
-                * data[weight]
-                * filter_dummy_array
-                / self.beneficiaries_unit
-                ).sum()
-            )
+            ((data[variable] != 0) * data[weight] * filter_dummy_array / self.beneficiaries_unit).sum()
+        )
         variable_data_frame = pd.DataFrame(
-            data = {
-                'label': variables[variable].label,
-                'entity': variables[variable].entity.key,
-                'amount': amount,
-                'beneficiaries': beneficiaries,
-                },
-            index = [variable],
-            )
+            data={
+                "label": variables[variable].label,
+                "entity": variables[variable].entity.key,
+                "amount": amount,
+                "beneficiaries": beneficiaries,
+            },
+            index=[variable],
+        )
 
         return variable_data_frame
 
     def create_description(self):
         """Create a description dataframe."""
         now = datetime.now()
-        return pd.DataFrame([
-            'OpenFisca',
-            'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
-            'Système socio-fiscal au %s' % self.simulation.period.start.year,
-            "Données d'enquêtes de l'année %s" % str(self.data_year),
-            ])
+        return pd.DataFrame(
+            [
+                "OpenFisca",
+                "Calculé le %s à %s" % (now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
+                "Système socio-fiscal au %s" % self.simulation.period.start.year,
+                "Données d'enquêtes de l'année %s" % str(self.data_year),
+            ]
+        )
 
-    def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
-            relative = True, target = "reform"):
+    def to_csv(
+        self,
+        path=None,
+        absolute=True,
+        amount=True,
+        beneficiaries=True,
+        default="actual",
+        relative=True,
+        target="reform",
+    ):
         """Saves the table to csv."""
         assert path is not None
 
         if os.path.isdir(path):
             now = datetime.now()
-            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".csv"))
+            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".csv"))
         else:
             file_path = path
 
         df = self.get_data_frame(
-            absolute = absolute,
-            amount = amount,
-            beneficiaries = beneficiaries,
-            default = default,
-            relative = relative,
-            target = target,
-            )
-        df.to_csv(file_path, index = False, header = True)
+            absolute=absolute,
+            amount=amount,
+            beneficiaries=beneficiaries,
+            default=default,
+            relative=relative,
+            target=target,
+        )
+        df.to_csv(file_path, index=False, header=True)
 
-    def to_excel(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
-            relative = True, target = "reform"):
+    def to_excel(
+        self,
+        path=None,
+        absolute=True,
+        amount=True,
+        beneficiaries=True,
+        default="actual",
+        relative=True,
+        target="reform",
+    ):
         """Save the table to excel."""
         assert path is not None
 
         if os.path.isdir(path):
             now = datetime.now()
-            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".xlsx"))
+            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".xlsx"))
         else:
             file_path = path
 
         df = self.get_data_frame(
-            absolute = absolute,
-            amount = amount,
-            beneficiaries = beneficiaries,
-            default = default,
-            relative = relative,
-            target = target,
-            )
+            absolute=absolute,
+            amount=amount,
+            beneficiaries=beneficiaries,
+            default=default,
+            relative=relative,
+            target=target,
+        )
         writer = pd.ExcelWriter(file_path)
-        df.to_excel(writer, "aggregates", index = False, header = True)
+        df.to_excel(writer, "aggregates", index=False, header=True)
         descr = self.create_description()
-        descr.to_excel(writer, "description", index = False, header = False)
+        descr.to_excel(writer, "description", index=False, header=False)
         writer.save()
 
-    def to_html(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
-            relative = True, target = "reform"):
+    def to_html(
+        self,
+        path=None,
+        absolute=True,
+        amount=True,
+        beneficiaries=True,
+        default="actual",
+        relative=True,
+        target="reform",
+    ):
         """Get or saves the table to html format."""
         df = self.get_data_frame(
-            absolute = absolute,
-            amount = amount,
-            beneficiaries = beneficiaries,
-            default = default,
-            relative = relative,
-            target = target,
-            )
+            absolute=absolute,
+            amount=amount,
+            beneficiaries=beneficiaries,
+            default=default,
+            relative=relative,
+            target=target,
+        )
 
         if path is not None and os.path.isdir(path):
             now = datetime.now()
-            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".html"))
+            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".html"))
         else:
             file_path = path
 
@@ -332,21 +361,29 @@ class AbstractAggregates(object):
                 df.to_html(html_file)
         return df.to_html()
 
-    def to_markdown(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
-            relative = True, target = "reform"):
+    def to_markdown(
+        self,
+        path=None,
+        absolute=True,
+        amount=True,
+        beneficiaries=True,
+        default="actual",
+        relative=True,
+        target="reform",
+    ):
         """Get or saves the table to markdown format."""
         df = self.get_data_frame(
-            absolute = absolute,
-            amount = amount,
-            beneficiaries = beneficiaries,
-            default = default,
-            relative = relative,
-            target = target,
-            )
+            absolute=absolute,
+            amount=amount,
+            beneficiaries=beneficiaries,
+            default=default,
+            relative=relative,
+            target=target,
+        )
 
         if path is not None and os.path.isdir(path):
             now = datetime.now()
-            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), ".md"))
+            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".md"))
         else:
             file_path = path
 
@@ -358,101 +395,96 @@ class AbstractAggregates(object):
 
     def get_calibration_coeffcient(self, target: str = "reform") -> pd.DataFrame:
         df = self.compute_aggregates(
-            actual = True,
-            use_baseline = 'baseline' == target,
-            reform = 'reform' == target,
-            )
-        return df['{}_amount'.format(target)] / df['actual_amount']
+            actual=True,
+            use_baseline=target == "baseline",
+            reform=target == "reform",
+        )
+        return df["{}_amount".format(target)] / df["actual_amount"]
 
     def get_data_frame(
-            self,
-            absolute: bool = True,
-            amount: bool = True,
-            beneficiaries: bool = True,
-            default: str = 'actual',
-            formatting: bool = True,
-            relative: bool = True,
-            target: str = "reform",
-            ignore_labels: bool = False,
-            ):
-        assert target is None or target in ['reform', 'baseline']
+        self,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        formatting: bool = True,
+        relative: bool = True,
+        target: str = "reform",
+        ignore_labels: bool = False,
+    ):
+        assert target is None or target in ["reform", "baseline"]
 
         columns = self.labels.keys()
         if (absolute or relative) and (target != default):
             difference_data_frame = self.compute_difference(
-                absolute = absolute,
-                amount = amount,
-                beneficiaries = beneficiaries,
-                default = default,
-                relative = relative,
-                target = target,
-                )
+                absolute=absolute,
+                amount=amount,
+                beneficiaries=beneficiaries,
+                default=default,
+                relative=relative,
+                target=target,
+            )
         else:
             difference_data_frame = None
 
         # Removing unwanted columns
         if amount is False:
-            columns = [column for column in columns if 'amount' not in columns]
+            columns = [column for column in columns if "amount" not in columns]
 
         if beneficiaries is False:
-            columns = [column for column in columns if 'beneficiaries' not in column]
+            columns = [column for column in columns if "beneficiaries" not in column]
 
         if absolute is False:
-            columns = [column for column in columns if 'absolute' not in column]
+            columns = [column for column in columns if "absolute" not in column]
 
         if relative is False:
-            columns = [column for column in columns if 'relative' not in column]
+            columns = [column for column in columns if "relative" not in column]
 
-        for simulation_type in ['reform', 'baseline', 'actual']:
+        for simulation_type in ["reform", "baseline", "actual"]:
             if simulation_type not in [target, default]:
                 columns = [column for column in columns if simulation_type not in column]
 
         aggregates_data_frame = self.compute_aggregates(
-            actual = 'actual' in [target, default],
-            use_baseline = 'baseline' in [target, default],
-            reform = 'reform' in [target, default],
-            )
+            actual="actual" in [target, default],
+            use_baseline="baseline" in [target, default],
+            reform="reform" in [target, default],
+        )
         ordered_columns = [
-            'label',
-            'entity',
-            'reform_amount',
-            'baseline_amount',
-            'actual_amount',
-            'absolute_difference_amount',
-            'relative_difference_amount',
-            'reform_beneficiaries',
-            'baseline_beneficiaries',
-            'actual_beneficiaries',
-            'absolute_difference_beneficiaries',
-            'relative_difference_beneficiaries'
-            ]
+            "label",
+            "entity",
+            "reform_amount",
+            "baseline_amount",
+            "actual_amount",
+            "absolute_difference_amount",
+            "relative_difference_amount",
+            "reform_beneficiaries",
+            "baseline_beneficiaries",
+            "actual_beneficiaries",
+            "absolute_difference_beneficiaries",
+            "relative_difference_beneficiaries",
+        ]
         if difference_data_frame is not None:
             # Remove eventual duplication
             difference_data_frame = difference_data_frame.loc[:, ~difference_data_frame.columns.duplicated()].copy()
             aggregates_data_frame = aggregates_data_frame.loc[:, ~aggregates_data_frame.columns.duplicated()].copy()
-            df = aggregates_data_frame.merge(difference_data_frame, how = 'left')[columns]
+            df = aggregates_data_frame.merge(difference_data_frame, how="left")[columns]
         else:
             columns = [column for column in columns if column in aggregates_data_frame.columns]
             df = aggregates_data_frame[columns]
 
-        df = df.reindex(columns = ordered_columns).dropna(axis = 1, how = 'all')
+        df = df.reindex(columns=ordered_columns).dropna(axis=1, how="all")
 
         if formatting:
-            relative_columns = [column for column in df.columns if 'relative' in column]
-            df[relative_columns] = df[relative_columns].map(
-                lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan'
-                )
+            relative_columns = [column for column in df.columns if "relative" in column]
+            df[relative_columns] = df[relative_columns].map(lambda x: "{:.2%}".format(x) if str(x) != "nan" else "nan")
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
-                    df[column] = (
-                        df[column]
-                        .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
-                        )
+                    df[column] = df[column].apply(lambda x: "{:d}".format(int(round(x))) if str(x) != "nan" else "nan")
 
         if not ignore_labels:
-            df = df.rename(columns = self.labels)
+            df = df.rename(columns=self.labels)
 
         return df
 
-    def load_actual_data(self, period = None):
+    def load_actual_data(self, period=None):
         NotImplementedError

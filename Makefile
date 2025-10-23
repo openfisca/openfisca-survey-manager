@@ -13,13 +13,13 @@ clean:
 	find . -name '*.pyc' -exec rm \{\} \;
 
 deps:
-	pip install --upgrade pip build twine
+	pip install build twine
 
 install: deps
 	@# Install OpenFisca-Survey-Manager for development.
 	@# `make install` installs the editable version of OpenFisca-Survey-Manager.
 	@# This allows contributors to test as they code.
-	pip install --editable .[dev,sas] --upgrade
+	pip install --editable .[dev,sas]
 
 build: clean deps
 	@# Install OpenFisca-Survey-Manager for deployment and publishing.
@@ -33,14 +33,11 @@ check-syntax-errors:
 	python -m compileall -q .
 
 format-style:
-	@# Do not analyse .gitignored files.
-	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
-	autopep8 `git ls-files | grep "\.py$$"`
+	isort .
+	ruff format .
 
 check-style:
-	@# Do not analyse .gitignored files.
-	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
-	flake8 `git ls-files | grep "\.py$$"`
+	ruff check .
 
 test: clean check-syntax-errors check-style
 	@# Launch tests from openfisca_survey_manager/tests directory (and not .) because TaxBenefitSystem must be initialized
