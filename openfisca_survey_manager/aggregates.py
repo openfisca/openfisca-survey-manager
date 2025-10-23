@@ -26,11 +26,14 @@ class AbstractAggregates(object):
     survey_scenario = None
     totals_df = None
 
-    def __init__(self, survey_scenario = None,
-            absolute_minimal_detected_variation = 0,
-            relative_minimal_detected_variation = 0,
-            observations_threshold = 0,
-            ):
+    def __init__(
+        self,
+        survey_scenario = None,
+        absolute_minimal_detected_variation = 0,
+        relative_minimal_detected_variation = 0,
+        observations_threshold = 0
+    ):
+
         assert survey_scenario is not None
 
         self.period = survey_scenario.period
@@ -41,7 +44,6 @@ class AbstractAggregates(object):
         self.absolute_minimal_detected_variation = absolute_minimal_detected_variation
         self.relative_minimal_detected_variation = relative_minimal_detected_variation
         self.observations_threshold = observations_threshold
-
 
         for name in survey_scenario.tax_benefit_systems.keys():
             assert survey_scenario.simulations[name] is not None

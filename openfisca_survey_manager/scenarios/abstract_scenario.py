@@ -642,7 +642,7 @@ class AbstractSurveyScenario(object):
             assert tax_benefit_system is not None
             if self.cache_blacklist is not None:
                 tax_benefit_system.cache_blacklist = self.cache_blacklist
-        # 
+        #
         self.tax_benefit_systems = tax_benefit_systems
 
     def set_weight_variable_by_entity(self, weight_variable_by_entity = None):
