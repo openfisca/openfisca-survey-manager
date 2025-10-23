@@ -1333,25 +1333,6 @@ def summarize_variable(simulation: Simulation, variable=None, weighted=False, fo
         use_baseline(bool): The tax-benefit-system considered
         weighted(bool): Whether the produced statistics should be weigthted or not
         force_compute(bool): Whether the computation of the variable should be forced
-
-    # Example:
-    #     >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
-    #     >>> survey_scenario = create_randomly_initialized_survey_scenario()
-    #     >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
-    #     <BLANKLINE>
-    #     housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
-    #     Details:
-    #     2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
-    #     >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
-    #     <BLANKLINE>
-    #     rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
-    #     Details:
-    #     2017-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-    #     2018-01: mean = 562.385107421875, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-    #     >>> survey_scenario.tax_benefit_system.neutralize_variable('age')
-    #     >>> survey_scenario.summarize_variable(variable = "age")
-    #     <BLANKLINE>
-    #     age: neutralized variable (int64, default = 0)
     """
     tax_benefit_system = simulation.tax_benefit_system
     variable_instance = tax_benefit_system.variables.get(variable)
