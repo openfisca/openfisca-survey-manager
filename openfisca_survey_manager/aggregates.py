@@ -26,7 +26,14 @@ class AbstractAggregates(object):
     survey_scenario = None
     totals_df = None
 
-    def __init__(self, survey_scenario = None):
+    def __init__(
+        self,
+        survey_scenario = None,
+        absolute_minimal_detected_variation = 0,
+        relative_minimal_detected_variation = 0,
+        observations_threshold = 0
+    ):
+
         assert survey_scenario is not None
 
         self.period = survey_scenario.period
@@ -34,6 +41,9 @@ class AbstractAggregates(object):
         assert len(survey_scenario.simulations) >= 1
 
         self.simulations = survey_scenario.simulations
+        self.absolute_minimal_detected_variation = absolute_minimal_detected_variation
+        self.relative_minimal_detected_variation = relative_minimal_detected_variation
+        self.observations_threshold = observations_threshold
 
         for name in survey_scenario.tax_benefit_systems.keys():
             assert survey_scenario.simulations[name] is not None
@@ -49,12 +59,15 @@ class AbstractAggregates(object):
                 ('reform_beneficiaries', "Bénéficiaires\n(milliers)"),
                 ('baseline_amount', "Dépenses initiales\n" + amount_unit_str),
                 ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n" + beneficiaries_unit_str),
-                ('actual_amount', "Dépenses\nréelles\n" + amount_unit_str),
-                ('actual_beneficiaries', "Bénéficiaires\nréels\n" + beneficiaries_unit_str),
+                ('actual_amount', "Dépenses\nréeelles\n" + amount_unit_str),
+                ('actual_beneficiaries', "Bénéficiaires\nréeels\n" + beneficiaries_unit_str),
                 ('absolute_difference_amount', "Diff. absolue\nDépenses\n" + amount_unit_str),
                 ('absolute_difference_beneficiaries', "Diff absolue\nBénéficiaires\n" + beneficiaries_unit_str),
                 ('relative_difference_amount', "Diff. relative\nDépenses"),
                 ('relative_difference_beneficiaries', "Diff. relative\nBénéficiaires"),
+                ('winners', "Gagnants"),
+                ('losers', "Perdants"),
+                ('neutral', "Neutres"),
                 ))
 
     def compute_aggregates(self, use_baseline: bool = True, reform: bool = True, actual: bool = True) -> pd.DataFrame:
@@ -412,6 +425,11 @@ class AbstractAggregates(object):
             use_baseline = 'baseline' in [target, default],
             reform = 'reform' in [target, default],
             )
+
+        if 'reform_amount' in aggregates_data_frame.columns and 'baseline_amount' in aggregates_data_frame.columns:
+            winners_losers_df = self.compute_all_winners_losers(filter_by=self.filter_by)
+            aggregates_data_frame = aggregates_data_frame.join(winners_losers_df)
+
         ordered_columns = [
             'label',
             'entity',
@@ -424,7 +442,10 @@ class AbstractAggregates(object):
             'baseline_beneficiaries',
             'actual_beneficiaries',
             'absolute_difference_beneficiaries',
-            'relative_difference_beneficiaries'
+            'relative_difference_beneficiaries',
+            'winners',
+            'losers',
+            'neutral'
             ]
         if difference_data_frame is not None:
             # Remove eventual duplication
@@ -456,3 +477,44 @@ class AbstractAggregates(object):
 
     def load_actual_data(self, period = None):
         NotImplementedError
+
+    def compute_winners_losers(self, variable: str, filter_by: str = None):
+        if 'reform' not in self.simulations or 'baseline' not in self.simulations:
+            log.warning("Cannot compute winners and losers without a reform and a baseline simulation.")
+            return pd.DataFrame()
+
+        reform_simulation = self.simulations['reform']
+        baseline_simulation = self.simulations['baseline']
+
+        variable_instance = reform_simulation.tax_benefit_system.variables.get(variable)
+        if variable_instance is None:
+            log.warning(f"Variable {variable} not found in reform simulation.")
+            return pd.DataFrame()
+
+        stats = reform_simulation.compute_winners_losers(
+            baseline_simulation=baseline_simulation,
+            variable=variable,
+            period=self.period,
+            filter_by=filter_by,
+            filtering_variable_by_entity=self.survey_scenario.filtering_variable_by_entity,
+            absolute_minimal_detected_variation=self.absolute_minimal_detected_variation,
+            relative_minimal_detected_variation=self.relative_minimal_detected_variation,
+            observations_threshold=self.observations_threshold,
+            )
+
+        winners_losers_df = pd.DataFrame(
+            {
+                "winners": [stats["above_after"]],
+                "losers": [stats["lower_after"]],
+                "neutral": [stats["neutral"]],
+            },
+            index=[variable]
+        )
+        return winners_losers_df
+
+    def compute_all_winners_losers(self, filter_by: str = None):
+        all_winners_losers = pd.DataFrame()
+        for variable in self.aggregate_variables:
+            winners_losers = self.compute_winners_losers(variable, filter_by=filter_by)
+            all_winners_losers = pd.concat([all_winners_losers, winners_losers])
+        return all_winners_losers

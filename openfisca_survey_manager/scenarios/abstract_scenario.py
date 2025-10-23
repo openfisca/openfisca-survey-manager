@@ -1,4 +1,4 @@
-"""Abstract survey scenario definition."""
+"Abstract survey scenario definition."
 
 import logging
 import os
@@ -352,7 +352,7 @@ class AbstractSurveyScenario(object):
             filtering_variable_by_entity = filtering_variable_by_entity,
             )
 
-    def compute_winners_loosers(self, variable,
+    def compute_winners_losers(self, variable,
             simulation,
             baseline_simulation = None,
             filter_by = None,
@@ -367,7 +367,7 @@ class AbstractSurveyScenario(object):
         if baseline_simulation:
             baseline_simulation = self.simulations[baseline_simulation]
 
-        return simulation.compute_winners_loosers(
+        return simulation.compute_winners_losers(
             baseline_simulation,
             variable = variable,
             filter_by = filter_by,
