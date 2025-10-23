@@ -41,7 +41,7 @@ def test_aggregates_winners_losers(aggregates_test_setup):
     assert 'Perdants' in df.columns
     assert 'Neutres' in df.columns
 
-    stats = survey_scenario.simulations['reform'].compute_winners_loosers(
+    stats = survey_scenario.simulations['reform'].compute_winners_losers(
         baseline_simulation=survey_scenario.simulations['baseline'],
         variable=variable,
         period=period

@@ -26,7 +26,11 @@ class AbstractAggregates(object):
     survey_scenario = None
     totals_df = None
 
-    def __init__(self, survey_scenario=None):
+    def __init__(self, survey_scenario = None,
+            absolute_minimal_detected_variation = 0,
+            relative_minimal_detected_variation = 0,
+            observations_threshold = 0,
+            ):
         assert survey_scenario is not None
 
         self.period = survey_scenario.period
@@ -34,6 +38,10 @@ class AbstractAggregates(object):
         assert len(survey_scenario.simulations) >= 1
 
         self.simulations = survey_scenario.simulations
+        self.absolute_minimal_detected_variation = absolute_minimal_detected_variation
+        self.relative_minimal_detected_variation = relative_minimal_detected_variation
+        self.observations_threshold = observations_threshold
+
 
         for name in survey_scenario.tax_benefit_systems:
             assert survey_scenario.simulations[name] is not None
@@ -511,12 +519,15 @@ class AbstractAggregates(object):
             log.warning(f"Variable {variable} not found in reform simulation.")
             return pd.DataFrame()
 
-        stats = reform_simulation.compute_winners_loosers(
+        stats = reform_simulation.compute_winners_losers(
             baseline_simulation=baseline_simulation,
             variable=variable,
             period=self.period,
             filter_by=filter_by,
             filtering_variable_by_entity=self.survey_scenario.filtering_variable_by_entity,
+            absolute_minimal_detected_variation=self.absolute_minimal_detected_variation,
+            relative_minimal_detected_variation=self.relative_minimal_detected_variation,
+            observations_threshold=self.observations_threshold,
             )
 
         winners_losers_df = pd.DataFrame(
