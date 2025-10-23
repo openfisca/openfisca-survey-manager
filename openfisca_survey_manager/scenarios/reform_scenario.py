@@ -210,46 +210,44 @@ class ReformScenario(AbstractSurveyScenario):
         filtering_variable_by_entity = self.filtering_variable_by_entity
 
         return Simulation.compute_pivot_table(
-            aggfunc=aggfunc,
-            columns=columns,
-            baseline_simulation=self._get_simulation(use_baseline=True),
-            filter_by=filter_by,
-            index=index,
-            period=period,
-            simulation=self._get_simulation(use_baseline),
-            difference=difference,
-            use_baseline_for_columns=use_baseline_for_columns,
-            values=values,
-            missing_variable_default_value=missing_variable_default_value,
-            concat_axis=concat_axis,
-            weighted=weighted,
-            alternative_weights=alternative_weights,
-            filtering_variable_by_entity=filtering_variable_by_entity,
-        )
+            aggfunc = aggfunc,
+            columns = columns,
+            baseline_simulation = self._get_simulation(use_baseline = True),
+            filter_by = filter_by,
+            index = index,
+            period = period,
+            simulation = self._get_simulation(use_baseline),
+            difference = difference,
+            use_baseline_for_columns = use_baseline_for_columns,
+            values = values,
+            missing_variable_default_value = missing_variable_default_value,
+            concat_axis = concat_axis,
+            weighted = weighted,
+            alternative_weights = alternative_weights,
+            filtering_variable_by_entity = filtering_variable_by_entity
+            )
 
-    def compute_winners_loosers(
-        self,
-        variable=None,
-        filter_by=None,
-        period=None,
-        absolute_minimal_detected_variation=0,
-        relative_minimal_detected_variation=0.01,
-        observations_threshold=None,
-        weighted=True,
-        alternative_weights=None,
-    ):
-        return super(ReformScenario, self).compute_winners_loosers(
-            simulation="reform",
-            baseline_simulation="baseline",
-            variable=variable,
-            filter_by=filter_by,
-            period=period,
-            absolute_minimal_detected_variation=absolute_minimal_detected_variation,
-            relative_minimal_detected_variation=relative_minimal_detected_variation,
-            observations_threshold=observations_threshold,
-            weighted=weighted,
-            alternative_weights=alternative_weights,
-        )
+    def compute_winners_losers(self, variable = None,
+            filter_by = None,
+            period = None,
+            absolute_minimal_detected_variation = 0,
+            relative_minimal_detected_variation = .01,
+            observations_threshold = None,
+            weighted = True,
+            alternative_weights = None):
+
+        return super(ReformScenario, self).compute_winners_losers(
+            simulation = "reform",
+            baseline_simulation = "baseline",
+            variable = variable,
+            filter_by = filter_by,
+            period = period,
+            absolute_minimal_detected_variation = absolute_minimal_detected_variation,
+            relative_minimal_detected_variation = relative_minimal_detected_variation,
+            observations_threshold = observations_threshold,
+            weighted = weighted,
+            alternative_weights = alternative_weights,
+            )
 
     def create_data_frame_by_entity(
         self,
