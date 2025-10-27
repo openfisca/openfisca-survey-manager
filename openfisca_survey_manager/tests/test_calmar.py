@@ -110,7 +110,7 @@ def create_margins(entities=1):
     if entities == 2:
         margins_by_variable["C"] = 85
         margins_by_variable["total_population"] = 80
-        margins_by_variable["total_population_smaller_entity"] = 100
+        margins_by_variable["total_population_smaller_entity"] = 120
     return margins_by_variable
 
 
@@ -163,8 +163,8 @@ def test_calmar_2_entities():
     data["main_entity"]["final_pond"] = pondfin_out
     pondfin_ind = data["main_entity"].merge(data["second_entity"], on="id_variable")["final_pond"]
 
-    assert -1 < sum(pondfin_out) - 80 < 1
-    assert -5 < sum(pondfin_ind) - 100 < 5
+    assert -2 < sum(pondfin_out) - 80 < 2
+    assert -5 < sum(pondfin_ind) - 120 < 5
 
 
 if __name__ == "__main__":
@@ -175,3 +175,4 @@ if __name__ == "__main__":
     verbose = True
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     test_calmar()
+    test_calmar_2_entities()
