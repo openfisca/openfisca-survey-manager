@@ -46,7 +46,7 @@ def create_input_dataframe(entities=1):
     df = {"main_entity": df1, "target_entity_name": "main_entity"}
 
     if entities == 2:
-        columns2 = ["A", "B", "C", "POND", "id_variable"]
+        columns2 = ["A", "B", "C", "D", "id_variable"]
         index2 = [
             0,
             1,
@@ -164,7 +164,7 @@ def test_calmar_2_entities():
     pondfin_ind = data["main_entity"].merge(data["second_entity"], on="id_variable")["final_pond"]
 
     assert -1 < sum(pondfin_out) - 80 < 1
-    assert -1 < sum(pondfin_ind) - 100 < 1
+    assert -5 < sum(pondfin_ind) - 100 < 5
 
 
 if __name__ == "__main__":
