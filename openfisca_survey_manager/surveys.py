@@ -233,7 +233,7 @@ Contains the following tables : \n"""
                         eligible_tables.append(match[0])
                 if len(eligible_tables) > 1:
                     raise ValueError(
-                        f"{table} is ambiguious since the following tables are available: {eligible_tables}"
+                        f"{table} is ambiguous since the following tables are available: {eligible_tables}"
                     )
                 elif len(eligible_tables) == 0:
                     raise ValueError(f"No eligible available table in {keys}")
