@@ -345,7 +345,7 @@ class Calibration(object):
             if filter_by != 1:
                 if weight_variable != self.weight_name:
                     NotImplementedError(
-                        "No filtering possible so far when target varaible is not on the same entity as varying weights"
+                        "No filtering possible so far when target variable is not on the same entity as varying weights"
                     )
 
                 weight = weight[filter_by]
