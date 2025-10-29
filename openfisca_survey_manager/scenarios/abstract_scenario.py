@@ -381,32 +381,21 @@ class AbstractSurveyScenario(object):
         filtering_variable_by_entity = self.filtering_variable_by_entity
 
         return simulation.compute_pivot_table(
-            baseline_simulation = baseline_simulation,
-            aggfunc = aggfunc,
-            columns = columns,
-            difference = difference,
-            filter_by = filter_by,
-            index = index,
-            period = period,
-            use_baseline_for_columns = use_baseline_for_columns,
-            values = values,
-            missing_variable_default_value = missing_variable_default_value,
-            concat_axis = concat_axis,
-            weighted = weighted,
-            alternative_weights = alternative_weights,
-            filtering_variable_by_entity = filtering_variable_by_entity,
-            )
-
-    def compute_winners_losers(self, variable,
-            simulation,
-            baseline_simulation = None,
-            filter_by = None,
-            period = None,
-            absolute_minimal_detected_variation = 0,
-            relative_minimal_detected_variation = .01,
-            observations_threshold = None,
-            weighted = True,
-            alternative_weights = None):
+            baseline_simulation=baseline_simulation,
+            aggfunc=aggfunc,
+            columns=columns,
+            difference=difference,
+            filter_by=filter_by,
+            index=index,
+            period=period,
+            use_baseline_for_columns=use_baseline_for_columns,
+            values=values,
+            missing_variable_default_value=missing_variable_default_value,
+            concat_axis=concat_axis,
+            weighted=weighted,
+            alternative_weights=alternative_weights,
+            filtering_variable_by_entity=filtering_variable_by_entity,
+        )
 
     def compute_winners_loosers(
         self,
