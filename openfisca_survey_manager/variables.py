@@ -15,15 +15,15 @@ def create_quantile(x, nquantiles, weight_variable, entity_name):
         label = "Quantile"
         definition_period = YEAR
 
-        def formula(self, period):
+        def formula(entity, period):
             try:
-                variable = self(x, period)
+                variable = entity(x, period)
             except ValueError as e:
                 log.debug(f"Caught {e}")
                 log.debug(f"Computing on whole period {period} via the ADD option")
-                variable = self(x, period, options=[ADD])
+                variable = entity(x, period, options=[ADD])
 
-            weight = self(weight_variable, period)
+            weight = entity(weight_variable, period)
             labels = arange(1, nquantiles + 1)
             method = 2
             if len(weight) == 1:

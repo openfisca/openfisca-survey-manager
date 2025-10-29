@@ -40,8 +40,8 @@ class decile_salaire(Variable):
     label = "Décile de salaire"
     definition_period = YEAR
 
-    def formula(self, period):
-        salaire = self("salaire", period)
+    def formula(individu, period):
+        salaire = individu("salaire", period)
         labels = np.arange(1, 11)
         weights = 1.0 * np.ones(shape=len(salaire))
         decile, _ = mark_weighted_percentiles(
