@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 3.2.7 [#344](https://github.com/openfisca/openfisca-survey-manager/pull/344)
+
+* Technical changes
+- Use ruff and isort instead of flake8 and autopep8.
+
 ### 3.2.6 [#343](https://github.com/openfisca/openfisca-survey-manager/pull/343)
 
 * Technical changes
