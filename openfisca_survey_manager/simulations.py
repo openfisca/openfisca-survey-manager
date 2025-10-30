@@ -678,18 +678,18 @@ class SecretViolationError(Exception):
 
 
 def compute_winners_losers(
-        simulation: Simulation,
-        baseline_simulation: Simulation,
-        variable: str,
-        filter_by: Optional[str] = None,
-        period: Optional[Union[int, str, Period]] = None,
-        absolute_minimal_detected_variation: float = 0,
-        relative_minimal_detected_variation: float = .01,
-        observations_threshold: int = None,
-        weighted: bool = True,
-        alternative_weights = None,
-        filtering_variable_by_entity = None,
-        ) -> Dict[str, int]:
+    simulation: Simulation,
+    baseline_simulation: Simulation,
+    variable: str,
+    filter_by: Optional[str] = None,
+    period: Optional[Union[int, str, Period]] = None,
+    absolute_minimal_detected_variation: float = 0,
+    relative_minimal_detected_variation: float = 0.01,
+    observations_threshold: int = None,
+    weighted: bool = True,
+    alternative_weights=None,
+    filtering_variable_by_entity=None,
+) -> Dict[str, int]:
     """
     Compute the number of winners and losers for a given variable.
 
@@ -710,7 +710,7 @@ def compute_winners_losers(
         SecretViolationError: Raised when statistical secret is violated.
 
     Returns:
-        Dict[str, int]: Statistics about winners and loosers between the main simulation and the baseline.
+        Dict[str, int]: Statistics about winners and losers between the main simulation and the baseline.
     """
     weight_variable_by_entity = simulation.weight_variable_by_entity
     entity_key = baseline_simulation.tax_benefit_system.variables[variable].entity.key
@@ -1379,7 +1379,7 @@ def summarize_variable(simulation: Simulation, variable=None, weighted=False, fo
         else:
             for period in sorted(simulation.get_known_periods(variable)):
                 array = holder.get_array(period)
-                if array.shape == (): # noqa analysis:ignore
+                if array.shape == ():  # noqa analysis:ignore
                     print("{}: always = {}".format(period, array))  # noqa analysis:ignore
                     continue
 
