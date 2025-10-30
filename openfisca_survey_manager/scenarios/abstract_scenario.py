@@ -724,7 +724,7 @@ class AbstractSurveyScenario(object):
 
         Example:
             >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
-            >>> survey_scenario = create_randomly_initialized_survey_scenario()
+            >>> survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
             <BLANKLINE>
             housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
