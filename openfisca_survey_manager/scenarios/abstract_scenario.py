@@ -397,7 +397,7 @@ class AbstractSurveyScenario(object):
             filtering_variable_by_entity=filtering_variable_by_entity,
         )
 
-    def compute_winners_loosers(
+    def compute_winners_losers(
         self,
         variable,
         simulation,
