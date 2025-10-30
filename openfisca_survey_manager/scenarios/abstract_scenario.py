@@ -1,4 +1,4 @@
-"""Abstract survey scenario definition."""
+"Abstract survey scenario definition."
 
 import logging
 import os
@@ -397,7 +397,7 @@ class AbstractSurveyScenario(object):
             filtering_variable_by_entity=filtering_variable_by_entity,
         )
 
-    def compute_winners_loosers(
+    def compute_winners_losers(
         self,
         variable,
         simulation,
@@ -414,7 +414,7 @@ class AbstractSurveyScenario(object):
         if baseline_simulation:
             baseline_simulation = self.simulations[baseline_simulation]
 
-        return simulation.compute_winners_loosers(
+        return simulation.compute_winners_losers(
             baseline_simulation,
             variable=variable,
             filter_by=filter_by,
@@ -724,18 +724,17 @@ class AbstractSurveyScenario(object):
 
         Example:
             >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
-            >>> survey_scenario = create_randomly_initialized_survey_scenario()
+            >>> survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
             <BLANKLINE>
             housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
             Details:
-            2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
+            2017-01:  owner = 1.00e+00 (20.0%), tenant = 1.00e+00 (20.0%), free_lodger = 2.00e+00 (40.0%), homeless = 1.00e+00 (20.0%).
             >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
             <BLANKLINE>
-            rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
+            rent: 1 periods * 5 cells * item size 4 (float32, default = 0) = 20B
             Details:
             2017-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
-            2018-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
             >>> survey_scenario.tax_benefit_systems["baseline"].neutralize_variable('age')
             >>> survey_scenario.summarize_variable(variable = "age")
             <BLANKLINE>

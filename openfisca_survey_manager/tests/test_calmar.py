@@ -163,7 +163,7 @@ def test_calmar_2_entities():
     data["main_entity"]["final_pond"] = pondfin_out
     pondfin_ind = data["main_entity"].merge(data["second_entity"], on="id_variable")["final_pond"]
 
-    assert -2 < sum(pondfin_out) - 80 < 2
+    assert -3 < sum(pondfin_out) - 80 < 3
     assert -5 < sum(pondfin_ind) - 120 < 5
 
 

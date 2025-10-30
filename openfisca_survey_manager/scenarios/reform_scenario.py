@@ -227,7 +227,7 @@ class ReformScenario(AbstractSurveyScenario):
             filtering_variable_by_entity=filtering_variable_by_entity,
         )
 
-    def compute_winners_loosers(
+    def compute_winners_losers(
         self,
         variable=None,
         filter_by=None,
@@ -238,15 +238,19 @@ class ReformScenario(AbstractSurveyScenario):
         weighted=True,
         alternative_weights=None,
     ):
-        return super(ReformScenario, self).compute_winners_loosers(
+        return super(ReformScenario, self).compute_winners_losers(
             simulation="reform",
             baseline_simulation="baseline",
             variable=variable,
             filter_by=filter_by,
             period=period,
-            absolute_minimal_detected_variation=absolute_minimal_detected_variation,
-            relative_minimal_detected_variation=relative_minimal_detected_variation,
-            observations_threshold=observations_threshold,
+            absolute_minimal_detected_variation=getattr(
+                self, "absolute_minimal_detected_variation", absolute_minimal_detected_variation
+            ),
+            relative_minimal_detected_variation=getattr(
+                self, "relative_minimal_detected_variation", relative_minimal_detected_variation
+            ),
+            observations_threshold=getattr(self, "observations_threshold", observations_threshold),
             weighted=weighted,
             alternative_weights=alternative_weights,
         )

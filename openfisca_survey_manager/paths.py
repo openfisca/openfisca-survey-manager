@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ except PermissionError:
 is_in_ci = "CI" in os.environ or os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
 private_run_with_data = False
 
-if is_in_ci and default_config_files_directory is None:
+if (is_in_ci and default_config_files_directory is None) or ("pytest" in sys.modules):
     if "CI_RUNNER_TAGS" in os.environ:
         private_run_with_data = (
             "data-in" in os.environ["CI_RUNNER_TAGS"]

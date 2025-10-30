@@ -34,9 +34,7 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
     if variables_mismatch:
         log.debug("The following variables are used as input variables: \n {}".format(sorted(used_as_input_variables)))
         log.debug(
-            "The input_data_frame contains the following variables: \n {}".format(
-                sorted(input_data_frame.columns)
-            )
+            "The input_data_frame contains the following variables: \n {}".format(sorted(input_data_frame.columns))
         )
 
 

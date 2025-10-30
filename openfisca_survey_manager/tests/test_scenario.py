@@ -114,6 +114,10 @@ def create_randomly_initialized_survey_scenario_from_table(
                 "variable": "salary",
                 "max_value": salary_max_value,
             },
+            {
+                "variable": "rent",
+                "max_value": rent_max_value,
+            },
         ],
     }
     table_by_entity_by_period = random_data_generator(

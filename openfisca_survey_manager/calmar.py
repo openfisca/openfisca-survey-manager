@@ -101,7 +101,7 @@ def hyperbolic_sinus_prime(u, alpha):
     return 0.5 * (
         ((4 * (alpha**2) * u) / square + 2 * alpha) / (alpha * (square + 2 * alpha * u))
         + ((4 * (alpha**2) * u / square + 2 * alpha) * ln(square + 2 * alpha * u))
-        / ((alpha**2) * (square + 2 * alpha * u) * sqrt((ln(square + 2 * alpha * u)**2) + 4))
+        / ((alpha**2) * (square + 2 * alpha * u) * sqrt((ln(square + 2 * alpha * u) ** 2) + 4))
     )
 
 
