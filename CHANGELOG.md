@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 4.0.0 [#345](https://github.com/openfisca/openfisca-survey-manager/pull/345)
+
+* New features
+  - enhance the aggregates table by adding "winners/losers/neutral" categories. The changes include fixing typos (e.g., "looser" to "loser" thus a major version bump), addressing linting issues, correcting indentation and formatting, and improving doctests.
+
 ### 3.2.7 [#344](https://github.com/openfisca/openfisca-survey-manager/pull/344)
 
 * Technical changes
