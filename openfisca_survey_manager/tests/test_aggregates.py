@@ -35,18 +35,16 @@ def test_aggregates_winners_losers(aggregates_test_setup):
     variable = "social_security_contribution"
     aggregates.aggregate_variables = [variable]
 
-    df = aggregates.get_data_frame(target='reform', default='baseline')
+    df = aggregates.get_data_frame(target="reform", default="baseline")
 
-    assert 'Gagnants' in df.columns
-    assert 'Perdants' in df.columns
-    assert 'Neutres' in df.columns
+    assert "Gagnants" in df.columns
+    assert "Perdants" in df.columns
+    assert "Neutres" in df.columns
 
-    stats = survey_scenario.simulations['reform'].compute_winners_losers(
-        baseline_simulation=survey_scenario.simulations['baseline'],
-        variable=variable,
-        period=period
+    stats = survey_scenario.simulations["reform"].compute_winners_losers(
+        baseline_simulation=survey_scenario.simulations["baseline"], variable=variable, period=period
     )
 
-    assert df.loc[0, 'Gagnants'] == str(int(round(stats['above_after'])))
-    assert df.loc[0, 'Perdants'] == str(int(round(stats['lower_after'])))
-    assert df.loc[0, 'Neutres'] == str(int(round(stats['neutral'])))
+    assert df.loc[0, "Gagnants"] == str(int(round(stats["above_after"])))
+    assert df.loc[0, "Perdants"] == str(int(round(stats["lower_after"])))
+    assert df.loc[0, "Neutres"] == str(int(round(stats["neutral"])))

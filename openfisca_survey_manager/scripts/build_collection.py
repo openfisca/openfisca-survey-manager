@@ -188,7 +188,9 @@ def check_template_config_files(config_files_directory: str):
             if templates_config_files_do_not_exist:
                 log.info("Creating configuration template files in {}".format(config_files_directory))
                 template_files = ["raw_data_template.ini", "config_template.ini"]
-                templates_config_files_directory = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "config_files_templates"
+                templates_config_files_directory = (
+                    Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "config_files_templates"
+                )
                 for template_file in template_files:
                     shutil.copy(
                         templates_config_files_directory / template_file,

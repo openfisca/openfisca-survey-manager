@@ -66,8 +66,8 @@ class Calibration(object):
             assert (
                 len(
                     {
-                            variable_instance_by_variable_name[variable].entity.key
-                            for variable in re.findall(search_variable, var)
+                        variable_instance_by_variable_name[variable].entity.key
+                        for variable in re.findall(search_variable, var)
                     }
                 )
                 == 1
