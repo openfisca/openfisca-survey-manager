@@ -1396,7 +1396,7 @@ def summarize_variable(simulation: Simulation, variable=None, weighted=False, fo
                     groupby = df.groupby(variable)["weights"].sum()
                     total = groupby.sum()
                     expr = [" {} = {:.2e} ({:.1%})".format(index, row, row / total) for index, row in groupby.items()]
-                    print("{}:{{}}.".format(period, ",".join(expr)))  # noqa analysis:ignore
+                    print("{}: {}.".format(period, ",".join(expr)))  # noqa analysis:ignore
                     continue
 
                 # Handle numeric types
