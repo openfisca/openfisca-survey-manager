@@ -727,9 +727,10 @@ class AbstractSurveyScenario(object):
             >>> survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
             <BLANKLINE>
-            housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
+            housing_occupancy_status: 2 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 20B
             Details:
-            2017-01: owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
+            2017-01:  owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
+            2018-01:  owner = 0.00e+00 (0.0%), tenant = 5.00e+00 (100.0%), free_lodger = 0.00e+00 (0.0%), homeless = 0.00e+00 (0.0%).
             >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
             <BLANKLINE>
             rent: 2 periods * 5 cells * item size 4 (float32, default = 0) = 40B
