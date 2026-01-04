@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+### 4.0.1 [#341](https://github.com/openfisca/openfisca-survey-manager/pull/341)
+
+* Technical changes
+  - Add message to make debugging easier
+
 # 4.0.0 [#345](https://github.com/openfisca/openfisca-survey-manager/pull/345)
 
 * New features
