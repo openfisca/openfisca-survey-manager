@@ -2,8 +2,7 @@
 
 ### 4.0.1 [#341](https://github.com/openfisca/openfisca-survey-manager/pull/341)
 
-* Technical changes
-  - Add message to make debugging easier
+* Allow OpenFisca-Core 44.x.x
 
 # 4.0.0 [#345](https://github.com/openfisca/openfisca-survey-manager/pull/345)
 
