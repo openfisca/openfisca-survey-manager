@@ -325,7 +325,7 @@ class AbstractSurveyScenario(object):
         marginal_rate = 1 - np.divide(
             numerator,
             denominator,
-            out=np.full_like(numerator, value_for_zero_varying_variable, dtype=np.floating),
+            out=np.full_like(numerator, value_for_zero_varying_variable, dtype=float),
             where=(denominator != 0),
         )
 
