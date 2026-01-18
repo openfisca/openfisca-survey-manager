@@ -1164,13 +1164,13 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
-
-    if series.isnull().any():
-        log.debug(
-            "There are {} NaN values for {} non NaN values in variable {}".format(
-                series.isnull().sum(), series.notnull().sum(), variable_name
+    if (not isinstance(series.dtype, pd.CategoricalDtype)) and pd.api.types.is_float_dtype(series.values.dtype):
+        if series.isnull().any():
+            log.debug(
+                "There are {} NaN values for {} non NaN values in variable {}".format(
+                    series.isnull().sum(), series.notnull().sum(), variable_name
+                )
             )
-        )
         log.debug(
             "We convert these NaN values of variable {} to {} its default value".format(
                 variable_name, variable.default_value
