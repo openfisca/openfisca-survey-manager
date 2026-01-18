@@ -16,11 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
           python-version: ${{ matrix.python-version }}
       - name: Install required build libraries
         run: sudo apt-get update && sudo apt-get install -y build-essential libc6-dev
@@ -34,7 +32,7 @@ jobs:
             build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ matrix.os }}
             build-${{ env.pythonLocation }}-${{ matrix.os }}
       - name: Build package
-        run: uv run make build
+        run: make build
       - name: Cache release
         id: restore-release
         uses: actions/cache@v4
@@ -49,11 +47,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all the tags
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
           python-version: "3.9"
       - name: Cache build
         id: restore-build
@@ -61,8 +57,9 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
-      - run: uv run make check-syntax-errors
-      - run: uv run make check-style
+      - run: make install
+      - run: make check-syntax-errors
+      - run: make check-style
 
   test-python:
     runs-on: ${{ matrix.os }}
@@ -74,11 +71,9 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
           python-version: ${{ matrix.python-version }}
       - name: Cache build
         id: restore-build
@@ -86,8 +81,10 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+      - name: install
+        run: make install
       - name: test
-        run: uv run make test
+        run: make test
       - name : coverage
         run: coveralls --service=github
         env:
