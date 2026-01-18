@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 4.1.0
+
+* Technical changes
+  - Disable Dependabot activity.
+
 ### 4.0.1 [#341](https://github.com/openfisca/openfisca-survey-manager/pull/341)
 
 * Allow OpenFisca-Core 44.x.x
