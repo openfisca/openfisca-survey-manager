@@ -1164,22 +1164,22 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
-    if (not isinstance(series.dtype, pd.CategoricalDtype)) and np.issubdtype(series.values.dtype, np.floating):
+    if (not isinstance(series.dtype, pd.CategoricalDtype)) and pd.api.types.is_float_dtype(series.values.dtype):
         if series.isnull().any():
             log.debug(
                 "There are {} NaN values for {} non NaN values in variable {}".format(
                     series.isnull().sum(), series.notnull().sum(), variable_name
                 )
             )
-            log.debug(
-                "We convert these NaN values of variable {} to {} its default value".format(
-                    variable_name, variable.default_value
-                )
+        log.debug(
+            "We convert these NaN values of variable {} to {} its default value".format(
+                variable_name, variable.default_value
             )
-            series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
-        assert series.notnull().all(), "There are {} NaN values for {} non NaN values in variable {}".format(
-            series.isnull().sum(), series.notnull().sum(), variable_name
         )
+        series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
+    assert series.notnull().all(), "There are {} NaN values for {} non NaN values in variable {}".format(
+        series.isnull().sum(), series.notnull().sum(), variable_name
+    )
 
     enum_variable_imputed_as_enum = variable.value_type == Enum and (
         isinstance(series.dtype, pd.CategoricalDtype)

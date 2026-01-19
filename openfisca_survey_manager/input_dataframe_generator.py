@@ -143,16 +143,16 @@ def randomly_init_variable(
         >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
         ['household_id', 'household_role', 'household_role_index', 'person_id', 'salary']
-        >>> input_dataframe_by_entity['person'].salary.max() <= 50000
+        >>> bool(input_dataframe_by_entity['person'].salary.max() <= 50000)
         True
         >>> len(input_dataframe_by_entity['person'].salary)
         400
         >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'rent', max_value = 1000)
         >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
         ['rent']
-        >>> input_dataframe_by_entity['household'].rent.max() <= 1000
+        >>> bool(input_dataframe_by_entity['household'].rent.max() <= 1000)
         True
-        >>> input_dataframe_by_entity['household'].rent.max() >= 1
+        >>> bool(input_dataframe_by_entity['household'].rent.max() >= 1)
         True
         >>> len(input_dataframe_by_entity['household'].rent)
         100

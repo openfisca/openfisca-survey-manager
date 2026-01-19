@@ -1,6 +1,6 @@
 [project]
 name = "OpenFisca-Survey-Manager"
-version = "4.1.0"
+version = "5.0.0"
 description = "A tool for managing survey/administrative data and import them in OpenFisca"
 readme = "README.md"
 keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
@@ -22,8 +22,10 @@ dependencies = [
     'chardet >=5.1.0, < 6.0',
     'configparser >=5.3.0, < 8.0',
     'humanize >=4.6.0, < 5.0',
-    'numpy >=1.24.2, <2.0',
-    'openfisca-core >=43.0.0, <45.0.0',
+    'numpy >=1.24.2, <2.0; python_version < "3.11"',
+    'numpy >=1.26.0, <=3.0; python_version <= "3.12"',
+    'numpy >=2.1.0, <=3.0; python_version >= "3.13"',
+    'openfisca-core >=44.0.0, <45.0.0',
     'pandas >=2.0.3, < 3.0',
     'pyarrow >=13.0.0, < 19.0.0',
     'pyxdg >=0.28, < 0.29',

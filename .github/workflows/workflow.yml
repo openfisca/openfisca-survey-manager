@@ -12,7 +12,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-24.04"]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.13", "3.10.6", "3.11.13"]
+        python-version: ["3.10.11", "3.12.10"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,14 +50,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9.13
+          python-version: "3.10.11"
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
-      - run: pip install -e .[dev]  # Need to install linter
+      - run: make install
       - run: make check-syntax-errors
       - run: make check-style
 
@@ -68,7 +68,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-24.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.13", "3.10.6", "3.11.13"]
+        python-version: ["3.10.11", "3.12.10"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python

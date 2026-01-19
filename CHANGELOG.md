@@ -1,5 +1,20 @@
 ﻿# Changelog
 
+## 5.0.0 [#353](https://github.com/openfisca/openfisca-survey-manager/pull/353)
+
+* Technical changes
+  - Update `openfisca-core` dependency from `>=43.0.0, <45.0.0` to `>=44.0.0, <45.0.0`
+  - Align NumPy versioning strategy with `openfisca-core` using environment markers:
+    - `numpy >=1.24.2, <2.0; python_version < "3.11"`
+    - `numpy >=1.26.0, <=3.0; python_version <= "3.12"`
+    - `numpy >=2.1.0, <=3.0; python_version >= "3.13"`
+  - Fix NumPy 2.x compatibility issues:
+    - Replace `dtype=np.floating` with `dtype=float` in `abstract_scenario.py`
+    - Remove `np.floating` type check in `simulations.py`
+  - Align CI Python versions with `openfisca-core`:
+    - Use specific patch versions: `3.10.11` and `3.12.10`
+    - Follow `openfisca-core` CI strategy for consistency
+
 ## 4.1.0
 
 * Technical changes
