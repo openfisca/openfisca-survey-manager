@@ -127,7 +127,7 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
     needs: [ check-for-functional-changes ]
-    if: needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
+    if: github.ref == 'refs/heads/master' && needs.check-for-functional-changes.outputs.status == 'detected_functional_changes'
     env:
       PYPI_TOKEN_OPENFISCA_BOT: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
     steps:
@@ -138,18 +138,30 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.9.13
+      - name: Install required build libraries
+        run: sudo apt-get update && sudo apt-get install -y build-essential libc6-dev
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+          restore-keys: |
+            build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-ubuntu-24.04
+            build-${{ env.pythonLocation }}-ubuntu-24.04
+      - name: Install build dependencies
+        run: make deps
       - name: Cache release
         id: restore-release
         uses: actions/cache@v4
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+          restore-keys: |
+            release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-ubuntu-24.04
+      - name: Build package if not cached
+        if: steps.restore-release.outputs.cache-hit != 'true'
+        run: make build
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username __token__ --password $PYPI_TOKEN_OPENFISCA_BOT
       - name: Publish a git tag
