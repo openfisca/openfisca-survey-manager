@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+### 5.0.1
+
+* Technical changes
+  - Fix CI deploy step for master branch pushes/merges:
+    - Add master branch condition to deploy job to prevent failures on other branches
+    - Install required build libraries and dependencies
+    - Add conditional build step if release cache is not found
+    - Improve cache restore-keys for better fallback behavior
+
 ## 5.0.0 [#353](https://github.com/openfisca/openfisca-survey-manager/pull/353)
 
 * Technical changes
