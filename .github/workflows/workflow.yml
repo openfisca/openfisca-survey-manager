@@ -86,9 +86,10 @@ jobs:
       - name: test
         run: make test
       - name : coverage
-        run: coveralls --service=github
+        run: coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SERVICE_NAME: github-actions
 
   check-version-and-changelog:
     runs-on: ubuntu-24.04
