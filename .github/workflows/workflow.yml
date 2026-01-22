@@ -152,7 +152,7 @@ jobs:
             build-${{ env.pythonLocation }}-ubuntu-24.04
       - name: Install build dependencies
         run: make deps
-      - name: Cache release
+      - name: Restore release
         id: restore-release
         uses: actions/cache@v4
         with:
@@ -160,6 +160,7 @@ jobs:
           key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
           restore-keys: |
             release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-ubuntu-24.04
+            release-${{ env.pythonLocation }}-ubuntu-24.04
       - name: Build package if not cached
         if: steps.restore-release.outputs.cache-hit != 'true'
         run: make build
