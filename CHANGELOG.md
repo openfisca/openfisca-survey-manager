@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## 5.1.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
+
+* Technical changes
+  - Refactor codebase to use `pathlib` instead of `os.path` and `shutil`.
+  - Add type hints and docstrings to `simulations.py` and other core modules.
+  - Standardize configuration in `pyproject.toml`.
+
+
 ### 5.0.1
 
 * Technical changes
