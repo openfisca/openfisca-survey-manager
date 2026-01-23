@@ -99,7 +99,6 @@ ignore = [
     "N802", # Function name should be lowercase (ignored for mathematical functions F and F_prime)
     "SIM113", # Use enumerate() for index variable in for loop (ignored for simple counters)
     "SIM115", # Use a context manager for opening files (ignored for compatibility)
-    "PTH" # Allow os.path usage until full migration
 ]
 
 [tool.isort]
