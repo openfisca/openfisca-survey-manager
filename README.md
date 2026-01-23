@@ -34,7 +34,7 @@ Il fournit deux fonctionnalités principales:
 
 ## Environment
 
-OpenFisca-Survey-Manager runs on Python 3.9+. It is tested on 3.9, 3.10 and 3.11.
+OpenFisca-Survey-Manager runs on Python 3.9+. It is tested on 3.10, 3.11 and 3.12.
 
 ## Usage
 
