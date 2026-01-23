@@ -27,10 +27,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+          key: build-${{ env.pythonLocation }}-${{ matrix.os }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
           restore-keys: |  # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-            build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ matrix.os }}
-            build-${{ env.pythonLocation }}-${{ matrix.os }}
+            build-${{ env.pythonLocation }}-${{ matrix.os }}-${{ hashFiles('pyproject.toml') }}-
+            build-${{ env.pythonLocation }}-${{ matrix.os }}-
       - name: Build package
         run: make build
       - name: Cache release
@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+          key: release-${{ env.pythonLocation }}-${{ matrix.os }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
 
   lint-files:
     runs-on: ubuntu-24.04
@@ -56,7 +56,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+          key: build-${{ env.pythonLocation }}-ubuntu-24.04-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
       - run: make install
       - run: make check-syntax-errors
       - run: make check-style
@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-${{ matrix.os }}
+          key: build-${{ env.pythonLocation }}-${{ matrix.os }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
       - name: install
         run: make install
       - name: test
@@ -146,10 +146,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+          key: build-${{ env.pythonLocation }}-ubuntu-24.04-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
           restore-keys: |
-            build-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-ubuntu-24.04
-            build-${{ env.pythonLocation }}-ubuntu-24.04
+            build-${{ env.pythonLocation }}-ubuntu-24.04-${{ hashFiles('pyproject.toml') }}-
+            build-${{ env.pythonLocation }}-ubuntu-24.04-
       - name: Install build dependencies
         run: make deps
       - name: Restore release
@@ -157,10 +157,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}-ubuntu-24.04
+          key: release-${{ env.pythonLocation }}-ubuntu-24.04-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
           restore-keys: |
-            release-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-ubuntu-24.04
-            release-${{ env.pythonLocation }}-ubuntu-24.04
+            release-${{ env.pythonLocation }}-ubuntu-24.04-${{ hashFiles('pyproject.toml') }}-
+            release-${{ env.pythonLocation }}-ubuntu-24.04-
       - name: Build package if not cached
         if: steps.restore-release.outputs.cache-hit != 'true'
         run: make build
