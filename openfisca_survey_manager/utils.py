@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
@@ -246,7 +246,7 @@ def stata_files_to_data_frames(data, period=None):
     input_data_frame_by_entity_by_period = {}
     input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = {}
     for entity, file_path in stata_file_by_entity.items():
-        assert os.path.exists(file_path), "Invalid file path: {}".format(file_path)
+        assert Path(file_path).exists(), "Invalid file path: {}".format(file_path)
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
         variables_from_stata_files += list(entity_data_frame.columns)
     data["input_data_frame_by_entity_by_period"] = input_data_frame_by_entity_by_period
