@@ -3,7 +3,7 @@
 import logging
 import re
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import humanize
 import numpy as np
@@ -34,7 +34,7 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
 
     Args:
         tax_benefit_system (TaxBenefitSystem): Host tax benefit system
-        variables (List): Variables supposed to belong to the same entity
+        variables (List[str]): Variables supposed to belong to the same entity
 
     Returns:
         str: Common entity of the variables
@@ -107,13 +107,13 @@ def compute_aggregate(
     simulation: Simulation,
     variable: str = None,
     aggfunc: str = "sum",
-    filter_by: str = None,
+    filter_by: Optional[str] = None,
     period: Optional[Union[int, str, Period]] = None,
-    missing_variable_default_value=np.nan,
+    missing_variable_default_value: Any = np.nan,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Dict = None,
-) -> Optional[Union[None, float]]:
+    filtering_variable_by_entity: Optional[Dict] = None,
+) -> Optional[Union[float, int]]:
     """
     Compute aggregate of a variable.
 
@@ -241,10 +241,10 @@ def compute_quantiles(
     variable: str,
     nquantiles: int = None,
     period: Optional[Union[int, str, Period]] = None,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
 ) -> List[float]:
     """
     Compute quantiles of a variable.
@@ -297,19 +297,19 @@ def compute_quantiles(
 def compute_pivot_table(
     simulation: Simulation = None,
     baseline_simulation: Simulation = None,
-    aggfunc="mean",
+    aggfunc: str = "mean",
     columns: Optional[List[str]] = None,
     difference: bool = False,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     index: Optional[List[str]] = None,
     period: Optional[Union[int, str, Period]] = None,
-    use_baseline_for_columns: bool = None,
+    use_baseline_for_columns: Optional[bool] = None,
     values: Optional[List[str]] = None,
-    missing_variable_default_value=np.nan,
+    missing_variable_default_value: Any = np.nan,
     concat_axis: Optional[int] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
 ):
     """
     Compute pivot table.
@@ -532,13 +532,13 @@ def compute_pivot_table(
 
 def create_data_frame_by_entity(
     simulation: Simulation,
-    variables: Optional[List] = None,
+    variables: Optional[List[str]] = None,
     expressions: Optional[List[str]] = None,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     index: bool = False,
     period: Optional[Union[int, str, Period]] = None,
     merge: bool = False,
-) -> Union[pd.DataFrame, Dict]:
+) -> Union[pd.DataFrame, Dict[str, pd.DataFrame]]:
     """
     Create dataframe(s) of variables for the whole selected population.
 
@@ -685,11 +685,11 @@ def compute_winners_losers(
     period: Optional[Union[int, str, Period]] = None,
     absolute_minimal_detected_variation: float = 0,
     relative_minimal_detected_variation: float = 0.01,
-    observations_threshold: int = None,
+    observations_threshold: Optional[int] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
-) -> Dict[str, int]:
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
+) -> Dict[str, Union[int, float]]:
     """
     Compute the number of winners and losers for a given variable.
 
