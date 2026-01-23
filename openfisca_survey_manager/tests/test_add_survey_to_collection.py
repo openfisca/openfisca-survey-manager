@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -13,14 +13,9 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 def test_add_survey_to_collection_parquet():
     name = "fake"
     survey_name = "test_parquet"
-    data_dir = os.path.join(
-        openfisca_survey_manager_location,
-        "openfisca_survey_manager",
-        "tests",
-        "data_files",
-    )
+    data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
     survey_collection = SurveyCollection(name=name)
-    saved_fake_survey_file_path = os.path.join(data_dir, "test.parquet")
+    saved_fake_survey_file_path = data_dir / "test.parquet"
     add_survey_to_collection(
         survey_name=survey_name,
         survey_collection=survey_collection,
@@ -32,11 +27,8 @@ def test_add_survey_to_collection_parquet():
 
 @pytest.mark.order(after="test_write_parquet.py::TestWriteParquet::test_write_parquet_one_file_per_entity")
 def test_set_table_in_survey_parquet():
-    data_dir = os.path.join(
-        openfisca_survey_manager_location,
-        "openfisca_survey_manager/tests/data_files",
-    )
-    filepath = os.path.join(data_dir, "test_parquet_collection", "household.parquet")
+    data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager/tests/data_files"
+    filepath = data_dir / "test_parquet_collection" / "household.parquet"
     input_dataframe = pd.read_parquet(filepath)
     survey_name = "test_parquet"
     collection = "fake"
@@ -61,14 +53,9 @@ def test_set_table_in_survey_parquet():
 def test_add_survey_to_collection():
     name = "fake"
     survey_name = "fake_survey"
-    data_dir = os.path.join(
-        openfisca_survey_manager_location,
-        "openfisca_survey_manager",
-        "tests",
-        "data_files",
-    )
+    data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
     survey_collection = SurveyCollection(name=name)
-    saved_fake_survey_file_path = os.path.join(data_dir, "help.sas7bdat")
+    saved_fake_survey_file_path = data_dir / "help.sas7bdat"
     add_survey_to_collection(
         survey_name=survey_name,
         survey_collection=survey_collection,
@@ -81,10 +68,7 @@ def test_add_survey_to_collection():
 
 @pytest.mark.order(after="test_surveys.py::test_survey")
 def test_set_table_in_survey_first_year():
-    data_dir = os.path.join(
-        openfisca_survey_manager_location,
-        "openfisca_survey_manager/tests/data_files",
-    )
+    data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager/tests/data_files"
     input_dataframe = pd.DataFrame({"rfr": [1_000, 2_000, 100_000]})
     survey_name = "test_set_table_in_survey_2020"
     collection = "fake"
@@ -108,10 +92,7 @@ def test_set_table_in_survey_first_year():
 
 @pytest.mark.order(after="test_set_table_in_survey_first_year")
 def test_set_table_in_survey_second_year():
-    data_dir = os.path.join(
-        openfisca_survey_manager_location,
-        "openfisca_survey_manager/tests/data_files",
-    )
+    data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager/tests/data_files"
     input_dataframe = pd.DataFrame({"rfr": [1_021, 2_021, 100_021]})
     survey_name = "test_set_table_in_survey_2021"
     collection = "fake"
