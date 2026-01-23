@@ -1,7 +1,7 @@
 "Abstract survey scenario definition."
 
 import logging
-import os
+
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -503,7 +503,7 @@ class AbstractSurveyScenario(object):
             raise ValueError("Method generate_performance_data cannot be used if trace hasn't been activated.")
 
         for simulation_name, simulation in self.simulations.items():
-            simulation_dir = os.path.join(output_dir, f"{simulation_name}_perf_log")
+            simulation_dir = Path(output_dir) / f"{simulation_name}_perf_log"
             if not Path(output_dir).exists():
                 Path(output_dir).mkdir()
             if not Path(simulation_dir).exists():
