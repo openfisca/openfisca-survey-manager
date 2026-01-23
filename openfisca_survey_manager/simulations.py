@@ -837,7 +837,7 @@ def inflate(
     inflator_by_variable: Optional[Dict] = None,
     period: Optional[Union[int, str, Period]] = None,
     target_by_variable: Optional[Dict] = None,
-):
+) -> None:
     tax_benefit_system = simulation.tax_benefit_system
     for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
         assert variable_name in tax_benefit_system.variables, (
@@ -864,7 +864,13 @@ def inflate(
 
 
 def _load_table_for_survey(
-    config_files_directory, collection, survey, table, batch_size=None, batch_index=None, filter_by=None
+    config_files_directory: str,
+    collection: str,
+    survey: str,
+    table: str,
+    batch_size: Optional[int] = None,
+    batch_index: Optional[int] = None,
+    filter_by: Optional[str] = None,
 ):
     if survey is not None:
         input_data_frame = load_table(
@@ -890,15 +896,15 @@ def _load_table_for_survey(
 
 
 def _input_data_table_by_entity_by_period_monolithic(
-    tax_benefit_system,
-    simulation,
-    period,
-    input_data_table_by_entity,
-    builder,
-    custom_input_data_frame,
-    config_files_directory,
-    collection,
-    survey=None,
+    tax_benefit_system: TaxBenefitSystem,
+    simulation: Simulation,
+    period: Period,
+    input_data_table_by_entity: Dict,
+    builder: SimulationBuilder,
+    custom_input_data_frame: Callable,
+    config_files_directory: str,
+    collection: str,
+    survey: Optional[str] = None,
 ):
     """
     Initialize simulation with input data from a table for each entity and period.
@@ -910,7 +916,7 @@ def _input_data_table_by_entity_by_period_monolithic(
         # Read all tables for the entity
         log.debug(f"init_simulation - {period=} {entity.key=}")
         table = input_data_table_by_entity.get(entity.key)
-        filter_by = input_data_table_by_entity.get("filter_by", None)
+        filter_by = input_data_table_by_entity.get("filter_by")
         if table is None:
             continue
         input_data_frame = _load_table_for_survey(
@@ -946,15 +952,15 @@ def _input_data_table_by_entity_by_period_monolithic(
 
 
 def _input_data_table_by_entity_by_period_batch(
-    tax_benefit_system,
-    simulation,
-    period,
-    input_data_table_by_entity,
-    builder,
-    custom_input_data_frame,
-    config_files_directory,
-    collection,
-    survey=None,
+    tax_benefit_system: TaxBenefitSystem,
+    simulation: Simulation,
+    period: Period,
+    input_data_table_by_entity: Dict,
+    builder: SimulationBuilder,
+    custom_input_data_frame: Callable,
+    config_files_directory: str,
+    collection: str,
+    survey: Optional[str] = None,
 ):
     """
     Initialize simulation with input data from a table for each entity and period.
@@ -1026,7 +1032,11 @@ def _input_data_table_by_entity_by_period_batch(
     return simulation
 
 
-def init_simulation(tax_benefit_system, period, data):
+def init_simulation(
+    tax_benefit_system: TaxBenefitSystem,
+    period: Union[str, int, Period],
+    data: Dict,
+):
     builder = SimulationBuilder()
     builder.create_entities(tax_benefit_system)
 
@@ -1048,7 +1058,7 @@ def init_simulation(tax_benefit_system, period, data):
         "input_data_table_by_entity_by_period",
         "input_data_table_by_period",
     ]
-    source_types = [source_type_ for source_type_ in default_source_types if data.get(source_type_, None) is not None]
+    source_types = [source_type_ for source_type_ in default_source_types if data.get(source_type_) is not None]
     assert len(source_types) < 2, "There are too many data source types"
     assert len(source_types) >= 1, "There should be one data source type included in {}".format(default_source_types)
     source_type = source_types[0]
@@ -1160,7 +1170,13 @@ def init_simulation(tax_benefit_system, period, data):
     return simulation
 
 
-def init_variable_in_entity(simulation: Simulation, entity, variable_name, series, period):
+def init_variable_in_entity(
+    simulation: Simulation,
+    entity: str,
+    variable_name: str,
+    series: pd.Series,
+    period: Period,
+):
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
@@ -1314,7 +1330,7 @@ def print_memory_usage(simulation: Simulation):
 def set_weight_variable_by_entity(
     simulation: Simulation,
     weight_variable_by_entity: Dict,
-):
+) -> None:
     """
     Set weight variable for each entity.
 
@@ -1325,7 +1341,12 @@ def set_weight_variable_by_entity(
     simulation.weight_variable_by_entity = weight_variable_by_entity
 
 
-def summarize_variable(simulation: Simulation, variable=None, weighted=False, force_compute=False):
+def summarize_variable(
+    simulation: Simulation,
+    variable: Optional[str] = None,
+    weighted: bool = False,
+    force_compute: bool = False,
+):
     """Print a summary of a variable including its memory usage.
 
     Args:
