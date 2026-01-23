@@ -35,8 +35,9 @@ collections_directory = {config_files_directory}
 
 [data]
 output_directory = {config_files_directory}
-tmp_directory = /tmp
+tmp_directory = {config_files_directory / "tmp"}
 """)
+    (config_files_directory / "tmp").mkdir(exist_ok=True)
 
 
 def create_randomly_initialized_survey_scenario(
@@ -314,12 +315,12 @@ def test_survey_scenario_input_dataframe_import_scrambled_ids(tmp_path) -> None:
     assert (simulation.calculate("salary", period) == input_data_frame_by_entity["person"]["salary"]).all()
 
 
-def test_dump_survey_scenario(tmp_path) -> None:
+def test_dump_survey_scenario(tmp_path: Any) -> None:
     """Test the dump and restore functionality of survey scenarios."""
     setup_test_config(tmp_path)
     directory = tmp_path / "dump"
     survey_scenario = create_randomly_initialized_survey_scenario(config_files_directory=tmp_path)
-    survey_scenario.dump_simulations(directory=directory)
+    survey_scenario.dump_simulations(directory=str(directory))
     period = "2017-01"
     df = survey_scenario.create_data_frame_by_entity(variables=["salary", "rent"], period=period)
     household = df["household"]
@@ -328,7 +329,7 @@ def test_dump_survey_scenario(tmp_path) -> None:
     survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.used_as_input_variables = ["salary", "rent"]
     survey_scenario.period = 2017
-    survey_scenario.restore_simulations(directory=directory)
+    survey_scenario.restore_simulations(directory=str(directory))
     df2 = survey_scenario.create_data_frame_by_entity(variables=["salary", "rent"], period="2017-01")
     assert (df2["household"] == household).all().all()
 

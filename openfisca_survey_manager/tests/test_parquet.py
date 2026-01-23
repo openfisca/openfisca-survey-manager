@@ -1,12 +1,7 @@
-"""
-Test the ability to store parquet files in collections, without converting them to HDF5.
-"""
-
 import logging
-from pathlib import Path
-
 import pandas as pd
 import pytest
+from pathlib import Path
 from openfisca_core import periods
 
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
@@ -32,7 +27,7 @@ def parquet_data(tmp_path):
     coll_dir = data_dir / coll_name
     coll_dir.mkdir()
 
-    df_hh = pd.DataFrame(
+    df_household = pd.DataFrame(
         {
             "household_id": [1, 2, 3, 4],
             "rent": [1100, 2200, 3_000, 4_000],
@@ -40,9 +35,9 @@ def parquet_data(tmp_path):
             "accommodation_size": [50, 100, 150, 200],
         }
     )
-    df_hh.to_parquet(coll_dir / "household.parquet")
+    df_household.to_parquet(coll_dir / "household.parquet")
 
-    df_pp = pd.DataFrame(
+    df_person = pd.DataFrame(
         {
             "person_id": [11, 22, 33, 44, 55],
             "household_id": [1, 1, 2, 3, 4],
@@ -51,7 +46,7 @@ def parquet_data(tmp_path):
             "household_role_index": [0, 1, 0, 0, 0],
         }
     )
-    df_pp.to_parquet(coll_dir / "person.parquet")
+    df_person.to_parquet(coll_dir / "person.parquet")
 
     # 2. Setup test_multiple_parquet_collection (multiple files per entity)
     mult_coll_name = "test_multiple_parquet_collection"
@@ -111,8 +106,9 @@ collections_directory = {data_dir}
 
 [data]
 output_directory = {data_dir}
-tmp_directory = /tmp
+tmp_directory = {data_dir / "tmp"}
 """)
+    (data_dir / "tmp").mkdir(exist_ok=True)
 
     # JSON templates
     for name in [coll_name, mult_coll_name]:
@@ -183,7 +179,8 @@ def test_load_single_parquet_monolithic(parquet_data):
         collection=collection_name,
     )
     survey = survey_collection.get_survey(survey_name)
-    survey.get_values(table="household", ignorecase=True)
+    table = survey.get_values(table="household", ignorecase=True)
+    input_data_frame_by_entity = table
 
     survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = 2020
@@ -209,11 +206,16 @@ def test_load_single_parquet_monolithic(parquet_data):
     assert len(sim_res) == 4
     assert sim_res == [500.0, 1000.0, 1500.0, 2000.0]
 
+    rent_res = simulation.calculate("rent", period).flatten().tolist()
+    assert (rent_res == input_data_frame_by_entity["rent"]).all()
+
+    income_tax_res = simulation.calculate("income_tax", period).flatten().tolist()
+    assert income_tax_res == pytest.approx([195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
+
 
 def test_load_multiple_parquet_monolithic(parquet_data):
     """Test loading all data from parquet files in memory."""
     collection_name = "test_multiple_parquet_collection"
-
     data_directory_path_by_survey_suffix = {
         "2020": str(parquet_data / collection_name),
     }
@@ -234,7 +236,8 @@ def test_load_multiple_parquet_monolithic(parquet_data):
         collection=collection_name,
     )
     survey = survey_collection.get_survey(survey_name)
-    survey.get_values(table="household", ignorecase=True)
+    table = survey.get_values(table="household", ignorecase=True)
+    input_data_frame_by_entity = table
 
     survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.period = 2020
@@ -259,6 +262,12 @@ def test_load_multiple_parquet_monolithic(parquet_data):
     sim_res = simulation.calculate("housing_tax", period.this_year).flatten().tolist()
     assert len(sim_res) == 4
     assert sim_res == [500.0, 1000.0, 1500.0, 2000.0]
+
+    rent_res = simulation.calculate("rent", period).flatten().tolist()
+    assert (rent_res == input_data_frame_by_entity["rent"]).all()
+
+    income_tax_res = simulation.calculate("income_tax", period).flatten().tolist()
+    assert income_tax_res == pytest.approx([195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0])
 
 
 def test_load_parquet_batch(parquet_data):
@@ -328,3 +337,4 @@ def test_load_parquet_batch(parquet_data):
     assert len(results["rent"]) == 4
     assert sum(results["rent"]) == total_rent
     assert sum(results["housing_tax"]) == sum([500.0, 1000.0, 1500.0, 2000.0])
+    assert sum(results["income_tax"]) == pytest.approx(sum([195.00001525878906, 3.0, 510.0000305175781, 600.0, 750.0]))
