@@ -7,7 +7,7 @@ import argparse
 import configparser
 import datetime
 import logging
-import os
+
 import pdb
 import re
 import shutil
@@ -75,27 +75,27 @@ def create_data_file_by_format(directory_path=None):
     csv_files = []
     parquet_files = []
 
-    for root, _subdirs, files in os.walk(directory_path):
-        # reference _subdirs to avoid "not accessed" warnings
-        _ = _subdirs
-        for file_name in files:
-            file_path = Path(root) / file_name
-            if file_path.suffix == ".csv":
-                log.info(f"Found csv file {file_path}")
-                csv_files.append(str(file_path))
-            if file_path.suffix == ".dta":
-                log.info(f"Found stata file {file_path}")
-                stata_files.append(str(file_path))
-            if file_path.suffix == ".sas7bdat":
-                log.info(f"Found sas file {file_path}")
-                sas_files.append(str(file_path))
-            if file_path.suffix == ".parquet":
-                log.info(f"Found parquet file {file_path}")
-                relative = str(file_path)[str(file_path).find(directory_path) :]
-                if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", str(file_name)):
-                    # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
-                    file_path = file_path.parent
-                parquet_files.append(str(file_path))
+    directory = Path(directory_path)
+    for file_path in directory.rglob("*"):
+        if not file_path.is_file():
+            continue
+
+        if file_path.suffix == ".csv":
+            log.info(f"Found csv file {file_path}")
+            csv_files.append(str(file_path))
+        if file_path.suffix == ".dta":
+            log.info(f"Found stata file {file_path}")
+            stata_files.append(str(file_path))
+        if file_path.suffix == ".sas7bdat":
+            log.info(f"Found sas file {file_path}")
+            sas_files.append(str(file_path))
+        if file_path.suffix == ".parquet":
+            log.info(f"Found parquet file {file_path}")
+            relative = str(file_path.relative_to(directory))
+            if ("/" in relative or "\\" in relative) and re.match(r".*-\d$", file_path.name):
+                # Keep only the folder name if parquet files are in subfolders and name contains "-<number>"
+                file_path = file_path.parent
+            parquet_files.append(str(file_path))
     return {"csv": csv_files, "stata": stata_files, "sas": sas_files, "parquet": parquet_files}
 
 
