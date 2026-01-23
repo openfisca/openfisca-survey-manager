@@ -34,7 +34,7 @@ Il fournit deux fonctionnalités principales:
 
 ## Environment
 
-OpenFisca-Survey-Manager runs on Python 3.9. More recent versions should work, but are not tested.
+OpenFisca-Survey-Manager runs on Python 3.9+. It is tested on 3.9, 3.10 and 3.11.
 
 ## Usage
 
@@ -240,54 +240,27 @@ If a single file contains all the table, you can have many files for different t
 
 ## Development
 
-If you want to contribute to OpenFisca-Survey-Manager, please be welcomed! To install it locally in development mode:
+To contribute to `OpenFisca-Survey-Manager`, you can use `uv` for a modern development workflow.
 
-```shell
-git clone https://github.com/openfisca/openfisca-survey-manager.git
-cd openfisca-survey-manager
-make install
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/openfisca/openfisca-survey-manager.git
+   cd openfisca-survey-manager
+   ```
 
-## Testing
+2. **Install dependencies and dev tools**
+   ```bash
+   uv sync
+   ```
 
-To run the entire test suite:
+3. **Run tests**
+   ```bash
+   uv run pytest
+   ```
 
-```sh
-make test
-```
-
-To run the entire test suite with the same config as in Continuous Integration (CI):
-
-```sh
-CI=True make test
-```
-
-## Style
-
-This repository adheres to a certain coding style, and we invite you to follow it for your contributions to be integrated promptly.
-
-To run the style checker:
-
-```sh
-make check-style
-```
-
-To automatically style-format your code changes:
-
-```sh
-make format-style
-```
-
-To automatically style-format your code changes each time you commit:
-
-```sh
-touch .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-
-tee -a .git/hooks/pre-commit << END
-#!/bin/sh
-#
-# Automatically format your code before committing.
-exec make format-style
-END
-```
+4. **Linting and Formatting**
+   We use `ruff` for linting and formatting.
+   ```bash
+   uv run ruff check .
+   uv run ruff format .
+   ```
