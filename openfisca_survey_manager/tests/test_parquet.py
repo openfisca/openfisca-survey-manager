@@ -107,8 +107,12 @@ def test_load_single_parquet_monolithic(parquet_data):
 def test_load_multiple_parquet_monolithic(parquet_data):
     """Test loading all data from parquet files in memory."""
     collection_name = "test_multiple_parquet_collection"
+    data_dir = parquet_data / collection_name
+    survey_scenario = AbstractSurveyScenario()
+    survey_name = collection_name + "_2020"
+
     data_directory_path_by_survey_suffix = {
-        "2020": str(parquet_data / collection_name),
+        "2020": str(data_dir),
     }
     build_survey_collection(
         collection_name=collection_name,
@@ -120,8 +124,6 @@ def test_load_multiple_parquet_monolithic(parquet_data):
         keep_original_parquet_file=True,
     )
 
-    survey_scenario = AbstractSurveyScenario()
-    survey_name = f"{collection_name}_2020"
     survey_collection = SurveyCollection.load(
         config_files_directory=str(parquet_data),
         collection=collection_name,
