@@ -36,7 +36,7 @@ def parquet_data(tmp_path: Path):
 
     # Setup Json for single file collection
     json_file = data_dir / f"{collection_name}.json"
-    with open(json_file, "w") as f:
+    with json_file.open("w") as f:
         f.write(f"""
     {{
     "label": "Test parquet collection",
@@ -48,7 +48,7 @@ def parquet_data(tmp_path: Path):
 
     # Config for single
     config_single = data_dir / "config.ini"
-    with open(config_single, "w") as f:
+    with config_single.open("w") as f:
         f.write(f"""
 [collections]
 collections_directory = {data_dir}
@@ -68,7 +68,7 @@ tmp_directory = {data_dir / "tmp"}
 
     # Config for multiple
     config = multi_dir / "config.ini"
-    with open(config, "w") as f:
+    with config.open("w") as f:
         f.write(f"""
 [collections]
 collections_directory = {multi_dir}
@@ -82,7 +82,7 @@ tmp_directory = {multi_dir / "tmp"}
 
     # Json for multiple
     json_file_multi = multi_dir / f"{multi_collection_name}.json"
-    with open(json_file_multi, "w") as f:
+    with json_file_multi.open("w") as f:
         f.write(f"""
     {{
     "label": "Test parquet collection",

@@ -43,7 +43,7 @@ def test_write_parquet_multiple_files_per_entity(tmp_path: Path):
     # Create a file config.ini in the current directory
     config = data_dir / "config.ini"
 
-    with open(config, "w") as f:
+    with config.open("w") as f:
         f.write(
             f"""
 [collections]
@@ -60,7 +60,7 @@ tmp_directory = {data_dir / "tmp"}
     # Create a file test_parquet_collection.json in the current directory
     json_file = data_dir / f"{collection_name}.json"
 
-    with open(json_file, "w") as f:
+    with json_file.open("w") as f:
         f.write(
             """
 {
