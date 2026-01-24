@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+# 6.1.0
+
+* Technical changes
+  - Fix `SurveyCollection` state leakage between tests by moving attributes to instance level.
+  - Improve robustness of `set_table_in_survey` with configuration fallbacks.
+  - Fix `PTH123` linting errors by using `Path.open()`.
+  - Modernize `test_surveys.py` for better test isolation.
+
 # 6.0.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
 
 * Technical changes
