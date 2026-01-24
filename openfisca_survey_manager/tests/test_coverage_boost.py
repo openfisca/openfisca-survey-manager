@@ -112,7 +112,7 @@ def test_abstract_aggregates_robust(scenario, tmp_path, monkeypatch):
             )
 
     agg = Agg(survey_scenario=scenario)
-    df = agg.get_data_frame(target="baseline", default="actual", ignore_labels=True)
+    df = agg.compute_aggregates(use_baseline=True, actual=True)
     assert "baseline_amount" in df.columns
 
     # Test to_csv and to_markdown
