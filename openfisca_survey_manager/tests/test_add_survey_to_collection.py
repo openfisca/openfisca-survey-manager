@@ -1,8 +1,6 @@
 import pandas as pd
 import pytest
-from pathlib import Path
 
-from openfisca_survey_manager.paths import openfisca_survey_manager_location
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 from openfisca_survey_manager.scripts.build_collection import (
     add_survey_to_collection,

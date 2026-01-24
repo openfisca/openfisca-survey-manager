@@ -90,15 +90,6 @@ ignore = [
     "N801", # Class name should use CapWords convention (ignored for Variable children)
     "N805", # First argument of a method should be named `self` (ignored for Variable children)
     "E501", # Line too long (will be fixed manually or ignored if unavoidable)
-    "B018", # Found useless expression (will be fixed manually or ignored if intended)
-    "N806", # Variable in function should be lowercase (ignored for specific cases like StatMatch, PLCx, PLCy, LCx, LCy, N)
-    "F401", # Unused imports (will be cleaned up manually)
-    "F821", # Undefined name (will be fixed manually, likely missing import or instantiation)
-    "I001", # Import block is un-sorted or un-formatted (will be fixed by isort)
-    "N999", # Invalid module name (ignored for __init__.py files)
-    "N802", # Function name should be lowercase (ignored for mathematical functions F and F_prime)
-    "SIM113", # Use enumerate() for index variable in for loop (ignored for simple counters)
-    "SIM115", # Use a context manager for opening files (ignored for compatibility)
 ]
 
 [tool.isort]

@@ -1083,7 +1083,7 @@ def init_simulation(
             )
             input_data_frame = openfisca_survey.get_values(table="input").reset_index(drop=True)
         else:
-            NotImplementedError
+            raise NotImplementedError
 
         custom_input_data_frame(input_data_frame, period=period)
         simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes

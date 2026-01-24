@@ -1,5 +1,6 @@
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 from openfisca_survey_manager.scripts.build_collection import build_survey_collection
 

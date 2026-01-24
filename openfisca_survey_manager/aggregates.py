@@ -1,7 +1,7 @@
 import collections
 import logging
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -508,7 +508,7 @@ class AbstractAggregates(object):
         return df
 
     def load_actual_data(self, period=None):
-        NotImplementedError
+        pass
 
     def compute_winners_losers(self, variable: str, filter_by: str = None):
         if "reform" not in self.simulations or "baseline" not in self.simulations:

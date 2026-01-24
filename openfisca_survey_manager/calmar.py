@@ -220,30 +220,31 @@ def calmar(
         "method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
     )
     if method == "linear":
-        F = linear
-        F_prime = linear_prime
+        f = linear
+        f_prime = linear_prime
     elif method == "raking ratio":
-        F = raking_ratio
-        F_prime = raking_ratio_prime
+        f = raking_ratio
+        f_prime = raking_ratio_prime
     elif method == "logit":
         assert up is not None, "When method == 'logit', a value > 1 for up is mandatory"
         assert up > 1, "up should be > 1"
         assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
         assert lo < 1, "lo should be < 1"
 
-        def F(x):
+        def f(x):
             return logit(x, lo, up)
 
-        def F_prime(x):
+        def f_prime(x):
             return logit_prime(x, lo, up)
+
     elif method == "hyperbolic sinus":
         assert alpha is not None, "When method == 'hyperbolic sinus', a value > 0 for alpha is mandatory"
         assert alpha > 0, "alpha should be > 0"
 
-        def F(x):
+        def f(x):
             return hyperbolic_sinus(x, alpha)
 
-        def F_prime(x):
+        def f_prime(x):
             return hyperbolic_sinus_prime(x, alpha)
 
     margins = margins.copy()
@@ -271,7 +272,7 @@ def calmar(
             if var in data[entity].columns:
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
-                    k, pop = 0, 0
+                    pop = 0
                     list_col_to_add = [data[entity]]
                     for cat, nb in val.items():
                         cat_varname = var + "_" + str(cat)
@@ -281,7 +282,6 @@ def calmar(
                             margins_new_dict[var] = {}
                         margins_new_dict[var][cat] = nb
                         pop += nb
-                        k += 1
                         nj += 1
                     data[entity] = pd.concat(list_col_to_add, axis=1)
                     # Check total popualtion
@@ -310,7 +310,7 @@ def calmar(
                     margins_new_dict[var] = val
                     nj += 1
 
-    # On conserve systematiquement la population
+    # On conserve systematically la population
     if hasattr(data, "dummy_is_in_pop") or hasattr(data, "dummy_is_in_pop_smaller_entity"):
         raise Exception("dummy_is_in_pop and dummy_is_in_pop_smaller_entity are not valid variable names")
 
@@ -338,19 +338,17 @@ def calmar(
     x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
-    j = 0
-    for var, val in margins_new.items():
+    for j, (var, val) in enumerate(margins_new.items()):
         x[:, j] = data_final[var]
         xmargins[j] = val
         margins_dict[var] = val
-        j += 1
 
     # Résolution des équations du premier ordre
     def constraint(lambda_):
-        return dot(d * F(dot(x, lambda_)), x) - xmargins
+        return dot(d * f(dot(x, lambda_)), x) - xmargins
 
     def constraint_prime(lambda_):
-        return dot(d * (x.T * F_prime(dot(x, lambda_))), x)
+        return dot(d * (x.T * f_prime(dot(x, lambda_))), x)
         # le jacobien ci-dessus est constraintprime = @(lambda) x*(d.*Fprime(x'*lambda)*x');
 
     tries, ier = 0, 2
@@ -368,7 +366,7 @@ def calmar(
         lambda0 = 1 * lambdasol
         tries += 1
 
-        pondfin = d * F(dot(x, lambdasol))
+        pondfin = d * f(dot(x, lambdasol))
         rel_error = {}
         for var, val in margins_new.items():  # noqa analysis:ignore
             rel_error[var] = abs((data_final[var] * pondfin).sum() - margins_dict[var]) / margins_dict[var]

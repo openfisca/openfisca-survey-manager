@@ -59,12 +59,12 @@ def kakwani(values, ineq_axis, weights=None):
     if weights is None:
         weights = ones(len(values))
 
-    PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
-    LCx, LCy = lorenz(ineq_axis, weights)
+    plcx, plcy = pseudo_lorenz(values, ineq_axis, weights)
+    lcx, lcy = lorenz(ineq_axis, weights)
 
-    del PLCx
+    del plcx
 
-    return simps((LCy - PLCy), LCx)
+    return simps((lcy - plcy), lcx)
 
 
 def lorenz(values, weights=None):
@@ -119,7 +119,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
     # First method, "vanilla" weights from Wikipedia article.
     if method == 1:
         # Sort the values and apply the same sort to the weights.
-        N = len(a)
+        n = len(a)
         sort_indx = argsort(a)
         tmp_a = a[sort_indx].copy()
         tmp_weights = weights[sort_indx].copy()
@@ -150,10 +150,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_low = 0
                 i_high = 0
             elif brk >= p_vals[-1]:
-                i_low = N - 1
-                i_high = N - 1
+                i_low = n - 1
+                i_high = n - 1
             else:
-                for ii in range(N - 1):
+                for ii in range(n - 1):
                     if (p_vals[ii] <= brk) and (brk < p_vals[ii + 1]):
                         i_low = ii
                         i_high = ii + 1
@@ -184,7 +184,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
     # The stats.stackexchange suggestion.
     elif method == 2:
-        N = len(a)
+        n = len(a)
         sort_indx = argsort(a)
         tmp_a = a[sort_indx].copy()
         tmp_weights = weights[sort_indx].copy()
@@ -196,16 +196,16 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 
         # Formula from stats.stackexchange.com post.
         s_vals = [0.0]
-        for ii in range(1, N):
-            s_vals.append(ii * tmp_weights[ii] + (N - 1) * cu_weights[ii - 1])
+        for ii in range(1, n):
+            s_vals.append(ii * tmp_weights[ii] + (n - 1) * cu_weights[ii - 1])
         s_vals = asarray(s_vals)
 
         # Normalized s_vals for comapring with the breakpoint.
         norm_s_vals = (1.0 / s_vals[-1]) * s_vals
 
         # Set up the output variable.
-        ret = repeat(0, N)
-        if num_categories > N:
+        ret = repeat(0, n)
+        if num_categories > n:
             return ret
 
         # Set up space for the values at the breakpoints.
@@ -219,10 +219,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 i_low = 0
                 i_high = 0
             elif brk >= norm_s_vals[-1]:
-                i_low = N - 1
-                i_high = N - 1
+                i_low = n - 1
+                i_high = n - 1
             else:
-                for ii in range(N - 1):
+                for ii in range(n - 1):
                     if (norm_s_vals[ii] <= brk) and (brk < norm_s_vals[ii + 1]):
                         i_low = ii
                         i_high = ii + 1

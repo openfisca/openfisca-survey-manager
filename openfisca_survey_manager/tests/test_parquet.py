@@ -1,7 +1,7 @@
 import logging
+
 import pandas as pd
 import pytest
-from pathlib import Path
 from openfisca_core import periods
 
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario

@@ -1,30 +1,26 @@
+from contextlib import suppress
+from pathlib import Path
+
 import pandas as pd
 import pytest
-import numpy as np
-from pathlib import Path
-from contextlib import suppress
 from openfisca_core import periods
+
+from openfisca_survey_manager.aggregates import AbstractAggregates
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     randomly_init_variable,
-    random_data_generator,
     set_table_in_survey,
 )
-from openfisca_survey_manager.variables import create_quantile, quantile, old_quantile
-from openfisca_survey_manager.aggregates import AbstractAggregates
-from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
-from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario
-from openfisca_survey_manager.tests import tax_benefit_system, Person, Household
-from openfisca_survey_manager.paths import default_config_files_directory
-from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.scripts.build_collection import (
-    main as build_collection_main,
     check_template_config_files,
     create_data_file_by_format,
-    build_survey_collection,
 )
-from openfisca_survey_manager.utils import inflate_parameters, do_nothing
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.tests import tax_benefit_system
+from openfisca_survey_manager.utils import do_nothing
+from openfisca_survey_manager.variables import quantile
 
 
 def setup_test_config(config_files_directory: Path):

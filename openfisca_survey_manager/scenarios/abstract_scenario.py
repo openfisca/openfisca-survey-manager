@@ -1,7 +1,6 @@
 "Abstract survey scenario definition."
 
 import logging
-
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -46,7 +45,7 @@ class AbstractSurveyScenario(object):
 
     def build_input_data(self, **kwargs):
         """Build input data."""
-        NotImplementedError
+        raise NotImplementedError
 
     def calculate_series(self, variable, period=None, simulation=None):
         """Compute variable values for period for a given simulation.

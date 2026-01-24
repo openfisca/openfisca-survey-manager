@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 
 import pandas as pd
@@ -83,7 +82,7 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
     assert matching_variables is not None
 
     pandas2ri.activate()
-    StatMatch = importr("StatMatch")
+    stat_match = importr("StatMatch")
 
     if isinstance(donor_classes, str):
         assert donor_classes in receiver, "Donor class not present in receiver"
@@ -91,14 +90,14 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
 
     try:
         if donor_classes:
-            out_NND = StatMatch.NND_hotdeck(
+            out_nnd = stat_match.NND_hotdeck(
                 data_rec=receiver,
                 data_don=donor,
                 match_vars=pd.Series(matching_variables),
                 don_class=pd.Series(donor_classes),
             )
         else:
-            out_NND = StatMatch.NND_hotdeck(
+            out_nnd = stat_match.NND_hotdeck(
                 data_rec=receiver,
                 data_don=donor,
                 match_vars=pd.Series(matching_variables),
@@ -117,17 +116,17 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
     # duplication of the matching variables
 
     fused_0 = pandas2ri.ri2py(
-        StatMatch.create_fused(data_rec=receiver, data_don=donor, mtc_ids=out_NND[0], z_vars=pd.Series(z_variables))
+        stat_match.create_fused(data_rec=receiver, data_don=donor, mtc_ids=out_nnd[0], z_vars=pd.Series(z_variables))
     )
 
     # create synthetic data.set, with the "duplication"
     # of the matching variables
 
     fused_1 = pandas2ri.ri2py(
-        StatMatch.create_fused(
+        stat_match.create_fused(
             data_rec=receiver,
             data_don=donor,
-            mtc_ids=out_NND[0],
+            mtc_ids=out_nnd[0],
             z_vars=pd.Series(z_variables),
             dup_x=True,
             match_vars=pd.Series(matching_variables),

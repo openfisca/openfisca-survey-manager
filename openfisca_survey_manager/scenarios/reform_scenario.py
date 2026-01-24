@@ -34,7 +34,7 @@ class ReformScenario(AbstractSurveyScenario):
 
     def build_input_data(self, **kwargs):
         """Build input data."""
-        NotImplementedError
+        raise NotImplementedError
 
     def calculate_series(self, variable, period=None, use_baseline=False):
         """Compute variable values for period and baseline or reform tax benefit and system.
