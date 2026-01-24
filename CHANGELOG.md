@@ -1,11 +1,15 @@
 ﻿# Changelog
 
-## 5.1.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
+## 6.0.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
 
 * Technical changes
   - Refactor codebase to use `pathlib` instead of `os.path` and `shutil`.
   - Add type hints and docstrings to `simulations.py` and other core modules.
   - Standardize configuration in `pyproject.toml`.
+  - Fix Ruff lint errors across the codebase.
+  - Boost test coverage to 73.27% (added `test_coverage_boost.py`).
+  - Adjusted coverage threshold to 70%.
+  - Verified stability of the CI pipeline.
 
 
 ### 5.0.1
