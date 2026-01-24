@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 6.0.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
+# 6.0.0 [#360](https://github.com/openfisca/openfisca-survey-manager/pull/360)
 
 * Technical changes
   - Refactor codebase to use `pathlib` instead of `os.path` and `shutil`.
@@ -21,7 +21,7 @@
     - Add conditional build step if release cache is not found
     - Improve cache restore-keys for better fallback behavior
 
-## 5.0.0 [#353](https://github.com/openfisca/openfisca-survey-manager/pull/353)
+# 5.0.0 [#353](https://github.com/openfisca/openfisca-survey-manager/pull/353)
 
 * Technical changes
   - Update `openfisca-core` dependency from `>=43.0.0, <45.0.0` to `>=44.0.0, <45.0.0`
