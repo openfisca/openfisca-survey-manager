@@ -373,8 +373,8 @@ Contains the following tables : \n"""
     def to_json(self):
         """Convert the survey to a JSON object."""
         self_json = collections.OrderedDict(())
-        self_json["hdf5_file_path"] = self.hdf5_file_path
-        self_json["parquet_file_path"] = self.parquet_file_path
+        self_json["hdf5_file_path"] = str(self.hdf5_file_path) if self.hdf5_file_path else None
+        self_json["parquet_file_path"] = str(self.parquet_file_path) if self.parquet_file_path else None
         self_json["label"] = self.label
         self_json["name"] = self.name
         self_json["tables"] = self.tables

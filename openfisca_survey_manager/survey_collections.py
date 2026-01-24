@@ -1,5 +1,6 @@
 import codecs
 import collections
+import configparser
 import json
 import logging
 from pathlib import Path
@@ -72,7 +73,7 @@ Contains the following surveys :
 
         config.set("collections", self.name, str(self.json_file_path))
         config.save()
-        with codecs.open(self.json_file_path, "w", encoding="utf-8") as _file:
+        with codecs.open(str(self.json_file_path), "w", encoding="utf-8") as _file:
             json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
 
     def fill_store(
@@ -113,8 +114,13 @@ Contains the following surveys :
             assert collection is not None, "A collection is needed"
             try:
                 json_file_path = config.get("collections", collection)
+            except (configparser.NoOptionError, configparser.NoSectionError) as error:
+                msg = f"Looking for config file in {config_files_directory}"
+                log.debug(msg)
+                log.error(error)
+                raise error
             except Exception as error:
-                msg = "Looking for config file in {}".format(config_files_directory)
+                msg = f"Looking for config file in {config_files_directory}"
                 log.debug(msg)
                 log.error(error)
                 raise Exception(msg) from error

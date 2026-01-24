@@ -17,7 +17,7 @@ def get_versions():
     # openfisca_core_api = None
     openfisca_survey_manager = None
     # numpy = None
-    with open("./pyproject.toml", "r") as file:
+    with Path("./pyproject.toml").open("r") as file:
         content = file.read()
     # Extract the version of openfisca_survey_manager
     version_match = re.search(r'^version\s*=\s*"([\d.]*)"', content, re.MULTILINE)
