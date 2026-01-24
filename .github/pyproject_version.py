@@ -30,24 +30,26 @@ def get_versions():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--replace", action="store_true", help="replace in file")
+    parser.add_argument(
+        "-r", "--replace", type=str, default="False", help="replace in file (can be 'True' or 'False')"
+    )
     parser.add_argument(
         "-f", "--filename", type=str, default=".conda/meta.yaml", help="Path to meta.yaml, with filename"
     )
     parser.add_argument(
-        "-o", "--only_package_version", action="store_true", help="Only display current package version"
+        "-o", "--only_package_version", type=str, default="False", help="Only display current package version"
     )
     args = parser.parse_args()
     info = get_versions()
 
-    if args.only_package_version:
+    if args.only_package_version.lower() == "true":
         print(f"{info['openfisca_survey_manager']}")  # noqa: T201
         exit()
 
     logging.info("Versions :")
     print(info)  # noqa: T201
 
-    if args.replace:
+    if args.replace.lower() == "true":
         file_path = Path(args.filename)
         if file_path.exists():
             with file_path.open("r") as f:
