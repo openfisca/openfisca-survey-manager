@@ -15,15 +15,13 @@ log = logging.getLogger(__name__)
 class SurveyCollection(object):
     """A collection of Surveys"""
 
-    config = None
-    json_file_path = None
-    label = None
-    name = None
-    surveys = []
-
     def __init__(
         self, config_files_directory=default_config_files_directory, label=None, name=None, json_file_path=None
     ):
+        self.name = name
+        self.label = label
+        self.json_file_path = json_file_path
+        self.surveys = []
         log.debug("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
         config = Config(config_files_directory=config_files_directory)
         if label is not None:
