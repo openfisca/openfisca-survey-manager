@@ -210,19 +210,15 @@ def set_table_in_survey(
 
     try:
         survey_collection = SurveyCollection.load(collection=collection, config_files_directory=config_files_directory)
-    except configparser.NoOptionError as e:
-        log.warning(f"set_table_in_survey configparser.NoOptionError : {e}")
-        survey_collection = SurveyCollection(name=collection, config_files_directory=config_files_directory)
-    except configparser.NoSectionError as e:  # For tests
-        log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
-        data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
+    except (configparser.NoOptionError, configparser.NoSectionError, FileNotFoundError) as e:
+        log.warning(f"set_table_in_survey falling back for collection {collection}: {e}")
+        # Always use the provided config_files_directory if available, otherwise fallback to project-relative test data
+        fallback_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
+        config_dir = config_files_directory if config_files_directory else fallback_dir
         survey_collection = SurveyCollection(
             name=collection,
-            config_files_directory=data_dir,
+            config_files_directory=config_dir,
         )
-    except FileNotFoundError as e:
-        log.warning(f"set_table_in_survey FileNotFoundError : {e}")
-        survey_collection = SurveyCollection(name=collection, config_files_directory=config_files_directory)
 
     try:
         survey = survey_collection.get_survey(survey_name)

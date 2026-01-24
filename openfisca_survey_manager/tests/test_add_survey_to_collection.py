@@ -3,9 +3,9 @@ import pytest
 from pathlib import Path
 
 from openfisca_survey_manager.paths import openfisca_survey_manager_location
+from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 from openfisca_survey_manager.scripts.build_collection import (
     add_survey_to_collection,
-    set_table_in_survey,
 )
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -37,12 +37,11 @@ def test_set_table_in_survey_parquet(parquet_data):
     set_table_in_survey(
         input_dataframe,
         entity="foyer",
+        period=2020,
         survey_name=survey_name,
         collection=collection,
         config_files_directory=str(data_dir),
     )
-    survey_collection = SurveyCollection.load(
-        collection=collection, config_files_directory=str(data_dir)
-    )
+    survey_collection = SurveyCollection.load(collection=collection, config_files_directory=str(data_dir))
     survey = survey_collection.get_survey(survey_name)
     assert survey is not None
