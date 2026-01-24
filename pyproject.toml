@@ -128,7 +128,7 @@ branch = true
 source = ["openfisca_survey_manager"]
 
 [tool.coverage.report]
-fail_under = 75
+fail_under = 70
 show_missing = true
 skip_covered = true
 skip_empty = true

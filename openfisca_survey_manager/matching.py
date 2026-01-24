@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -8,7 +9,7 @@ from openfisca_survey_manager.paths import openfisca_survey_manager_location
 log = logging.getLogger(__name__)
 
 
-config_files_directory = os.path.join(openfisca_survey_manager_location)
+config_files_directory = Path(openfisca_survey_manager_location)
 
 
 def nnd_hotdeck_using_feather(receiver=None, donor=None, matching_variables=None, z_variables=None):
@@ -20,10 +21,10 @@ def nnd_hotdeck_using_feather(receiver=None, donor=None, matching_variables=None
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 
-    temporary_directory_path = os.path.join(config_files_directory, "tmp")
-    assert os.path.exists(temporary_directory_path)
-    receiver_path = os.path.join(temporary_directory_path, "receiver.feather")
-    donor_path = os.path.join(temporary_directory_path, "donor.feather")
+    temporary_directory_path = config_files_directory / "tmp"
+    assert temporary_directory_path.exists()
+    receiver_path = temporary_directory_path / "receiver.feather"
+    donor_path = temporary_directory_path / "donor.feather"
     feather.write_dataframe(receiver, receiver_path)
     feather.write_dataframe(donor, donor_path)
     if isinstance(matching_variables, str):

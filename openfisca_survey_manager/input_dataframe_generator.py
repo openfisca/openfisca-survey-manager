@@ -1,7 +1,7 @@
 import configparser
 import logging
-import os
 import random
+from pathlib import Path
 
 
 import numpy as np
@@ -81,16 +81,24 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     return input_dataframe_by_entity
 
 
-def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_generators_by_period, collection=None):
+def random_data_generator(
+    tax_benefit_system,
+    nb_persons,
+    nb_groups,
+    variable_generators_by_period,
+    collection=None,
+    config_files_directory=None,
+):
     """
-    Generate randomn values for some variables of a tax-benefit system and store them in a specified collection.
+    Generate random values for some variables of a tax-benefit system and store them in a specified collection.
 
     Args:
-        tax_benefit_system (TaxBenefitSystem): tax_benefit_system: the tax_benefit_system to use
+        tax_benefit_system (TaxBenefitSystem): the tax-benefit system to use
         nb_persons (int): the number of persons in the data
         nb_groups (int): the number of collective entities in the data
-        variable_generators_by_period (dict): parameters of the varaibles for every period
+        variable_generators_by_period (dict): parameters of the variables for every period
         collection (str, optional): collection where to store the input survey. Defaults to None.
+        config_files_directory (str or Path, optional): directory where configuration files are stored.
 
     Returns:
         dict: The entities tables by period
@@ -114,9 +122,16 @@ def random_data_generator(tax_benefit_system, nb_persons, nb_groups, variable_ge
 
         for entity, input_dataframe in input_dataframe_by_entity.items():
             if collection is not None:
-                set_table_in_survey(input_dataframe, entity, period, collection, survey_name="input")
+                set_table_in_survey(
+                    input_dataframe,
+                    entity,
+                    period,
+                    collection,
+                    survey_name="input",
+                    config_files_directory=config_files_directory or default_config_files_directory,
+                )
 
-            table_by_entity[entity] = entity + "_" + str(period)
+            table_by_entity[entity] = f"{entity}_{period}"
 
     return table_by_entity_by_period
 
@@ -189,6 +204,10 @@ def set_table_in_survey(
         table_name = entity + "_" + str(period)
     if table_label is None:
         table_label = f"Input data for entity {entity} at period {period}"
+
+    # Ensure config_files_directory is a Path
+    config_files_directory = Path(config_files_directory)
+
     try:
         survey_collection = SurveyCollection.load(collection=collection, config_files_directory=config_files_directory)
     except configparser.NoOptionError as e:
@@ -196,12 +215,7 @@ def set_table_in_survey(
         survey_collection = SurveyCollection(name=collection, config_files_directory=config_files_directory)
     except configparser.NoSectionError as e:  # For tests
         log.warning(f"set_table_in_survey configparser.NoSectionError : {e}")
-        data_dir = os.path.join(
-            openfisca_survey_manager_location,
-            "openfisca_survey_manager",
-            "tests",
-            "data_files",
-        )
+        data_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
         survey_collection = SurveyCollection(
             name=collection,
             config_files_directory=data_dir,
@@ -222,35 +236,35 @@ def set_table_in_survey(
 
     if survey.hdf5_file_path is None and survey.parquet_file_path is None:
         config = survey.survey_collection.config
-        directory_path = config.get("data", "output_directory")
-        if not os.path.isdir(directory_path):
+        directory_path = Path(config.get("data", "output_directory"))
+        if not directory_path.is_dir():
             log.warning(f"{directory_path} who should be the data directory does not exist: we create the directory")
-            os.makedirs(directory_path)
+            directory_path.mkdir(parents=True, exist_ok=True)
         if source_format is None:
-            survey.hdf5_file_path = os.path.join(directory_path, survey.name + ".h5")
+            survey.hdf5_file_path = directory_path / (survey.name + ".h5")
         elif source_format == "parquet":
-            survey.parquet_file_path = os.path.join(directory_path, survey.name)
-            if not os.path.isdir(survey.parquet_file_path):
+            survey.parquet_file_path = directory_path / survey.name
+            if not survey.parquet_file_path.is_dir():
                 log.warning(
                     f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory"
                 )
-                os.makedirs(survey.parquet_file_path)
+                survey.parquet_file_path.mkdir(parents=True, exist_ok=True)
 
     assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
     if source_format == "parquet" and parquet_file is None:
-        parquet_file = os.path.join(survey.parquet_file_path, table_name + ".parquet")
+        parquet_file = Path(survey.parquet_file_path) / (table_name + ".parquet")
     survey.insert_table(label=table_label, name=table_name, dataframe=input_dataframe, parquet_file=parquet_file)
     # If a survey with save name exist it will be overwritten
     survey_collection.surveys = [
         kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
     ]
     survey_collection.surveys.append(survey)
-    collections_directory = survey_collection.config.get("collections", "collections_directory")
-    assert os.path.isdir(
-        collections_directory
+    collections_directory = Path(survey_collection.config.get("collections", "collections_directory"))
+    assert (
+        collections_directory.is_dir()
     ), f"""{collections_directory} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file."""
-    collection_json_path = os.path.join(collections_directory, f"{collection}.json")
+    collection_json_path = collections_directory / f"{collection}.json"
     survey_collection.dump(json_file_path=collection_json_path)
 
 
