@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+# 6.1.1
+
+* Technical changes
+  - Enable Ruff `E501` (Line too long) rule.
+  - Fix 51 line length violations across the codebase.
+
 # 6.1.0
 
 * Technical changes
