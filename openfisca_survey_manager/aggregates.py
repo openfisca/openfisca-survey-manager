@@ -184,7 +184,8 @@ class AbstractAggregates(object):
 
         Args:
             variable (str): Name of the variable aggregated according to its entity
-            use_baseline (bool, optional): Use the baseline or the reform or the only avalilable simulation when no reform (default). Defaults to False.
+            use_baseline (bool, optional): Use the baseline or the reform or the only avalilable
+                simulation when no reform (default). Defaults to False.
             filter_by (str, optional): The variable to filter by. Defaults to None.
 
         Returns:

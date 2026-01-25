@@ -84,7 +84,8 @@ class Table(object):
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_file_path)
 
         log.info(
-            f"Inserting table {self.name} from file {data_file_path} in store file {store_file_path} at point {self.name}"
+            f"Inserting table {self.name} from file {data_file_path} in store file {store_file_path} "
+            f"at point {self.name}"
         )
 
     def _is_stored(self):
@@ -112,7 +113,8 @@ class Table(object):
             log.info(f"The folloging variables are stored: {stored_variables}")
             if set(stored_variables) != set(variables):
                 log.info(
-                    f"variables wanted by the user that were not available: {list(set(variables) - set(stored_variables))}"
+                    "variables wanted by the user that were not available: "
+                    f"{list(set(variables) - set(stored_variables))}"
                 )
             data_frame = data_frame[stored_variables].copy()
 
@@ -212,7 +214,8 @@ class Table(object):
                         delimiter = ";"
 
                     log.debug(
-                        f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, encoding = {encoding}, confidence = {confidence}"
+                        f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, "
+                        f"encoding = {encoding}, confidence = {confidence}"
                     )
                     kwargs["engine"] = "python"
                     if dialect:

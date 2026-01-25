@@ -154,7 +154,10 @@ def randomly_init_variable(
         >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
-        >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'salary', max_value = 50000, condition = "household_role == 'first_parent'")  # Randomly set a salaire_net for all persons between 0 and 50000?
+        >>> randomly_init_variable(
+        ...     tbs, input_dataframe_by_entity, 'salary', max_value = 50000,
+        ...     condition = "household_role == 'first_parent'"
+        ... )  # Randomly set a salaire_net for all persons between 0 and 50000?
         >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
         ['household_id', 'household_role', 'household_role_index', 'person_id', 'salary']
         >>> bool(input_dataframe_by_entity['person'].salary.max() <= 50000)
@@ -241,7 +244,8 @@ def set_table_in_survey(
             survey.parquet_file_path = directory_path / survey.name
             if not survey.parquet_file_path.is_dir():
                 log.warning(
-                    f"{survey.parquet_file_path} who should be the parquet data directory does not exist: we create the directory"
+                    f"{survey.parquet_file_path} who should be the parquet data directory does not exist: "
+                    "we create the directory"
                 )
                 survey.parquet_file_path.mkdir(parents=True, exist_ok=True)
 

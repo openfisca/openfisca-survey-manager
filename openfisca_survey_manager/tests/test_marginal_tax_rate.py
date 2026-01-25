@@ -19,7 +19,9 @@ def test_compute_marginal_tax_rate():
         (1 - 0.15),
         relative_error_margin=1e-6,
     )
-    # survey_scenario.compute_marginal_tax_rate(target_variable = 'disposable_income', period = 2017, simulation = "baseline")
+    # survey_scenario.compute_marginal_tax_rate(
+    #     target_variable='disposable_income', period=2017, simulation="baseline"
+    # )
 
 
 if __name__ == "__main__":

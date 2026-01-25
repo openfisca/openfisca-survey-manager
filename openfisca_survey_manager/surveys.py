@@ -221,7 +221,8 @@ Contains the following tables : \n"""
             raise Exception(f"No data file found for survey {self.name}")
         if self.hdf5_file_path is not None:
             assert Path(self.hdf5_file_path).exists(), (
-                f"{self.hdf5_file_path} is not a valid path. This could happen because your data were not builded yet. Please consider using a rebuild option in your code."
+                f"{self.hdf5_file_path} is not a valid path. This could happen because "
+                "your data were not builded yet. Please consider using a rebuild option in your code."
             )
             store = pandas.HDFStore(self.hdf5_file_path, "r")
             if ignorecase:
@@ -302,7 +303,9 @@ Contains the following tables : \n"""
                         #     try:
                         #         batch = next(iter_parquet)
                         #     except StopIteration:
-                        #         raise NoMoreDataError(f"Batch {batch_index} not found in {table_name}. Max index is {index}")
+                        #         raise NoMoreDataError(
+                        #             f"Batch {batch_index} not found in {table_name}. Max index is {index}"
+                        #         )
                         #         break
                         #     if batch_index == index:
                         #         df = batch.to_pandas()
