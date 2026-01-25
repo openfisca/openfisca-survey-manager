@@ -16,7 +16,8 @@ def test_calibration_variable_entity_is_weight_entity():
     period = "2017-01"
     survey_scenario.period = period
     person_weight_before = survey_scenario.calculate_series("person_weight", period)
-    # 'initial_rent_aggregate' is assigned to but never used initial_rent_aggregate = survey_scenario.compute_aggregate("rent", period = period)
+    # 'initial_rent_aggregate' is assigned to but never used
+    # initial_rent_aggregate = survey_scenario.compute_aggregate("rent", period = period)
     target_rent_aggregate = 200000
 
     survey_scenario.calibrate(

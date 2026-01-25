@@ -89,7 +89,6 @@ select = ["E", "F", "W", "I001", "B", "A", "C4", "T20", "SIM", "PTH", "N"]
 ignore = [
     "N801", # Class name should use CapWords convention (ignored for Variable children)
     "N805", # First argument of a method should be named `self` (ignored for Variable children)
-    "E501", # Line too long (will be fixed manually or ignored if unavoidable)
 ]
 
 [tool.isort]

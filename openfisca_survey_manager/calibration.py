@@ -101,9 +101,8 @@ class Calibration(object):
                 "There is no inclusion of one entity in the other"
             )
             assert len(id_variable) < len(id_variable_link), (
-                "{} seems to be included in {}, not the opposite. Try reverse 'id_variable' and 'id_variable_link'".format(
-                    entity_id_variable_link, entity_id_variable
-                )
+                "{} seems to be included in {}, not the opposite. "
+                "Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
@@ -267,7 +266,8 @@ class Calibration(object):
             true_var = simulation.tax_benefit_system.variables[var]
             if [var] != list_var and true_var.value_type in [bool, Enum] or true_var.unit in ["years", "months"]:
                 assert len(re.findall(expr_categ, variable)) > 0, (
-                    "A categorical variable is used in an expression without direct condition on its value. Please use inequality operator to transform it into float"
+                    "A categorical variable is used in an expression without direct condition "
+                    "on its value. Please use inequality operator to transform it into float"
                 )
         if categorical_variable:
             value = simulation.calculate(variable, period=period)
@@ -345,7 +345,8 @@ class Calibration(object):
             if filter_by != 1:
                 if weight_variable != self.weight_name:
                     NotImplementedError(
-                        "No filtering possible so far when target variable is not on the same entity as varying weights"
+                        "No filtering possible so far when target variable is not on the same "
+                        "entity as varying weights"
                     )
 
                 weight = weight[filter_by]

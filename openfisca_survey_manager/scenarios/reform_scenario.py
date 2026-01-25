@@ -90,7 +90,8 @@ class ReformScenario(AbstractSurveyScenario):
             use_baseline: Use baseline simulation. Defaults to False.
             missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
             weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+                Defaults to None.
             filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
         Returns:
@@ -171,7 +172,8 @@ class ReformScenario(AbstractSurveyScenario):
             target_variable (str): the variable which marginal tax rate is computed
             period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
             use_baseline: Use baseline simulation. Defaults to False.
-            value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero. Defaults to 0.
+            value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero.
+                Defaults to 0.
 
         Returns:
             numpy.array: Vector of marginal rates

@@ -125,7 +125,8 @@ def compute_aggregate(
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
         missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -178,9 +179,8 @@ def compute_aggregate(
     weight_variable = None
     if weighted:
         assert or_(alternative_weights, weight_variable_by_entity), (
-            "The weighted option is set at True but there is no weight variable for entity {} nor alternative weights. Either define a weight variable or switch to unweighted".format(
-                entity_key
-            )
+            "The weighted option is set at True but there is no weight variable for entity {} "
+            "nor alternative weights. Either define a weight variable or switch to unweighted".format(entity_key)
         )
         if alternative_weights:
             if isinstance(alternative_weights, str):
@@ -256,7 +256,8 @@ def compute_quantiles(
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
         missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -328,7 +329,8 @@ def compute_pivot_table(
         missing_variable_default_value (optional): _description_. Defaults to np.nan.
         concat_axis (int, optional): _description_. Defaults to None.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -699,12 +701,17 @@ def compute_winners_losers(
         variable (str): The variable to use.
         filter_by (str, optional): The variable or expression to be used as a filter. Defaults to None.
         period (Optional[Union[int, str, Period]], optional): The period of the simulation. Defaults to None.
-        absolute_minimal_detected_variation (float, optional): Absolute minimal variation to be detected, in ratio. Ie 0.5 means 5% of variation wont be counted..
-        relative_minimal_detected_variation (float, optional): Relative minimal variation to be detected, in ratio. Defaults to .01.
-        observations_threshold (int, optional): Number of observations needed to avoid a statistical secret violation. Defaults to None.
+        absolute_minimal_detected_variation (float, optional): Absolute minimal variation to be detected, in ratio.
+            Ie 0.5 means 5% of variation wont be counted..
+        relative_minimal_detected_variation (float, optional): Relative minimal variation to be detected, in ratio.
+            Defaults to .01.
+        observations_threshold (int, optional): Number of observations needed to avoid a statistical secret violation.
+            Defaults to None.
         weighted (bool, optional): Whether to use weights. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
-        filtering_variable_by_entity (_type_, optional): The variable to be used as a filter for each entity. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
+        filtering_variable_by_entity (_type_, optional): The variable to be used as a filter for each entity.
+            Defaults to None.
 
     Raises:
         SecretViolationError: Raised when statistical secret is violated.
@@ -826,7 +833,8 @@ def init_entity_data(
 
         if variable_instance.entity.key != entity.key:
             log.debug(
-                f"Ignoring variable {column_name} which is not part of entity {entity.key} but {variable_instance.entity.key}"
+                f"Ignoring variable {column_name} which is not part of entity {entity.key} "
+                f"but {variable_instance.entity.key}"
             )
             continue
         init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
@@ -848,12 +856,17 @@ def inflate(
                 variable_name
             ] / simulation.compute_aggregate(variable=variable_name, period=period)
             log.debug(
-                f"Using {inflator} as inflator for {variable_name} to reach the target {target_by_variable[variable_name]} "
+                f"Using {inflator} as inflator for {variable_name} to reach the target "
+                f"{target_by_variable[variable_name]} "
             )
         else:
             assert variable_name in inflator_by_variable, "variable_name is not in inflator_by_variable"
+            target = inflator_by_variable[variable_name] * simulation.compute_aggregate(
+                variable=variable_name, period=period
+            )
             log.debug(
-                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(variable=variable_name, period=period)}"
+                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. "
+                f"The target is thus {target}"
             )
             inflator = inflator_by_variable[variable_name]
 
@@ -992,7 +1005,9 @@ def _input_data_table_by_entity_by_period_batch(
     if len(entities) > 2:
         # Batch mode could work only with batch_entity and filtered_entity, and no others
         warnings.warn(
-            f"survey-manager.simulation._input_data_table_by_entity_by_period_batch : Your TaxBenefitSystem has {len(entities)} entities but we will only load  {batch_entity} and {filtered_entity}.",
+            "survey-manager.simulation._input_data_table_by_entity_by_period_batch : "
+            f"Your TaxBenefitSystem has {len(entities)} entities but we will only load  "
+            f"{batch_entity} and {filtered_entity}.",
             stacklevel=2,
         )
 
@@ -1238,7 +1253,8 @@ def init_variable_in_entity(
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
         log.warn(
-            f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. The  montly values you provided will be summed."
+            f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. "
+            "The  montly values you provided will be summed."
         )
 
         if simulation.get_array(variable_name, period.this_year) is not None:
@@ -1300,7 +1316,8 @@ def print_memory_usage(simulation: Simulation):
         usage_stats = simulation.tracer.usage_stats
     except AttributeError:
         log.warning(
-            "The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits)."
+            "The simulation trace mode is not activated. You need to activate it to get stats "
+            "about variable usage (hits)."
         )
         usage_stats = None
     infos_lines = []

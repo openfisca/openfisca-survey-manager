@@ -29,7 +29,8 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
     )
     if variables_mismatch:
         log.info(
-            f"The following variables used as input variables are not present in the input data frame: \n {sorted(variables_mismatch)}"
+            "The following variables used as input variables are not present in the input data frame: "
+            f"\n {sorted(variables_mismatch)}"
         )
     if variables_mismatch:
         log.debug("The following variables are used as input variables: \n {}".format(sorted(used_as_input_variables)))

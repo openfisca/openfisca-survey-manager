@@ -141,16 +141,24 @@ def calmar(
         margins (dict): Margins is a dictionnary containing for each variable as key the following values
           - a scalar for numeric variables
           - a dictionnary with categories as key and populations as values
-          - eventually a key named `total_population` with value the total population. If absent it is initialized to the actual total population
-          - eventually a key named `total_population_smaller_entity` with value the total number of the second entity. If absent it is initialized to the actual total population
+          - eventually a key named `total_population` with value the total population.
+            If absent it is initialized to the actual total population
+          - eventually a key named `total_population_smaller_entity` with value the total number
+            of the second entity. If absent it is initialized to the actual total population
 
         initial_weight (str): Initial weight variable.
-        method (str, optional): Calibration method. Should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'. Defaults to 'linear'.
-        lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method. Should be < 1. Defaults to None.
-        up (float, optional): Upper bound on weights ratio. Mandatory when using logit method. Should be > 1. Defaults to None.
-        alpha (float, optional): Bound on weights ratio. Mandatory when using hyperbolic sinus method. Should be > 0. Defaults to None.
-        use_proportions (bool, optional): When True use proportions if total population from margins doesn't match total population. Defaults to False.
-        xtol (float, optional): Relative precision on lagrangian multipliers.  Defaults to 1.49012e-08 (fsolve xtol).
+        method (str, optional): Calibration method. Should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'.
+            Defaults to 'linear'.
+        lo (float, optional): Lower bound on weights ratio. Mandatory when using logit method.
+            Should be < 1. Defaults to None.
+        up (float, optional): Upper bound on weights ratio. Mandatory when using logit method.
+            Should be > 1. Defaults to None.
+        alpha (float, optional): Bound on weights ratio. Mandatory when using hyperbolic sinus method.
+            Should be > 0. Defaults to None.
+        use_proportions (bool, optional): When True use proportions if total population from margins doesn't
+            match total population. Defaults to False.
+        xtol (float, optional): Relative precision on lagrangian multipliers.
+            Defaults to 1.49012e-08 (fsolve xtol).
         maxfev (int, optional): Maximum number of function evaluation. Defaults to 256.
 
     Raises:
@@ -291,9 +299,8 @@ def calmar(
                     if pop != population:
                         if use_proportions:
                             log.info(
-                                "calmar: categorical variable {} is inconsistent with population; using proportions".format(
-                                    var
-                                )
+                                "calmar: categorical variable {} is inconsistent with population; "
+                                "using proportions".format(var)
                             )
                             for cat, nb in val.items():
                                 cat_varname = var + "_" + str(cat)
