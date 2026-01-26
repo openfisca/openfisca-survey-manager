@@ -1,4 +1,14 @@
-﻿# Changelog
+# Changelog
+
+# 6.1.2
+
+* Technical changes
+  - Enable ruff rules UP (pyupgrade), RUF, and PLE
+  - Modernize type annotations: replace List/Dict with list/dict, fix Optional types, remove explicit object inheritance
+  - Convert string formatting from .format() and % to f-strings
+  - Fix line length violations (E501): split long lines to comply with 119 character limit
+  - Apply ruff rules RUF, PLE and other modernizations
+  - Modernize test suite with `tmp_path` fixtures
 
 # 6.1.1
 
