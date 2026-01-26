@@ -240,7 +240,7 @@ If a single file contains all the table, you can have many files for different t
 
 ## Development
 
-To contribute to `OpenFisca-Survey-Manager`, you can use `uv` for a modern development workflow.
+To contribute to `OpenFisca-Survey-Manager`, you can use [uv](https://docs.astral.sh/uv/getting-started/installation/) for a modern development workflow.
 
 1. **Clone the repository**
    ```bash
