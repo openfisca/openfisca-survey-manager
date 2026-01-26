@@ -1,4 +1,4 @@
-from openfisca_core.model_api import ETERNITY, Reform, Variable  # noqa analysis:ignore
+from openfisca_core.model_api import ETERNITY, Reform, Variable
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Household, Person
 

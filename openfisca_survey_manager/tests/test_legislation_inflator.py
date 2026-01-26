@@ -14,12 +14,10 @@ def test_asof_simple_annual_parameter():
     income_tax_rate_2015 = parameters.taxes.income_tax_rate(2015)
     assert income_tax_rate_2015 != income_tax_rate_2014
     parameters_asof(parameters, instant="2014")
-    assert parameters.taxes.income_tax_rate(2014) == income_tax_rate_2014, "{} != {}".format(
-        parameters.taxes.income_tax_rate(2014), income_tax_rate_2014
-    )
-    assert parameters.taxes.income_tax_rate(2015) == income_tax_rate_2014, "{} != {}".format(
-        parameters.taxes.income_tax_rate(2015), income_tax_rate_2014
-    )
+    val_2014 = parameters.taxes.income_tax_rate(2014)
+    assert val_2014 == income_tax_rate_2014, f"{val_2014} != {income_tax_rate_2014}"
+    val_2015 = parameters.taxes.income_tax_rate(2015)
+    assert val_2015 == income_tax_rate_2014, f"{val_2015} != {income_tax_rate_2014}"
 
 
 def test_asof_scale_parameters():
@@ -80,7 +78,7 @@ def test_inflate_scale_with_changing_number_of_brackets():
         parameters.taxes.social_security_contribution(2017).thresholds,
         parameters.taxes.social_security_contribution(2016).thresholds,
     ):
-        assert threshold_2017 == threshold_2016 * 1.3, "{} != {}".format(threshold_2017, threshold_2016 * 1.3)
+        assert threshold_2017 == threshold_2016 * 1.3, f"{threshold_2017} != {threshold_2016 * 1.3}"
 
 
 def test_inflate_start_instant_option():
@@ -96,8 +94,8 @@ def test_inflate_start_instant_option():
         parameters.taxes.social_security_contribution("2023-07").thresholds,
         parameters.taxes.social_security_contribution(2022).thresholds,
     ):
-        assert threshold_2023_07 == threshold_2022 * 1.3, "{} != {}".format(threshold_2023_07, threshold_2022 * 1.3)
-        assert threshold_2023_06 == threshold_2022, "{} != {}".format(threshold_2023_06, threshold_2022)
+        assert threshold_2023_07 == threshold_2022 * 1.3, f"{threshold_2023_07} != {threshold_2022 * 1.3}"
+        assert threshold_2023_06 == threshold_2022, f"{threshold_2023_06} != {threshold_2022}"
 
 
 if __name__ == "__main__":
