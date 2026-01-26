@@ -1,5 +1,11 @@
 # Changelog
 
+# 6.1.3
+
+* Technical changes
+  - Modernize type annotations: replace List/Dict with list/dict, fix Optional types, remove explicit object inheritance
+
+
 # 6.1.2
 
 * Technical changes
