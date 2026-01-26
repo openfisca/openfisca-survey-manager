@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 from openfisca_core import periods
@@ -72,15 +72,15 @@ def inflate_parameters(
                 # Empty intersection: not unit present in metadata
                 if not bool(set(parameters.metadata.keys()) & set(acceptable_units)):
                     return
-            assert hasattr(parameters, "metadata"), "{} doesn't have metadata".format(parameters.name)
+            assert hasattr(parameters, "metadata"), f"{parameters.name} doesn't have metadata"
             unit_types = set(parameters.metadata.keys()).intersection(set(acceptable_units))
             assert unit_types, (
-                "No admissible unit in metadata for parameter {}. You may consider using "
-                "the option 'ignore_missing_units' from the inflate_paramaters() function.".format(parameters.name)
+                f"No admissible unit in metadata for parameter {parameters.name}. You may consider using "
+                "the option 'ignore_missing_units' from the inflate_paramaters() function."
             )
             if len(unit_types) > 1:
                 assert unit_types == {"threshold_unit", "rate_unit"}, (
-                    "Too much admissible units in metadata for parameter {}".format(parameters.name)
+                    f"Too much admissible units in metadata for parameter {parameters.name}"
                 )
             unit_by_type = {unit_type: parameters.metadata[unit_type] for unit_type in unit_types}
             for unit_type in unit_by_type:
@@ -130,8 +130,8 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit",
                 "Year of start_instant should be base_year + 1"
             )
             value = (
-                round(sub_parameter("{}-12-31".format(base_year)) * (1 + inflator), round_ndigits)
-                if sub_parameter("{}-12-31".format(base_year)) is not None
+                round(sub_parameter(f"{base_year}-12-31") * (1 + inflator), round_ndigits)
+                if sub_parameter(f"{base_year}-12-31") is not None
                 else None
             )
             sub_parameter.update(
@@ -160,12 +160,12 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit",
             # Or use the value at that instant even when it is defined earlier tahn the base year
             else:
                 value = (
-                    round(sub_parameter("{}-12-31".format(base_year)) * (1 + inflator), round_ndigits)
-                    if sub_parameter("{}-12-31".format(base_year)) is not None
+                    round(sub_parameter(f"{base_year}-12-31") * (1 + inflator), round_ndigits)
+                    if sub_parameter(f"{base_year}-12-31") is not None
                     else None
                 )
                 sub_parameter.update(
-                    start="{}-01-01".format(base_year + 1),
+                    start=f"{base_year + 1}-01-01",
                     value=value,
                 )
 
@@ -245,7 +245,7 @@ def stata_files_to_data_frames(data, period=None):
     input_data_frame_by_entity_by_period = {}
     input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = {}
     for entity, file_path in stata_file_by_entity.items():
-        assert Path(file_path).exists(), "Invalid file path: {}".format(file_path)
+        assert Path(file_path).exists(), f"Invalid file path: {file_path}"
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
         variables_from_stata_files += list(entity_data_frame.columns)
     data["input_data_frame_by_entity_by_period"] = input_data_frame_by_entity_by_period
@@ -255,7 +255,7 @@ def stata_files_to_data_frames(data, period=None):
 
 def load_table(
     config_files_directory,
-    variables: Optional[List] = None,
+    variables: Optional[list] = None,
     collection: Optional[str] = None,
     survey: Optional[str] = None,
     input_data_survey_prefix: Optional[str] = None,
@@ -284,7 +284,7 @@ def load_table(
     survey_collection = SurveyCollection.load(collection=collection, config_files_directory=config_files_directory)
     survey = survey if survey is not None else f"{input_data_survey_prefix}_{data_year}"
     survey_ = survey_collection.get_survey(survey)
-    log.debug("Loading table {} in survey {} from collection {}".format(table, survey, collection))
+    log.debug(f"Loading table {table} in survey {survey} from collection {collection}")
     if batch_size:
         return survey_.get_values(
             table=table, variables=variables, batch_size=batch_size, batch_index=batch_index, filter_by=filter_by

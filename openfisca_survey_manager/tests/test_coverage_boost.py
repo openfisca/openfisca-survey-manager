@@ -99,7 +99,7 @@ def test_input_generator_simple_coverage(tmp_path):
 def test_abstract_aggregates_robust(scenario, tmp_path, monkeypatch):
     class Agg(AbstractAggregates):
         currency = "EUR"
-        aggregate_variables = ["salary"]
+        aggregate_variables = ("salary",)
 
         def load_actual_data(self, period=None):
             return pd.DataFrame(

@@ -124,10 +124,10 @@ def build_survey_collection(
             survey_collection = SurveyCollection(name=collection_name, config_files_directory=config_files_directory)
 
     for survey_suffix, data_directory_path in data_directory_path_by_survey_suffix.items():
-        assert Path(data_directory_path).is_dir(), "{} is not a valid directory path".format(data_directory_path)
+        assert Path(data_directory_path).is_dir(), f"{data_directory_path} is not a valid directory path"
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
-        survey_name = "{}_{}".format(collection_name, survey_suffix)
+        survey_name = f"{collection_name}_{survey_suffix}"
         # Save the originals files list in the survey collection
         add_survey_to_collection(
             survey_name=survey_name,
@@ -139,20 +139,18 @@ def build_survey_collection(
         )
 
         valid_source_format = [
-            _format for _format in list(data_file_by_format.keys()) if data_file_by_format.get((_format))
+            _format for _format in list(data_file_by_format.keys()) if data_file_by_format.get(_format)
         ]
-        log.info("Valid source formats are: {}".format(valid_source_format))
+        log.info(f"Valid source formats are: {valid_source_format}")
         source_format = valid_source_format[0]
-        log.info("Using the following format: {}".format(source_format))
+        log.info(f"Using the following format: {source_format}")
         collections_directory = survey_collection.config.get("collections", "collections_directory")
         if Path(collections_directory).is_dir() is False:
             log.info(
-                "{} who should be the collections' directory does not exist. Creating directory.".format(
-                    collections_directory
-                )
+                f"{collections_directory} who should be the collections' directory does not exist. Creating directory."
             )
             Path(collections_directory).mkdir()
-        collection_json_path = Path(collections_directory) / "{}.json".format(collection_name)
+        collection_json_path = Path(collections_directory) / f"{collection_name}.json"
         survey_collection.dump(json_file_path=collection_json_path)
         surveys = []
         for survey in survey_collection.surveys:
@@ -185,7 +183,7 @@ def check_template_config_files(config_files_directory: str):
 
         if config_files_do_not_exist:
             if templates_config_files_do_not_exist:
-                log.info("Creating configuration template files in {}".format(config_files_directory))
+                log.info(f"Creating configuration template files in {config_files_directory}")
                 template_files = ["raw_data_template.ini", "config_template.ini"]
                 templates_config_files_directory = (
                     Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "config_files_templates"
@@ -246,12 +244,12 @@ def main():
     config_parser = configparser.ConfigParser()
     config_parser.read(Path(config_files_directory) / "raw_data.ini")
     assert config_parser.has_section(args.collection), (
-        "{} is an unkown collection. Please add a section to raw_data.ini configuration file".format(args.collection)
+        f"{args.collection} is an unkown collection. Please add a section to raw_data.ini configuration file"
     )
     data_directory_path_by_survey_suffix = dict(config_parser.items(args.collection))
     if args.survey is not None:
-        assert args.survey in data_directory_path_by_survey_suffix, "Unknown survey data directory for {}".format(
-            args.collection
+        assert args.survey in data_directory_path_by_survey_suffix, (
+            f"Unknown survey data directory for {args.collection}"
         )
         data_directory_path_by_survey_suffix = {
             args.survey: data_directory_path_by_survey_suffix[args.survey],
@@ -275,7 +273,7 @@ def main():
         pdb.post_mortem(sys.exc_info()[2])
         raise e
 
-    log.info("The program has been executed in {}".format(datetime.datetime.now() - start_time))
+    log.info(f"The program has been executed in {datetime.datetime.now() - start_time}")
 
     return 0
 

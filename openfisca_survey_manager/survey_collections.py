@@ -12,7 +12,7 @@ from openfisca_survey_manager.surveys import Survey
 log = logging.getLogger(__name__)
 
 
-class SurveyCollection(object):
+class SurveyCollection:
     """A collection of Surveys"""
 
     def __init__(
@@ -22,7 +22,7 @@ class SurveyCollection(object):
         self.label = label
         self.json_file_path = json_file_path
         self.surveys = []
-        log.debug("Initializing SurveyCollection from config file found in {} ..".format(config_files_directory))
+        log.debug(f"Initializing SurveyCollection from config file found in {config_files_directory} ..")
         config = Config(config_files_directory=config_files_directory)
         if label is not None:
             self.label = label
@@ -43,11 +43,11 @@ class SurveyCollection(object):
         self.config = config
 
     def __repr__(self):
-        header = """{}
-Survey collection of {}
+        header = f"""{self.name}
+Survey collection of {self.label}
 Contains the following surveys :
-""".format(self.name, self.label)
-        surveys = ["       {} : {} \n".format(survey.name, survey.label) for survey in self.surveys]
+"""
+        surveys = [f"       {survey.name} : {survey.label} \n" for survey in self.surveys]
         return header + "".join(surveys)
 
     def dump(self, config_files_directory=None, json_file_path=None):
@@ -98,9 +98,8 @@ Contains the following surveys :
     def get_survey(self, survey_name):
         available_surveys_names = [survey.name for survey in self.surveys]
         assert survey_name in available_surveys_names, (
-            "Survey {} cannot be found for survey collection {}.\nAvailable surveys are :{}".format(
-                survey_name, self.name, available_surveys_names
-            )
+            f"Survey {survey_name} cannot be found for survey collection {self.name}.\n"
+            f"Available surveys are :{available_surveys_names}"
         )
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
