@@ -37,7 +37,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         []
     """
     input_dataframe_by_entity = {}
-    person_entity = [entity for entity in tax_benefit_system.entities if entity.is_person][0]
+    person_entity = next(entity for entity in tax_benefit_system.entities if entity.is_person)
     person_id = np.arange(nb_persons)
     input_dataframe_by_entity = {}
     input_dataframe_by_entity[person_entity.key] = pd.DataFrame(
@@ -49,7 +49,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
     #
     seed = 42
     random.seed(seed)
-    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
+    adults = [0, *sorted(random.sample(range(1, nb_persons), nb_groups - 1))]
     members_entity_id = np.empty(nb_persons, dtype=int)
     # A role index is an index that every person within an entity has.
     # For instance, the 'first_parent' has role index 0, the 'second_parent' 1, the first 'child' 2, the second 2, etc.

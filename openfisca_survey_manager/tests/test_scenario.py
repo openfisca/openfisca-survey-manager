@@ -1,9 +1,8 @@
 """Tests for the survey scenario functionality in OpenFisca Survey Manager."""
 
 import logging
-import shutil
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from openfisca_core import periods
 from openfisca_core.tools import assert_near
@@ -230,7 +229,7 @@ def create_randomly_initialized_survey_scenario_from_data_frame(
 
 def generate_input_input_dataframe_by_entity(
     nb_persons: int, nb_groups: int, salary_max_value: float, rent_max_value: float
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate input dataframe by entity."""
     input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
     randomly_init_variable(
@@ -263,12 +262,16 @@ def test_input_dataframe_generator() -> None:
     assert (input_dataframe_by_entity["household"]["rent"] > 0).all()
 
 
-def test_init_from_data() -> None:
+def test_init_from_data(tmp_path) -> None:
     """Test the initialization of data in the survey scenario."""
+    setup_test_config(tmp_path)
     survey_scenario = AbstractSurveyScenario()
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(10, 5, 50000, 1000)
     period = periods.period("2017-01")
-    data_in = {"input_data_frame_by_entity_by_period": {period: input_data_frame_by_entity}}
+    data_in = {
+        "input_data_frame_by_entity_by_period": {period: input_data_frame_by_entity},
+        "config_files_directory": tmp_path,
+    }
     survey_scenario.set_tax_benefit_systems({"baseline": tax_benefit_system})
     survey_scenario.used_as_input_variables = ["salary", "rent", "household_weight"]
     survey_scenario.period = 2017
@@ -332,9 +335,10 @@ def test_dump_survey_scenario(tmp_path: Any) -> None:
     assert (df2["household"] == household).all().all()
 
 
-def test_inflate() -> None:
+def test_inflate(tmp_path) -> None:
     """Test the inflate method."""
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     inflator = 2.42
     inflator_by_variable = {"rent": inflator}
@@ -344,9 +348,10 @@ def test_inflate() -> None:
     assert_near(rent_after, inflator * rent_before, relative_error_margin=1e-6)
 
 
-def test_compute_pivot_table() -> None:
+def test_compute_pivot_table(tmp_path) -> None:
     """Test compute_pivot_table."""
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     pivot_table = survey_scenario.compute_pivot_table(
         columns=["age"], values=["salary"], period=period, simulation="baseline"
@@ -354,9 +359,10 @@ def test_compute_pivot_table() -> None:
     assert pivot_table.index == "salary"
 
 
-def test_compute_quantile() -> None:
+def test_compute_quantile(tmp_path) -> None:
     """Test compute_quantiles."""
-    survey_scenario = create_randomly_initialized_survey_scenario()
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(config_files_directory=tmp_path)
     period = "2017-01"
     quintiles = survey_scenario.compute_quantiles(
         variable="salary",
@@ -366,14 +372,6 @@ def test_compute_quantile() -> None:
         simulation="baseline",
     )
     assert len(quintiles) == 6
-
-
-def test_create_random_scenario_to_collection_clean(tmp_path):
-    """Test cleaning up random scenario directory."""
-    directory = tmp_path / "random_scenario"
-    directory.mkdir(exist_ok=True)
-    if directory.exists():
-        shutil.rmtree(directory)
 
 
 if __name__ == "__main__":

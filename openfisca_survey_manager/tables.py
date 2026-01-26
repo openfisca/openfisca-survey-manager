@@ -34,7 +34,7 @@ reader_by_source_format = {
 }
 
 
-class Table(object):
+class Table:
     """A table of a survey."""
 
     label = None

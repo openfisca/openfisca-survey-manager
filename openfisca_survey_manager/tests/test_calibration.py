@@ -2,17 +2,18 @@ from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
 from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager.paths import default_config_files_directory
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 from openfisca_survey_manager.tests.test_scenario import (
     create_randomly_initialized_survey_scenario,
     generate_input_input_dataframe_by_entity,
+    setup_test_config,
 )
 
 
-def test_calibration_variable_entity_is_weight_entity():
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+def test_calibration_variable_entity_is_weight_entity(tmp_path):
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     survey_scenario.period = period
     person_weight_before = survey_scenario.calculate_series("person_weight", period)
@@ -38,8 +39,9 @@ def test_calibration_variable_entity_is_weight_entity():
     assert (person_weight_after != person_weight_before).all()
 
 
-def test_calibration_variable_entity_is_not_weight_entity():
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+def test_calibration_variable_entity_is_not_weight_entity(tmp_path):
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     survey_scenario.period = period
     target_rent_aggregate = 200000
@@ -65,11 +67,12 @@ def test_calibration_variable_entity_is_not_weight_entity():
     assert_near(sum(dataframe_by_entity["person"]["person_weight"]), 700, relative_error_margin=0.1)
 
 
-def test_simulation_calibration_variable_entity_is_weight_entity():
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+def test_simulation_calibration_variable_entity_is_weight_entity(tmp_path):
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     survey_scenario.period = period
-    simulation = list(survey_scenario.simulations.values())[0]
+    simulation = next(iter(survey_scenario.simulations.values()))
     person_weight_before = simulation.calculate("person_weight", period)
 
     # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)
@@ -97,11 +100,12 @@ def test_simulation_calibration_variable_entity_is_weight_entity():
     assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
 
 
-def test_simulation_calibration_variable_entity_is_weight_entity_with_hyperbolic_sinus():
-    survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
+def test_simulation_calibration_variable_entity_is_weight_entity_with_hyperbolic_sinus(tmp_path):
+    setup_test_config(tmp_path)
+    survey_scenario = create_randomly_initialized_survey_scenario(collection=None, config_files_directory=tmp_path)
     period = "2017-01"
     survey_scenario.period = period
-    simulation = list(survey_scenario.simulations.values())[0]
+    simulation = next(iter(survey_scenario.simulations.values()))
     person_weight_before = simulation.calculate("person_weight", period)
 
     # initial_rent_aggregate = simulation.compute_aggregate("rent", period = period)
@@ -129,7 +133,8 @@ def test_simulation_calibration_variable_entity_is_weight_entity_with_hyperbolic
     assert simulation.calculate("household_weight", period).sum() == calibration.target_entity_count
 
 
-def test_simulation_calibration_input_from_data():
+def test_simulation_calibration_input_from_data(tmp_path):
+    setup_test_config(tmp_path)
     input_data_frame_by_entity = generate_input_input_dataframe_by_entity(10, 5, 5000, 1000)
     survey_scenario = AbstractSurveyScenario()
     weight_variable_by_entity = {
@@ -144,7 +149,7 @@ def test_simulation_calibration_input_from_data():
 
     data = {
         "input_data_frame_by_entity_by_period": {period: input_data_frame_by_entity},
-        "config_files_directory": default_config_files_directory,
+        "config_files_directory": tmp_path,
     }
     calibration_kwargs = {
         "target_margins_by_variable": {"rent": target_rent_aggregate},

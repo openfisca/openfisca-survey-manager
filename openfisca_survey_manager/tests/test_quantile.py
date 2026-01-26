@@ -7,6 +7,7 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_survey_manager.paths import default_config_files_directory
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
+from openfisca_survey_manager.tests.test_scenario import setup_test_config
 from openfisca_survey_manager.variables import quantile
 
 Individu = build_entity(
@@ -60,7 +61,7 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
     CURRENCY = ""
 
     def __init__(self):
-        super(QuantileTestTaxBenefitSystem, self).__init__(entities)
+        super().__init__(entities)
         for variable in [
             decile_salaire_from_quantile,
             decile_salaire,
@@ -70,8 +71,15 @@ class QuantileTestTaxBenefitSystem(TaxBenefitSystem):
 
 
 class QuantileTestSurveyScenario(AbstractSurveyScenario):
-    def __init__(self, input_data_frame=None, tax_benefit_system=None, baseline_tax_benefit_system=None, period=None):
-        super(QuantileTestSurveyScenario, self).__init__()
+    def __init__(
+        self,
+        input_data_frame=None,
+        tax_benefit_system=None,
+        baseline_tax_benefit_system=None,
+        period=None,
+        config_files_directory=None,
+    ):
+        super().__init__()
         assert input_data_frame is not None
         assert period is not None
         self.period = period
@@ -89,7 +97,10 @@ class QuantileTestSurveyScenario(AbstractSurveyScenario):
         self.used_as_input_variables = list(
             set(tax_benefit_system.variables.keys()).intersection(set(input_data_frame.columns))
         )
-        data = {"input_data_frame": input_data_frame, "config_files_directory": default_config_files_directory}
+        data = {
+            "input_data_frame": input_data_frame,
+            "config_files_directory": config_files_directory or default_config_files_directory,
+        }
         self.init_from_data(data=data)
 
 
@@ -109,13 +120,15 @@ def create_input_dataframe(size=9):
     )
 
 
-def test_quantile():
+def test_quantile(tmp_path):
+    setup_test_config(tmp_path)
     size = 10000
     input_data_frame = create_input_dataframe(size=size)
     survey_scenario = QuantileTestSurveyScenario(
         input_data_frame=input_data_frame,
         tax_benefit_system=QuantileTestTaxBenefitSystem(),
         period=2017,
+        config_files_directory=tmp_path,
     )
     data = np.linspace(1, 11 - 1e-5, size)
     target = np.floor(data)
@@ -126,11 +139,10 @@ def test_quantile():
     )
     assert all(
         (result == target) + (abs(result - target + 1) < 0.001)  # Finite size problem handling
-    ), "{} != {}, \n{} , \n{},".format(
-        result[result != target],
-        target[result != target],
-        data[result != target],
-        abs(result - target + 1)[result != target],
+    ), (
+        f"{result[result != target]} != {target[result != target]}, \n"
+        f"{data[result != target]} , \n"
+        f"{abs(result - target + 1)[result != target]},"
     )
 
     # No reason that method coincides so close to the quantiles thresholds

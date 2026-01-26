@@ -25,7 +25,7 @@ class ReformScenario(AbstractSurveyScenario):
         """
 
         if len(self.simulations) == 1:
-            return list(self.simulations.values())[0]
+            return next(iter(self.simulations.values()))
 
         simulation_name = "baseline" if use_baseline else "reform"
         simulation = self.simulations[simulation_name]
@@ -70,9 +70,9 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_aggregate(
         self,
-        variable: str = None,
+        variable: Optional[str] = None,
         aggfunc: str = "sum",
-        filter_by: str = None,
+        filter_by: Optional[str] = None,
         period: Optional[Union[int, str, Period]] = None,
         use_baseline: bool = False,
         difference: bool = False,
@@ -137,7 +137,7 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_quantiles(
         self,
-        variable: str = None,
+        variable: Optional[str] = None,
         nquantiles=None,
         period=None,
         use_baseline=False,
@@ -179,14 +179,14 @@ class ReformScenario(AbstractSurveyScenario):
             numpy.array: Vector of marginal rates
         """
         if use_baseline:
-            return super(ReformScenario, self).compute_marginal_tax_rate(
+            return super().compute_marginal_tax_rate(
                 target_variable=target_variable,
                 period=period,
                 simulation="baseline",
                 value_for_zero_varying_variable=value_for_zero_varying_variable,
             )
         else:
-            return super(ReformScenario, self).compute_marginal_tax_rate(
+            return super().compute_marginal_tax_rate(
                 target_variable=target_variable,
                 period=period,
                 simulation="reform",
@@ -240,7 +240,7 @@ class ReformScenario(AbstractSurveyScenario):
         weighted=True,
         alternative_weights=None,
     ):
-        return super(ReformScenario, self).compute_winners_losers(
+        return super().compute_winners_losers(
             simulation="reform",
             baseline_simulation="baseline",
             variable=variable,

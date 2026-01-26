@@ -45,6 +45,6 @@ def test_aggregates_winners_losers(aggregates_test_setup):
         baseline_simulation=survey_scenario.simulations["baseline"], variable=variable, period=period
     )
 
-    assert df.loc[0, "Gagnants"] == str(int(round(stats["above_after"])))
-    assert df.loc[0, "Perdants"] == str(int(round(stats["lower_after"])))
-    assert df.loc[0, "Neutres"] == str(int(round(stats["neutral"])))
+    assert df.loc[0, "Gagnants"] == str(round(stats["above_after"]))
+    assert df.loc[0, "Perdants"] == str(round(stats["lower_after"]))
+    assert df.loc[0, "Neutres"] == str(round(stats["neutral"]))

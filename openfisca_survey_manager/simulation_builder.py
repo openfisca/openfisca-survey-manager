@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List
 
 from openfisca_core.model_api import MONTH, YEAR
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
@@ -33,16 +32,14 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
             f"\n {sorted(variables_mismatch)}"
         )
     if variables_mismatch:
-        log.debug("The following variables are used as input variables: \n {}".format(sorted(used_as_input_variables)))
-        log.debug(
-            "The input_data_frame contains the following variables: \n {}".format(sorted(input_data_frame.columns))
-        )
+        log.debug(f"The following variables are used as input variables: \n {sorted(used_as_input_variables)}")
+        log.debug(f"The input_data_frame contains the following variables: \n {sorted(input_data_frame.columns)}")
 
 
 # SimulationBuilder monkey-patched methods
 
 
-def _set_id_variable_by_entity_key(builder) -> Dict[str, str]:
+def _set_id_variable_by_entity_key(builder) -> dict[str, str]:
     """Identify and sets the correct ids for the different entities."""
     if builder.id_variable_by_entity_key is None:
         log.debug("Use default id_variable names")
@@ -53,7 +50,7 @@ def _set_id_variable_by_entity_key(builder) -> Dict[str, str]:
     return builder.id_variable_by_entity_key
 
 
-def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
+def _set_role_variable_by_entity_key(builder) -> dict[str, str]:
     """Identify and sets the correct roles for the different entities."""
     if builder.role_variable_by_entity_key is None:
         builder.role_variable_by_entity_key = {
@@ -63,17 +60,18 @@ def _set_role_variable_by_entity_key(builder) -> Dict[str, str]:
     return builder.role_variable_by_entity_key
 
 
-def _set_used_as_input_variables_by_entity(builder) -> Dict[str, List[str]]:
+def _set_used_as_input_variables_by_entity(builder) -> dict[str, list[str]]:
     """Identify and sets the correct input variables for the different entities."""
     if builder.used_as_input_variables_by_entity is not None:
         return
 
     tax_benefit_system = builder.tax_benefit_system
 
-    assert set(builder.used_as_input_variables) <= set(tax_benefit_system.variables.keys()), (
-        "Some variables used as input variables are not part of the tax benefit system:\n {}".format(
-            set(builder.used_as_input_variables).difference(set(tax_benefit_system.variables.keys()))
-        )
+    tax_variables = set(tax_benefit_system.variables.keys())
+    input_variables = set(builder.used_as_input_variables)
+    assert input_variables <= tax_variables, (
+        "Some variables used as input variables are not part of the tax benefit system:\n "
+        f"{input_variables.difference(tax_variables)}"
     )
 
     builder.used_as_input_variables_by_entity = {}
@@ -108,7 +106,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
     id_variables = [id_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
     role_variables = [role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
-    log.debug("Variable used_as_input_variables in filter: \n {}".format(used_as_input_variables))
+    log.debug(f"Variable used_as_input_variables in filter: \n {used_as_input_variables}")
 
     unknown_columns = []
     for column_name in input_data_frame:
@@ -120,7 +118,7 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
     input_data_frame.drop(unknown_columns, axis=1, inplace=True)
 
     if unknown_columns:
-        log.debug("The following unknown columns {}, are dropped from input table".format(sorted(unknown_columns)))
+        log.debug(f"The following unknown columns {sorted(unknown_columns)}, are dropped from input table")
 
     used_columns = []
     dropped_columns = []
@@ -140,15 +138,12 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
 
     if used_columns:
         log.debug(
-            "These columns are not dropped because present in used_as_input_variables:\n {}".format(
-                sorted(used_columns)
-            )
+            f"These columns are not dropped because present in used_as_input_variables:\n {sorted(used_columns)}"
         )
     if dropped_columns:
         log.debug(
-            "These columns in survey are set to be calculated, we drop them from the input table:\n {}".format(
-                sorted(dropped_columns)
-            )
+            "These columns in survey are set to be calculated, we drop them from the input table:\n "
+            f"{sorted(dropped_columns)}"
         )
 
     log.debug(f"Keeping the following variables in the input_data_frame:\n {sorted(input_data_frame.columns)}")
@@ -179,7 +174,7 @@ def init_all_entities(builder, input_data_frame, period=None):
             period=period,
         )
     else:
-        raise ValueError("Invalid period {}".format(period))
+        raise ValueError(f"Invalid period {period}")
 
     simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key
     return simulation
@@ -209,9 +204,7 @@ def init_entity_structure(builder, entity, input_data_frame):
 
     if entity.is_person:
         for id_variable in id_variables + role_variables:
-            assert id_variable in input_data_frame.columns, "Variable {} is not present in input dataframe".format(
-                id_variable
-            )
+            assert id_variable in input_data_frame.columns, f"Variable {id_variable} is not present in input dataframe"
 
     ids = range(len(input_data_frame))
     if entity.is_person:
@@ -244,9 +237,7 @@ def init_simulation_with_data_frame(builder, input_data_frame, period):
     role_variables = [role_variable_by_entity_key[_entity.key] for _entity in tax_benefit_system.group_entities]
 
     for id_variable in id_variables + role_variables:
-        assert id_variable in input_data_frame.columns, "Variable {} is not present in input dataframe".format(
-            id_variable
-        )
+        assert id_variable in input_data_frame.columns, f"Variable {id_variable} is not present in input dataframe"
 
     input_data_frame = builder.filter_input_variables(input_data_frame, tax_benefit_system)
 

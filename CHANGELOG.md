@@ -1,6 +1,12 @@
 ﻿# Changelog
 
-# 6.1.1
+# 6.1.2 (2026-01-26)
+
+- Complete Ruff linting cleanup (E, F, W, I, B, A, C4, T20, SIM, PTH, N, UP, RUF, PLE rules).
+- Modernized test suite with `tmp_path` fixtures for `test_scenario.py`, `test_quantile.py`, and `test_calibration.py`.
+- Fixed bug in `AbstractAggregates.compute_aggregates` where indexing with a tuple could return a Series.
+
+# 6.1.1 (2026-01-26)
 
 * Technical changes
   - Enable Ruff `E501` (Line too long) rule.
