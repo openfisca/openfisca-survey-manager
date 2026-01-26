@@ -3,7 +3,7 @@
 import logging
 import re
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import humanize
 import numpy as np
@@ -34,7 +34,7 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
 
     Args:
         tax_benefit_system (TaxBenefitSystem): Host tax benefit system
-        variables (List): Variables supposed to belong to the same entity
+        variables (List[str]): Variables supposed to belong to the same entity
 
     Returns:
         str: Common entity of the variables
@@ -107,13 +107,13 @@ def compute_aggregate(
     simulation: Simulation,
     variable: str = None,
     aggfunc: str = "sum",
-    filter_by: str = None,
+    filter_by: Optional[str] = None,
     period: Optional[Union[int, str, Period]] = None,
-    missing_variable_default_value=np.nan,
+    missing_variable_default_value: Any = np.nan,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Dict = None,
-) -> Optional[Union[None, float]]:
+    filtering_variable_by_entity: Optional[Dict] = None,
+) -> Optional[Union[float, int]]:
     """
     Compute aggregate of a variable.
 
@@ -125,7 +125,8 @@ def compute_aggregate(
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
         missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -178,9 +179,8 @@ def compute_aggregate(
     weight_variable = None
     if weighted:
         assert or_(alternative_weights, weight_variable_by_entity), (
-            "The weighted option is set at True but there is no weight variable for entity {} nor alternative weights. Either define a weight variable or switch to unweighted".format(
-                entity_key
-            )
+            "The weighted option is set at True but there is no weight variable for entity {} "
+            "nor alternative weights. Either define a weight variable or switch to unweighted".format(entity_key)
         )
         if alternative_weights:
             if isinstance(alternative_weights, str):
@@ -241,10 +241,10 @@ def compute_quantiles(
     variable: str,
     nquantiles: int = None,
     period: Optional[Union[int, str, Period]] = None,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
 ) -> List[float]:
     """
     Compute quantiles of a variable.
@@ -256,7 +256,8 @@ def compute_quantiles(
         period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
         missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -297,19 +298,19 @@ def compute_quantiles(
 def compute_pivot_table(
     simulation: Simulation = None,
     baseline_simulation: Simulation = None,
-    aggfunc="mean",
+    aggfunc: str = "mean",
     columns: Optional[List[str]] = None,
     difference: bool = False,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     index: Optional[List[str]] = None,
     period: Optional[Union[int, str, Period]] = None,
-    use_baseline_for_columns: bool = None,
+    use_baseline_for_columns: Optional[bool] = None,
     values: Optional[List[str]] = None,
-    missing_variable_default_value=np.nan,
+    missing_variable_default_value: Any = np.nan,
     concat_axis: Optional[int] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
 ):
     """
     Compute pivot table.
@@ -328,7 +329,8 @@ def compute_pivot_table(
         missing_variable_default_value (optional): _description_. Defaults to np.nan.
         concat_axis (int, optional): _description_. Defaults to None.
         weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
         filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
     Returns:
@@ -532,13 +534,13 @@ def compute_pivot_table(
 
 def create_data_frame_by_entity(
     simulation: Simulation,
-    variables: Optional[List] = None,
+    variables: Optional[List[str]] = None,
     expressions: Optional[List[str]] = None,
-    filter_by=None,
+    filter_by: Optional[str] = None,
     index: bool = False,
     period: Optional[Union[int, str, Period]] = None,
     merge: bool = False,
-) -> Union[pd.DataFrame, Dict]:
+) -> Union[pd.DataFrame, Dict[str, pd.DataFrame]]:
     """
     Create dataframe(s) of variables for the whole selected population.
 
@@ -685,11 +687,11 @@ def compute_winners_losers(
     period: Optional[Union[int, str, Period]] = None,
     absolute_minimal_detected_variation: float = 0,
     relative_minimal_detected_variation: float = 0.01,
-    observations_threshold: int = None,
+    observations_threshold: Optional[int] = None,
     weighted: bool = True,
-    alternative_weights=None,
-    filtering_variable_by_entity=None,
-) -> Dict[str, int]:
+    alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    filtering_variable_by_entity: Optional[Dict] = None,
+) -> Dict[str, Union[int, float]]:
     """
     Compute the number of winners and losers for a given variable.
 
@@ -699,12 +701,17 @@ def compute_winners_losers(
         variable (str): The variable to use.
         filter_by (str, optional): The variable or expression to be used as a filter. Defaults to None.
         period (Optional[Union[int, str, Period]], optional): The period of the simulation. Defaults to None.
-        absolute_minimal_detected_variation (float, optional): Absolute minimal variation to be detected, in ratio. Ie 0.5 means 5% of variation wont be counted..
-        relative_minimal_detected_variation (float, optional): Relative minimal variation to be detected, in ratio. Defaults to .01.
-        observations_threshold (int, optional): Number of observations needed to avoid a statistical secret violation. Defaults to None.
+        absolute_minimal_detected_variation (float, optional): Absolute minimal variation to be detected, in ratio.
+            Ie 0.5 means 5% of variation wont be counted..
+        relative_minimal_detected_variation (float, optional): Relative minimal variation to be detected, in ratio.
+            Defaults to .01.
+        observations_threshold (int, optional): Number of observations needed to avoid a statistical secret violation.
+            Defaults to None.
         weighted (bool, optional): Whether to use weights. Defaults to True.
-        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
-        filtering_variable_by_entity (_type_, optional): The variable to be used as a filter for each entity. Defaults to None.
+        alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+            Defaults to None.
+        filtering_variable_by_entity (_type_, optional): The variable to be used as a filter for each entity.
+            Defaults to None.
 
     Raises:
         SecretViolationError: Raised when statistical secret is violated.
@@ -826,7 +833,8 @@ def init_entity_data(
 
         if variable_instance.entity.key != entity.key:
             log.debug(
-                f"Ignoring variable {column_name} which is not part of entity {entity.key} but {variable_instance.entity.key}"
+                f"Ignoring variable {column_name} which is not part of entity {entity.key} "
+                f"but {variable_instance.entity.key}"
             )
             continue
         init_variable_in_entity(simulation, entity.key, column_name, column_serie, period)
@@ -837,7 +845,7 @@ def inflate(
     inflator_by_variable: Optional[Dict] = None,
     period: Optional[Union[int, str, Period]] = None,
     target_by_variable: Optional[Dict] = None,
-):
+) -> None:
     tax_benefit_system = simulation.tax_benefit_system
     for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
         assert variable_name in tax_benefit_system.variables, (
@@ -848,12 +856,17 @@ def inflate(
                 variable_name
             ] / simulation.compute_aggregate(variable=variable_name, period=period)
             log.debug(
-                f"Using {inflator} as inflator for {variable_name} to reach the target {target_by_variable[variable_name]} "
+                f"Using {inflator} as inflator for {variable_name} to reach the target "
+                f"{target_by_variable[variable_name]} "
             )
         else:
             assert variable_name in inflator_by_variable, "variable_name is not in inflator_by_variable"
+            target = inflator_by_variable[variable_name] * simulation.compute_aggregate(
+                variable=variable_name, period=period
+            )
             log.debug(
-                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. The target is thus {inflator_by_variable[variable_name] * simulation.compute_aggregate(variable=variable_name, period=period)}"
+                f"Using inflator {inflator_by_variable[variable_name]} for {variable_name}. "
+                f"The target is thus {target}"
             )
             inflator = inflator_by_variable[variable_name]
 
@@ -864,7 +877,13 @@ def inflate(
 
 
 def _load_table_for_survey(
-    config_files_directory, collection, survey, table, batch_size=None, batch_index=None, filter_by=None
+    config_files_directory: str,
+    collection: str,
+    survey: str,
+    table: str,
+    batch_size: Optional[int] = None,
+    batch_index: Optional[int] = None,
+    filter_by: Optional[str] = None,
 ):
     if survey is not None:
         input_data_frame = load_table(
@@ -890,15 +909,15 @@ def _load_table_for_survey(
 
 
 def _input_data_table_by_entity_by_period_monolithic(
-    tax_benefit_system,
-    simulation,
-    period,
-    input_data_table_by_entity,
-    builder,
-    custom_input_data_frame,
-    config_files_directory,
-    collection,
-    survey=None,
+    tax_benefit_system: TaxBenefitSystem,
+    simulation: Simulation,
+    period: Period,
+    input_data_table_by_entity: Dict,
+    builder: SimulationBuilder,
+    custom_input_data_frame: Callable,
+    config_files_directory: str,
+    collection: str,
+    survey: Optional[str] = None,
 ):
     """
     Initialize simulation with input data from a table for each entity and period.
@@ -910,7 +929,7 @@ def _input_data_table_by_entity_by_period_monolithic(
         # Read all tables for the entity
         log.debug(f"init_simulation - {period=} {entity.key=}")
         table = input_data_table_by_entity.get(entity.key)
-        filter_by = input_data_table_by_entity.get("filter_by", None)
+        filter_by = input_data_table_by_entity.get("filter_by")
         if table is None:
             continue
         input_data_frame = _load_table_for_survey(
@@ -946,15 +965,15 @@ def _input_data_table_by_entity_by_period_monolithic(
 
 
 def _input_data_table_by_entity_by_period_batch(
-    tax_benefit_system,
-    simulation,
-    period,
-    input_data_table_by_entity,
-    builder,
-    custom_input_data_frame,
-    config_files_directory,
-    collection,
-    survey=None,
+    tax_benefit_system: TaxBenefitSystem,
+    simulation: Simulation,
+    period: Period,
+    input_data_table_by_entity: Dict,
+    builder: SimulationBuilder,
+    custom_input_data_frame: Callable,
+    config_files_directory: str,
+    collection: str,
+    survey: Optional[str] = None,
 ):
     """
     Initialize simulation with input data from a table for each entity and period.
@@ -986,7 +1005,9 @@ def _input_data_table_by_entity_by_period_batch(
     if len(entities) > 2:
         # Batch mode could work only with batch_entity and filtered_entity, and no others
         warnings.warn(
-            f"survey-manager.simulation._input_data_table_by_entity_by_period_batch : Your TaxBenefitSystem has {len(entities)} entities but we will only load  {batch_entity} and {filtered_entity}.",
+            "survey-manager.simulation._input_data_table_by_entity_by_period_batch : "
+            f"Your TaxBenefitSystem has {len(entities)} entities but we will only load  "
+            f"{batch_entity} and {filtered_entity}.",
             stacklevel=2,
         )
 
@@ -1026,7 +1047,11 @@ def _input_data_table_by_entity_by_period_batch(
     return simulation
 
 
-def init_simulation(tax_benefit_system, period, data):
+def init_simulation(
+    tax_benefit_system: TaxBenefitSystem,
+    period: Union[str, int, Period],
+    data: Dict,
+):
     builder = SimulationBuilder()
     builder.create_entities(tax_benefit_system)
 
@@ -1048,7 +1073,7 @@ def init_simulation(tax_benefit_system, period, data):
         "input_data_table_by_entity_by_period",
         "input_data_table_by_period",
     ]
-    source_types = [source_type_ for source_type_ in default_source_types if data.get(source_type_, None) is not None]
+    source_types = [source_type_ for source_type_ in default_source_types if data.get(source_type_) is not None]
     assert len(source_types) < 2, "There are too many data source types"
     assert len(source_types) >= 1, "There should be one data source type included in {}".format(default_source_types)
     source_type = source_types[0]
@@ -1073,7 +1098,7 @@ def init_simulation(tax_benefit_system, period, data):
             )
             input_data_frame = openfisca_survey.get_values(table="input").reset_index(drop=True)
         else:
-            NotImplementedError
+            raise NotImplementedError
 
         custom_input_data_frame(input_data_frame, period=period)
         simulation = builder.init_all_entities(input_data_frame, builder, period)  # monolithic dataframes
@@ -1160,7 +1185,13 @@ def init_simulation(tax_benefit_system, period, data):
     return simulation
 
 
-def init_variable_in_entity(simulation: Simulation, entity, variable_name, series, period):
+def init_variable_in_entity(
+    simulation: Simulation,
+    entity: str,
+    variable_name: str,
+    series: pd.Series,
+    period: Period,
+):
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
@@ -1222,7 +1253,8 @@ def init_variable_in_entity(simulation: Simulation, entity, variable_name, serie
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
         log.warn(
-            f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. The  montly values you provided will be summed."
+            f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. "
+            "The  montly values you provided will be summed."
         )
 
         if simulation.get_array(variable_name, period.this_year) is not None:
@@ -1284,7 +1316,8 @@ def print_memory_usage(simulation: Simulation):
         usage_stats = simulation.tracer.usage_stats
     except AttributeError:
         log.warning(
-            "The simulation trace mode is not activated. You need to activate it to get stats about variable usage (hits)."
+            "The simulation trace mode is not activated. You need to activate it to get stats "
+            "about variable usage (hits)."
         )
         usage_stats = None
     infos_lines = []
@@ -1314,7 +1347,7 @@ def print_memory_usage(simulation: Simulation):
 def set_weight_variable_by_entity(
     simulation: Simulation,
     weight_variable_by_entity: Dict,
-):
+) -> None:
     """
     Set weight variable for each entity.
 
@@ -1325,7 +1358,12 @@ def set_weight_variable_by_entity(
     simulation.weight_variable_by_entity = weight_variable_by_entity
 
 
-def summarize_variable(simulation: Simulation, variable=None, weighted=False, force_compute=False):
+def summarize_variable(
+    simulation: Simulation,
+    variable: Optional[str] = None,
+    weighted: bool = False,
+    force_compute: bool = False,
+):
     """Print a summary of a variable including its memory usage.
 
     Args:

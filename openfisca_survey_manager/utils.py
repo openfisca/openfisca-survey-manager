@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
@@ -30,9 +30,9 @@ def inflate_parameters(
     """
 
     if (last_year is not None) and (last_year > base_year + 1):
-        for year in range(
-            base_year + 1, last_year + 1
-        ):  # For each year we inflate with the same inflator rate. Example : base_year + 1 : paramaters = paramaters * inflator ; base_year + 2 : parameters = parameters * inflator * inflator
+        for year in range(base_year + 1, last_year + 1):  # For each year we inflate with the same inflator rate.
+            # Example : base_year + 1 : paramaters = paramaters * inflator ;
+            # base_year + 2 : parameters = parameters * inflator * inflator
             inflate_parameters(
                 parameters,
                 inflator,
@@ -75,9 +75,8 @@ def inflate_parameters(
             assert hasattr(parameters, "metadata"), "{} doesn't have metadata".format(parameters.name)
             unit_types = set(parameters.metadata.keys()).intersection(set(acceptable_units))
             assert unit_types, (
-                "No admissible unit in metadata for parameter {}. You may consider using the option 'ignore_missing_units' from the inflate_paramaters() function.".format(
-                    parameters.name
-                )
+                "No admissible unit in metadata for parameter {}. You may consider using "
+                "the option 'ignore_missing_units' from the inflate_paramaters() function.".format(parameters.name)
             )
             if len(unit_types) > 1:
                 assert unit_types == {"threshold_unit", "rate_unit"}, (
@@ -246,7 +245,7 @@ def stata_files_to_data_frames(data, period=None):
     input_data_frame_by_entity_by_period = {}
     input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = {}
     for entity, file_path in stata_file_by_entity.items():
-        assert os.path.exists(file_path), "Invalid file path: {}".format(file_path)
+        assert Path(file_path).exists(), "Invalid file path: {}".format(file_path)
         entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
         variables_from_stata_files += list(entity_data_frame.columns)
     data["input_data_frame_by_entity_by_period"] = input_data_frame_by_entity_by_period
@@ -271,7 +270,8 @@ def load_table(
 
     Args:
         config_files_directory : _description_.
-        variables (List, optional): List of the variables to retrieve in the table. Defaults to None to get all the variables.
+        variables (List, optional): List of the variables to retrieve in the table.
+            Defaults to None to get all the variables.
         collection (str, optional): Collection. Defaults to None.
         survey (str, optional): Survey. Defaults to None.
         input_data_survey_prefix (str, optional): Prefix of the survey to be combined with data year. Defaults to None.

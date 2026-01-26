@@ -1,7 +1,7 @@
 import collections
 import logging
-import os
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -184,7 +184,8 @@ class AbstractAggregates(object):
 
         Args:
             variable (str): Name of the variable aggregated according to its entity
-            use_baseline (bool, optional): Use the baseline or the reform or the only avalilable simulation when no reform (default). Defaults to False.
+            use_baseline (bool, optional): Use the baseline or the reform or the only avalilable
+                simulation when no reform (default). Defaults to False.
             filter_by (str, optional): The variable to filter by. Defaults to None.
 
         Returns:
@@ -293,9 +294,9 @@ class AbstractAggregates(object):
         """Saves the table to csv."""
         assert path is not None
 
-        if os.path.isdir(path):
+        if Path(path).is_dir():
             now = datetime.now()
-            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".csv"))
+            file_path = Path(path) / "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".csv")
         else:
             file_path = path
 
@@ -322,9 +323,9 @@ class AbstractAggregates(object):
         """Save the table to excel."""
         assert path is not None
 
-        if os.path.isdir(path):
+        if Path(path).is_dir():
             now = datetime.now()
-            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".xlsx"))
+            file_path = Path(path) / "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".xlsx")
         else:
             file_path = path
 
@@ -362,14 +363,14 @@ class AbstractAggregates(object):
             target=target,
         )
 
-        if path is not None and os.path.isdir(path):
+        if path is not None and Path(path).is_dir():
             now = datetime.now()
-            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".html"))
+            file_path = Path(path) / "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".html")
         else:
             file_path = path
 
         if file_path is not None:
-            with open(file_path, "w") as html_file:
+            with Path(file_path).open("w") as html_file:
                 df.to_html(html_file)
         return df.to_html()
 
@@ -393,14 +394,14 @@ class AbstractAggregates(object):
             target=target,
         )
 
-        if path is not None and os.path.isdir(path):
+        if path is not None and Path(path).is_dir():
             now = datetime.now()
-            file_path = os.path.join(path, "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".md"))
+            file_path = Path(path) / "Aggregates_%s.%s" % (now.strftime("%d-%m-%Y"), ".md")
         else:
             file_path = path
 
         if file_path is not None:
-            with open(file_path, "w") as markdown_file:
+            with Path(file_path).open("w") as markdown_file:
                 df.to_markdown(markdown_file)
 
         return df.to_markdown()
@@ -487,7 +488,8 @@ class AbstractAggregates(object):
             # Remove eventual duplication
             difference_data_frame = difference_data_frame.loc[:, ~difference_data_frame.columns.duplicated()].copy()
             aggregates_data_frame = aggregates_data_frame.loc[:, ~aggregates_data_frame.columns.duplicated()].copy()
-            df = aggregates_data_frame.merge(difference_data_frame, how="left")[columns]
+            merged_df = aggregates_data_frame.merge(difference_data_frame, how="left")
+            df = merged_df[[c for c in columns if c in merged_df.columns]]
         else:
             columns = [column for column in columns if column in aggregates_data_frame.columns]
             df = aggregates_data_frame[columns]
@@ -507,7 +509,7 @@ class AbstractAggregates(object):
         return df
 
     def load_actual_data(self, period=None):
-        NotImplementedError
+        pass
 
     def compute_winners_losers(self, variable: str, filter_by: str = None):
         if "reform" not in self.simulations or "baseline" not in self.simulations:

@@ -1,7 +1,7 @@
 import gc
 import logging
-from pathlib import Path
 from configparser import ConfigParser
+from pathlib import Path
 
 from pandas import HDFStore
 

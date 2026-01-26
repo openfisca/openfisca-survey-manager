@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -8,11 +8,7 @@ from openfisca_survey_manager.paths import openfisca_survey_manager_location
 log = logging.getLogger(__name__)
 
 
-legislation_directory = os.path.join(
-    openfisca_survey_manager_location,
-    "openfisca_survey_manager",
-    "assets",
-)
+legislation_directory = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "assets"
 
 
 sub_levels = ["divisions", "groupes", "classes", "sous_classes", "postes"]
@@ -25,17 +21,13 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
     try:
         if year == 1998:
             data_frame = pd.read_csv(
-                os.path.join(
-                    legislation_directory, "COICOP/1998/nomenclature_coicop1998_source_by_{}.csv".format(level)
-                ),
+                legislation_directory / "COICOP/1998/nomenclature_coicop1998_source_by_{}.csv".format(level),
                 sep=";",
                 header=None,
             )
         if year == 2016:
             data_frame = pd.read_excel(
-                os.path.join(
-                    legislation_directory, "COICOP/2016/nomenclature_coicop2016_source_by_{}.xls".format(level)
-                ),
+                legislation_directory / "COICOP/2016/nomenclature_coicop2016_source_by_{}.xls".format(level),
                 header=None,
             )
 
@@ -71,7 +63,7 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
     data_frame.reset_index(inplace=True, drop=True)
     if to_csv:
         data_frame.to_csv(
-            os.path.join(legislation_directory, "nomenclature_coicop{}_by_{}.csv".format(year, level)),
+            legislation_directory / "nomenclature_coicop{}_by_{}.csv".format(year, level),
         )
 
     return data_frame

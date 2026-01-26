@@ -1,7 +1,6 @@
 "Abstract survey scenario definition."
 
 import logging
-import os
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -46,7 +45,7 @@ class AbstractSurveyScenario(object):
 
     def build_input_data(self, **kwargs):
         """Build input data."""
-        NotImplementedError
+        raise NotImplementedError
 
     def calculate_series(self, variable, period=None, simulation=None):
         """Compute variable values for period for a given simulation.
@@ -102,7 +101,8 @@ class AbstractSurveyScenario(object):
             parameters (dict, optional): Calibration parameters. Defaults to None.
             target_entity_count (float, optional): Total population target. Defaults to None.
             other_entity_count (float, optional): Total population target of the second entity. Defaults to None.
-            entity (str): Entity specified when no variable comes with a target margins but `target_entity_count` is not None.
+            entity (str): Entity specified when no variable comes with a target margins
+                but `target_entity_count` is not None.
         """
         survey_scenario = self
 
@@ -162,7 +162,8 @@ class AbstractSurveyScenario(object):
             baseline_simulation(str, optional): Baseline simulation to use when computing a difference
             missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
             weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+                Defaults to None.
             filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
         Returns:
@@ -233,7 +234,8 @@ class AbstractSurveyScenario(object):
             period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
             missing_variable_default_value (optional): Value to use for missing values. Defaults to np.nan.
             weighted (bool, optional): Whether to weight the variable or not. Defaults to True.
-            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use. Defaults to None.
+            alternative_weights (Optional[Union[str, int, float, Array]], optional): Alternative weigh to use.
+                Defaults to None.
             filtering_variable_by_entity (Dict, optional): Filtering variable by entity. Defaults to None.
 
         Returns:
@@ -267,7 +269,8 @@ class AbstractSurveyScenario(object):
             target_variable (str): the variable which marginal tax rate is computed
             period (Optional[Union[int, str, Period]], optional): Period. Defaults to None.
             simulation(str, optional): Simulation to use
-            value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero. Defaults to 0.
+            value_for_zero_varying_variable (float, optional): value of MTR when the varying variable is zero.
+                Defaults to 0.
 
         Returns:
             numpy.array: Vector of marginal rates
@@ -364,7 +367,9 @@ class AbstractSurveyScenario(object):
             missing_variable_default_value(float, optional): Default value for missing variables, defaults to np.nan
             concat_axis(int, optional): Axis to concatenate along (index = 0, columns = 1), defaults to None
             weighted(bool, optional): Whether to weight te aggregates (Default value = True)
-            alternative_weights(str or int or float, optional): Weight variable name or numerical value. Use Simulation's weight_variable_by_entity if None, and if the later is None uses 1 ((Default value = None)
+            alternative_weights(str or int or float, optional): Weight variable name or numerical value.
+                Use Simulation's weight_variable_by_entity if None, and if the later is None uses 1
+                ((Default value = None)
 
         Returns:
             pd.DataFrame: Pivot table
@@ -503,7 +508,7 @@ class AbstractSurveyScenario(object):
             raise ValueError("Method generate_performance_data cannot be used if trace hasn't been activated.")
 
         for simulation_name, simulation in self.simulations.items():
-            simulation_dir = os.path.join(output_dir, f"{simulation_name}_perf_log")
+            simulation_dir = Path(output_dir) / f"{simulation_name}_perf_log"
             if not Path(output_dir).exists():
                 Path(output_dir).mkdir()
             if not Path(simulation_dir).exists():
@@ -535,7 +540,8 @@ class AbstractSurveyScenario(object):
         """Initialise a survey scenario from data.
 
         Args:
-          rebuild_input_data(bool):  Whether or not to clean, format and save data. Take a look at :func:`build_input_data`
+          rebuild_input_data(bool):  Whether or not to clean, format and save data.
+            Take a look at :func:`build_input_data`
           data(dict): Contains the data, or metadata needed to know where to find it.
           use_marginal_tax_rate(bool): True to go into marginal effective tax rate computation mode.
           calibration_kwargs(dict):  Calibration options (Default value = None)
@@ -727,14 +733,17 @@ class AbstractSurveyScenario(object):
             >>> survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
             <BLANKLINE>
-            housing_occupancy_status: 1 periods * 5 cells * item size 2 (int16, default = HousingOccupancyStatus.tenant) = 10B
+            housing_occupancy_status: 1 periods * 5 cells * item size 2
+            (int16, default = HousingOccupancyStatus.tenant) = 10B
             Details:
-            2017-01:  owner = 1.00e+00 (20.0%), tenant = 1.00e+00 (20.0%), free_lodger = 2.00e+00 (40.0%), homeless = 1.00e+00 (20.0%).
+            2017-01:  owner = 1.00e+00 (20.0%), tenant = 1.00e+00 (20.0%),
+            free_lodger = 2.00e+00 (40.0%), homeless = 1.00e+00 (20.0%).
             >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
             <BLANKLINE>
             rent: 1 periods * 5 cells * item size 4 (float32, default = 0) = 20B
             Details:
-            2017-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938, mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
+            2017-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938,
+            mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
             >>> survey_scenario.tax_benefit_systems["baseline"].neutralize_variable('age')
             >>> survey_scenario.summarize_variable(variable = "age")
             <BLANKLINE>

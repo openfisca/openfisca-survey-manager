@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -8,7 +8,7 @@ from openfisca_survey_manager.paths import openfisca_survey_manager_location
 log = logging.getLogger(__name__)
 
 
-config_files_directory = os.path.join(openfisca_survey_manager_location)
+config_files_directory = Path(openfisca_survey_manager_location)
 
 
 def nnd_hotdeck_using_feather(receiver=None, donor=None, matching_variables=None, z_variables=None):
@@ -20,10 +20,10 @@ def nnd_hotdeck_using_feather(receiver=None, donor=None, matching_variables=None
     assert receiver is not None and donor is not None
     assert matching_variables is not None
 
-    temporary_directory_path = os.path.join(config_files_directory, "tmp")
-    assert os.path.exists(temporary_directory_path)
-    receiver_path = os.path.join(temporary_directory_path, "receiver.feather")
-    donor_path = os.path.join(temporary_directory_path, "donor.feather")
+    temporary_directory_path = config_files_directory / "tmp"
+    assert temporary_directory_path.exists()
+    receiver_path = temporary_directory_path / "receiver.feather"
+    donor_path = temporary_directory_path / "donor.feather"
     feather.write_dataframe(receiver, receiver_path)
     feather.write_dataframe(donor, donor_path)
     if isinstance(matching_variables, str):
@@ -82,7 +82,7 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
     assert matching_variables is not None
 
     pandas2ri.activate()
-    StatMatch = importr("StatMatch")
+    stat_match = importr("StatMatch")
 
     if isinstance(donor_classes, str):
         assert donor_classes in receiver, "Donor class not present in receiver"
@@ -90,14 +90,14 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
 
     try:
         if donor_classes:
-            out_NND = StatMatch.NND_hotdeck(
+            out_nnd = stat_match.NND_hotdeck(
                 data_rec=receiver,
                 data_don=donor,
                 match_vars=pd.Series(matching_variables),
                 don_class=pd.Series(donor_classes),
             )
         else:
-            out_NND = StatMatch.NND_hotdeck(
+            out_nnd = stat_match.NND_hotdeck(
                 data_rec=receiver,
                 data_don=donor,
                 match_vars=pd.Series(matching_variables),
@@ -116,17 +116,17 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
     # duplication of the matching variables
 
     fused_0 = pandas2ri.ri2py(
-        StatMatch.create_fused(data_rec=receiver, data_don=donor, mtc_ids=out_NND[0], z_vars=pd.Series(z_variables))
+        stat_match.create_fused(data_rec=receiver, data_don=donor, mtc_ids=out_nnd[0], z_vars=pd.Series(z_variables))
     )
 
     # create synthetic data.set, with the "duplication"
     # of the matching variables
 
     fused_1 = pandas2ri.ri2py(
-        StatMatch.create_fused(
+        stat_match.create_fused(
             data_rec=receiver,
             data_don=donor,
-            mtc_ids=out_NND[0],
+            mtc_ids=out_nnd[0],
             z_vars=pd.Series(z_variables),
             dup_x=True,
             match_vars=pd.Series(matching_variables),
