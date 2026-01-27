@@ -100,7 +100,11 @@ class Calibration:
             )
             id_variable = simulation.calculate(parameters["id_variable"], period)
             id_variable_link = simulation.calculate(parameters["id_variable_link"], period)
-            assert numpy.unique(id_variable_link).sort() == numpy.unique(id_variable).sort(), (
+            # Inclusion check: every id in id_variable_link must be in id_variable.
+            # Keep vectorized numpy (unique + isin) to avoid Python-level loops.
+            id_link_unique = numpy.unique(id_variable_link)
+            id_var_unique = numpy.unique(id_variable)
+            assert numpy.all(numpy.isin(id_link_unique, id_var_unique)), (
                 "There is no inclusion of one entity in the other"
             )
             assert len(id_variable) < len(id_variable_link), (

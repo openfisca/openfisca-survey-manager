@@ -1,5 +1,12 @@
 # Changelog
 
+# 6.1.6
+
+* Technical changes
+  - Fix calibration assertion bug: correct inclusion check for id_variable vs id_variable_link (was comparing None == None)
+  - Fix typo in error message: "shoud" → "should" in survey_collections
+  - Fix typo in error message: "Incorect" → "Incorrect" in abstract_scenario
+
 # 6.1.5 [#366](https://github.com/openfisca/openfisca-survey-manager/pull/366)
 
 * Security
