@@ -6,6 +6,7 @@
   - Fix calibration assertion bug: correct inclusion check for id_variable vs id_variable_link (was comparing None == None)
   - Fix typo in error message: "shoud" → "should" in survey_collections
   - Fix typo in error message: "Incorect" → "Incorrect" in abstract_scenario
+  - CI: make Coveralls step non-blocking (continue-on-error) so the job does not fail when Coveralls API returns 422
 
 # 6.1.5 [#366](https://github.com/openfisca/openfisca-survey-manager/pull/366)
 
