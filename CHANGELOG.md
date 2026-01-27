@@ -1,5 +1,13 @@
 # Changelog
 
+# 6.1.4 [#364](https://github.com/openfisca/openfisca-survey-manager/pull/364)
+
+* Documentation
+  - Update README with modern dev instructions:
+    - Mention support for Python 3.9, 3.10, 3.11
+    - Replace legacy `make` commands with `uv` workflow instructions
+    - Add ruff usage instructions
+
 # 6.1.3
 
 * Technical changes
