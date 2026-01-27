@@ -1,5 +1,14 @@
 # Changelog
 
+# 6.1.5 [#366](https://github.com/openfisca/openfisca-survey-manager/pull/366)
+
+* Security
+  - Bump urllib3 from 2.5.0 to 2.6.3 in /app
+  - Fixes high-severity security vulnerabilities:
+    - CVE-2026-21441: Fixed decompression-bomb safeguards bypass when HTTP redirects were followed
+    - CVE-2025-66471: Fixed improper handling of highly compressed HTTP content (decompression bombs)
+    - CVE-2025-66418: Fixed potential DoS attack via unlimited Content-Encoding header links
+
 # 6.1.4 [#364](https://github.com/openfisca/openfisca-survey-manager/pull/364)
 
 * Documentation
