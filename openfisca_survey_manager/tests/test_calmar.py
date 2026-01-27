@@ -133,7 +133,7 @@ def test_calmar():
 
     data = create_input_dataframe(1)
     margins_by_variable = create_margins(1)
-    pondfin_out, lambdasol, margins_new_dict = calmar(
+    pondfin_out, _lambdasol, _margins_new_dict = calmar(
         data, margins_by_variable, method="raking ratio", initial_weight="POND"
     )
 
@@ -152,7 +152,7 @@ def test_calmar():
 def test_calmar_2_entities():
     data = create_input_dataframe(2)
     margins_by_variable = create_margins(2)
-    pondfin_out, lambdasol, margins_new_dict = calmar(
+    pondfin_out, _lambdasol, _margins_new_dict = calmar(
         data,
         margins_by_variable,
         method="raking ratio",

@@ -13,7 +13,7 @@ import yaml
 
 from .tables import Table
 
-ident_re = re.compile(r"(?i)ident\d{2,4}$")  # noqa
+ident_re = re.compile(r"(?i)ident\d{2,4}$")
 
 log = logging.getLogger(__name__)
 
@@ -35,16 +35,13 @@ class NoMoreDataError(Exception):
     pass
 
 
-class Survey(object):
+class Survey:
     """An object to describe survey data"""
 
     hdf5_file_path = None
     parquet_file_path = None
-    informations = {}
     label = None
     name = None
-    tables = collections.OrderedDict()
-    tables_index = {}
     survey_collection = None
 
     def __init__(
@@ -52,7 +49,9 @@ class Survey(object):
     ):
         assert name is not None, "A survey should have a name"
         self.name = name
-        self.tables = {}
+        self.tables = collections.OrderedDict()
+        self.informations = {}
+        self.tables_index = {}
 
         if label is not None:
             self.label = label

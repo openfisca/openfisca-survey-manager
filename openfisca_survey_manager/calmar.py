@@ -187,29 +187,25 @@ def calmar(
     # remove null weights and keep original data
     null_weight_observations = data_in[target_entity][initial_weight].isnull().sum()
     if null_weight_observations > 0:
-        log.info("{} observations have a NaN weight. Not used in the calibration.".format(null_weight_observations))
+        log.info(f"{null_weight_observations} observations have a NaN weight. Not used in the calibration.")
 
     is_non_zero_weight = data_in[target_entity][initial_weight].fillna(0) > 0
     if is_non_zero_weight.sum() > null_weight_observations:
-        log.info(
-            "{} observations have a zero weight. Not used in the calibration.".format(
-                (data_in[target_entity][initial_weight].fillna(0) <= 0).sum() - null_weight_observations
-            )
-        )
+        zero_weight_count = (data_in[target_entity][initial_weight].fillna(0) <= 0).sum() - null_weight_observations
+        log.info(f"{zero_weight_count} observations have a zero weight. Not used in the calibration.")
 
     variables = set(margins.keys()).intersection(set(data_in[target_entity].columns))
     for variable in variables:
         null_value_observations = data_in[target_entity][variable].isnull().sum()
         if null_value_observations > 0:
             log.info(
-                "For variable {}, {} observations have a NaN value. Not used in the calibration.".format(
-                    variable, null_value_observations
-                )
+                f"For variable {variable}, {null_value_observations} observations have a NaN value. "
+                "Not used in the calibration."
             )
             is_non_zero_weight = is_non_zero_weight & data_in[target_entity][variable].notnull()
 
     if not is_non_zero_weight.all():
-        log.info("We drop {} observations.".format((~is_non_zero_weight).sum()))
+        log.info(f"We drop {(~is_non_zero_weight).sum()} observations.")
 
     data = {}
     if smaller_entity:
@@ -299,8 +295,8 @@ def calmar(
                     if pop != population:
                         if use_proportions:
                             log.info(
-                                "calmar: categorical variable {} is inconsistent with population; "
-                                "using proportions".format(var)
+                                f"calmar: categorical variable {var} is inconsistent with population; "
+                                "using proportions"
                             )
                             for cat, nb in val.items():
                                 cat_varname = var + "_" + str(cat)
@@ -308,9 +304,7 @@ def calmar(
                                 margins_new_dict[var][cat] = nb * population / pop
                         else:
                             raise Exception(
-                                "calmar: categorical variable {} weights sums up to {} != {}".format(
-                                    var, pop, population
-                                )
+                                f"calmar: categorical variable {var} weights sums up to {pop} != {population}"
                             )
                 else:
                     margins_new[var] = val
@@ -383,7 +377,7 @@ def calmar(
         err_max = sorted_err[0][1]
 
     if ier == 2 or ier == 5 or ier == 4:
-        log.debug("optimization converged after {} tries".format(tries))
+        log.debug(f"optimization converged after {tries} tries")
 
     # rebuilding a weight vector with the same size of the initial one
     pondfin_out = array(data_in[target_entity][initial_weight], dtype=float64)

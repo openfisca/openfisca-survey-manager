@@ -2,6 +2,7 @@ import collections
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -13,7 +14,7 @@ log = logging.getLogger(__name__)
 #  * Localisation
 
 
-class AbstractAggregates(object):
+class AbstractAggregates:
     aggregate_variables = None
     amount_unit = 1e6
     currency = None
@@ -49,8 +50,8 @@ class AbstractAggregates(object):
 
         self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         if self.labels is None:
-            amount_unit_str = "({} {})".format(self.amount_unit, self.currency)
-            beneficiaries_unit_str = "({})".format(self.beneficiaries_unit)
+            amount_unit_str = f"({self.amount_unit} {self.currency})"
+            beneficiaries_unit_str = f"({self.beneficiaries_unit})"
             self.labels = collections.OrderedDict(
                 (
                     ("label", "Mesure"),
@@ -128,7 +129,7 @@ class AbstractAggregates(object):
             list(data_frame_by_simulation_type.values()),
             axis=1,
             sort=True,
-        ).loc[self.aggregate_variables]
+        ).loc[list(self.aggregate_variables)]
         return self.base_data_frame
 
     def compute_difference(
@@ -177,7 +178,7 @@ class AbstractAggregates(object):
         return difference_data_frame
 
     def compute_variable_aggregates(
-        self, variable: str, use_baseline: bool = False, filter_by: str = None
+        self, variable: str, use_baseline: bool = False, filter_by: Optional[str] = None
     ) -> pd.DataFrame:
         """
         Return aggregate spending, and number of beneficiaries for the relevant entity level.
@@ -192,7 +193,7 @@ class AbstractAggregates(object):
             pd.DataFrame: The amount and beneficiaries for the variable
         """
         if len(self.simulations) == 1:
-            simulation = list(self.simulations.values())[0]
+            simulation = next(iter(self.simulations.values()))
         elif use_baseline:
             simulation = self.simulations["baseline"]
         else:
@@ -249,8 +250,8 @@ class AbstractAggregates(object):
         else:
             filter_dummy_array = 1
 
-        assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
-            filter_dummy_variable, entity_key
+        assert np.isfinite(filter_dummy_array).all(), (
+            f"The are non finite values in variable {filter_dummy_variable} for entity {entity_key}"
         )
 
         amount = int((data[variable] * data[weight] * filter_dummy_array / self.amount_unit).sum())
@@ -275,9 +276,9 @@ class AbstractAggregates(object):
         return pd.DataFrame(
             [
                 "OpenFisca",
-                "Calculé le %s à %s" % (now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
-                "Système socio-fiscal au %s" % self.simulation.period.start.year,
-                "Données d'enquêtes de l'année %s" % str(self.data_year),
+                "Calculé le {} à {}".format(now.strftime("%d-%m-%Y"), now.strftime("%H:%M")),
+                f"Système socio-fiscal au {self.simulation.period.start.year}",
+                f"Données d'enquêtes de l'année {self.data_year!s}",
             ]
         )
 
@@ -412,7 +413,7 @@ class AbstractAggregates(object):
             use_baseline=target == "baseline",
             reform=target == "reform",
         )
-        return df["{}_amount".format(target)] / df["actual_amount"]
+        return df[f"{target}_amount"] / df["actual_amount"]
 
     def get_data_frame(
         self,
@@ -498,10 +499,10 @@ class AbstractAggregates(object):
 
         if formatting:
             relative_columns = [column for column in df.columns if "relative" in column]
-            df[relative_columns] = df[relative_columns].map(lambda x: "{:.2%}".format(x) if str(x) != "nan" else "nan")
+            df[relative_columns] = df[relative_columns].map(lambda x: f"{x:.2%}" if str(x) != "nan" else "nan")
             for column in df.columns:
                 if issubclass(np.dtype(df[column]).type, np.number):
-                    df[column] = df[column].apply(lambda x: "{:d}".format(int(round(x))) if str(x) != "nan" else "nan")
+                    df[column] = df[column].apply(lambda x: f"{round(x):d}" if str(x) != "nan" else "nan")
 
         if not ignore_labels:
             df = df.rename(columns=self.labels)
@@ -511,7 +512,7 @@ class AbstractAggregates(object):
     def load_actual_data(self, period=None):
         pass
 
-    def compute_winners_losers(self, variable: str, filter_by: str = None):
+    def compute_winners_losers(self, variable: str, filter_by: Optional[str] = None):
         if "reform" not in self.simulations or "baseline" not in self.simulations:
             log.warning("Cannot compute winners and losers without a reform and a baseline simulation.")
             return pd.DataFrame()
@@ -545,7 +546,7 @@ class AbstractAggregates(object):
         )
         return winners_losers_df
 
-    def compute_all_winners_losers(self, filter_by: str = None):
+    def compute_all_winners_losers(self, filter_by: Optional[str] = None):
         all_winners_losers = pd.DataFrame()
         for variable in self.aggregate_variables:
             winners_losers = self.compute_winners_losers(variable, filter_by=filter_by)

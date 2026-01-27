@@ -11,25 +11,16 @@ from openfisca_survey_manager.calmar import calmar
 log = logging.getLogger(__name__)
 
 
-class Calibration(object):
+class Calibration:
     """An object to calibrate survey data of a SurveyScenario."""
 
     filter_by = None
     initial_entity_count = None
     _initial_weight_name = None
-    initial_weight_by_entity = {}
-    target_margins = {}
-    margins_by_variable = {}
-    parameters = {
-        "use_proportions": True,
-        "initial_weight": None,
-        "method": None,  # 'linear', 'raking ratio', 'logit', 'hyperbolic sinus'
-        "up": None,
-        "invlo": None,
-        "alpha": None,
-        "id_variable": None,
-        "id_variable_link": None,
-    }
+    initial_weight_by_entity = None
+    target_margins = None
+    margins_by_variable = None
+    parameters = None
     period = None
     simulation = None
     target_entity_count = None
@@ -50,7 +41,19 @@ class Calibration(object):
         entity=None,
     ):
         target_entity = entity
-        self.parameters = parameters
+        self.parameters = parameters or {
+            "use_proportions": True,
+            "initial_weight": None,
+            "method": None,  # 'linear', 'raking ratio', 'logit', 'hyperbolic sinus'
+            "up": None,
+            "invlo": None,
+            "alpha": None,
+            "id_variable": None,
+            "id_variable_link": None,
+        }
+        self.initial_weight_by_entity = {}
+        self.target_margins = target_margins
+        self.margins_by_variable = {}
         self.period = period
         self.simulation = simulation
         margin_variables = list(target_margins.keys()) if target_margins else []
@@ -101,14 +104,14 @@ class Calibration(object):
                 "There is no inclusion of one entity in the other"
             )
             assert len(id_variable) < len(id_variable_link), (
-                "{} seems to be included in {}, not the opposite. "
-                "Try reverse 'id_variable' and 'id_variable_link'".format(entity_id_variable_link, entity_id_variable)
+                f"{entity_id_variable_link} seems to be included in {entity_id_variable}, not the opposite. "
+                "Try reverse 'id_variable' and 'id_variable_link'"
             )
             target_entity = entity_id_variable
         elif len(entities) > 2:
             raise NotImplementedError("Cannot handle multiple entities")
         else:
-            target_entity = list(entities)[0]
+            target_entity = next(iter(entities))
             if "id_variable" in parameters:
                 assert variable_instance_by_variable_name[parameters["id_variable"]].entity.key == target_entity, (
                     "'id_variable' isn't the id of the entity targeted by the calibration variables"
@@ -264,7 +267,7 @@ class Calibration(object):
         for var in list_var:
             expr_categ = var + "[ ]*[<>=!]+"
             true_var = simulation.tax_benefit_system.variables[var]
-            if [var] != list_var and true_var.value_type in [bool, Enum] or true_var.unit in ["years", "months"]:
+            if ([var] != list_var and true_var.value_type in [bool, Enum]) or true_var.unit in ["years", "months"]:
                 assert len(re.findall(expr_categ, variable)) > 0, (
                     "A categorical variable is used in an expression without direct condition "
                     "on its value. Please use inequality operator to transform it into float"
@@ -403,7 +406,7 @@ class Calibration(object):
         if self.other_entity_count:
             margins["total_population_smaller_entity"] = self.other_entity_count
 
-        val_pondfin, lambdasol, updated_margins = calmar(data, margins, **parameters)
+        val_pondfin, _lambdasol, updated_margins = calmar(data, margins, **parameters)
         # Updating only after filtering weights
         self.weight = val_pondfin * self.filter_by + self.weight * (logical_not(self.filter_by))
 
