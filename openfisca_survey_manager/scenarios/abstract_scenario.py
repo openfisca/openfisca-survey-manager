@@ -112,7 +112,7 @@ class AbstractSurveyScenario:
 
         if parameters is not None:
             assert parameters["method"] in ["linear", "raking ratio", "logit", "hyperbolic sinus"], (
-                "Incorect parameter value: method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
+                "Incorrect parameter value: method should be 'linear', 'raking ratio', 'logit' or 'hyperbolic sinus'"
             )
             if parameters["method"] == "logit":
                 assert parameters["invlo"] is not None

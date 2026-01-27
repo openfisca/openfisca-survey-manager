@@ -65,7 +65,7 @@ Contains the following surveys :
             self.config = Config(config_files_directory=config_files_directory)
 
         if json_file_path is None:
-            assert self.json_file_path is not None, "A json_file_path shoud be provided"
+            assert self.json_file_path is not None, "A json_file_path should be provided"
         else:
             self.json_file_path = json_file_path
 
