@@ -87,6 +87,7 @@ jobs:
         run: make test
       - name : coverage
         run: coveralls
+        continue-on-error: true  # Do not fail the job when Coveralls API returns 422 (e.g. token/quota)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_SERVICE_NAME: github-actions
