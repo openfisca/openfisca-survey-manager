@@ -104,7 +104,8 @@ class Calibration:
             # Keep vectorized numpy (unique + isin) to avoid Python-level loops.
             id_link_unique = numpy.unique(id_variable_link)
             id_var_unique = numpy.unique(id_variable)
-            assert numpy.all(numpy.isin(id_link_unique, id_var_unique)) and numpy.all(numpy.isin(id_var_unique, id_link_unique)), (
+            assert (numpy.all(numpy.isin(id_link_unique, id_var_unique)) and
+                numpy.all(numpy.isin(id_var_unique, id_link_unique))), (
                 "There is no inclusion of one entity in the other"
             )
             assert len(id_variable) < len(id_variable_link), (
