@@ -1,4 +1,9 @@
-# Changelog
+﻿# Changelog
+
+# 6.1.7 [#375](https://github.com/openfisca/openfisca-survey-manager/pull/375)
+
+* Technical changes
+  - Do a double inclusion to check id variables are correct in calibration
 
 # 6.1.6
 
