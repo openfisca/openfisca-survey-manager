@@ -1194,7 +1194,7 @@ def init_variable_in_entity(
                 f"{series.notnull().sum()} non NaN values in variable {variable_name}"
             )
             log.debug(
-                f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
+                f"We convert NaN values of variable {variable_name} to {variable.default_value} its default value"
             )
             series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
         assert series.notnull().all(), (

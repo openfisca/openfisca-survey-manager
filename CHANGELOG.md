@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+# 6.1.8 [#377](https://github.com/openfisca/openfisca-survey-manager/pull/377)
+
+* Technical changes
+  - Re-indent some code lines in simulation.
+
 # 6.1.7 [#375](https://github.com/openfisca/openfisca-survey-manager/pull/375)
 
 * Technical changes
