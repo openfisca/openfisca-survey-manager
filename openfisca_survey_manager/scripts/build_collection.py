@@ -240,13 +240,20 @@ def main():
         "--parquet",
         action="store_true",
         default=False,
-        help="save data in parquet format instead of HDF5 (HDF5 will no longer be the default format in a future version)",
+        help=(
+            "save data in parquet format instead of HDF5 "
+            "(HDF5 will no longer be the default format in a future version)"
+        ),
     )
     parser.add_argument(
         "--categorical-strategy",
         choices=["unique_labels", "codes", "skip"],
         default="unique_labels",
-        help="strategy for handling non-unique value labels: 'unique_labels' (default, add code suffix), 'codes' (use codes as categories), 'skip' (no categories)",
+        help=(
+            "strategy for handling non-unique value labels: "
+            "'unique_labels' (default, add code suffix), "
+            "'codes' (use codes as categories), 'skip' (no categories)"
+        ),
     )
 
     args = parser.parse_args()
@@ -275,15 +282,16 @@ def main():
 
     # Determine store format based on argument
     store_format = "parquet" if args.parquet else "hdf5"
-    
+
     # Deprecation warning for HDF5 format
     if not args.parquet:
         import warnings
+
         warnings.warn(
             "HDF5 will no longer be the default format in a future version. "
             "Please use --parquet option to save data in parquet format.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         log.warning(
             "HDF5 will no longer be the default format in a future version. "
