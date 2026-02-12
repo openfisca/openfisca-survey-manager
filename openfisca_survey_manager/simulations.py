@@ -1193,14 +1193,14 @@ def init_variable_in_entity(
                 f"There are {series.isnull().sum()} NaN values for "
                 f"{series.notnull().sum()} non NaN values in variable {variable_name}"
             )
-        log.debug(
-            f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
+            log.debug(
+                f"We convert these NaN values of variable {variable_name} to {variable.default_value} its default value"
+            )
+            series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
+        assert series.notnull().all(), (
+            f"There are {series.isnull().sum()} NaN values for "
+            f"{series.notnull().sum()} non NaN values in variable {variable_name}"
         )
-        series = pd.to_numeric(series).fillna(variable.default_value).astype(variable.value_type)
-    assert series.notnull().all(), (
-        f"There are {series.isnull().sum()} NaN values for "
-        f"{series.notnull().sum()} non NaN values in variable {variable_name}"
-    )
 
     enum_variable_imputed_as_enum = variable.value_type == Enum and (
         isinstance(series.dtype, pd.CategoricalDtype)
