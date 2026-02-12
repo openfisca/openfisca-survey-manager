@@ -189,6 +189,13 @@ class Table:
 
         self._check_and_log(data_file, store_file_path=store_file_path)
         reader = reader_by_source_format[source_format]
+        # Extract categorical_strategy early - only stata format uses it
+        # Other formats (parquet, csv, etc.) don't support it and will error if passed
+        categorical_strategy = (
+            kwargs.pop("categorical_strategy", "unique_labels")
+            if source_format == "stata"
+            else kwargs.pop("categorical_strategy", None)
+        )
         try:
             if source_format == "csv":
                 try:
@@ -241,8 +248,7 @@ class Table:
                     kwargs.pop("encoding")
                 # Try to read with categoricals, handle non-unique labels with configurable strategy
                 if source_format == "stata":
-                    # Get categorical strategy from kwargs (default: 'unique_labels')
-                    categorical_strategy = kwargs.pop("categorical_strategy", "unique_labels")
+                    # categorical_strategy already extracted above
 
                     try:
                         # Try reading with default convert_categoricals (True) if not specified
