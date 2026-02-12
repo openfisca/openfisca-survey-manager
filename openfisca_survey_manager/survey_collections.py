@@ -82,6 +82,8 @@ Contains the following surveys :
         overwrite=False,
         keep_original_parquet_file=False,
         encoding=None,
+        store_format="hdf5",
+        categorical_strategy="unique_labels",
     ):
         if surveys is None:
             surveys = self.surveys
@@ -92,6 +94,8 @@ Contains the following surveys :
                 overwrite=overwrite,
                 keep_original_parquet_file=keep_original_parquet_file,
                 encoding=encoding,
+                store_format=store_format,
+                categorical_strategy=categorical_strategy,
             )
         self.dump()
 

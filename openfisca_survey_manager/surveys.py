@@ -98,6 +98,7 @@ Contains the following tables : \n"""
         keep_original_parquet_file=False,
         encoding=None,
         store_format="hdf5",
+        categorical_strategy="unique_labels",
     ):
         """
         Convert data from the source files to store format either hdf5 or parquet.
@@ -169,6 +170,7 @@ Contains the following tables : \n"""
                             clean=True,
                             overwrite=overwrite if isinstance(overwrite, bool) else table.name in overwrite,
                             encoding=encoding,
+                            categorical_strategy=categorical_strategy,
                         )
         self.dump()
 

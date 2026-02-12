@@ -1,4 +1,17 @@
-﻿# Changelog
+# Changelog
+
+# 6.1.8
+
+* Technical changes
+  - Add `--parquet` CLI option to `build-collection` command for parquet output format
+  - Add `--categorical-strategy` CLI option to `build-collection` command with three strategies:
+    - `unique_labels` (default): Makes value labels unique by adding code suffix (e.g., "Label (code)")
+    - `codes`: Uses numeric codes as categories
+    - `skip`: No categorical conversion (fallback behavior)
+  - Improve handling of Stata files with non-unique value labels by implementing configurable strategies
+  - Remove `encoding` parameter from `pandas.read_stata()` calls for pandas 2.0+ compatibility
+  - Add deprecation warning for HDF5 format (will no longer be the default in future versions)
+  - Convert object dtype columns with mixed types to string before saving to parquet to prevent ArrowTypeError
 
 # 6.1.8 [#377](https://github.com/openfisca/openfisca-survey-manager/pull/377)
 
