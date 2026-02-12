@@ -107,6 +107,8 @@ def build_survey_collection(
     source_format="sas",
     keep_original_parquet_file=False,
     encoding=None,
+    store_format="hdf5",
+    categorical_strategy="unique_labels",
 ):
     assert collection_name is not None
     assert data_directory_path_by_survey_suffix is not None
@@ -162,6 +164,8 @@ def build_survey_collection(
             overwrite=replace_data,
             keep_original_parquet_file=keep_original_parquet_file,
             encoding=encoding,
+            store_format=store_format,
+            categorical_strategy=categorical_strategy,
         )
     return survey_collection
 
@@ -232,6 +236,18 @@ def main():
     )
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="increase output verbosity")
     parser.add_argument("-e", "--encoding", default=None, help="encoding to be used")
+    parser.add_argument(
+        "--parquet",
+        action="store_true",
+        default=False,
+        help="save data in parquet format instead of HDF5 (HDF5 will no longer be the default format in a future version)",
+    )
+    parser.add_argument(
+        "--categorical-strategy",
+        choices=["unique_labels", "codes", "skip"],
+        default="unique_labels",
+        help="strategy for handling non-unique value labels: 'unique_labels' (default, add code suffix), 'codes' (use codes as categories), 'skip' (no categories)",
+    )
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING, stream=sys.stdout)
@@ -257,6 +273,23 @@ def main():
 
     start_time = datetime.datetime.now()
 
+    # Determine store format based on argument
+    store_format = "parquet" if args.parquet else "hdf5"
+    
+    # Deprecation warning for HDF5 format
+    if not args.parquet:
+        import warnings
+        warnings.warn(
+            "HDF5 will no longer be the default format in a future version. "
+            "Please use --parquet option to save data in parquet format.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        log.warning(
+            "HDF5 will no longer be the default format in a future version. "
+            "Please use --parquet option to save data in parquet format."
+        )
+
     try:
         build_survey_collection(
             collection_name=args.collection,
@@ -267,6 +300,8 @@ def main():
             config_files_directory=config_files_directory,
             keep_original_parquet_file=args.keep_original_parquet_file,
             encoding=args.encoding,
+            store_format=store_format,
+            categorical_strategy=args.categorical_strategy,
         )
     except Exception as e:
         log.info(e)

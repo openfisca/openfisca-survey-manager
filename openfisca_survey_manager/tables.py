@@ -120,6 +120,17 @@ class Table:
 
         assert store_format in ["hdf5", "parquet"], f"invalid store_format: {store_format}"
         if store_format == "hdf5":
+            import warnings
+            warnings.warn(
+                "HDF5 will no longer be the default format in a future version. "
+                "Please use parquet format instead.",
+                DeprecationWarning,
+                stacklevel=3
+            )
+            log.warning(
+                "HDF5 will no longer be the default format in a future version. "
+                "Please use parquet format instead."
+            )
             self.save_data_frame_to_hdf5(data_frame)
         else:
             parquet_file_path = self.survey.parquet_file_path
@@ -147,7 +158,8 @@ class Table:
 
         start_table_time = datetime.datetime.now()
         if self.source_format in ["sas", "parquet"]:
-            del kwargs["encoding"]
+            if "encoding" in kwargs:
+                del kwargs["encoding"]
         data_frame = self.read_source(data_file, **kwargs)
         try:
             if clean:
@@ -226,7 +238,90 @@ class Table:
                     data_frame = reader(data_file, **kwargs)
 
             else:
-                data_frame = reader(data_file, **kwargs)
+                # Remove encoding parameter for pandas 2.0+ compatibility (not supported in read_stata)
+                if "encoding" in kwargs and source_format == "stata":
+                    kwargs.pop("encoding")
+                # Try to read with categoricals, handle non-unique labels with configurable strategy
+                if source_format == "stata":
+                    # Get categorical strategy from kwargs (default: 'unique_labels')
+                    categorical_strategy = kwargs.pop("categorical_strategy", "unique_labels")
+                    
+                    try:
+                        # Try reading with default convert_categoricals (True) if not specified
+                        if "convert_categoricals" not in kwargs:
+                            data_frame = reader(data_file, **kwargs)
+                        else:
+                            data_frame = reader(data_file, **kwargs)
+                    except ValueError as e:
+                        if "not unique" in str(e) or "Categorical categories must be unique" in str(e):
+                            log.info(f"Non-unique value labels detected in {data_file}, using strategy '{categorical_strategy}'")
+                            
+                            # Read without categoricals first
+                            kwargs_no_cat = kwargs.copy()
+                            kwargs_no_cat["convert_categoricals"] = False
+                            data_frame = reader(data_file, **kwargs_no_cat)
+                            
+                            # Apply categorical strategy
+                            if categorical_strategy == "unique_labels":
+                                # Solution 2: Make labels unique by adding code suffix
+                                from pandas.io.stata import StataReader
+                                stata_reader = StataReader(data_file)
+                                value_labels = stata_reader.value_labels()
+                                
+                                for col_name, labels in value_labels.items():
+                                    if col_name in data_frame.columns:
+                                        unique_labels = {}
+                                        seen_labels = {}
+                                        
+                                        for code, label in labels.items():
+                                            if pandas.isna(code):
+                                                unique_labels[code] = label
+                                            elif label in seen_labels:
+                                                # Duplicate label: add code as suffix
+                                                unique_labels[code] = f"{label} ({code})"
+                                            else:
+                                                unique_labels[code] = label
+                                                seen_labels[label] = code
+                                        
+                                        # Create mapping code -> unique label
+                                        code_to_label = {
+                                            code: unique_labels[code] 
+                                            for code in sorted(labels.keys())
+                                        }
+                                        
+                                        # Map codes to unique labels and create categories
+                                        data_frame[col_name] = data_frame[col_name].map(code_to_label)
+                                        data_frame[col_name] = pandas.Categorical(
+                                            data_frame[col_name],
+                                            categories=list(code_to_label.values()),
+                                            ordered=False
+                                        )
+                            
+                            elif categorical_strategy == "codes":
+                                # Solution 1: Use codes as categories
+                                from pandas.io.stata import StataReader
+                                stata_reader = StataReader(data_file)
+                                value_labels = stata_reader.value_labels()
+                                
+                                for col_name, labels in value_labels.items():
+                                    if col_name in data_frame.columns:
+                                        codes = sorted([c for c in labels.keys() if pandas.notna(c)])
+                                        if codes:
+                                            data_frame[col_name] = pandas.Categorical(
+                                                data_frame[col_name],
+                                                categories=codes,
+                                                ordered=False
+                                            )
+                            
+                            elif categorical_strategy == "skip":
+                                # Keep as-is (no categories)
+                                pass
+                            else:
+                                log.warning(f"Unknown categorical_strategy '{categorical_strategy}', using 'skip'")
+                        else:
+                            raise
+                else:
+                    data_frame = reader(data_file, **kwargs)
 
         except Exception as e:
             log.info(f"Error while reading {data_file}")
@@ -273,7 +368,18 @@ class Table:
                 f"{parquet_file_path} where to store table {self.name} data does not exist: we create the directory"
             )
             Path(parquet_file_path).mkdir(parents=True)
-        self.parquet_file = parquet_file_path + "/" + self.name
+        self.parquet_file = parquet_file_path + "/" + self.name + ".parquet"
+        
+        # Convert object columns with mixed types to string to avoid pyarrow errors
+        for col in data_frame.columns:
+            if data_frame[col].dtype == 'object':
+                try:
+                    # Try to convert to string if it's a mixed type
+                    data_frame[col] = data_frame[col].astype(str)
+                except Exception:
+                    # If conversion fails, keep as object but replace problematic values
+                    data_frame[col] = data_frame[col].apply(lambda x: str(x) if pandas.notna(x) else None)
+        
         data_frame.to_parquet(self.parquet_file)
         self.variables = list(data_frame.columns)
 
