@@ -1,6 +1,6 @@
-# Changelog
+﻿# Changelog
 
-# 6.2.0
+# 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)
 
 * New features
   - Add `--parquet` CLI option to `build-collection` command for parquet output format
