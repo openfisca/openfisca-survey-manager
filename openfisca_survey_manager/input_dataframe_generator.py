@@ -263,7 +263,7 @@ def set_table_in_survey(
         collections_directory.is_dir()
     ), f"""{collections_directory} who should be the collections' directory does not exist.
 Fix the option collections_directory in the collections section of your config file."""
-    collection_json_path = collections_directory / f"{collection}.json"
+    collection_json_path = Path(collections_directory / f"{collection}.json")
     survey_collection.dump(json_file_path=collection_json_path)
 
 
