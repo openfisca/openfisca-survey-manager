@@ -72,7 +72,7 @@ Contains the following surveys :
         config.set("collections", self.name, str(self.json_file_path))
         config.save()
         with codecs.open(str(self.json_file_path), "w", encoding="utf-8") as _file:
-            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
+            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2, default=str)
 
     def fill_store(
         self,
