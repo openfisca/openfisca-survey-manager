@@ -1,5 +1,14 @@
 # Changelog
 
+# 6.4.0
+
+* Refactor (no breaking API changes)
+  - **io/hdf**: Extract HDF5 write logic into `io.hdf` (`write_table_to_hdf5`); `io.writers` re-exports for compatibility
+  - **processing/harmonization**: Add `harmonize_data_frame_columns` (lowercase, rename ident); used in `Survey.get_values`; export from `processing`
+  - **core**: Add `core.table`, `core.survey`, `core.dataset` (Table, Survey, NoMoreDataError, SurveyCollection); root `tables.py`, `surveys.py`, `survey_collections.py` re-export for compatibility
+  - **Logging**: Extend to all modules — add logger to `configuration.models`, `google_colab`, `statshelpers`; fix typo "folloging" → "following" in `core.table`
+  - **Docs**: Add `docs/MIGRATION_IMPORTS.md` (import mapping and steps when re-exports will be removed, with breaking-change warning); update `REFACTORING_PLAN.md` (§3.4 Logging done)
+
 # 6.3.0
 
 * New structure and cleanup (refactor, no breaking API changes)
