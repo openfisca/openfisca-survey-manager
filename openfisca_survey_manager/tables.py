@@ -15,6 +15,7 @@ from pyarrow import parquet as pq
 
 from openfisca_survey_manager import read_sas
 from openfisca_survey_manager.exceptions import SurveyIOError
+from openfisca_survey_manager.io.writers import write_table_to_hdf5, write_table_to_parquet
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
 
 try:
@@ -341,52 +342,23 @@ class Table:
         hdf5_file_path = self.survey.hdf5_file_path
         log.info(f"Inserting table {self.name} in HDF file {hdf5_file_path}")
         store_path = self.name
-        try:
-            data_frame.to_hdf(hdf5_file_path, store_path, append=False, **kwargs)
-        except (TypeError, NotImplementedError):
-            log.info(f"Type problem(s) when creating {store_path} in {hdf5_file_path}")
-            dtypes = data_frame.dtypes
-            # Checking for strings
-            converted_dtypes = dtypes.isin(["mixed", "unicode"])
-            if converted_dtypes.any():
-                log.info(f"The following types are converted to strings \n {dtypes[converted_dtypes]}")
-                # Conversion to strings
-                for column in dtypes[converted_dtypes].index:
-                    data_frame[column] = data_frame[column].copy().astype(str)
-
-            # Checking for remaining categories
-            dtypes = data_frame.dtypes
-            converted_dtypes = dtypes.isin(["category"])
-            if not converted_dtypes.empty:  # With category table format is needed
-                log.info(
-                    f"The following types are added as category using the table format\n {dtypes[converted_dtypes]}"
-                )
-                data_frame.to_hdf(hdf5_file_path, store_path, append=False, format="table", **kwargs)
+        write_table_to_hdf5(
+            data_frame,
+            hdf5_file_path=hdf5_file_path,
+            store_path=store_path,
+            **kwargs,
+        )
 
         self.variables = list(data_frame.columns)
 
     def save_data_frame_to_parquet(self, data_frame):
         """Save a data frame in the Parquet file format."""
         parquet_file_path = self.survey.parquet_file_path
-
-        if not Path(parquet_file_path).is_dir():
-            log.warn(
-                f"{parquet_file_path} where to store table {self.name} data does not exist: we create the directory"
-            )
-            Path(parquet_file_path).mkdir(parents=True)
-        self.parquet_file = parquet_file_path + "/" + self.name + ".parquet"
-
-        # Convert object columns with mixed types to string to avoid pyarrow errors
-        for col in data_frame.columns:
-            if data_frame[col].dtype == "object":
-                try:
-                    # Try to convert to string if it's a mixed type
-                    data_frame[col] = data_frame[col].astype(str)
-                except Exception:
-                    # If conversion fails, keep as object but replace problematic values
-                    data_frame[col] = data_frame[col].apply(lambda x: str(x) if pandas.notna(x) else None)
-
-        data_frame.to_parquet(self.parquet_file)
+        self.parquet_file = write_table_to_parquet(
+            data_frame,
+            parquet_dir_path=parquet_file_path,
+            table_name=self.name,
+        )
         self.variables = list(data_frame.columns)
 
         self.survey.tables[self.name]["parquet_file"] = self.parquet_file
