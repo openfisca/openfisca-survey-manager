@@ -15,6 +15,7 @@ from pyarrow import parquet as pq
 
 from openfisca_survey_manager import read_sas
 from openfisca_survey_manager.exceptions import SurveyIOError
+from openfisca_survey_manager.processing.cleaning import clean_data_frame
 
 try:
     from openfisca_survey_manager.read_spss import read_spss
@@ -390,41 +391,3 @@ class Table:
 
         self.survey.tables[self.name]["parquet_file"] = self.parquet_file
         self.survey.tables[self.name]["variables"] = self.variables
-
-
-def clean_data_frame(data_frame):
-    """Clean a data frame.
-
-    The following steps are executed:
-    - drop empty columns
-    - replace empty strings with zeros
-    - convert string columns to integers
-    """
-    data_frame.columns = data_frame.columns.str.lower()
-    object_column_names = list(data_frame.select_dtypes(include=["object"]).columns)
-    log.info(f"The following variables are to be cleaned or left as strings : \n {object_column_names}")
-    for column_name in object_column_names:
-        if data_frame[column_name].isnull().all():  #
-            log.info(f"Drop empty column {column_name}")
-            data_frame.drop(column_name, axis=1, inplace=True)
-            continue
-
-        values = [str(value) for value in data_frame[column_name].value_counts()]
-        empty_string_present = "" in values
-        if empty_string_present:
-            values.remove("")
-        all_digits = all(value.strip().isdigit() for value in values)
-        no_zero = all(value != 0 for value in values)
-        if all_digits and no_zero:
-            log.info(f"Replacing empty string with zero for variable {column_name}")
-            data_frame.replace(
-                to_replace={column_name: {"": 0}},
-                inplace=True,
-            )
-            log.info(f"Converting string variable {column_name} to integer")
-            try:
-                data_frame[column_name] = data_frame[column_name].astype("int")
-            except (OverflowError, ValueError):
-                log.info(
-                    f"OverflowError when converting {column_name} to int. Keeping as {data_frame[column_name].dtype}"
-                )
