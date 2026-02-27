@@ -98,6 +98,9 @@ docs/
 
 # ctags file
 .tags*
+
+# Ignore markdown files in docs
+docs/*.md
 /tags
 tags
 .venv
