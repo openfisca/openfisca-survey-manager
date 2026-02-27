@@ -47,6 +47,12 @@ openfisca_survey_manager/
 
 Le déplacement effectif des modules se fera par étapes pour garder la compatibilité des imports.
 
+**Réalisé** :
+- `io/readers.py` : `read_sas`, `read_spss`, `read_dbf` (anciens modules en ré-export).
+- `common/misc.py` : helpers sans dépendance survey (`do_nothing`, `inflate_parameters`, `asof`, `parameters_asof`, `variables_asof`, `stata_files_to_data_frames`) ; `utils.py` importe depuis `common.misc` et garde `load_table`.
+- **Nettoyage** : `print()` remplacés par `logging` (matching, calmar, scenarios, scripts/build_collection, simulations). Exceptions génériques remplacées par `SurveyManagerError` / `SurveyConfigError` / `SurveyIOError` (survey_collections, tables, simulations, simulation_builder, surveys, scenarios, calmar).
+- **processing/weights** : `calmar` et `Calibration` déplacés dans `processing/weights/calmar.py` et `processing/weights/calibration.py` ; `calibration.py` et `calmar.py` à la racine sont des ré-exports pour compatibilité.
+
 ---
 
 ## 2. Clarifier les responsabilités

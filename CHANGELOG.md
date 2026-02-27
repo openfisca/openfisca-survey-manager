@@ -1,4 +1,15 @@
-﻿# Changelog
+# Changelog
+
+# 6.3.0
+
+* New structure and cleanup (refactor, no breaking API changes)
+  - **io/readers**: Centralize `read_sas`, `read_spss`, `read_dbf` in `io.readers`; legacy modules re-export for compatibility
+  - **common/misc**: Extract shared helpers from `utils` (inflate_parameters, asof, parameters_asof, variables_asof, etc.); `utils` keeps `load_table` and re-exports
+  - **processing/weights**: Move calibration and CALMAR into `processing.weights` (calmar, Calibration); root `calibration.py` and `calmar.py` re-export for compatibility
+  - **Exceptions**: Add `SurveyManagerError`, `SurveyConfigError`, `SurveyIOError`; replace generic ValueError/Exception in survey_collections, tables, surveys, simulations, simulation_builder, scenarios, calmar
+  - **Logging**: Replace `print()` with structured logging in matching, calmar, scenarios, scripts/build_collection, simulations
+  - **Docs**: Add `docs/REFACTORING_PLAN.md`, `docs/TICKET_OPENFISCA_DATA_STACK.md` (vision OpenFisca Data Stack)
+  - **Tests**: Add `test_summarize_variable_log_output` to assert log content formerly checked by doctest; doctest example still runs (output now via logging)
 
 # 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)
 

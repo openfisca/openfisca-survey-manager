@@ -197,7 +197,7 @@ def check_template_config_files(config_files_directory: str):
                         templates_config_files_directory / template_file,
                         Path(config_files_directory) / template_file,
                     )
-            print("Rename and fill the template files in {}".format(config_files_directory))  # noqa analysis:ignore
+            log.info("Rename and fill the template files in %s", config_files_directory)
             return False
     else:
         Path(config_files_directory).mkdir(parents=True)
