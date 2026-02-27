@@ -52,6 +52,7 @@ Le déplacement effectif des modules se fera par étapes pour garder la compatib
 - `common/misc.py` : helpers sans dépendance survey (`do_nothing`, `inflate_parameters`, `asof`, `parameters_asof`, `variables_asof`, `stata_files_to_data_frames`) ; `utils.py` importe depuis `common.misc` et garde `load_table`.
 - **Nettoyage** : `print()` remplacés par `logging` (matching, calmar, scenarios, scripts/build_collection, simulations). Exceptions génériques remplacées par `SurveyManagerError` / `SurveyConfigError` / `SurveyIOError` (survey_collections, tables, simulations, simulation_builder, surveys, scenarios, calmar).
 - **processing/weights** : `calmar` et `Calibration` déplacés dans `processing/weights/calmar.py` et `processing/weights/calibration.py` ; `calibration.py` et `calmar.py` à la racine sont des ré-exports pour compatibilité.
+- **processing/cleaning** : `clean_data_frame` déplacé dans `processing/cleaning.py` ; `tables.py` importe depuis `processing.cleaning` (compatibilité conservée).
 
 ---
 
