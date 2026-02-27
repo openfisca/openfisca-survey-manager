@@ -1,7 +1,10 @@
 import configparser
+import logging
 from pathlib import Path
 
 from openfisca_survey_manager.paths import default_config_files_directory as config_files_directory
+
+log = logging.getLogger(__name__)
 
 
 def create_raw_data_ini(value_by_option_by_section=None):
@@ -19,5 +22,7 @@ def create_raw_data_ini(value_by_option_by_section=None):
             for option, value in value_by_option.items():
                 config_parser.set(section, option, value)
 
-    with (Path(config_files_directory) / "raw_data.ini").open("w") as raw_data_config_file:
+    path = Path(config_files_directory) / "raw_data.ini"
+    with path.open("w") as raw_data_config_file:
         config_parser.write(raw_data_config_file)
+    log.info("Wrote raw_data.ini to %s", path)
