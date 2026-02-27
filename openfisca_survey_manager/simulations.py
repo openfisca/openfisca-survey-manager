@@ -17,6 +17,7 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 from openfisca_core.types import CoreEntity as Entity
 
+from openfisca_survey_manager.exceptions import SurveyManagerError
 from openfisca_survey_manager.simulation_builder import SimulationBuilder, diagnose_variable_mismatch
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -980,7 +981,9 @@ def _input_data_table_by_entity_by_period_batch(
     filtered_entity = input_data_table_by_entity.get("filtered_entity")
     filtered_entity_on_key = input_data_table_by_entity.get("filtered_entity_on_key")
     if not batch_entity or not batch_entity_key or not filtered_entity or not filtered_entity_on_key:
-        raise ValueError("batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required")
+        raise SurveyManagerError(
+            "batch_entity, batch_entity_key, filtered_entity and filtered_entity_on_key are required"
+        )
     simulation_datasets = {
         batch_entity: {
             "table_key": batch_entity_key,
@@ -1329,7 +1332,7 @@ def print_memory_usage(simulation: Simulation):
         )
     infos_lines.sort()
     for _, _, line in infos_lines:
-        print(line.rjust(100))  # noqa analysis:ignore
+        log.info("%s", line.rjust(100))
 
 
 def set_weight_variable_by_entity(
@@ -1368,8 +1371,12 @@ def summarize_variable(
     value_type = variable_instance.value_type
 
     if variable_instance.is_neutralized:
-        print("")  # noqa analysis:ignore
-        print("{}: neutralized variable ({}, default = {})".format(variable, str(np.dtype(value_type)), default_value))  # noqa analysis:ignore
+        log.info(
+            "%s: neutralized variable (%s, default = %s)",
+            variable,
+            str(np.dtype(value_type)),
+            default_value,
+        )
         return
 
     if weighted:
@@ -1383,7 +1390,10 @@ def summarize_variable(
             simulation.summarize_variable(variable=variable, weighted=weighted)
             return
         else:
-            print("{} is not computed yet. Use keyword argument force_compute = True".format(variable))  # noqa analysis:ignore
+            log.info(
+                "%s is not computed yet. Use keyword argument force_compute = True",
+                variable,
+            )
             return
 
     header_line = "{}: {} periods * {} cells * item size {} ({}, default = {}) = {}".format(
@@ -1395,9 +1405,8 @@ def summarize_variable(
         default_value,
         humanize.naturalsize(infos["total_nb_bytes"], gnu=True),
     )
-    print("")  # noqa analysis:ignore
-    print(header_line)  # noqa analysis:ignore
-    print("Details:")  # noqa analysis:ignore
+    log.info("%s", header_line)
+    log.info("Details:")
     holder = simulation.get_holder(variable)
     if holder is not None:
         if holder.variable.definition_period == ETERNITY:
@@ -1406,7 +1415,7 @@ def summarize_variable(
             for period in sorted(simulation.get_known_periods(variable)):
                 array = holder.get_array(period)
                 if array.shape == ():
-                    print("{}: always = {}".format(period, array))  # noqa analysis:ignore
+                    log.info("%s: always = %s", period, array)
                     continue
 
                 if value_type == Enum:
@@ -1422,7 +1431,7 @@ def summarize_variable(
                     groupby = df.groupby(variable)["weights"].sum()
                     total = groupby.sum()
                     expr = [f" {index} = {row:.2e} ({row / total:.1%})" for index, row in groupby.items()]
-                    print("{}: {}.".format(period, ",".join(expr)))  # noqa analysis:ignore
+                    log.info("%s: %s.", period, ",".join(expr))
                     continue
 
                 # Handle numeric types
@@ -1435,7 +1444,7 @@ def summarize_variable(
                     f"default = {(array == default_array).sum() / len(array):.1%}, "
                     f"median = {np.median(array)}"
                 )
-                print(f"{period}: mean = {mean_val}, {stats_val}")  # noqa T201
+                log.info("%s: mean = %s, %s", period, mean_val, stats_val)
 
 
 # Monkey patching

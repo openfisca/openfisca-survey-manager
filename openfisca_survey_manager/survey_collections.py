@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 
 from openfisca_survey_manager.config import Config
+from openfisca_survey_manager.exceptions import SurveyConfigError
 from openfisca_survey_manager.paths import default_config_files_directory
 from openfisca_survey_manager.surveys import Survey
 
@@ -124,7 +125,7 @@ Contains the following surveys :
                 msg = f"Looking for config file in {config_files_directory}"
                 log.debug(msg)
                 log.error(error)
-                raise Exception(msg) from error
+                raise SurveyConfigError(msg) from error
 
         with Path(json_file_path).open("r") as _file:
             self_json = json.load(_file)

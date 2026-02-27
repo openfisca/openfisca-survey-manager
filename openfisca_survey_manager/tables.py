@@ -14,6 +14,7 @@ from chardet.universaldetector import UniversalDetector
 from pyarrow import parquet as pq
 
 from openfisca_survey_manager import read_sas
+from openfisca_survey_manager.exceptions import SurveyIOError
 
 try:
     from openfisca_survey_manager.read_spss import read_spss
@@ -201,8 +202,8 @@ class Table:
                 try:
                     data_frame = reader(data_file, **kwargs)
 
-                    if len(data_frame.columns) == 1 and ";" in len(data_frame.columns[0]):
-                        raise ValueError(
+                    if len(data_frame.columns) == 1 and ";" in data_frame.columns[0]:
+                        raise SurveyIOError(
                             "A ';' is present in the unique column name. Looks like we got the wrong separator."
                         )
 

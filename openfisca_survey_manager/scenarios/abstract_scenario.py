@@ -12,6 +12,7 @@ from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simu
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 
 from openfisca_survey_manager.calibration import Calibration
+from openfisca_survey_manager.exceptions import SurveyManagerError
 from openfisca_survey_manager.simulations import Simulation
 from openfisca_survey_manager.surveys import Survey
 
@@ -505,7 +506,7 @@ class AbstractSurveyScenario:
 
     def generate_performance_data(self, output_dir: str):
         if not self.trace:
-            raise ValueError("Method generate_performance_data cannot be used if trace hasn't been activated.")
+            raise SurveyManagerError("Method generate_performance_data cannot be used if trace hasn't been activated.")
 
         for simulation_name, simulation in self.simulations.items():
             simulation_dir = Path(output_dir) / f"{simulation_name}_perf_log"
@@ -643,9 +644,9 @@ class AbstractSurveyScenario:
         return simulation
 
     def memory_usage(self):
-        """Print memory usage."""
+        """Log memory usage."""
         for simulation_name, simulation in self.simulations.items():
-            print(f"simulation : {simulation_name}")  # noqa analysis:ignore
+            log.info("simulation: %s", simulation_name)
             simulation.print_memory_usage()
 
     def neutralize_variables(self, tax_benefit_system):
@@ -721,33 +722,20 @@ class AbstractSurveyScenario:
                 simulation.set_weight_variable_by_entity(self.weight_variable_by_entity)
 
     def summarize_variable(self, variable=None, weighted=False, force_compute=False):
-        """Print a summary of a variable including its memory usage for all the siulations.
+        """Log a summary of a variable including its memory usage for all the simulations.
 
         Args:
           variable(string): The variable being summarized
           weighted(bool): Whether the produced statistics should be weigthted or not
           force_compute(bool): Whether the computation of the variable should be forced
 
-        Example:
+        Example (output is sent to the logging system at INFO level):
             >>> from openfisca_survey_manager.tests.test_scenario import create_randomly_initialized_survey_scenario
             >>> survey_scenario = create_randomly_initialized_survey_scenario(collection = None)
             >>> survey_scenario.summarize_variable(variable = "housing_occupancy_status", force_compute = True)
-            <BLANKLINE>
-            housing_occupancy_status: 1 periods * 5 cells * item size 2
-            (int16, default = HousingOccupancyStatus.tenant) = 10B
-            Details:
-            2017-01:  owner = 1.00e+00 (20.0%), tenant = 1.00e+00 (20.0%),
-            free_lodger = 2.00e+00 (40.0%), homeless = 1.00e+00 (20.0%).
             >>> survey_scenario.summarize_variable(variable = "rent", force_compute = True)
-            <BLANKLINE>
-            rent: 1 periods * 5 cells * item size 4 (float32, default = 0) = 20B
-            Details:
-            2017-01: mean = 562.3850708007812, min = 156.01864624023438, max = 950.7142944335938,
-            mass = 2.81e+03, default = 0.0%, median = 598.6585083007812
             >>> survey_scenario.tax_benefit_systems["baseline"].neutralize_variable('age')
             >>> survey_scenario.summarize_variable(variable = "age")
-            <BLANKLINE>
-            age: neutralized variable (int64, default = 0)
         """
         for _simulation_name, simulation in self.simulations.items():
             simulation.summarize_variable(variable, weighted, force_compute)

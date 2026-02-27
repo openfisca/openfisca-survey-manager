@@ -11,6 +11,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 
+from openfisca_survey_manager.exceptions import SurveyIOError, SurveyManagerError
+
 from .tables import Table
 
 ident_re = re.compile(r"(?i)ident\d{2,4}$")
@@ -219,7 +221,7 @@ Contains the following tables : \n"""
 
         """
         if self.parquet_file_path is None and self.hdf5_file_path is None:
-            raise Exception(f"No data file found for survey {self.name}")
+            raise SurveyIOError(f"No data file found for survey {self.name}")
         if self.hdf5_file_path is not None:
             assert Path(self.hdf5_file_path).exists(), (
                 f"{self.hdf5_file_path} is not a valid path. This could happen because "
@@ -234,11 +236,11 @@ Contains the following tables : \n"""
                     if match:
                         eligible_tables.append(match[0])
                 if len(eligible_tables) > 1:
-                    raise ValueError(
+                    raise SurveyManagerError(
                         f"{table} is ambiguous since the following tables are available: {eligible_tables}"
                     )
                 elif len(eligible_tables) == 0:
-                    raise ValueError(f"No eligible available table in {keys}")
+                    raise SurveyIOError(f"No eligible available table in {keys}")
                 else:
                     table = eligible_tables[0]
             try:
@@ -255,7 +257,7 @@ Contains the following tables : \n"""
 
         elif self.parquet_file_path is not None:
             if table is None:
-                raise Exception("A table name is needed to retrieve data from a parquet file")
+                raise SurveyIOError("A table name is needed to retrieve data from a parquet file")
             for table_name, table_content in self.tables.items():
                 if table == table_name:
                     parquet_file = table_content.get("parquet_file")
@@ -267,7 +269,7 @@ Contains the following tables : \n"""
                                 one_parquet_file = str(Path(parquet_file) / file)
                                 break
                         else:
-                            raise Exception(f"No parquet file found in {parquet_file}")
+                            raise SurveyIOError(f"No parquet file found in {parquet_file}")
                     else:
                         one_parquet_file = parquet_file
                     parquet_schema = pq.read_schema(one_parquet_file)
@@ -316,7 +318,7 @@ Contains the following tables : \n"""
                         df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
                     break
             else:
-                raise Exception(f"No table {table} found in {self.parquet_file_path}")
+                raise SurveyIOError(f"No table {table} found in {self.parquet_file_path}")
 
         if lowercase:
             columns = {column_name: column_name.lower() for column_name in df}
@@ -334,7 +336,7 @@ Contains the following tables : \n"""
         else:
             diff = set(variables) - set(df.columns)
             if diff:
-                raise Exception(f"The following variable(s) {diff} are missing")
+                raise SurveyIOError(f"The following variable(s) {diff} are missing")
             variables = list(set(variables).intersection(df.columns))
             df = df[variables]
             return df

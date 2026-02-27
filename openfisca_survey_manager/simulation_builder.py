@@ -3,6 +3,8 @@ import logging
 from openfisca_core.model_api import MONTH, YEAR
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
 
+from openfisca_survey_manager.exceptions import SurveyManagerError
+
 SimulationBuilder.id_variable_by_entity_key = None
 SimulationBuilder.role_variable_by_entity_key = None
 SimulationBuilder.used_as_input_variables = None
@@ -174,7 +176,7 @@ def init_all_entities(builder, input_data_frame, period=None):
             period=period,
         )
     else:
-        raise ValueError(f"Invalid period {period}")
+        raise SurveyManagerError(f"Invalid period {period}")
 
     simulation.id_variable_by_entity_key = builder.id_variable_by_entity_key
     return simulation
