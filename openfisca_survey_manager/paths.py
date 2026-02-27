@@ -1,74 +1,22 @@
-import logging
-import os
-import sys
-from pathlib import Path
+"""Re-export for backward compatibility.
 
-from xdg import BaseDirectory
+Prefer: from openfisca_survey_manager.configuration.paths import ...
+"""
 
-log = logging.getLogger(__name__)
+from openfisca_survey_manager.configuration.paths import (
+    config_ini,
+    default_config_files_directory,
+    is_in_ci,
+    openfisca_survey_manager_location,
+    private_run_with_data,
+    test_config_files_directory,
+)
 
-default_config_files_directory = None
-openfisca_survey_manager_location = Path(__file__).parent.parent
-
-
-# Hack for use at the CASD (shared user)
-# Use taxipp/.config/ directory if exists as default_config_files_directory
-try:
-    import taxipp
-
-    taxipp_location = Path(taxipp.__file__).parent.parent
-    default_config_files_directory = taxipp_location / ".config" / "openfisca-survey-manager"
-except ImportError:
-    taxipp_location = None
-
-if taxipp_location is None or not Path(default_config_files_directory).exists():
-    default_config_files_directory = None
-
-
-# Hack for using with france-data on a CI or locally
-try:
-    import openfisca_france_data
-
-    france_data_location = Path(openfisca_france_data.__file__).parent.parent
-
-    default_config_files_directory = BaseDirectory.save_config_path("openfisca-survey-manager")
-except ImportError:
-    france_data_location = None
-
-if france_data_location is None or not Path(default_config_files_directory).exists():
-    default_config_files_directory = None
-
-# Run CI when testing openfisca-survey-manager for example GitHub Actions
-test_config_files_directory = openfisca_survey_manager_location / "openfisca_survey_manager" / "tests" / "data_files"
-
-with (test_config_files_directory / "config_template.ini").open() as file:
-    config_ini = file.read()
-
-config_ini = config_ini.format(location=openfisca_survey_manager_location)
-try:
-    with (test_config_files_directory / "config.ini").open("w+") as file:
-        file.write(config_ini)
-except PermissionError:
-    log.debug(f"config.ini can't be written in the test config files directory{test_config_files_directory}")
-    pass
-
-# GitHub Actions test
-is_in_ci = "CI" in os.environ or os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
-private_run_with_data = False
-
-if (is_in_ci and default_config_files_directory is None) or ("pytest" in sys.modules):
-    if "CI_RUNNER_TAGS" in os.environ:
-        private_run_with_data = (
-            "data-in" in os.environ["CI_RUNNER_TAGS"]
-            # or ("data-out" in os.environ["CI_RUNNER_TAGS"])
-        )
-    if not private_run_with_data:
-        default_config_files_directory = test_config_files_directory
-
-if default_config_files_directory is None:
-    default_config_files_directory = BaseDirectory.save_config_path("openfisca-survey-manager")
-
-    log.debug(f"Using default_config_files_directory = {default_config_files_directory}")
-
-
-assert default_config_files_directory is not None
+__all__ = [
+    "config_ini",
+    "default_config_files_directory",
+    "is_in_ci",
+    "openfisca_survey_manager_location",
+    "private_run_with_data",
+    "test_config_files_directory",
+]
