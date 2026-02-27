@@ -1,9 +1,13 @@
+import logging
+
 import numpy as np
 import pandas as pd
 import weightedcalcs as wc
 import wquantiles
 from numpy import argsort, asarray, cumsum, linspace, ones, repeat, zeros
 from numpy import logical_and as and_
+
+log = logging.getLogger(__name__)
 
 
 def gini(values, weights=None):
