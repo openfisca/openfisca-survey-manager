@@ -9,6 +9,8 @@ from typing import Optional, Union
 
 log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
+
 
 class Config(configparser.ConfigParser):
     """Parser for config.ini; used by SurveyCollection and build scripts."""
