@@ -1,5 +1,13 @@
 # Changelog
 
+# 6.5.0
+
+* Typing (no breaking API changes)
+  - **core**: Type hints on `core.table` (Table), `core.survey` (Survey, NoMoreDataError), `core.dataset` (SurveyCollection); `TYPE_CHECKING` for circular refs; class attributes with defaults where needed
+  - **io**: Type hints on `io.readers` (read_sas, read_spss, read_dbf with `Optional[list[str]]` for cols); `io.writers` and `io.hdf` already typed
+  - **processing**: Type hints on `processing.cleaning`, `processing.harmonization`, `processing.weights.calmar` (linear, logit, calmar, check_calmar, etc.), `processing.weights.calibration` (Calibration class and methods)
+  - **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
+
 # 6.4.0
 
 * Refactor (no breaking API changes)

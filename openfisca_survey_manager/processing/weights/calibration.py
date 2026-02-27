@@ -1,9 +1,13 @@
 """Calibration of survey weights (SurveyScenario)."""
 
+from __future__ import annotations
+
 import logging
 import re
+from typing import Any, Optional
 
 import numpy
+import numpy as np
 import pandas as pd
 from numpy import logical_not
 from openfisca_core.model_api import Enum
@@ -16,32 +20,32 @@ log = logging.getLogger(__name__)
 class Calibration:
     """An object to calibrate survey data of a SurveyScenario."""
 
-    filter_by = None
-    initial_entity_count = None
-    _initial_weight_name = None
-    initial_weight_by_entity = None
-    target_margins = None
-    margins_by_variable = None
-    parameters = None
-    period = None
-    simulation = None
-    target_entity_count = None
-    other_entity_count = None
-    target_entity = None
-    weight_name = None
-    entities = None
+    filter_by: Any = None
+    initial_entity_count: Optional[float] = None
+    _initial_weight_name: Optional[str] = None
+    initial_weight_by_entity: dict[str, Any]  # set in __init__
+    target_margins: Optional[dict[str, Any]] = None
+    margins_by_variable: Optional[dict[str, Any]] = None
+    parameters: Optional[dict[str, Any]] = None
+    period: Any = None
+    simulation: Any = None
+    target_entity_count: Optional[float] = None
+    other_entity_count: Optional[float] = None
+    target_entity: Optional[str] = None
+    weight_name: Optional[str] = None
+    entities: Optional[list[str]] = None
 
     def __init__(
         self,
-        simulation,
-        target_margins,
-        period,
-        target_entity_count=None,
-        other_entity_count=None,
-        parameters=None,
-        filter_by=None,
-        entity=None,
-    ):
+        simulation: Any,
+        target_margins: dict[str, Any],
+        period: Any,
+        target_entity_count: Optional[float] = None,
+        other_entity_count: Optional[float] = None,
+        parameters: Optional[dict[str, Any]] = None,
+        filter_by: Any = None,
+        entity: Optional[str] = None,
+    ) -> None:
         target_entity = entity
         self.parameters = parameters or {
             "use_proportions": True,
@@ -197,14 +201,14 @@ class Calibration:
 
         return data
 
-    def calibrate(self, inplace=False):
+    def calibrate(self, inplace: bool = False) -> Optional[np.ndarray]:
         """Apply the calibrations by updating weights and margins.
 
         Args:
-            inplace (bool, optional): Whether to return the calibrated or to setthem inplace. Defaults to False.
+            inplace: Whether to apply in place (no return) or return calibrated weights.
 
         Returns:
-            numpy.array: calibrated weights
+            Calibrated weights array, or None if inplace=True.
         """
         assert self.margins_by_variable is not None, "Margins by variable should be set"
         margins_by_variable = self.margins_by_variable
@@ -230,7 +234,7 @@ class Calibration:
 
         return self.weight
 
-    def get_parameters(self) -> dict:
+    def get_parameters(self) -> dict[str, Any]:
         """Get the parameters.
 
         Returns:
@@ -252,12 +256,12 @@ class Calibration:
         p["initial_weight"] = self.weight_name + ""
         return p
 
-    def set_target_margin(self, variable, target):
+    def set_target_margin(self, variable: str, target: Any) -> None:
         """Set variable target margin.
 
         Args:
-          variable: Target variable
-          target: Target value
+            variable: Target variable name or expression.
+            target: Target value (scalar or dict of category -> value).
         """
         simulation = self.simulation
         period = self.period
@@ -293,13 +297,13 @@ class Calibration:
         self.margins_by_variable[variable]["target"] = target_by_category or target
         self._update_margins()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the calibration to its initial state."""
         simulation = self.simulation
         simulation.delete_arrays(self.weight_name, self.period)
         simulation.set_input(self.weight_name, self.period, numpy.array(self.initial_weight))
 
-    def set_calibrated_weights(self):
+    def set_calibrated_weights(self) -> None:
         """Modify the weights to use the calibrated weights."""
         period = self.period
         simulation = self.simulation
@@ -314,7 +318,7 @@ class Calibration:
             elif weight_variable.formulas:
                 simulation.delete_arrays(weight_variable.name, period)
 
-    def summary(self):
+    def summary(self) -> pd.DataFrame:
         """Summarize margins."""
         margins_df = pd.DataFrame.from_dict(self.margins_by_variable).T
         margins_df.loc["entity_count", "actual"] = (self.weight * self.filter_by).sum()
@@ -322,7 +326,7 @@ class Calibration:
         margins_df.loc["entity_count", "target"] = self.target_entity_count
         return margins_df
 
-    def _update_margins(self):
+    def _update_margins(self) -> None:
         """Update margins."""
         for variable in self.margins_by_variable:
             simulation = self.simulation
@@ -381,17 +385,12 @@ class Calibration:
                 }
             self.margins_by_variable[variable].update(margin_by_type)
 
-    def _update_weights(self, margins, parameters=None):
-        """Run calmar, stores new weights and returns adjusted margins.
-
-        Args:
-          margins: margins
-          parameters:  Parameters (Default value = {})
-
-        Returns:
-            dict: Updated margins
-
-        """
+    def _update_weights(
+        self,
+        margins: dict[str, Any],
+        parameters: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Run calmar, store new weights and return adjusted margins."""
         if parameters is None:
             parameters = {}
 

@@ -1,5 +1,7 @@
 """Table: a table of a survey (core I/O and storage)."""
 
+from __future__ import annotations
+
 import collections
 import csv
 import datetime
@@ -8,6 +10,7 @@ import gc
 import logging
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
 import pandas
 from chardet.universaldetector import UniversalDetector
@@ -23,6 +26,9 @@ try:
 except ImportError:
     read_spss = None
 
+if TYPE_CHECKING:
+    from openfisca_survey_manager.core.survey import Survey
+
 log = logging.getLogger(__name__)
 
 reader_by_source_format = {
@@ -37,16 +43,23 @@ reader_by_source_format = {
 class Table:
     """A table of a survey."""
 
-    label = None
-    name = None
-    source_format = None
-    survey = None
-    variables = None
-    parquet_file = None
+    label: Optional[str] = None
+    name: Optional[str] = None
+    source_format: Optional[str] = None
+    survey: Optional[Survey] = None
+    variables: Optional[list[str]] = None
+    parquet_file: Optional[str] = None
 
     def __init__(
-        self, survey=None, name=None, label=None, source_format=None, variables=None, parquet_file=None, **kwargs
-    ):
+        self,
+        survey: Optional[Survey] = None,
+        name: Optional[str] = None,
+        label: Optional[str] = None,
+        source_format: Optional[str] = None,
+        variables: Optional[list[str]] = None,
+        parquet_file: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         assert name is not None, "A table should have a name"
         self.name = name
         self.label = label
@@ -68,7 +81,7 @@ class Table:
             parquet_file=parquet_file,
         )
 
-    def _check_and_log(self, data_file_path, store_file_path):
+    def _check_and_log(self, data_file_path: str, store_file_path: Optional[str]) -> None:
         assert store_file_path is not None, "Store file path cannot be None"
         if not Path(data_file_path).is_file():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_file_path)
@@ -78,7 +91,7 @@ class Table:
             f"at point {self.name}"
         )
 
-    def _is_stored(self):
+    def _is_stored(self) -> bool:
         if self.survey.hdf5_file_path is not None:
             store = pandas.HDFStore(self.survey.hdf5_file_path)
             if self.name in store:
@@ -91,7 +104,11 @@ class Table:
         else:
             return False
 
-    def _save(self, data_frame: pandas.DataFrame = None, store_format="hdf5"):
+    def _save(
+        self,
+        data_frame: Optional[pandas.DataFrame] = None,
+        store_format: str = "hdf5",
+    ) -> None:
         assert data_frame is not None
         variables = self.variables
 
@@ -124,7 +141,13 @@ class Table:
             self.save_data_frame_to_parquet(data_frame)
         gc.collect()
 
-    def fill_store(self, data_file, overwrite: bool = False, clean: bool = False, **kwargs):
+    def fill_store(
+        self,
+        data_file: str,
+        overwrite: bool = False,
+        clean: bool = False,
+        **kwargs: Any,
+    ) -> None:
         if not overwrite and self._is_stored():
             log.info(f"Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}")
             return
@@ -142,7 +165,7 @@ class Table:
             log.info(f"Skipping file {data_file} because of following error \n {e}")
             raise e
 
-    def read_parquet_columns(self, parquet_file=None) -> list:
+    def read_parquet_columns(self, parquet_file: Optional[str] = None) -> list[str]:
         if parquet_file is None:
             parquet_file = self.parquet_file
         log.info(f"Initializing table {self.name} from parquet file {parquet_file}")
@@ -152,7 +175,7 @@ class Table:
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables
 
-    def read_source(self, data_file, **kwargs):
+    def read_source(self, data_file: str, **kwargs: Any) -> pandas.DataFrame:
         source_format = self.source_format
         store_file_path = (
             self.survey.hdf5_file_path if self.survey.store_format == "hdf5" else self.survey.parquet_file_path
@@ -287,7 +310,7 @@ class Table:
         gc.collect()
         return data_frame
 
-    def save_data_frame_to_hdf5(self, data_frame, **kwargs):
+    def save_data_frame_to_hdf5(self, data_frame: pandas.DataFrame, **kwargs: Any) -> None:
         hdf5_file_path = self.survey.hdf5_file_path
         log.info(f"Inserting table {self.name} in HDF file {hdf5_file_path}")
         store_path = self.name
@@ -300,7 +323,7 @@ class Table:
 
         self.variables = list(data_frame.columns)
 
-    def save_data_frame_to_parquet(self, data_frame):
+    def save_data_frame_to_parquet(self, data_frame: pandas.DataFrame) -> None:
         parquet_file_path = self.survey.parquet_file_path
         self.parquet_file = write_table_to_parquet(
             data_frame,

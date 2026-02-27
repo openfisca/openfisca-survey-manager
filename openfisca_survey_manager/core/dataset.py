@@ -1,11 +1,14 @@
 """SurveyCollection: collection of surveys (dataset orchestration)."""
 
+from __future__ import annotations
+
 import codecs
 import collections
 import configparser
 import json
 import logging
 from pathlib import Path
+from typing import List, Optional, Union
 
 from openfisca_survey_manager.configuration.models import Config
 from openfisca_survey_manager.configuration.paths import default_config_files_directory
@@ -18,9 +21,19 @@ log = logging.getLogger(__name__)
 class SurveyCollection:
     """A collection of Surveys."""
 
+    name: Optional[str] = None
+    label: Optional[str] = None
+    json_file_path: Optional[str] = None
+    surveys: List[Survey]  # set in __init__
+    config: Optional[Config] = None
+
     def __init__(
-        self, config_files_directory=default_config_files_directory, label=None, name=None, json_file_path=None
-    ):
+        self,
+        config_files_directory: Optional[Union[Path, str]] = default_config_files_directory,
+        label: Optional[str] = None,
+        name: Optional[str] = None,
+        json_file_path: Optional[str] = None,
+    ) -> None:
         self.name = name
         self.label = label
         self.json_file_path = json_file_path
@@ -45,7 +58,7 @@ class SurveyCollection:
 
         self.config = config
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         header = f"""{self.name}
 Survey collection of {self.label}
 Contains the following surveys :
@@ -53,7 +66,11 @@ Contains the following surveys :
         surveys = [f"       {survey.name} : {survey.label} \n" for survey in self.surveys]
         return header + "".join(surveys)
 
-    def dump(self, config_files_directory=None, json_file_path=None):
+    def dump(
+        self,
+        config_files_directory: Optional[Union[Path, str]] = None,
+        json_file_path: Optional[str] = None,
+    ) -> None:
         if self.config is not None:
             config = self.config
         else:
@@ -75,15 +92,15 @@ Contains the following surveys :
 
     def fill_store(
         self,
-        source_format=None,
-        surveys=None,
-        tables=None,
-        overwrite=False,
-        keep_original_parquet_file=False,
-        encoding=None,
-        store_format="hdf5",
-        categorical_strategy="unique_labels",
-    ):
+        source_format: Optional[str] = None,
+        surveys: Optional[List[Survey]] = None,
+        tables: Optional[List[str]] = None,
+        overwrite: bool = False,
+        keep_original_parquet_file: bool = False,
+        encoding: Optional[str] = None,
+        store_format: str = "hdf5",
+        categorical_strategy: str = "unique_labels",
+    ) -> None:
         if surveys is None:
             surveys = self.surveys
         for survey in surveys:
@@ -98,7 +115,7 @@ Contains the following surveys :
             )
         self.dump()
 
-    def get_survey(self, survey_name):
+    def get_survey(self, survey_name: str) -> Survey:
         available_surveys_names = [survey.name for survey in self.surveys]
         assert survey_name in available_surveys_names, (
             f"Survey {survey_name} cannot be found for survey collection {self.name}.\n"
@@ -107,7 +124,12 @@ Contains the following surveys :
         return [survey for survey in self.surveys if survey.name == survey_name].pop()
 
     @classmethod
-    def load(cls, json_file_path=None, collection=None, config_files_directory=default_config_files_directory):
+    def load(
+        cls,
+        json_file_path: Optional[str] = None,
+        collection: Optional[str] = None,
+        config_files_directory: Optional[Union[Path, str]] = default_config_files_directory,
+    ) -> SurveyCollection:
         assert Path(config_files_directory).exists()
         config = Config(config_files_directory=config_files_directory)
         if json_file_path is None:
@@ -143,7 +165,7 @@ Contains the following surveys :
             self.surveys.append(survey.create_from_json(survey_json))
         return self
 
-    def to_json(self):
+    def to_json(self) -> dict:
         self_json = collections.OrderedDict(())
         self_json["name"] = self.name
         self_json["surveys"] = collections.OrderedDict(())
