@@ -1,9 +1,12 @@
 """Survey: describes survey data and tables."""
 
+from __future__ import annotations
+
 import collections
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import pandas
 import pyarrow as pa
@@ -13,6 +16,9 @@ import yaml
 from openfisca_survey_manager.core.table import Table
 from openfisca_survey_manager.exceptions import SurveyIOError, SurveyManagerError
 from openfisca_survey_manager.processing.harmonization import harmonize_data_frame_columns
+
+if TYPE_CHECKING:
+    from openfisca_survey_manager.core.dataset import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -37,15 +43,22 @@ class NoMoreDataError(Exception):
 class Survey:
     """An object to describe survey data."""
 
-    hdf5_file_path = None
-    parquet_file_path = None
-    label = None
-    name = None
-    survey_collection = None
+    hdf5_file_path: Optional[str] = None
+    parquet_file_path: Optional[str] = None
+    label: Optional[str] = None
+    name: Optional[str] = None
+    survey_collection: Optional[SurveyCollection] = None
+    store_format: Optional[str] = None
 
     def __init__(
-        self, name=None, label=None, hdf5_file_path=None, parquet_file_path=None, survey_collection=None, **kwargs
-    ):
+        self,
+        name: Optional[str] = None,
+        label: Optional[str] = None,
+        hdf5_file_path: Optional[str] = None,
+        parquet_file_path: Optional[str] = None,
+        survey_collection: Optional[SurveyCollection] = None,
+        **kwargs: Any,
+    ) -> None:
         assert name is not None, "A survey should have a name"
         self.name = name
         self.tables = collections.OrderedDict()
@@ -66,7 +79,7 @@ class Survey:
 
         self.informations = kwargs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         header = f"""{self.name} : survey data {self.label}
 Contains the following tables : \n"""
         tables = yaml.safe_dump(list(self.tables.keys()), default_flow_style=False)
@@ -74,7 +87,7 @@ Contains the following tables : \n"""
         return header + tables + informations
 
     @classmethod
-    def create_from_json(cls, survey_json):
+    def create_from_json(cls, survey_json: dict) -> Survey:
         self = cls(
             name=survey_json.get("name"),
             label=survey_json.get("label"),
@@ -85,20 +98,20 @@ Contains the following tables : \n"""
         self.tables = survey_json.get("tables")
         return self
 
-    def dump(self):
+    def dump(self) -> None:
         assert self.survey_collection is not None
         self.survey_collection.dump()
 
     def fill_store(
         self,
-        source_format=None,
-        tables=None,
-        overwrite=True,
-        keep_original_parquet_file=False,
-        encoding=None,
-        store_format="hdf5",
-        categorical_strategy="unique_labels",
-    ):
+        source_format: Optional[str] = None,
+        tables: Optional[List[str]] = None,
+        overwrite: Union[bool, List[str]] = True,
+        keep_original_parquet_file: bool = False,
+        encoding: Optional[str] = None,
+        store_format: str = "hdf5",
+        categorical_strategy: str = "unique_labels",
+    ) -> None:
         assert self.survey_collection is not None
         assert isinstance(overwrite, (bool, list))
         survey = self
@@ -166,19 +179,25 @@ Contains the following tables : \n"""
                         )
         self.dump()
 
-    def get_value(self, variable, table, lowercase=False, ignorecase=False):
+    def get_value(
+        self,
+        variable: str,
+        table: Optional[str] = None,
+        lowercase: bool = False,
+        ignorecase: bool = False,
+    ) -> pandas.DataFrame:
         return self.get_values([variable], table)
 
     def get_values(
         self,
-        variables=None,
-        table=None,
-        lowercase=False,
-        ignorecase=False,
-        rename_ident=True,
-        batch_size=None,
-        batch_index=0,
-        filter_by=None,
+        variables: Optional[List[str]] = None,
+        table: Optional[str] = None,
+        lowercase: bool = False,
+        ignorecase: bool = False,
+        rename_ident: bool = True,
+        batch_size: Optional[int] = None,
+        batch_index: int = 0,
+        filter_by: Optional[List[tuple]] = None,
     ) -> pandas.DataFrame:
         if self.parquet_file_path is None and self.hdf5_file_path is None:
             raise SurveyIOError(f"No data file found for survey {self.name}")
@@ -273,7 +292,12 @@ Contains the following tables : \n"""
             df = df[variables]
             return df
 
-    def insert_table(self, label=None, name=None, **kwargs):
+    def insert_table(
+        self,
+        label: Optional[str] = None,
+        name: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         parquet_file = kwargs.pop("parquet_file", None)
         data_frame = kwargs.pop("data_frame", None)
         if data_frame is None:
@@ -303,7 +327,7 @@ Contains the following tables : \n"""
         for key, val in kwargs.items():
             self.tables[name][key] = val
 
-    def to_json(self):
+    def to_json(self) -> dict:
         self_json = collections.OrderedDict(())
         self_json["hdf5_file_path"] = str(self.hdf5_file_path) if self.hdf5_file_path else None
         self_json["parquet_file_path"] = str(self.parquet_file_path) if self.parquet_file_path else None

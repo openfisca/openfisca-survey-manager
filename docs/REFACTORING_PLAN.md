@@ -94,8 +94,8 @@ Aujourd’hui ces couches sont entremêlées (ex. lecture + nettoyage dans `tabl
 
 ### 3.3 Typage Python
 
-- Ajouter progressivement des type hints sur les signatures publiques (arguments et retours).
-- Priorité : `core/`, `io/`, puis `processing/`.
+- **Entamé** : type hints sur les signatures publiques de `core/`, `io/` et `processing/` (cleaning, harmonization, weights/calmar, weights/calibration).
+- À poursuivre : reste du package (scenarios, simulations, etc.).
 
 ### 3.4 Logging
 
