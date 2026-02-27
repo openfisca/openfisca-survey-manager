@@ -66,7 +66,7 @@ fused.nnd.m <- create.fused(
     )
 summary(fused.nnd.m)
 """
-    print(r_script)  # noqa analysis:ignore
+    log.debug("R script for NND hotdeck (feather): %s", r_script)
 
 
 def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z_variables=None, donor_classes=None):
@@ -98,14 +98,14 @@ def nnd_hotdeck_using_rpy2(receiver=None, donor=None, matching_variables=None, z
                 match_vars=pd.Series(matching_variables),
                 # don_class = pd.Series(donor_classes)
             )
-    except Exception as e:
-        print(1)  # noqa analysis:ignore
-        print(receiver)  # noqa analysis:ignore
-        print(2)  # noqa analysis:ignore
-        print(donor)  # noqa analysis:ignore
-        print(3)  # noqa analysis:ignore
-        print(pd.Series(matching_variables))  # noqa analysis:ignore
-        print(e)  # noqa analysis:ignore
+    except Exception:
+        log.exception(
+            "NND_hotdeck failed: receiver shape=%s, donor shape=%s, match_vars=%s",
+            getattr(receiver, "shape", None),
+            getattr(donor, "shape", None),
+            matching_variables,
+        )
+        raise
 
     # create synthetic data.set, without the
     # duplication of the matching variables

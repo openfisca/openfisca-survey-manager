@@ -400,4 +400,5 @@ def check_calmar(margins, margins_new_dict=None):
     """
     for variable, margin in margins.items():
         if variable != "total_population":
-            print(variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin))  # noqa analysis:ignore
+            rel_err = abs(margin - margins_new_dict[variable]) / abs(margin)
+            log.debug("%s: margin=%s, relative_error=%s", variable, margin, rel_err)

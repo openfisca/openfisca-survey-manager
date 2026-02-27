@@ -1,4 +1,10 @@
-﻿# Changelog
+# Changelog
+
+# 6.2.1
+
+* Technical changes
+  - Replace debug `print()` with proper logging in `matching.py` (NND hotdeck exception handling and R script)
+  - Replace debug `print()` with `log.debug()` in `calmar.check_calmar()` for margin comparison output
 
 # 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)
 
