@@ -99,8 +99,8 @@ Aujourd’hui ces couches sont entremêlées (ex. lecture + nettoyage dans `tabl
 
 ### 3.4 Logging
 
-- Remplacer les `print()` par du `logging` structuré (déjà entamé dans matching, calmar).
-- Étendre à tous les modules (readers, writers, calibration, etc.).
+- **Fait** : `print()` remplacés par du `logging` structuré (matching, calmar, scenarios, scripts/build_collection, simulations, readers, writers, calibration, core, processing, etc.).
+- **Fait** : logging étendu à tous les modules métier (configuration/models, google_colab, statshelpers, et l’ensemble des modules concernés).
 
 ### 3.5 Gestion d’erreurs centralisée
 
