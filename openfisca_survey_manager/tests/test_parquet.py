@@ -4,13 +4,13 @@ import pandas as pd
 import pytest
 from openfisca_core import periods
 
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import NoMoreDataError
+from openfisca_survey_manager.policy.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.scripts.build_collection import (
     add_survey_to_collection,
     build_survey_collection,
 )
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import NoMoreDataError
 from openfisca_survey_manager.tests import tax_benefit_system
 
 logger = logging.getLogger(__name__)

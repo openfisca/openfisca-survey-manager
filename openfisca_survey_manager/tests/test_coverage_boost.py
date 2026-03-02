@@ -8,8 +8,8 @@ from openfisca_core import periods
 from openfisca_survey_manager.core.dataset import SurveyCollection
 from openfisca_survey_manager.core.survey import Survey
 from openfisca_survey_manager.policy import AbstractAggregates
+from openfisca_survey_manager.policy.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.policy.variables import quantile
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.scripts.build_collection import (
     check_template_config_files,
     create_data_file_by_format,
