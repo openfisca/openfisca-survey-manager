@@ -1,8 +1,7 @@
-# Survey, Table, SurveyCollection. Legacy modules re-export for compatibility.
-# See docs/REFACTORING_PLAN.md.
+# Survey, Table, SurveyCollection, load_table.
 
-from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.dataset import SurveyCollection, load_table
 from openfisca_survey_manager.core.survey import NoMoreDataError, Survey
 from openfisca_survey_manager.core.table import Table
 
-__all__ = ["NoMoreDataError", "Survey", "SurveyCollection", "Table"]
+__all__ = ["NoMoreDataError", "Survey", "SurveyCollection", "Table", "load_table"]

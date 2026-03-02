@@ -16,15 +16,15 @@ import pandas
 from chardet.universaldetector import UniversalDetector
 from pyarrow import parquet as pq
 
-from openfisca_survey_manager import read_sas
 from openfisca_survey_manager.exceptions import SurveyIOError
+from openfisca_survey_manager.io.readers import read_sas
 from openfisca_survey_manager.io.writers import write_table_to_hdf5, write_table_to_parquet
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
 
 try:
-    from openfisca_survey_manager.read_spss import read_spss
+    from openfisca_survey_manager.io.readers import read_spss
 except ImportError:
-    read_spss = None
+    read_spss = None  # optional dependency (savReaderWriter)
 
 if TYPE_CHECKING:
     from openfisca_survey_manager.core.survey import Survey
@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 
 reader_by_source_format = {
     "csv": pandas.read_csv,
-    "sas": read_sas.read_sas,
+    "sas": read_sas,
     "spss": read_spss,
     "stata": pandas.read_stata,
     "parquet": pandas.read_parquet,
@@ -175,12 +175,83 @@ class Table:
         self.survey.tables[self.name]["variables"] = self.variables
         return self.variables
 
+    def _read_csv_with_inferred_encoding(
+        self, data_file: str, reader: Any, kwargs: dict[str, Any]
+    ) -> pandas.DataFrame:
+        """Read CSV, inferring encoding and dialect if default read fails."""
+        log.debug("Failing to read %s, trying to infer encoding and dialect/separator", data_file)
+        detector = UniversalDetector()
+        with Path(data_file).open("rb") as csvfile:
+            for line in csvfile:
+                detector.feed(line)
+                if detector.done:
+                    break
+        detector.close()
+        encoding = detector.result["encoding"]
+        confidence = detector.result["confidence"]
+        try:
+            with Path(data_file).open("r", newline="", encoding=encoding) as csvfile:
+                dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
+        except Exception:
+            dialect = None
+            delimiter = ";"
+        log.debug(
+            "dialect.delimiter = %s, encoding = %s, confidence = %s",
+            dialect.delimiter if dialect is not None else delimiter,
+            encoding,
+            confidence,
+        )
+        kwargs = {**kwargs, "engine": "python", "encoding": encoding}
+        if dialect:
+            kwargs["dialect"] = dialect
+        else:
+            kwargs["delimiter"] = delimiter
+        return reader(data_file, **kwargs)
+
+    def _apply_stata_categorical_strategy(
+        self,
+        data_frame: pandas.DataFrame,
+        data_file: str,
+        categorical_strategy: str,
+    ) -> None:
+        """Apply categorical_strategy (unique_labels, codes, skip) to Stata value labels in place."""
+        from pandas.io.stata import StataReader
+
+        stata_reader = StataReader(data_file)
+        value_labels = stata_reader.value_labels()
+        for col_name, labels in value_labels.items():
+            if col_name not in data_frame.columns:
+                continue
+            if categorical_strategy == "unique_labels":
+                unique_labels = {}
+                seen_labels = {}
+                for code, label in labels.items():
+                    if pandas.isna(code):
+                        unique_labels[code] = label
+                    elif label in seen_labels:
+                        unique_labels[code] = f"{label} ({code})"
+                    else:
+                        unique_labels[code] = label
+                        seen_labels[label] = code
+                code_to_label = {code: unique_labels[code] for code in sorted(labels.keys())}
+                data_frame[col_name] = data_frame[col_name].map(code_to_label)
+                data_frame[col_name] = pandas.Categorical(
+                    data_frame[col_name],
+                    categories=list(code_to_label.values()),
+                    ordered=False,
+                )
+            elif categorical_strategy == "codes":
+                codes = sorted([c for c in labels if pandas.notna(c)])
+                if codes:
+                    data_frame[col_name] = pandas.Categorical(data_frame[col_name], categories=codes, ordered=False)
+            elif categorical_strategy != "skip":
+                log.warning("Unknown categorical_strategy %r, using 'skip'", categorical_strategy)
+
     def read_source(self, data_file: str, **kwargs: Any) -> pandas.DataFrame:
         source_format = self.source_format
         store_file_path = (
             self.survey.hdf5_file_path if self.survey.store_format == "hdf5" else self.survey.parquet_file_path
         )
-
         self._check_and_log(data_file, store_file_path=store_file_path)
         reader = reader_by_source_format[source_format]
         categorical_strategy = (
@@ -192,121 +263,33 @@ class Table:
             if source_format == "csv":
                 try:
                     data_frame = reader(data_file, **kwargs)
-
                     if len(data_frame.columns) == 1 and ";" in data_frame.columns[0]:
                         raise SurveyIOError(
                             "A ';' is present in the unique column name. Looks like we got the wrong separator."
                         )
-
                 except Exception:
-                    log.debug(f"Failing to read {data_file}, Trying to infer encoding and dialect/separator")
-
-                    detector = UniversalDetector()
-                    with Path(data_file).open("rb") as csvfile:
-                        for line in csvfile:
-                            detector.feed(line)
-                            if detector.done:
-                                break
-                        detector.close()
-
-                    encoding = detector.result["encoding"]
-                    confidence = detector.result["confidence"]
-
-                    try:
-                        with Path(data_file).open("r", newline="", encoding=encoding) as csvfile:
-                            dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters=";,")
-                    except Exception:
-                        dialect = None
-                        delimiter = ";"
-
-                    log.debug(
-                        f"dialect.delimiter = {dialect.delimiter if dialect is not None else delimiter}, "
-                        f"encoding = {encoding}, confidence = {confidence}"
-                    )
-                    kwargs["engine"] = "python"
-                    if dialect:
-                        kwargs["dialect"] = dialect
-                    else:
-                        kwargs["delimiter"] = delimiter
-                    kwargs["encoding"] = encoding
-                    data_frame = reader(data_file, **kwargs)
-
-            else:
-                if "encoding" in kwargs and source_format == "stata":
+                    data_frame = self._read_csv_with_inferred_encoding(data_file, reader, kwargs)
+            elif source_format == "stata":
+                if "encoding" in kwargs:
                     kwargs.pop("encoding")
-                if source_format == "stata":
-                    try:
-                        if "convert_categoricals" not in kwargs:
-                            data_frame = reader(data_file, **kwargs)
-                        else:
-                            data_frame = reader(data_file, **kwargs)
-                    except ValueError as e:
-                        if "not unique" in str(e) or "Categorical categories must be unique" in str(e):
-                            log.info(
-                                f"Non-unique value labels detected in {data_file}, "
-                                f"using strategy '{categorical_strategy}'"
-                            )
-
-                            kwargs_no_cat = kwargs.copy()
-                            kwargs_no_cat["convert_categoricals"] = False
-                            data_frame = reader(data_file, **kwargs_no_cat)
-
-                            if categorical_strategy == "unique_labels":
-                                from pandas.io.stata import StataReader
-
-                                stata_reader = StataReader(data_file)
-                                value_labels = stata_reader.value_labels()
-
-                                for col_name, labels in value_labels.items():
-                                    if col_name in data_frame.columns:
-                                        unique_labels = {}
-                                        seen_labels = {}
-
-                                        for code, label in labels.items():
-                                            if pandas.isna(code):
-                                                unique_labels[code] = label
-                                            elif label in seen_labels:
-                                                unique_labels[code] = f"{label} ({code})"
-                                            else:
-                                                unique_labels[code] = label
-                                                seen_labels[label] = code
-
-                                        code_to_label = {code: unique_labels[code] for code in sorted(labels.keys())}
-
-                                        data_frame[col_name] = data_frame[col_name].map(code_to_label)
-                                        data_frame[col_name] = pandas.Categorical(
-                                            data_frame[col_name],
-                                            categories=list(code_to_label.values()),
-                                            ordered=False,
-                                        )
-
-                            elif categorical_strategy == "codes":
-                                from pandas.io.stata import StataReader
-
-                                stata_reader = StataReader(data_file)
-                                value_labels = stata_reader.value_labels()
-
-                                for col_name, labels in value_labels.items():
-                                    if col_name in data_frame.columns:
-                                        codes = sorted([c for c in labels if pandas.notna(c)])
-                                        if codes:
-                                            data_frame[col_name] = pandas.Categorical(
-                                                data_frame[col_name], categories=codes, ordered=False
-                                            )
-
-                            elif categorical_strategy == "skip":
-                                pass
-                            else:
-                                log.warning(f"Unknown categorical_strategy '{categorical_strategy}', using 'skip'")
-                        else:
-                            raise
-                else:
+                try:
                     data_frame = reader(data_file, **kwargs)
-
+                except ValueError as e:
+                    if "not unique" not in str(e) and "Categorical categories must be unique" not in str(e):
+                        raise
+                    log.info(
+                        "Non-unique value labels detected in %s, using strategy %r",
+                        data_file,
+                        categorical_strategy,
+                    )
+                    kwargs_no_cat = {**kwargs, "convert_categoricals": False}
+                    data_frame = reader(data_file, **kwargs_no_cat)
+                    self._apply_stata_categorical_strategy(data_frame, data_file, categorical_strategy)
+            else:
+                data_frame = reader(data_file, **kwargs)
         except Exception as e:
-            log.info(f"Error while reading {data_file}")
+            log.info("Error while reading %s", data_file)
             raise e
-
         gc.collect()
         return data_frame
 

@@ -188,6 +188,85 @@ Contains the following tables : \n"""
     ) -> pandas.DataFrame:
         return self.get_values([variable], table)
 
+    def _get_values_from_hdf5(self, table: str, ignorecase: bool = False) -> tuple[pandas.DataFrame, str]:
+        """Read table from HDF5 store. Returns (df, resolved_table_name)."""
+        assert Path(self.hdf5_file_path).exists(), (
+            f"{self.hdf5_file_path} is not a valid path. This could happen because "
+            "your data were not builded yet. Please consider using a rebuild option in your code."
+        )
+        store = pandas.HDFStore(self.hdf5_file_path, "r")
+        try:
+            if ignorecase:
+                keys = store.keys()
+                eligible_tables = [
+                    match[0] for string in keys for match in [re.findall(table, string, re.IGNORECASE)] if match
+                ]
+                if len(eligible_tables) > 1:
+                    raise SurveyManagerError(
+                        f"{table} is ambiguous since the following tables are available: {eligible_tables}"
+                    )
+                if len(eligible_tables) == 0:
+                    raise SurveyIOError(f"No eligible available table in {keys}")
+                table = eligible_tables[0]
+            df = store.select(table)
+            return df, table
+        except KeyError:
+            log.error("No table %s in the file %s", table, self.hdf5_file_path)
+            log.error(
+                "This could happen because your data were not builded yet. Available tables are: %s",
+                store.keys(),
+            )
+            raise
+        finally:
+            store.close()
+
+    def _get_values_from_parquet(
+        self,
+        table: str,
+        variables: Optional[List[str]],
+        filter_by: Optional[List[tuple]],
+        batch_size: Optional[int],
+        batch_index: int,
+    ) -> pandas.DataFrame:
+        """Read table from parquet. Resolves variables from table content if None."""
+        if table is None:
+            raise SurveyIOError("A table name is needed to retrieve data from a parquet file")
+        for table_name, table_content in self.tables.items():
+            if table != table_name:
+                continue
+            parquet_file = table_content.get("parquet_file")
+            if Path(parquet_file).is_dir():
+                for file in Path(parquet_file).iterdir():
+                    if file.suffix == ".parquet":
+                        one_parquet_file = str(Path(parquet_file) / file)
+                        break
+                else:
+                    raise SurveyIOError(f"No parquet file found in {parquet_file}")
+            else:
+                one_parquet_file = parquet_file
+            parquet_schema = pq.read_schema(one_parquet_file)
+            assert len(parquet_schema.names) >= 1, f"The parquet file {table_content.get('parquet_file')} is empty"
+            if variables is None:
+                variables = table_content.get("variables")
+            if filter_by:
+                return pq.ParquetDataset(parquet_file, filters=filter_by).read(columns=variables).to_pandas()
+            if batch_size is not None:
+                paths = (
+                    [str(p) for p in Path(parquet_file).glob("*.parquet")]
+                    if Path(parquet_file).is_dir()
+                    else [parquet_file]
+                )
+                tables_list = [pq.read_table(fp, columns=variables) for fp in paths]
+                final_table = pa.concat_tables(tables_list) if len(tables_list) > 1 else tables_list[0]
+                record_batches = final_table.to_batches(max_chunksize=batch_size)
+                if len(record_batches) <= batch_index:
+                    raise NoMoreDataError(
+                        f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
+                    )
+                return record_batches[batch_index].to_pandas()
+            return pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
+        raise SurveyIOError(f"No table {table} found in {self.parquet_file_path}")
+
     def get_values(
         self,
         variables: Optional[List[str]] = None,
@@ -202,95 +281,17 @@ Contains the following tables : \n"""
         if self.parquet_file_path is None and self.hdf5_file_path is None:
             raise SurveyIOError(f"No data file found for survey {self.name}")
         if self.hdf5_file_path is not None:
-            assert Path(self.hdf5_file_path).exists(), (
-                f"{self.hdf5_file_path} is not a valid path. This could happen because "
-                "your data were not builded yet. Please consider using a rebuild option in your code."
-            )
-            store = pandas.HDFStore(self.hdf5_file_path, "r")
-            if ignorecase:
-                keys = store.keys()
-                eligible_tables = []
-                for string in keys:
-                    match = re.findall(table, string, re.IGNORECASE)
-                    if match:
-                        eligible_tables.append(match[0])
-                if len(eligible_tables) > 1:
-                    raise SurveyManagerError(
-                        f"{table} is ambiguous since the following tables are available: {eligible_tables}"
-                    )
-                elif len(eligible_tables) == 0:
-                    raise SurveyIOError(f"No eligible available table in {keys}")
-                else:
-                    table = eligible_tables[0]
-            try:
-                df = store.select(table)
-            except KeyError:
-                log.error(f"No table {table} in the file {self.hdf5_file_path}")
-                log.error(
-                    f"This could happen because your data were not builded yet. Available tables are: {store.keys()}"
-                )
-                store.close()
-                raise
-
-            store.close()
-
-        elif self.parquet_file_path is not None:
-            if table is None:
-                raise SurveyIOError("A table name is needed to retrieve data from a parquet file")
-            for table_name, table_content in self.tables.items():
-                if table == table_name:
-                    parquet_file = table_content.get("parquet_file")
-                    if Path(parquet_file).is_dir():
-                        for file in Path(parquet_file).iterdir():
-                            if file.suffix == ".parquet":
-                                one_parquet_file = str(Path(parquet_file) / file)
-                                break
-                        else:
-                            raise SurveyIOError(f"No parquet file found in {parquet_file}")
-                    else:
-                        one_parquet_file = parquet_file
-                    parquet_schema = pq.read_schema(one_parquet_file)
-                    assert len(parquet_schema.names) >= 1, (
-                        f"The parquet file {table_content.get('parquet_file')} is empty"
-                    )
-                    if variables is None:
-                        variables = table_content.get("variables")
-                    if filter_by:
-                        df = pq.ParquetDataset(parquet_file, filters=filter_by).read(columns=variables).to_pandas()
-                    elif batch_size:
-                        if Path(parquet_file).is_dir():
-                            parquet_file = [str(p) for p in Path(parquet_file).glob("*.parquet")]
-                        else:
-                            parquet_file = [parquet_file]
-                        tables = []
-                        for file_path in parquet_file:
-                            table = pq.read_table(file_path, columns=variables)
-                            tables.append(table)
-
-                        final_table = pa.concat_tables(tables) if len(tables) > 1 else tables[0]
-                        record_batches = final_table.to_batches(max_chunksize=batch_size)
-                        if len(record_batches) <= batch_index:
-                            raise NoMoreDataError(
-                                f"Batch {batch_index} not found in {table_name}. Max index is {len(record_batches)}"
-                            )
-                        df = record_batches[batch_index].to_pandas()
-                    else:
-                        df = pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
-                    break
-            else:
-                raise SurveyIOError(f"No table {table} found in {self.parquet_file_path}")
-
+            df, _ = self._get_values_from_hdf5(table or "", ignorecase=ignorecase)
+        else:
+            df = self._get_values_from_parquet(table, variables, filter_by, batch_size, batch_index)
         harmonize_data_frame_columns(df, lowercase=lowercase, rename_ident=rename_ident)
-
         if variables is None:
             return df
-        else:
-            diff = set(variables) - set(df.columns)
-            if diff:
-                raise SurveyIOError(f"The following variable(s) {diff} are missing")
-            variables = list(set(variables).intersection(df.columns))
-            df = df[variables]
-            return df
+        diff = set(variables) - set(df.columns)
+        if diff:
+            raise SurveyIOError(f"The following variable(s) {diff} are missing")
+        variables = list(set(variables).intersection(df.columns))
+        return df[variables]
 
     def insert_table(
         self,
