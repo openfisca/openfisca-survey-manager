@@ -35,9 +35,10 @@ openfisca_survey_manager/
 │   └── misc.py            # helpers partagés (éviter imports circulaires)
 │
 ├── scenarios/             # inchangé pour l’instant
+├── policy/                # simulations, simulation_builder, aggregates (à terme autre paquet)
 ├── scripts/
 ├── tests/
-└── ... (simulations, aggregates, etc. à placer selon responsabilité)
+└── ...
 ```
 
 **État actuel** : les dossiers suivants existent avec des `__init__.py` de préparation (pas de code déplacé encore) :
@@ -53,6 +54,8 @@ Le déplacement effectif des modules se fera par étapes pour garder la compatib
 - **Nettoyage** : `print()` remplacés par `logging` (matching, calmar, scenarios, scripts/build_collection, simulations). Exceptions génériques remplacées par `SurveyManagerError` / `SurveyConfigError` / `SurveyIOError` (survey_collections, tables, simulations, simulation_builder, surveys, scenarios, calmar).
 - **processing/weights** : `calmar` et `Calibration` déplacés dans `processing/weights/calmar.py` et `processing/weights/calibration.py` ; `calibration.py` et `calmar.py` à la racine sont des ré-exports pour compatibilité.
 - **processing/cleaning** : `clean_data_frame` déplacé dans `processing/cleaning.py` ; `tables.py` importe depuis `processing.cleaning` (compatibilité conservée).
+- **policy/** : répertoire créé pour `simulations`, `simulation_builder`, `aggregates` (à terme déplacés dans un paquet dédié). Les modules à la racine (`simulations.py`, `simulation_builder.py`, `aggregates.py`) sont des placeholders avec `DeprecationWarning` qui ré-exportent depuis `policy`.
+- **policy/tests/** : tests concernant le paquet policy (test_aggregates, test_compute_aggregate, test_compute_pivot_table, test_compute_winners_losers, test_create_data_frame_by_entity, test_marginal_tax_rate, test_summarize_variables). Ils importent depuis `openfisca_survey_manager.policy` et utilisent `create_randomly_initialized_survey_scenario` depuis `openfisca_survey_manager.tests.test_scenario`.
 
 ---
 

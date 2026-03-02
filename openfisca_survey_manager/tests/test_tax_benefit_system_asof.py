@@ -2,7 +2,7 @@ from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 from openfisca_country_template import CountryTaxBenefitSystem
 
-from openfisca_survey_manager.utils import parameters_asof, variables_asof
+from openfisca_survey_manager.policy.legislation_asof import parameters_asof, variables_asof
 
 
 def check_max_instant_leaf(sub_parameter, instant):
