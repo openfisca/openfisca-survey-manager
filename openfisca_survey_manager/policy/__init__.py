@@ -1,11 +1,12 @@
-"""Re-export for backward compatibility.
+# Policy-related modules (simulations, simulation_builder, aggregates).
+# À terme ces briques pourront être déplacées dans un paquet dédié.
+# Voir docs/REFACTORING_PLAN.md.
 
-Prefer: from openfisca_survey_manager.policy import ...
-or from openfisca_survey_manager.policy.simulations import ...
-"""
-
-import warnings
-
+from openfisca_survey_manager.policy.aggregates import AbstractAggregates
+from openfisca_survey_manager.policy.simulation_builder import (
+    SimulationBuilder,
+    diagnose_variable_mismatch,
+)
 from openfisca_survey_manager.policy.simulations import (
     SecretViolationError,
     Simulation,
@@ -27,17 +28,11 @@ from openfisca_survey_manager.policy.simulations import (
     summarize_variable,
 )
 
-warnings.warn(
-    "openfisca_survey_manager.simulations is deprecated and will be removed in a future version. "
-    "Prefer: from openfisca_survey_manager.policy import ... "
-    "or from openfisca_survey_manager.policy.simulations import ...",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 __all__ = [
-    "SecretViolationError",
+    "AbstractAggregates",
     "Simulation",
+    "SimulationBuilder",
+    "SecretViolationError",
     "adaptative_calculate_variable",
     "assert_variables_in_same_entity",
     "compute_aggregate",
@@ -45,6 +40,7 @@ __all__ = [
     "compute_quantiles",
     "compute_winners_losers",
     "create_data_frame_by_entity",
+    "diagnose_variable_mismatch",
     "get_words",
     "inflate",
     "init_entity_data",

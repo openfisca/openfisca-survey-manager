@@ -5,12 +5,12 @@ import pandas as pd
 import pytest
 from openfisca_core import periods
 
-from openfisca_survey_manager.aggregates import AbstractAggregates
 from openfisca_survey_manager.input_dataframe_generator import (
     make_input_dataframe_by_entity,
     randomly_init_variable,
     set_table_in_survey,
 )
+from openfisca_survey_manager.policy import AbstractAggregates
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.scripts.build_collection import (
     check_template_config_files,
@@ -19,7 +19,6 @@ from openfisca_survey_manager.scripts.build_collection import (
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.tests import tax_benefit_system
-from openfisca_survey_manager.utils import do_nothing
 from openfisca_survey_manager.variables import quantile
 
 
@@ -133,17 +132,6 @@ def test_survey_read_write(tmp_path):
 def test_build_collection_helpers(tmp_path):
     check_template_config_files(str(tmp_path))
     create_data_file_by_format(str(tmp_path))
-
-
-def test_google_colab_boost():
-    from openfisca_survey_manager.google_colab import create_raw_data_ini
-
-    with suppress(Exception):
-        create_raw_data_ini({"test": {"opt": "val"}})
-
-
-def test_utils_do_nothing():
-    assert do_nothing(1, a=2) is None
 
 
 def test_matching_mock_extended(monkeypatch):
