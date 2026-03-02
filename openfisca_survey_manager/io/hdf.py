@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 import pandas as pd
 
 log = logging.getLogger(__name__)
+
+# PyTables / pandas-HDF5 require node names to match ^[a-zA-Z_][a-zA-Z0-9_]*$
+# to avoid NaturalNameWarning. We normalize table names (e.g. person_2017-01 -> person_2017_01).
+_HDF5_SAFE_PATTERN = re.compile(r"[^a-zA-Z0-9_]")
+
+
+def hdf5_safe_key(name: str) -> str:
+    """Return an HDF5 node name safe for PyTables (valid Python identifier)."""
+    return _HDF5_SAFE_PATTERN.sub("_", name)
 
 
 def write_table_to_hdf5(
@@ -22,8 +32,9 @@ def write_table_to_hdf5(
     Mirrors historical behavior from `tables.Table.save_data_frame_to_hdf5`.
     May mutate `data_frame` (type conversions) to ensure it can be written.
     """
+    key = hdf5_safe_key(store_path)
     try:
-        data_frame.to_hdf(hdf5_file_path, store_path, append=False, **kwargs)
+        data_frame.to_hdf(hdf5_file_path, key=key, append=False, **kwargs)
     except (TypeError, NotImplementedError):
         log.info("Type problem(s) when creating %s in %s", store_path, hdf5_file_path)
         dtypes = data_frame.dtypes
@@ -42,4 +53,4 @@ def write_table_to_hdf5(
                 "The following types are added as category using the table format %s",
                 dtypes[converted_dtypes],
             )
-            data_frame.to_hdf(hdf5_file_path, store_path, append=False, format="table", **kwargs)
+            data_frame.to_hdf(hdf5_file_path, key=key, append=False, format="table", **kwargs)

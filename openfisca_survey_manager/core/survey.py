@@ -15,6 +15,7 @@ import yaml
 
 from openfisca_survey_manager.core.table import Table
 from openfisca_survey_manager.exceptions import SurveyIOError, SurveyManagerError
+from openfisca_survey_manager.io.hdf import hdf5_safe_key
 from openfisca_survey_manager.processing.harmonization import harmonize_data_frame_columns
 
 if TYPE_CHECKING:
@@ -196,19 +197,23 @@ Contains the following tables : \n"""
         )
         store = pandas.HDFStore(self.hdf5_file_path, "r")
         try:
+            # Use same key normalization as at write time (PyTables NaturalNameWarning)
+            hdf5_key = hdf5_safe_key(table)
             if ignorecase:
                 keys = store.keys()
-                eligible_tables = [
-                    match[0] for string in keys for match in [re.findall(table, string, re.IGNORECASE)] if match
-                ]
+                eligible_tables = [k for k in keys if hdf5_safe_key(k.lstrip("/")).lower() == hdf5_key.lower()]
                 if len(eligible_tables) > 1:
                     raise SurveyManagerError(
                         f"{table} is ambiguous since the following tables are available: {eligible_tables}"
                     )
                 if len(eligible_tables) == 0:
                     raise SurveyIOError(f"No eligible available table in {keys}")
-                table = eligible_tables[0]
-            df = store.select(table)
+                hdf5_key = eligible_tables[0].lstrip("/")
+            try:
+                df = store.select(hdf5_key)
+            except KeyError:
+                # Backward compat: try raw table name (old files may have keys with hyphens)
+                df = store.select(table)
             return df, table
         except KeyError:
             log.error("No table %s in the file %s", table, self.hdf5_file_path)

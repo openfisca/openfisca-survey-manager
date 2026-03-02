@@ -405,7 +405,7 @@ def compute_pivot_table(
                 variables.add(weight_variable)
 
             else:
-                log.warn(
+                log.warning(
                     f"There is no weight variable for entity {entity_key} nor alternative weights. "
                     "Switch to unweighted"
                 )
@@ -750,7 +750,7 @@ def compute_winners_losers(
             weight_variable = weight_variable_by_entity[entity_key]
             weight = baseline_simulation.calculate(weight_variable, period=period)
         else:
-            log.warn(
+            log.warning(
                 f"There is no weight variable for entity {entity_key} nor alternative weights. Switch to unweighted"
             )
 
@@ -1249,7 +1249,7 @@ def init_variable_in_entity(
     if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
-        log.warn(
+        log.warning(
             f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. "
             "The  montly values you provided will be summed."
         )
@@ -1434,7 +1434,7 @@ def summarize_variable(
                     )
                     df = pd.DataFrame({variable: array}).replace(categories_by_index).astype(categories_type)
                     df["weights"] = weights if weighted else 1
-                    groupby = df.groupby(variable)["weights"].sum()
+                    groupby = df.groupby(variable, observed=False)["weights"].sum()
                     total = groupby.sum()
                     expr = [f" {index} = {row:.2e} ({row / total:.1%})" for index, row in groupby.items()]
                     log.info("%s: %s.", period, ",".join(expr))
