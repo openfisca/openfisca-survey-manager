@@ -1,7 +1,7 @@
 from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
-from openfisca_survey_manager.calibration import Calibration
+from openfisca_survey_manager.policy.calibration import Calibration
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 from openfisca_survey_manager.tests.test_scenario import (
