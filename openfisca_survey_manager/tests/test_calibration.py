@@ -164,4 +164,4 @@ def test_simulation_calibration_input_from_data(tmp_path):
             f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
         )
         assert (survey_scenario.calculate_series("household_weight", period, simulation=simulation_name) != 0).all()
-    return survey_scenario
+    assert survey_scenario is not None
