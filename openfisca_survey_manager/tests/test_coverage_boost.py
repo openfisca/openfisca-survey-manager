@@ -5,21 +5,21 @@ import pandas as pd
 import pytest
 from openfisca_core import periods
 
-from openfisca_survey_manager.input_dataframe_generator import (
-    make_input_dataframe_by_entity,
-    randomly_init_variable,
-    set_table_in_survey,
-)
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import Survey
 from openfisca_survey_manager.policy import AbstractAggregates
+from openfisca_survey_manager.policy.variables import quantile
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.scripts.build_collection import (
     check_template_config_files,
     create_data_file_by_format,
 )
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.tests import tax_benefit_system
-from openfisca_survey_manager.variables import quantile
+from openfisca_survey_manager.tests.input_dataframe_generator import (
+    make_input_dataframe_by_entity,
+    randomly_init_variable,
+    set_table_in_survey,
+)
 
 
 def setup_test_config(config_files_directory: Path):
@@ -156,7 +156,7 @@ def test_matching_mock_extended(monkeypatch):
     )
     monkeypatch.setitem(sys.modules, "rpy2", fake_rpy2)
     monkeypatch.setitem(sys.modules, "rpy2.robjects", fake_rpy2.robjects)
-    from openfisca_survey_manager.matching import nnd_hotdeck_using_feather, nnd_hotdeck_using_rpy2
+    from openfisca_survey_manager.policy.matching import nnd_hotdeck_using_feather, nnd_hotdeck_using_rpy2
 
     receiver = pd.DataFrame({"a": [1], "c": [1]})
     donor = pd.DataFrame({"a": [1], "b": [2], "c": [1]})

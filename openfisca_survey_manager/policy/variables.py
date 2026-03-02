@@ -3,7 +3,7 @@ import logging
 from numpy import arange
 from openfisca_core.model_api import ADD, YEAR, Variable, where
 
-from openfisca_survey_manager.statshelpers import mark_weighted_percentiles, weightedcalcs_quantiles
+from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles, weightedcalcs_quantiles
 
 log = logging.getLogger(__name__)
 
