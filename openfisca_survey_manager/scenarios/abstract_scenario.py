@@ -11,8 +11,8 @@ from openfisca_core.periods import MONTH, YEAR
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 
-from openfisca_survey_manager.calibration import Calibration
 from openfisca_survey_manager.exceptions import SurveyManagerError
+from openfisca_survey_manager.policy.calibration import Calibration
 from openfisca_survey_manager.simulations import Simulation
 from openfisca_survey_manager.surveys import Survey
 
