@@ -124,13 +124,6 @@ class Table:
 
         assert store_format in ["hdf5", "parquet"], f"invalid store_format: {store_format}"
         if store_format == "hdf5":
-            import warnings
-
-            warnings.warn(
-                "HDF5 will no longer be the default format in a future version. Please use parquet format instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
             log.warning(
                 "HDF5 will no longer be the default format in a future version. Please use parquet format instead."
             )
