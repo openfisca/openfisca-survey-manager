@@ -1,11 +1,12 @@
-"""Utilities: re-exports from common.misc + load_table (survey-dependent)."""
+"""Utilities: re-exports from policy.legislation_asof + load_table (survey-dependent)."""
 
 import logging
+import warnings
 from typing import Optional
 
 import pandas as pd
 
-from openfisca_survey_manager.common.misc import (
+from openfisca_survey_manager.policy.legislation_asof import (
     asof,
     do_nothing,
     inflate_parameter_leaf,
@@ -16,6 +17,13 @@ from openfisca_survey_manager.common.misc import (
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
+
+warnings.warn(
+    "openfisca_survey_manager.utils is deprecated for legislation helpers and will be removed in a future "
+    "version. Prefer: from openfisca_survey_manager.policy.legislation_asof import ...",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 __all__ = [
     "asof",
