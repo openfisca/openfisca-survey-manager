@@ -7,7 +7,6 @@ from openfisca_survey_manager.common.misc import (
     inflate_parameter_leaf,
     inflate_parameters,
     parameters_asof,
-    stata_files_to_data_frames,
     variables_asof,
 )
 
@@ -17,6 +16,5 @@ __all__ = [
     "inflate_parameter_leaf",
     "inflate_parameters",
     "parameters_asof",
-    "stata_files_to_data_frames",
     "variables_asof",
 ]

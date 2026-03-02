@@ -1,9 +1,7 @@
 """Shared helpers (no survey collection dependency) to avoid circular imports."""
 
 import logging
-from pathlib import Path
 
-import pandas as pd
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 
@@ -229,23 +227,3 @@ def variables_asof(tax_benefit_system, instant, variables_list=None):
 
             if variable.end is not None and periods.instant(variable.end) >= instant:
                 variable.end = None
-
-
-def stata_files_to_data_frames(data, period=None):
-    assert period is not None
-    period = periods.period(period)
-
-    stata_file_by_entity = data.get("stata_file_by_entity")
-    if stata_file_by_entity is None:
-        return
-
-    variables_from_stata_files = []
-    input_data_frame_by_entity_by_period = {}
-    input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = {}
-    for entity, file_path in stata_file_by_entity.items():
-        assert Path(file_path).exists(), f"Invalid file path: {file_path}"
-        entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
-        variables_from_stata_files += list(entity_data_frame.columns)
-    data["input_data_frame_by_entity_by_period"] = input_data_frame_by_entity_by_period
-
-    return variables_from_stata_files
