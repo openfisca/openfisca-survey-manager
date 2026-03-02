@@ -22,7 +22,7 @@ from openfisca_survey_manager.policy.simulation_builder import (
     SimulationBuilder,
     diagnose_variable_mismatch,
 )
-from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
+from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.utils import do_nothing, load_table
 
