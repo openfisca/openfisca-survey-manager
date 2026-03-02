@@ -19,7 +19,7 @@ def test_summarize_variable_log_output(caplog):
     The doctest used to check stdout; we now send that output to the logging system.
     This test captures logs and verifies the expected content is present.
     """
-    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.simulations"):
+    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.policy.simulations"):
         survey_scenario = create_randomly_initialized_survey_scenario(collection=None)
         survey_scenario.summarize_variable(variable="housing_occupancy_status", force_compute=True)
 
@@ -32,7 +32,7 @@ def test_summarize_variable_log_output(caplog):
     assert "owner" in text or "tenant" in text or "free_lodger" in text or "homeless" in text
 
     caplog.clear()
-    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.simulations"):
+    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.policy.simulations"):
         survey_scenario.summarize_variable(variable="rent", force_compute=True)
 
     messages = [r.message for r in caplog.records]
@@ -43,7 +43,7 @@ def test_summarize_variable_log_output(caplog):
 
     survey_scenario.tax_benefit_systems["baseline"].neutralize_variable("age")
     caplog.clear()
-    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.simulations"):
+    with caplog.at_level(logging.INFO, logger="openfisca_survey_manager.policy.simulations"):
         survey_scenario.summarize_variable(variable="age")
 
     messages = [r.message for r in caplog.records]
