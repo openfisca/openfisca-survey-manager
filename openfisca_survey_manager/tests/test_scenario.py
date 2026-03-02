@@ -7,17 +7,17 @@ from typing import Any, Callable, Optional
 from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
-from openfisca_survey_manager.input_dataframe_generator import (
-    make_input_dataframe_by_entity,
-    random_data_generator,
-    randomly_init_variable,
-)
-from openfisca_survey_manager.paths import (
+from openfisca_survey_manager.configuration.paths import (
     default_config_files_directory,
 )
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario
 from openfisca_survey_manager.tests import tax_benefit_system
+from openfisca_survey_manager.tests.input_dataframe_generator import (
+    make_input_dataframe_by_entity,
+    random_data_generator,
+    randomly_init_variable,
+)
 
 log = logging.getLogger(__name__)
 
