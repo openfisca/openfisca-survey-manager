@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from openfisca_survey_manager.matching import nnd_hotdeck_using_rpy2
+from openfisca_survey_manager.policy.matching import nnd_hotdeck_using_rpy2
 
 try:
     import rpy2

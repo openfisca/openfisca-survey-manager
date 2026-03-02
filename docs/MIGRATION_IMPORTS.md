@@ -47,7 +47,7 @@ Avant (ou en même temps que) la suppression des fichiers listés en section 3, 
 
 | Fichier | Remplacer |
 |---------|-----------|
-| `input_dataframe_generator.py` | `paths` → `configuration.paths` |
+| `tests/input_dataframe_generator.py` | `paths` → `configuration.paths` (module déplacé dans `tests/`) |
 | `scripts/build_collection.py` | `paths` → `configuration.paths` |
 | `temporary.py` | `paths` → `configuration.paths` |
 | `google_colab.py` | `paths` → `configuration.paths` |
@@ -61,7 +61,7 @@ Avant (ou en même temps que) la suppression des fichiers listés en section 3, 
 
 | Fichier | Remplacer |
 |---------|-----------|
-| `input_dataframe_generator.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |
+| `tests/input_dataframe_generator.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |
 | `simulations.py` | `survey_collections`, `utils` → `core.dataset` ; utils → `common.misc` + module de `load_table` |
 | `utils.py` | `survey_collections` → `core.dataset` (pour `load_table`) |
 | `scripts/build_collection.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |

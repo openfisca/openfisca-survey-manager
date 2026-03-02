@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from openfisca_survey_manager.paths import openfisca_survey_manager_location
+from openfisca_survey_manager.configuration.paths import openfisca_survey_manager_location
 
 log = logging.getLogger(__name__)
 

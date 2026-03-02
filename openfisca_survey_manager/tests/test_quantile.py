@@ -5,10 +5,10 @@ from openfisca_core.model_api import YEAR, Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 from openfisca_survey_manager.paths import default_config_files_directory
+from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles
+from openfisca_survey_manager.policy.variables import quantile
 from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
-from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.tests.test_scenario import setup_test_config
-from openfisca_survey_manager.variables import quantile
 
 Individu = build_entity(
     key="individu",
