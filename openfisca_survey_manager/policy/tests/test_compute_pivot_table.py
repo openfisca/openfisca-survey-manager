@@ -7,7 +7,7 @@ def test_compute_pivot_table():
     survey_scenario = create_randomly_initialized_survey_scenario(reform=modify_social_security_taxation)
     period = "2017-01"
 
-    return survey_scenario.compute_pivot_table(
+    pivot_table = survey_scenario.compute_pivot_table(
         aggfunc="mean",
         columns=["age"],
         difference=False,
@@ -22,3 +22,4 @@ def test_compute_pivot_table():
         weighted=True,
         alternative_weights=None,
     )
+    assert pivot_table is not None
