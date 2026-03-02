@@ -34,7 +34,7 @@ Le retrait des ré-exports est une **breaking change** : tout code (interne ou e
 `config_ini`, `default_config_files_directory`, `is_in_ci`, `openfisca_survey_manager_location`, `private_run_with_data`, `test_config_files_directory`.
 
 **Symboles exportés par `utils`** :
-- Depuis `common.misc` : `asof`, `do_nothing`, `inflate_parameter_leaf`, `inflate_parameters`, `parameters_asof`, `stata_files_to_data_frames`, `variables_asof`.
+- Depuis `common.misc` : `asof`, `do_nothing`, `inflate_parameter_leaf`, `inflate_parameters`, `parameters_asof`, `variables_asof`.
 - Définis dans `utils.py` : `load_table` (à déplacer vers un module adapté, ex. `core` ou `io`, avant suppression de `utils.py`).
 
 ---

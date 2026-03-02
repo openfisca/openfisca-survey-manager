@@ -11,7 +11,6 @@ from openfisca_survey_manager.common.misc import (
     inflate_parameter_leaf,
     inflate_parameters,
     parameters_asof,
-    stata_files_to_data_frames,
     variables_asof,
 )
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -25,7 +24,6 @@ __all__ = [
     "inflate_parameters",
     "load_table",
     "parameters_asof",
-    "stata_files_to_data_frames",
     "variables_asof",
 ]
 
