@@ -6,8 +6,8 @@ from pathlib import Path
 
 from pandas.testing import assert_frame_equal
 
-from openfisca_survey_manager.paths import openfisca_survey_manager_location
-from openfisca_survey_manager.read_sas import read_sas
+from openfisca_survey_manager.configuration.paths import openfisca_survey_manager_location
+from openfisca_survey_manager.io.readers import read_sas
 
 
 def test():

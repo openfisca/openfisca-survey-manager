@@ -1,5 +1,12 @@
 # Changelog
 
+# 1.0.0
+
+* **Breaking**: Version 1.0 — retrait des ré-exports et des DeprecationWarning
+  - **Suppression des modules de compatibilité** : `config`, `paths`, `tables`, `surveys`, `survey_collections`, `read_sas`, `read_spss`, `read_dbf`, `calibration`, `calmar`, `utils` sont supprimés. Utiliser les imports canoniques (voir `docs/MIGRATION_IMPORTS.md`).
+  - **`load_table`** : déplacé de `utils` vers `openfisca_survey_manager.core.dataset` (et exporté depuis `core`).
+  - Tous les imports internes ont été migrés vers `configuration.paths`, `configuration.models`, `core.dataset`, `core.survey`, `core.table`, `io.readers`, `processing.weights`, `common.misc`.
+
 # 6.5.0
 
 * Typing (no breaking API changes)

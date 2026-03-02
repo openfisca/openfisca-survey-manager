@@ -86,12 +86,14 @@ Aujourd’hui ces couches sont entremêlées (ex. lecture + nettoyage dans `tabl
 
 ### 3.1 Fonctions longues (> 100 lignes)
 
-- Découper les grosses fonctions en étapes nommées, par exemple :
-  - `load_survey()` → `_parse_config()`, `_load_raw_data()`, `_transform()`, `_store()`.
-- Cible : lisibilité et testabilité, sans changer le comportement.
+- **Entamé** : découpage en étapes nommées sans changer le comportement.
+  - `core.table.Table.read_source` → `_read_csv_with_inferred_encoding()`, `_apply_stata_categorical_strategy()` ; `read_source()` orchestre.
+  - `core.survey.Survey.get_values` → `_get_values_from_hdf5()`, `_get_values_from_parquet()` ; `get_values()` orchestre et applique l’harmonisation.
+- À poursuivre : autres modules (simulations, scenarios, scripts, processing/weights/calmar, etc.).
 
 ### 3.2 Dépendances circulaires
 
+- **Vérifié** (imports à froid) : aucune dépendance circulaire. Chaîne cohérente : `exceptions` → `configuration` → `io`/`processing` → `core.table` → `core.survey` → `core.dataset` ; `utils` → `common.misc`, `survey_collections` ; `core.table` n'importe `Survey` qu'en tardif dans `Table.__init__`. Si des cycles apparaissent : extraire la logique commune dans `common/` ou `configuration/`.
 - Si des modules s’importent mutuellement, extraire la logique commune dans `utils/` (ou `config/`) et faire dépendre les deux côtés de ce module commun.
 - Vérifier avec des imports à froid (démarrer l’app et importer les sous-modules).
 
