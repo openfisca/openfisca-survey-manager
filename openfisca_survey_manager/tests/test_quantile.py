@@ -4,7 +4,7 @@ from openfisca_core.entities import build_entity
 from openfisca_core.model_api import YEAR, Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
-from openfisca_survey_manager.paths import default_config_files_directory
+from openfisca_survey_manager.configuration.paths import default_config_files_directory
 from openfisca_survey_manager.policy.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.policy.variables import quantile
