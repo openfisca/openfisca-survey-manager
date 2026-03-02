@@ -1,3 +1,5 @@
+"""Helpers to build input dataframes and fill surveys for tests."""
+
 import configparser
 import logging
 import random
@@ -7,9 +9,12 @@ import numpy as np
 import pandas as pd
 from openfisca_core import periods
 
-from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.configuration.paths import (
+    default_config_files_directory,
+    openfisca_survey_manager_location,
+)
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import Survey
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +32,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
 
       Example:
 
-        >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
+        >>> from openfisca_survey_manager.tests.input_dataframe_generator import make_input_dataframe_by_entity
         >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
@@ -150,7 +155,7 @@ def randomly_init_variable(
       seed: Random seed used whe ndrawing the values (Default value = None)
 
     Examples
-        >>> from openfisca_survey_manager.input_dataframe_generator import make_input_dataframe_by_entity
+        >>> from openfisca_survey_manager.tests.input_dataframe_generator import make_input_dataframe_by_entity
         >>> from openfisca_country_template import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)

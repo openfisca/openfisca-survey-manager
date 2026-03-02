@@ -1,9 +1,9 @@
 import pandas as pd
 import pytest
 
-from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import Survey
+from openfisca_survey_manager.tests.input_dataframe_generator import set_table_in_survey
 
 
 @pytest.fixture
