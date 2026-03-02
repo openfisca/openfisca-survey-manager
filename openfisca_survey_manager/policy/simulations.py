@@ -17,14 +17,14 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 from openfisca_core.types import CoreEntity as Entity
 
+from openfisca_survey_manager.core.dataset import SurveyCollection, load_table
 from openfisca_survey_manager.exceptions import SurveyManagerError
+from openfisca_survey_manager.policy.legislation_asof import do_nothing
 from openfisca_survey_manager.policy.simulation_builder import (
     SimulationBuilder,
     diagnose_variable_mismatch,
 )
 from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.utils import do_nothing, load_table
 
 log = logging.getLogger(__name__)
 
