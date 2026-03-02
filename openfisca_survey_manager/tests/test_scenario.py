@@ -10,8 +10,8 @@ from openfisca_core.tools import assert_near
 from openfisca_survey_manager.configuration.paths import (
     default_config_files_directory,
 )
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
-from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario
+from openfisca_survey_manager.policy.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.policy.scenarios.reform_scenario import ReformScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 from openfisca_survey_manager.tests.input_dataframe_generator import (
     make_input_dataframe_by_entity,
