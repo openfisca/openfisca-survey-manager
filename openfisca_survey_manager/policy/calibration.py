@@ -12,7 +12,7 @@ import pandas as pd
 from numpy import logical_not
 from openfisca_core.model_api import Enum
 
-from openfisca_survey_manager.processing.weights.calmar import calmar
+from openfisca_survey_manager.policy.calmar import calmar
 
 log = logging.getLogger(__name__)
 
