@@ -13,9 +13,12 @@ import shutil
 import sys
 from pathlib import Path
 
-from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.configuration.paths import (
+    default_config_files_directory,
+    openfisca_survey_manager_location,
+)
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import Survey
 
 app_name = Path(__file__).stem
 log = logging.getLogger(app_name)
@@ -240,9 +243,14 @@ def main():
         "--parquet",
         action="store_true",
         default=False,
+        help="save data in parquet format (directory with one .parquet file per table)",
+    )
+    parser.add_argument(
+        "--zarr",
+        action="store_true",
+        default=False,
         help=(
-            "save data in parquet format instead of HDF5 "
-            "(HDF5 will no longer be the default format in a future version)"
+            "save data in zarr format (one zarr group per table); requires: pip install openfisca-survey-manager[zarr]"
         ),
     )
     parser.add_argument(
@@ -280,22 +288,16 @@ def main():
 
     start_time = datetime.datetime.now()
 
-    # Determine store format based on argument
-    store_format = "parquet" if args.parquet else "hdf5"
-
-    # Deprecation warning for HDF5 format
-    if not args.parquet:
-        import warnings
-
-        warnings.warn(
-            "HDF5 will no longer be the default format in a future version. "
-            "Please use --parquet option to save data in parquet format.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+    # Determine store format based on argument (--zarr > --parquet > default hdf5)
+    if args.zarr:
+        store_format = "zarr"
+    elif args.parquet:
+        store_format = "parquet"
+    else:
+        store_format = "hdf5"
         log.warning(
             "HDF5 will no longer be the default format in a future version. "
-            "Please use --parquet option to save data in parquet format."
+            "Please use --parquet or --zarr to save data in parquet or zarr format."
         )
 
     try:
