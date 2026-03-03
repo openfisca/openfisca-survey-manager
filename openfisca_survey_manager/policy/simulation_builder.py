@@ -1,7 +1,14 @@
-import logging
+"""Simulation builder extensions for survey manager."""
 
+from __future__ import annotations
+
+import logging
+from typing import Any, Optional
+
+import pandas as pd
 from openfisca_core.model_api import MONTH, YEAR
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
+from openfisca_core.types import TaxBenefitSystem
 
 from openfisca_survey_manager.exceptions import SurveyManagerError
 
@@ -17,7 +24,10 @@ log = logging.getLogger(__name__)
 # Helpers
 
 
-def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
+def diagnose_variable_mismatch(
+    used_as_input_variables: Optional[list[str]],
+    input_data_frame: pd.DataFrame,
+) -> None:
     """Diagnose variables mismatch.
 
     Args:
@@ -41,7 +51,7 @@ def diagnose_variable_mismatch(used_as_input_variables, input_data_frame):
 # SimulationBuilder monkey-patched methods
 
 
-def _set_id_variable_by_entity_key(builder) -> dict[str, str]:
+def _set_id_variable_by_entity_key(builder: SimulationBuilder) -> dict[str, str]:
     """Identify and sets the correct ids for the different entities."""
     if builder.id_variable_by_entity_key is None:
         log.debug("Use default id_variable names")
@@ -52,7 +62,7 @@ def _set_id_variable_by_entity_key(builder) -> dict[str, str]:
     return builder.id_variable_by_entity_key
 
 
-def _set_role_variable_by_entity_key(builder) -> dict[str, str]:
+def _set_role_variable_by_entity_key(builder: SimulationBuilder) -> dict[str, str]:
     """Identify and sets the correct roles for the different entities."""
     if builder.role_variable_by_entity_key is None:
         builder.role_variable_by_entity_key = {
@@ -62,7 +72,7 @@ def _set_role_variable_by_entity_key(builder) -> dict[str, str]:
     return builder.role_variable_by_entity_key
 
 
-def _set_used_as_input_variables_by_entity(builder) -> dict[str, list[str]]:
+def _set_used_as_input_variables_by_entity(builder: SimulationBuilder) -> Optional[dict[str, list[str]]]:
     """Identify and sets the correct input variables for the different entities."""
     if builder.used_as_input_variables_by_entity is not None:
         return
@@ -88,7 +98,11 @@ def _set_used_as_input_variables_by_entity(builder) -> dict[str, list[str]]:
     return builder.used_as_input_variables_by_entity
 
 
-def filter_input_variables(builder, input_data_frame, tax_benefit_system):
+def filter_input_variables(
+    builder: SimulationBuilder,
+    input_data_frame: pd.DataFrame,
+    tax_benefit_system: TaxBenefitSystem,
+) -> pd.DataFrame:
     """Filter the input data frame from variables that won't be used or are set to be computed.
 
     Args:
@@ -152,7 +166,11 @@ def filter_input_variables(builder, input_data_frame, tax_benefit_system):
     return input_data_frame
 
 
-def init_all_entities(builder, input_data_frame, period=None):
+def init_all_entities(
+    builder: SimulationBuilder,
+    input_data_frame: pd.DataFrame,
+    period: Any = None,
+) -> Any:
     assert period is not None
     log.debug(f"Initialasing simulation using input_data_frame for period {period}")
     builder._set_id_variable_by_entity_key()
@@ -182,7 +200,11 @@ def init_all_entities(builder, input_data_frame, period=None):
     return simulation
 
 
-def init_entity_structure(builder, entity, input_data_frame):
+def init_entity_structure(
+    builder: SimulationBuilder,
+    entity: Any,
+    input_data_frame: pd.DataFrame,
+) -> None:
     """Initialize sthe simulation with tax_benefit_system entities and input_data_frame.
 
     Args:
@@ -225,7 +247,11 @@ def init_entity_structure(builder, entity, input_data_frame):
             )
 
 
-def init_simulation_with_data_frame(builder, input_data_frame, period):
+def init_simulation_with_data_frame(
+    builder: SimulationBuilder,
+    input_data_frame: pd.DataFrame,
+    period: Any,
+) -> Any:
     """Initialize the simulation period with current input_data_frame for an entity if specified."""
     used_as_input_variables = builder.used_as_input_variables
     id_variable_by_entity_key = builder.id_variable_by_entity_key

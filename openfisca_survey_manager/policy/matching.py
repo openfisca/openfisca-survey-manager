@@ -1,7 +1,10 @@
 """Nearest-neighbor donor (NND) hot deck matching — pure Python or R (StatMatch)."""
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -13,7 +16,10 @@ log = logging.getLogger(__name__)
 config_files_directory = Path(openfisca_survey_manager_location)
 
 
-def _normalize_list(x, name="variables"):
+def _normalize_list(
+    x: Optional[Union[str, List[str]]],
+    name: str = "variables",
+) -> Optional[list[str]]:
     """Return a list of variable names from str or list."""
     if x is None:
         return None
@@ -168,7 +174,7 @@ def nnd_hotdeck(
     dist_fun: str = "Manhattan",
     use_r: bool = False,
     random_state: int | None = None,
-):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Nearest-neighbor donor (NND) hot deck: match each receiver row to a donor,
     then fuse z_variables from donor into receiver.
@@ -226,7 +232,13 @@ def nnd_hotdeck(
     return fused_0, fused_1
 
 
-def _nnd_hotdeck_rpy2(receiver, donor, matching_variables, z_variables, donor_classes=None):
+def _nnd_hotdeck_rpy2(
+    receiver: pd.DataFrame,
+    donor: pd.DataFrame,
+    matching_variables: list[str],
+    z_variables: list[str],
+    donor_classes: str | list[str] | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """R (StatMatch) implementation via rpy2; same return as nnd_hotdeck."""
     from rpy2.robjects import pandas2ri
     from rpy2.robjects.packages import importr
@@ -269,12 +281,12 @@ def _nnd_hotdeck_rpy2(receiver, donor, matching_variables, z_variables, donor_cl
 
 
 def nnd_hotdeck_using_rpy2(
-    receiver=None,
-    donor=None,
-    matching_variables=None,
-    z_variables=None,
-    donor_classes=None,
-):
+    receiver: pd.DataFrame | None = None,
+    donor: pd.DataFrame | None = None,
+    matching_variables: str | list[str] | None = None,
+    z_variables: str | list[str] | None = None,
+    donor_classes: str | list[str] | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     NND hot deck via R (StatMatch). Prefer `nnd_hotdeck(..., use_r=True)`.
     """
@@ -288,7 +300,12 @@ def nnd_hotdeck_using_rpy2(
     )
 
 
-def nnd_hotdeck_using_feather(receiver=None, donor=None, matching_variables=None, z_variables=None):
+def nnd_hotdeck_using_feather(
+    receiver: pd.DataFrame | None = None,
+    donor: pd.DataFrame | None = None,
+    matching_variables: str | list[str] | None = None,
+    z_variables: str | list[str] | None = None,
+) -> None:
     """
     Not working
     """

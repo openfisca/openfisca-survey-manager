@@ -32,7 +32,10 @@ log = logging.getLogger(__name__)
 # Helpers
 
 
-def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variables: list):
+def assert_variables_in_same_entity(
+    tax_benefit_system: TaxBenefitSystem,
+    variables: list[str],
+) -> str:
     """
     Assert that variables are in the same entity.
 
@@ -55,7 +58,7 @@ def assert_variables_in_same_entity(tax_benefit_system: TaxBenefitSystem, variab
     return entity.key
 
 
-def get_words(text: str):
+def get_words(text: str) -> list[str]:
     return re.compile("[A-Za-z_]+[A-Za-z0-9_]*").findall(text)
 
 
@@ -116,7 +119,7 @@ def compute_aggregate(
     missing_variable_default_value: Any = np.nan,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Optional[dict] = None,
+    filtering_variable_by_entity: Optional[dict[str, str]] = None,
 ) -> Optional[Union[float, int]]:
     """
     Compute aggregate of a variable.
@@ -247,7 +250,7 @@ def compute_quantiles(
     filter_by: Optional[str] = None,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Optional[dict] = None,
+    filtering_variable_by_entity: Optional[dict[str, str]] = None,
 ) -> list[float]:
     """
     Compute quantiles of a variable.
@@ -299,8 +302,8 @@ def compute_quantiles(
 
 
 def compute_pivot_table(
-    simulation: Simulation = None,
-    baseline_simulation: Simulation = None,
+    simulation: Optional[Simulation] = None,
+    baseline_simulation: Optional[Simulation] = None,
     aggfunc: str = "mean",
     columns: Optional[list[str]] = None,
     difference: bool = False,
@@ -313,8 +316,8 @@ def compute_pivot_table(
     concat_axis: Optional[int] = None,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Optional[dict] = None,
-):
+    filtering_variable_by_entity: Optional[dict[str, str]] = None,
+) -> pd.DataFrame:
     """
     Compute pivot table.
 
@@ -690,7 +693,7 @@ def compute_winners_losers(
     observations_threshold: Optional[int] = None,
     weighted: bool = True,
     alternative_weights: Optional[Union[str, int, float, Array]] = None,
-    filtering_variable_by_entity: Optional[dict] = None,
+    filtering_variable_by_entity: Optional[dict[str, str]] = None,
 ) -> dict[str, Union[int, float]]:
     """
     Compute the number of winners and losers for a given variable.
@@ -806,8 +809,8 @@ def init_entity_data(
     entity: Entity,
     filtered_input_data_frame: pd.DataFrame,
     period: Period,
-    used_as_input_variables_by_entity: dict,
-):
+    used_as_input_variables_by_entity: dict[str, list[str]],
+) -> None:
     """
     Initialize entity in simulation at some period with input provided by a dataframe.
 
@@ -840,9 +843,9 @@ def init_entity_data(
 
 def inflate(
     simulation: Simulation,
-    inflator_by_variable: Optional[dict] = None,
+    inflator_by_variable: Optional[dict[str, float]] = None,
     period: Optional[Union[int, str, Period]] = None,
-    target_by_variable: Optional[dict] = None,
+    target_by_variable: Optional[dict[str, float]] = None,
 ) -> None:
     tax_benefit_system = simulation.tax_benefit_system
     for variable_name in set(inflator_by_variable.keys()).union(set(target_by_variable.keys())):
@@ -877,12 +880,12 @@ def inflate(
 def _load_table_for_survey(
     config_files_directory: str,
     collection: str,
-    survey: str,
-    table: str,
+    survey: Optional[str] = None,
+    table: Optional[str] = None,
     batch_size: Optional[int] = None,
     batch_index: Optional[int] = None,
     filter_by: Optional[str] = None,
-):
+) -> pd.DataFrame:
     if survey is not None:
         input_data_frame = load_table(
             config_files_directory=config_files_directory,
@@ -908,15 +911,15 @@ def _load_table_for_survey(
 
 def _input_data_table_by_entity_by_period_monolithic(
     tax_benefit_system: TaxBenefitSystem,
-    simulation: Simulation,
+    simulation: Optional[Simulation],
     period: Period,
-    input_data_table_by_entity: dict,
+    input_data_table_by_entity: dict[str, Any],
     builder: SimulationBuilder,
-    custom_input_data_frame: Callable,
+    custom_input_data_frame: Callable[..., Any],
     config_files_directory: str,
     collection: str,
     survey: Optional[str] = None,
-):
+) -> Simulation:
     """
     Initialize simulation with input data from a table for each entity and period.
     """
@@ -964,15 +967,15 @@ def _input_data_table_by_entity_by_period_monolithic(
 
 def _input_data_table_by_entity_by_period_batch(
     tax_benefit_system: TaxBenefitSystem,
-    simulation: Simulation,
+    simulation: Optional[Simulation],
     period: Period,
-    input_data_table_by_entity: dict,
+    input_data_table_by_entity: dict[str, Any],
     builder: SimulationBuilder,
-    custom_input_data_frame: Callable,
+    custom_input_data_frame: Callable[..., Any],
     config_files_directory: str,
     collection: str,
     survey: Optional[str] = None,
-):
+) -> Simulation:
     """
     Initialize simulation with input data from a table for each entity and period.
     """
@@ -1050,8 +1053,8 @@ def _input_data_table_by_entity_by_period_batch(
 def init_simulation(
     tax_benefit_system: TaxBenefitSystem,
     period: Union[str, int, Period],
-    data: dict,
-):
+    data: dict[str, Any],
+) -> Simulation:
     builder = SimulationBuilder()
     builder.create_entities(tax_benefit_system)
 
@@ -1189,7 +1192,7 @@ def init_variable_in_entity(
     variable_name: str,
     series: pd.Series,
     period: Period,
-):
+) -> None:
     variable = simulation.tax_benefit_system.variables[variable_name]
 
     # np.issubdtype cannot handles categorical variables
@@ -1266,7 +1269,7 @@ def new_from_tax_benefit_system(
     debug: bool = False,
     trace: bool = False,
     data: Optional[dict] = None,
-    memory_config: MemoryConfig = None,
+    memory_config: Optional[MemoryConfig] = None,
     period: Optional[Union[int, str, Period]] = None,
     custom_initialize: Optional[Callable] = None,
 ) -> Simulation:
@@ -1298,7 +1301,7 @@ def new_from_tax_benefit_system(
     return simulation
 
 
-def print_memory_usage(simulation: Simulation):
+def print_memory_usage(simulation: Simulation) -> None:
     """
     Print memory usage.
 
@@ -1340,7 +1343,7 @@ def print_memory_usage(simulation: Simulation):
 
 def set_weight_variable_by_entity(
     simulation: Simulation,
-    weight_variable_by_entity: dict,
+    weight_variable_by_entity: Optional[dict[str, str]],
 ) -> None:
     """
     Set weight variable for each entity.
@@ -1357,7 +1360,7 @@ def summarize_variable(
     variable: Optional[str] = None,
     weighted: bool = False,
     force_compute: bool = False,
-):
+) -> None:
     """Print a summary of a variable including its memory usage.
 
     Args:
