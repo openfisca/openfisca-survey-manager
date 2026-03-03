@@ -1,5 +1,21 @@
 # Changelog
 
+# 1.1.0
+
+* **Store backends** (choix du format de stockage des tables)
+  - **io/backends**: Backends HDF5, Parquet et Zarr (abstraction `StoreBackend`) ; `get_backend(name)`, `get_available_backend_names()`, `register_backend()` pour étendre.
+  - **Zarr** : backend optionnel (`pip install openfisca-survey-manager[zarr]`) ; une table = un groupe zarr dans un répertoire `.zarr` par survey.
+  - **Survey** : attribut `zarr_file_path` ; `fill_store(store_format="zarr")` et lecture via `get_values` pour zarr.
+  - **Table** : écriture/lecture et `_is_stored` délégués aux backends ; `_get_store_path_and_format()` unifie les chemins.
+  - **build-collection** : option `--zarr` en plus de `--parquet` ; défaut HDF5 avec avertissement.
+  - **Docs** : `docs/ZARR-BACKEND.md` (utilisation Zarr, compression, parallélisation).
+
+* **Manifest (RFC-002) : store_format**
+  - **manifest.yaml** : clé optionnelle `store_format` (hdf5, parquet, zarr) au niveau dataset ; par défaut `parquet` au chargement.
+  - **SurveyCollection.load** : depuis un manifest, applique `store_format` et déduit les chemins de store (`hdf5_file_path`, `parquet_file_path`, `zarr_file_path`) à partir de `default_output_dir`.
+  - **Script de migration** : infère `store_format` depuis le JSON legacy (`parquet_file_path` / `zarr_file_path` / `hdf5_file_path`) et l’écrit dans le manifest généré.
+  - **RFC-002** : exemple de manifest avec `store_format` ; section 3.5 et 4.2 mises à jour.
+
 # 1.0.0
 
 * **Breaking**: Version 1.0 — retrait des ré-exports et des DeprecationWarning

@@ -115,6 +115,9 @@ collections_dir/
 name: erfs
 label: "Enquête Revenus Fiscaux et Sociaux"
 
+# Backend de stockage des tables (hdf5, parquet, zarr) ; par défaut parquet
+store_format: parquet
+
 # Par survey : sources brutes (remplace raw_data.ini + informations)
 surveys:
   erfs_2019:
@@ -147,7 +150,22 @@ On **ne** résout plus le répertoire en fonction de la présence de `taxipp` ou
 - soit définir `OPENFISCA_SURVEY_CONFIG_DIR` vers leur répertoire,
 - soit passer le chemin de config à chaque appel.
 
-### 3.5 API cible (alignement RFC-001)
+### 3.5 Backends de stockage (store)
+
+Le stockage des tables d’enquête peut s’effectuer via différents **backends** (choix au build / `fill_store`) :
+
+| Backend  | Format              | Usage                                      |
+|----------|---------------------|--------------------------------------------|
+| **hdf5** | Un fichier .h5      | Historique (déprécié à terme)              |
+| **parquet** | Répertoire, un .parquet par table | Recommandé (interop, colonnes) |
+| **zarr** | Répertoire .zarr, un groupe par table | Optionnel (dépendance `[zarr]`)     |
+
+- **API** : `io.backends.get_backend(name)`, `get_available_backend_names()`, `register_backend(name, backend)` pour étendre.
+- **CLI** : `build-collection --parquet` ou `build-collection --zarr` ; par défaut HDF5 (avec avertissement).
+- **Survey** : `store_format`, `hdf5_file_path` / `parquet_file_path` / `zarr_file_path` selon le backend.
+- **Zarr (compression, parallélisation)** : voir [docs/ZARR-BACKEND.md](ZARR-BACKEND.md).
+
+### 3.6 API cible (alignement RFC-001)
 
 - Charger un dataset par nom : `DataManager.load("erfs", config_dir=...)` → lit `collections_dir/erfs/manifest.yaml` et les données associées.
 - Accès aux métadonnées : `dataset.metadata` (provenant du manifest), `dataset.schema` (si on l’expose), chemins dérivés déterministes à partir de `collections_dir` + `name` + `output_subdir`.
@@ -173,7 +191,7 @@ Un script permet de migrer l’existant vers la nouvelle structure :
   ```bash
   python -m openfisca_survey_manager.scripts.migrate_config_to_rfc002 [--config-dir PATH] [--dry-run] [-v]
   ```
-- **Comportement** : lit `config.ini` ([collections] + [data]) et, si présent, `raw_data.ini` ; pour chaque collection, charge le JSON, déduit `source.format` et `source.path` à partir de `informations` (csv_files, sas_files, etc.) ou de la section correspondante de raw_data.ini ; crée `config.yaml` et `collections_dir/<name>/manifest.yaml` pour chaque collection. Avec `--dry-run`, n’écrit aucun fichier.
+- **Comportement** : lit `config.ini` ([collections] + [data]) et, si présent, `raw_data.ini` ; pour chaque collection, charge le JSON, déduit `source.format` et `source.path` à partir de `informations` (csv_files, sas_files, etc.) ou de la section correspondante de raw_data.ini ; **infère `store_format`** (parquet, hdf5 ou zarr) à partir des champs `parquet_file_path` / `zarr_file_path` / `hdf5_file_path` des surveys du JSON legacy, et l’écrit dans le manifest ; crée `config.yaml` et `collections_dir/<name>/manifest.yaml` pour chaque collection. Avec `--dry-run`, n’écrit aucun fichier.
 - **Répertoire de config par défaut** : celui retourné par `get_config_dir()` (env `OPENFISCA_SURVEY_CONFIG_DIR` ou XDG). On peut imposer un répertoire avec `--config-dir`.
 
 ### 4.3 Dépréciation

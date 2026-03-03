@@ -84,7 +84,25 @@ def build_manifest_from_json(
         }
         if survey_obj.get("output_subdir"):
             surveys[survey_name]["output_subdir"] = survey_obj["output_subdir"]
-    return {"name": name, "label": label, "surveys": surveys}
+
+    store_format = _infer_store_format_from_legacy(surveys_data)
+    return {"name": name, "label": label, "store_format": store_format, "surveys": surveys}
+
+
+def _infer_store_format_from_legacy(surveys_data: dict) -> str:
+    """Infer store_format from legacy JSON surveys (parquet_file_path, zarr_file_path, hdf5_file_path)."""
+    if not isinstance(surveys_data, dict):
+        return "parquet"
+    for survey_obj in surveys_data.values():
+        if not isinstance(survey_obj, dict):
+            continue
+        if survey_obj.get("zarr_file_path"):
+            return "zarr"
+        if survey_obj.get("parquet_file_path"):
+            return "parquet"
+        if survey_obj.get("hdf5_file_path"):
+            return "hdf5"
+    return "parquet"
 
 
 def load_raw_data_ini(config_dir: Path) -> configparser.ConfigParser | None:

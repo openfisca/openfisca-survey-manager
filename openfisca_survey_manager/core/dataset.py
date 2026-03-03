@@ -151,11 +151,20 @@ Contains the following surveys :
                 self.config = None
                 self.output_directory = str(new_cfg["default_output_dir"])
                 self.surveys = []
+                store_format = manifest.get("store_format", "parquet")
+                output_dir = Path(self.output_directory)
                 for survey_name, entry in manifest.get("surveys", {}).items():
                     survey_json = manifest_survey_to_json(survey_name, entry)
                     survey = Survey(name=survey_name)
                     survey = survey.create_from_json(survey_json)
                     survey.survey_collection = self
+                    survey.store_format = store_format
+                    if store_format == "hdf5":
+                        survey.hdf5_file_path = str(output_dir / (survey.name + ".h5"))
+                    elif store_format == "parquet":
+                        survey.parquet_file_path = str(output_dir / survey.name)
+                    elif store_format == "zarr":
+                        survey.zarr_file_path = str(output_dir / (survey.name + ".zarr"))
                     self.surveys.append(survey)
                 return self
 

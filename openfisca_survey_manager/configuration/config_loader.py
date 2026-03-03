@@ -91,6 +91,7 @@ def manifest_survey_to_json(survey_name: str, entry: dict[str, Any]) -> dict[str
         "label": entry.get("label", survey_name),
         "hdf5_file_path": None,
         "parquet_file_path": None,
+        "zarr_file_path": None,
         "tables": entry.get("tables"),
         "informations": informations,
     }

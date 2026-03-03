@@ -1,6 +1,6 @@
 [project]
 name = "OpenFisca-Survey-Manager"
-version = "1.0.0"
+version = "1.1.0"
 description = "A tool for managing survey/administrative data and import them in OpenFisca"
 readme = "README.md"
 keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
@@ -52,6 +52,9 @@ build-backend = "setuptools.build_meta"
 build-collection = "openfisca_survey_manager.scripts.build_collection:main"
 
 [project.optional-dependencies]
+zarr = [
+    'zarr >=2.18.0, < 3.0',
+]
 matching = [
     # 'feather',
     'rpy2 >=3.5.10, < 4.0'
