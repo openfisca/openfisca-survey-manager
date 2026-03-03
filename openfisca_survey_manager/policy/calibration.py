@@ -366,16 +366,10 @@ class Calibration:
                 initial_weight = initial_weight[filter_by]
                 value = value[filter_by]
 
-            margin_items = [
-                ("actual", weight),
-                ("initial", initial_weight),
-            ]
-
             variable_instance = simulation.tax_benefit_system.get_variable(list_var[0])
             assert variable_instance is not None
             if variable_instance.value_type in [bool, Enum] and variable == list_var[0]:
-                margin_items.append(("category", value))
-                margins_data_frame = pd.DataFrame.from_items(margin_items)
+                margins_data_frame = pd.DataFrame({"actual": weight, "initial": initial_weight, "category": value})
                 margins_data_frame = margins_data_frame.groupby("category", sort=True).sum()
                 margin_by_type = margins_data_frame.to_dict()
             else:
