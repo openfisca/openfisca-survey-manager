@@ -116,8 +116,12 @@ Contains the following tables : \n"""
         assert self.survey_collection is not None
         assert isinstance(overwrite, (bool, list))
         survey = self
-        config = survey.survey_collection.config
-        directory_path = config.get("data", "output_directory")
+        sc = survey.survey_collection
+        if sc.config is not None:
+            directory_path = sc.config.get("data", "output_directory")
+        else:
+            directory_path = getattr(sc, "output_directory", None)
+        assert directory_path is not None, "SurveyCollection has no config and no output_directory; cannot fill_store"
         if not Path(directory_path).is_dir():
             log.warning(
                 f"{directory_path} who should be the store data directory does not exist: we create the directory"
