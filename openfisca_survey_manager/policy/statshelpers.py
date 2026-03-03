@@ -1,4 +1,9 @@
+"""Statistical helpers (Gini, Lorenz, weighted percentiles, etc.)."""
+
+from __future__ import annotations
+
 import logging
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -10,7 +15,10 @@ from numpy import logical_and as and_
 log = logging.getLogger(__name__)
 
 
-def gini(values, weights=None):
+def gini(
+    values: np.ndarray | pd.Series,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> float:
     """Computes Gini coefficient (normalized to 1).
     # Using fastgini formula :
     #             i=N      j=i
@@ -47,7 +55,11 @@ def gini(values, weights=None):
     return gini
 
 
-def kakwani(values, ineq_axis, weights=None):
+def kakwani(
+    values: np.ndarray | pd.Series,
+    ineq_axis: np.ndarray | pd.Series,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> float:
     """Computes the Kakwani index
 
     Args:
@@ -71,7 +83,10 @@ def kakwani(values, ineq_axis, weights=None):
     return simps((lcy - plcy), lcx)
 
 
-def lorenz(values, weights=None):
+def lorenz(
+    values: np.ndarray | pd.Series,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """Computes Lorenz curve coordinates (x, y)
 
     Args:
@@ -94,7 +109,13 @@ def lorenz(values, weights=None):
     return x, y
 
 
-def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
+def mark_weighted_percentiles(
+    a: np.ndarray | pd.Series,
+    labels: np.ndarray | list,
+    weights: np.ndarray | pd.Series,
+    method: int,
+    return_quantiles: bool = False,
+) -> np.ndarray | tuple[np.ndarray, list[float]]:
     """
 
     Args:
@@ -257,7 +278,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
 
 
-def pseudo_lorenz(values, ineq_axis, weights=None):
+def pseudo_lorenz(
+    values: np.ndarray | pd.Series,
+    ineq_axis: np.ndarray | pd.Series,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """Computes The pseudo Lorenz Curve coordinates
 
     Args:
@@ -280,7 +305,11 @@ def pseudo_lorenz(values, ineq_axis, weights=None):
     return x, y
 
 
-def bottom_share(values, rank_from_bottom, weights=None):
+def bottom_share(
+    values: np.ndarray | pd.Series,
+    rank_from_bottom: float,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> float:
     """
 
     Args:
@@ -308,7 +337,11 @@ def bottom_share(values, rank_from_bottom, weights=None):
     ).sum()
 
 
-def top_share(values, rank_from_top, weights=None):
+def top_share(
+    values: np.ndarray | pd.Series,
+    rank_from_top: float,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> float:
     """
 
     Args:
@@ -335,7 +368,12 @@ def top_share(values, rank_from_top, weights=None):
     ).sum()
 
 
-def weighted_quantiles(data, labels, weights, return_quantiles=False):
+def weighted_quantiles(
+    data: np.ndarray | pd.Series,
+    labels: np.ndarray | list,
+    weights: np.ndarray | pd.Series,
+    return_quantiles: bool = False,
+) -> np.ndarray | tuple[np.ndarray, list[float]]:
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
     quantiles = [wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]]
@@ -351,7 +389,12 @@ def weighted_quantiles(data, labels, weights, return_quantiles=False):
         return ret + 1
 
 
-def weightedcalcs_quantiles(data, labels, weights, return_quantiles=False):
+def weightedcalcs_quantiles(
+    data: np.ndarray | pd.Series,
+    labels: np.ndarray | list,
+    weights: np.ndarray | pd.Series,
+    return_quantiles: bool = False,
+) -> np.ndarray | tuple[np.ndarray, list[float]]:
     calc = wc.Calculator("weights")
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
