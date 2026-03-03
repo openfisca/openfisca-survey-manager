@@ -7,11 +7,17 @@ import collections
 import configparser
 import json
 import logging
+import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
 import pandas as pd
 
+from openfisca_survey_manager.configuration.config_loader import (
+    load_config,
+    load_manifest,
+    manifest_survey_to_json,
+)
 from openfisca_survey_manager.configuration.models import Config
 from openfisca_survey_manager.configuration.paths import default_config_files_directory
 from openfisca_survey_manager.core.survey import Survey
@@ -28,6 +34,7 @@ class SurveyCollection:
     json_file_path: Optional[str] = None
     surveys: List[Survey]  # set in __init__
     config: Optional[Config] = None
+    output_directory: Optional[str] = None  # RFC-002: used when config is None (manifest-based)
 
     def __init__(
         self,
@@ -73,19 +80,16 @@ Contains the following surveys :
         config_files_directory: Optional[Union[Path, str]] = None,
         json_file_path: Optional[str] = None,
     ) -> None:
-        if self.config is not None:
-            config = self.config
-        else:
-            if config_files_directory is not None:
-                pass
-            else:
-                config_files_directory = default_config_files_directory
-            self.config = Config(config_files_directory=config_files_directory)
-
-        if json_file_path is None:
-            assert self.json_file_path is not None, "A json_file_path should be provided"
-        else:
+        if json_file_path is not None:
             self.json_file_path = json_file_path
+
+        if self.config is None:
+            # RFC-002: manifest-based collection; no config.ini to update
+            return
+
+        config = self.config
+        if self.json_file_path is None:
+            assert self.json_file_path is not None, "A json_file_path should be provided"
 
         config.set("collections", self.name, str(self.json_file_path))
         config.save()
@@ -132,7 +136,38 @@ Contains the following surveys :
         collection: Optional[str] = None,
         config_files_directory: Optional[Union[Path, str]] = default_config_files_directory,
     ) -> SurveyCollection:
-        assert Path(config_files_directory).exists()
+        config_dir = Path(config_files_directory).expanduser().resolve()
+        assert config_dir.exists(), f"Config directory does not exist: {config_dir}"
+
+        # RFC-002: try new config.yaml + manifest first
+        new_cfg = load_config(config_dir)
+        if json_file_path is None and collection is not None and new_cfg is not None:
+            manifest = load_manifest(new_cfg["collections_dir"], collection)
+            if manifest is not None:
+                self = cls.__new__(cls)
+                self.name = manifest.get("name", collection)
+                self.label = manifest.get("label", self.name)
+                self.json_file_path = str(new_cfg["collections_dir"] / collection / "manifest.yaml")
+                self.config = None
+                self.output_directory = str(new_cfg["default_output_dir"])
+                self.surveys = []
+                for survey_name, entry in manifest.get("surveys", {}).items():
+                    survey_json = manifest_survey_to_json(survey_name, entry)
+                    survey = Survey(name=survey_name)
+                    survey = survey.create_from_json(survey_json)
+                    survey.survey_collection = self
+                    self.surveys.append(survey)
+                return self
+
+        # Legacy: config.ini + JSON
+        warnings.warn(
+            "Loading collections from config.ini and JSON files is deprecated. "
+            "Migrate to config.yaml and manifest.yaml using: "
+            "python -m openfisca_survey_manager.scripts.migrate_config_to_rfc002 --config-dir <path> "
+            "See docs/RFC-002-METADATA-AND-CONFIG.md.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         config = Config(config_files_directory=config_files_directory)
         if json_file_path is None:
             assert collection is not None, "A collection is needed"
