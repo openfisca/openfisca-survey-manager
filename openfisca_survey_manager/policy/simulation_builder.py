@@ -131,7 +131,7 @@ def filter_input_variables(
         if column_name not in variables:
             unknown_columns.append(column_name)
 
-    input_data_frame.drop(unknown_columns, axis=1, inplace=True)
+    input_data_frame = input_data_frame.drop(unknown_columns, axis=1)
 
     if unknown_columns:
         log.debug(f"The following unknown columns {sorted(unknown_columns)}, are dropped from input table")
@@ -150,7 +150,7 @@ def filter_input_variables(
 
             dropped_columns.append(column_name)
 
-    input_data_frame.drop(dropped_columns, axis=1, inplace=True)
+    input_data_frame = input_data_frame.drop(dropped_columns, axis=1)
 
     if used_columns:
         log.debug(
