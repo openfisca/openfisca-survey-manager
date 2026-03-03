@@ -190,20 +190,20 @@ def calmar(
         assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
         assert lo < 1, "lo should be < 1"
 
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return logit(x, lo, up)
 
-        def f_prime(x):
+        def f_prime(x: np.ndarray) -> np.ndarray:
             return logit_prime(x, lo, up)
 
     elif method == "hyperbolic sinus":
         assert alpha is not None, "When method == 'hyperbolic sinus', a value > 0 for alpha is mandatory"
         assert alpha > 0, "alpha should be > 0"
 
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return hyperbolic_sinus(x, alpha)
 
-        def f_prime(x):
+        def f_prime(x: np.ndarray) -> np.ndarray:
             return hyperbolic_sinus_prime(x, alpha)
 
     margins = margins.copy()
@@ -300,10 +300,10 @@ def calmar(
         margins_dict[var] = val
 
     # Résolution des équations du premier ordre
-    def constraint(lambda_):
+    def constraint(lambda_: np.ndarray) -> np.ndarray:
         return dot(d * f(dot(x, lambda_)), x) - xmargins
 
-    def constraint_prime(lambda_):
+    def constraint_prime(lambda_: np.ndarray) -> np.ndarray:
         return dot(d * (x.T * f_prime(dot(x, lambda_))), x)
         # le jacobien ci-dessus est constraintprime = @(lambda) x*(d.*Fprime(x'*lambda)*x');
 

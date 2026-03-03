@@ -1,8 +1,12 @@
+"""Aggregates computation for survey scenarios."""
+
+from __future__ import annotations
+
 import collections
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -29,11 +33,11 @@ class AbstractAggregates:
 
     def __init__(
         self,
-        survey_scenario=None,
-        absolute_minimal_detected_variation=0,
-        relative_minimal_detected_variation=0,
-        observations_threshold=0,
-    ):
+        survey_scenario: Any = None,
+        absolute_minimal_detected_variation: float = 0,
+        relative_minimal_detected_variation: float = 0,
+        observations_threshold: float = 0,
+    ) -> None:
         assert survey_scenario is not None
 
         self.period = survey_scenario.period
@@ -270,7 +274,7 @@ class AbstractAggregates:
 
         return variable_data_frame
 
-    def create_description(self):
+    def create_description(self) -> pd.DataFrame:
         """Create a description dataframe."""
         now = datetime.now()
         return pd.DataFrame(
@@ -284,14 +288,14 @@ class AbstractAggregates:
 
     def to_csv(
         self,
-        path=None,
-        absolute=True,
-        amount=True,
-        beneficiaries=True,
-        default="actual",
-        relative=True,
-        target="reform",
-    ):
+        path: Optional[Union[Path, str]] = None,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        relative: bool = True,
+        target: str = "reform",
+    ) -> None:
         """Saves the table to csv."""
         assert path is not None
 
@@ -313,14 +317,14 @@ class AbstractAggregates:
 
     def to_excel(
         self,
-        path=None,
-        absolute=True,
-        amount=True,
-        beneficiaries=True,
-        default="actual",
-        relative=True,
-        target="reform",
-    ):
+        path: Optional[Union[Path, str]] = None,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        relative: bool = True,
+        target: str = "reform",
+    ) -> None:
         """Save the table to excel."""
         assert path is not None
 
@@ -346,14 +350,14 @@ class AbstractAggregates:
 
     def to_html(
         self,
-        path=None,
-        absolute=True,
-        amount=True,
-        beneficiaries=True,
-        default="actual",
-        relative=True,
-        target="reform",
-    ):
+        path: Optional[Union[Path, str]] = None,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        relative: bool = True,
+        target: str = "reform",
+    ) -> str:
         """Get or saves the table to html format."""
         df = self.get_data_frame(
             absolute=absolute,
@@ -377,14 +381,14 @@ class AbstractAggregates:
 
     def to_markdown(
         self,
-        path=None,
-        absolute=True,
-        amount=True,
-        beneficiaries=True,
-        default="actual",
-        relative=True,
-        target="reform",
-    ):
+        path: Optional[Union[Path, str]] = None,
+        absolute: bool = True,
+        amount: bool = True,
+        beneficiaries: bool = True,
+        default: str = "actual",
+        relative: bool = True,
+        target: str = "reform",
+    ) -> str:
         """Get or saves the table to markdown format."""
         df = self.get_data_frame(
             absolute=absolute,
@@ -425,7 +429,7 @@ class AbstractAggregates:
         relative: bool = True,
         target: str = "reform",
         ignore_labels: bool = False,
-    ):
+    ) -> pd.DataFrame:
         assert target is None or target in ["reform", "baseline"]
 
         columns = self.labels.keys()
@@ -509,10 +513,14 @@ class AbstractAggregates:
 
         return df
 
-    def load_actual_data(self, period=None):
+    def load_actual_data(self, period: Any = None) -> None:
         pass
 
-    def compute_winners_losers(self, variable: str, filter_by: Optional[str] = None):
+    def compute_winners_losers(
+        self,
+        variable: str,
+        filter_by: Optional[str] = None,
+    ) -> pd.DataFrame:
         if "reform" not in self.simulations or "baseline" not in self.simulations:
             log.warning("Cannot compute winners and losers without a reform and a baseline simulation.")
             return pd.DataFrame()
@@ -546,7 +554,10 @@ class AbstractAggregates:
         )
         return winners_losers_df
 
-    def compute_all_winners_losers(self, filter_by: Optional[str] = None):
+    def compute_all_winners_losers(
+        self,
+        filter_by: Optional[str] = None,
+    ) -> pd.DataFrame:
         all_winners_losers = pd.DataFrame()
         for variable in self.aggregate_variables:
             winners_losers = self.compute_winners_losers(variable, filter_by=filter_by)
