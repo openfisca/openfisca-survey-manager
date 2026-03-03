@@ -6,7 +6,7 @@ from openfisca_survey_manager.processing.harmonization import harmonize_data_fra
 
 
 # Lazy import to avoid circular dependency (processing -> policy -> survey_collections -> core)
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     if name in ("Calibration", "calmar", "check_calmar"):
         from openfisca_survey_manager.policy.calibration import Calibration
         from openfisca_survey_manager.policy.calmar import calmar, check_calmar

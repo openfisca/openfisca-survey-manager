@@ -1,7 +1,7 @@
 """Abstract survey scenario definition."""
 
 import logging
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 class ReformScenario(AbstractSurveyScenario):
     """Reform survey scenario."""
 
-    def _get_simulation(self, use_baseline: bool = False):
+    def _get_simulation(self, use_baseline: bool = False) -> Simulation:
         """
         Get relevant simulation
 
@@ -32,11 +32,16 @@ class ReformScenario(AbstractSurveyScenario):
         assert simulation is not None, f"{simulation_name} does not exist"
         return simulation
 
-    def build_input_data(self, **kwargs):
+    def build_input_data(self, **kwargs: Any) -> None:
         """Build input data."""
         raise NotImplementedError
 
-    def calculate_series(self, variable, period=None, use_baseline=False):
+    def calculate_series(
+        self,
+        variable: str,
+        period: Optional[Union[int, str, Period]] = None,
+        use_baseline: bool = False,
+    ) -> pd.Series:
         """Compute variable values for period and baseline or reform tax benefit and system.
 
         Args:
@@ -53,7 +58,12 @@ class ReformScenario(AbstractSurveyScenario):
             name=variable,
         )
 
-    def calculate_variable(self, variable, period=None, use_baseline=False):
+    def calculate_variable(
+        self,
+        variable: str,
+        period: Optional[Union[int, str, Period]] = None,
+        use_baseline: bool = False,
+    ) -> Array:
         """Compute variable values for period and baseline or reform tax benefit and system.
 
         Args:
@@ -195,20 +205,20 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_pivot_table(
         self,
-        aggfunc="mean",
-        columns=None,
-        difference=False,
-        filter_by=None,
-        index=None,
-        period=None,
-        use_baseline=False,
-        use_baseline_for_columns=None,
-        values=None,
-        missing_variable_default_value=np.nan,
-        concat_axis=None,
-        weighted=True,
-        alternative_weights=None,
-    ):
+        aggfunc: str = "mean",
+        columns: Optional[list[str]] = None,
+        difference: bool = False,
+        filter_by: Optional[str] = None,
+        index: Optional[list[str]] = None,
+        period: Optional[Union[int, str, Period]] = None,
+        use_baseline: bool = False,
+        use_baseline_for_columns: Optional[bool] = None,
+        values: Optional[list[str]] = None,
+        missing_variable_default_value: Any = np.nan,
+        concat_axis: Optional[int] = None,
+        weighted: bool = True,
+        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    ) -> pd.DataFrame:
         filtering_variable_by_entity = self.filtering_variable_by_entity
 
         return Simulation.compute_pivot_table(
@@ -231,15 +241,15 @@ class ReformScenario(AbstractSurveyScenario):
 
     def compute_winners_losers(
         self,
-        variable=None,
-        filter_by=None,
-        period=None,
-        absolute_minimal_detected_variation=0,
-        relative_minimal_detected_variation=0.01,
-        observations_threshold=None,
-        weighted=True,
-        alternative_weights=None,
-    ):
+        variable: Optional[str] = None,
+        filter_by: Optional[str] = None,
+        period: Optional[Union[int, str, Period]] = None,
+        absolute_minimal_detected_variation: float = 0,
+        relative_minimal_detected_variation: float = 0.01,
+        observations_threshold: Optional[int] = None,
+        weighted: bool = True,
+        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    ) -> dict[str, Union[int, float]]:
         return super().compute_winners_losers(
             simulation="reform",
             baseline_simulation="baseline",
@@ -259,14 +269,14 @@ class ReformScenario(AbstractSurveyScenario):
 
     def create_data_frame_by_entity(
         self,
-        variables=None,
-        expressions=None,
-        filter_by=None,
-        index=False,
-        period=None,
-        use_baseline=False,
-        merge=False,
-    ):
+        variables: Optional[list[str]] = None,
+        expressions: Optional[list[str]] = None,
+        filter_by: Optional[str] = None,
+        index: bool = False,
+        period: Optional[Union[int, str, Period]] = None,
+        use_baseline: bool = False,
+        merge: bool = False,
+    ) -> Union[pd.DataFrame, dict[str, pd.DataFrame]]:
         """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe).
 
         Args:

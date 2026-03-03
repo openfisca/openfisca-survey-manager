@@ -1,6 +1,9 @@
 """Shared helpers (no survey collection dependency) to avoid circular imports."""
 
+from __future__ import annotations
+
 import logging
+from typing import Any, Optional
 
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
@@ -8,19 +11,19 @@ from openfisca_core.parameters import ParameterNode, Scale
 log = logging.getLogger(__name__)
 
 
-def do_nothing(*args, **kwargs):
+def do_nothing(*args: Any, **kwargs: Any) -> None:
     return None
 
 
 def inflate_parameters(
-    parameters,
-    inflator,
-    base_year,
-    last_year=None,
-    ignore_missing_units=False,
-    start_instant=None,
-    round_ndigits=2,
-):
+    parameters: ParameterNode | Scale | Any,
+    inflator: float,
+    base_year: int,
+    last_year: Optional[int] = None,
+    ignore_missing_units: bool = False,
+    start_instant: Optional[str] = None,
+    round_ndigits: int = 2,
+) -> None:
     """
     Inflate a Parameter node or a Parameter leaf for the years between base_year and last_year.
 
@@ -94,7 +97,14 @@ def inflate_parameters(
                     )
 
 
-def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit", start_instant=None, round_ndigits=2):
+def inflate_parameter_leaf(
+    sub_parameter: Any,
+    base_year: int,
+    inflator: float,
+    unit_type: str = "unit",
+    start_instant: Optional[str] = None,
+    round_ndigits: int = 2,
+) -> None:
     """
     Inflate a Parameter leaf according to unit type for the year after base_year.
 
@@ -167,13 +177,13 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit",
                 )
 
 
-def asof(tax_benefit_system, instant):
+def asof(tax_benefit_system: Any, instant: str | periods.Instant) -> None:
     parameters = tax_benefit_system.parameters
     parameters_asof(parameters, instant)
     variables_asof(tax_benefit_system, instant)
 
 
-def leaf_asof(sub_parameter, instant):
+def leaf_asof(sub_parameter: Any, instant: periods.Instant) -> None:
     kept_instants_str = [
         parameter_at_instant.instant_str
         for parameter_at_instant in sub_parameter.values_list
@@ -187,7 +197,7 @@ def leaf_asof(sub_parameter, instant):
     sub_parameter.update(start=last_admissible_instant_str, value=sub_parameter(last_admissible_instant_str))
 
 
-def parameters_asof(parameters, instant):
+def parameters_asof(parameters: ParameterNode | Any, instant: str | periods.Instant) -> None:
     if isinstance(instant, str):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
@@ -210,7 +220,11 @@ def parameters_asof(parameters, instant):
                 leaf_asof(sub_parameter, instant)
 
 
-def variables_asof(tax_benefit_system, instant, variables_list=None):
+def variables_asof(
+    tax_benefit_system: Any,
+    instant: str | periods.Instant,
+    variables_list: Optional[list[str]] = None,
+) -> None:
     if isinstance(instant, str):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
