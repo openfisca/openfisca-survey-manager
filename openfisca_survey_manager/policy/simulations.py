@@ -222,7 +222,12 @@ def compute_aggregate(
             variables=get_words(filter_by), period=period, index=False
         )[entity_key]
         for expression in expressions:
-            expression_data_frame[expression] = expression_data_frame.eval(expression)
+            expr_locals = {
+                col: expression_data_frame[col].values
+                for col in get_words(expression)
+                if col in expression_data_frame.columns
+            }
+            expression_data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
 
         filter_dummy = expression_data_frame[filter_by]
     else:
@@ -474,7 +479,12 @@ def compute_pivot_table(
         )[entity_key]
 
     for expression in expressions:
-        baseline_vars_data_frame[expression] = baseline_vars_data_frame.eval(expression)
+        expr_locals = {
+            col: baseline_vars_data_frame[col].values
+            for col in get_words(expression)
+            if col in baseline_vars_data_frame.columns
+        }
+        baseline_vars_data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
     if filter_by is not None:
         filter_dummy = baseline_vars_data_frame[filter_by]
     if weight_variable is None:
@@ -483,7 +493,7 @@ def compute_pivot_table(
     baseline_vars_data_frame[weight_variable] = baseline_vars_data_frame[weight_variable] * filter_dummy
     # We drop variables that are in values from baseline_vars_data_frame
     dropped_columns = [column for column in baseline_vars_data_frame.columns if column in values]
-    baseline_vars_data_frame.drop(columns=dropped_columns, inplace=True)
+    baseline_vars_data_frame = baseline_vars_data_frame.drop(columns=dropped_columns)
 
     data_frame = pd.concat(
         [baseline_vars_data_frame, data_frame],
@@ -515,7 +525,7 @@ def compute_pivot_table(
                     result = pivot_mass.rename(columns={weight_variable: value}, index={weight_variable: value})
 
             elif aggfunc in ["min", "max"]:
-                data_frame[value].fillna(missing_variable_default_value, inplace=True)
+                data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
                 result = data_frame.pivot_table(index=index, columns=columns, values=value, aggfunc=aggfunc)
 
             data_frame_by_value[value] = result
@@ -646,13 +656,16 @@ def create_data_frame_by_entity(
 
             # Set index names as entity_id
             openfisca_data_frame_by_entity_key[entity.key].index.name = entity_key_id
-            openfisca_data_frame_by_entity_key[entity.key].reset_index(inplace=True)
-        person_data_frame.reset_index(inplace=True)
+            openfisca_data_frame_by_entity_key[entity.key] = openfisca_data_frame_by_entity_key[
+                entity.key
+            ].reset_index()
+        person_data_frame = person_data_frame.reset_index()
 
     for entity_key, expressions in expressions_by_entity_key.items():
         data_frame = openfisca_data_frame_by_entity_key[entity_key]
         for expression in expressions:
-            data_frame[expression] = data_frame.eval(expression)
+            expr_locals = {col: data_frame[col].values for col in get_words(expression) if col in data_frame.columns}
+            data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
 
     if filter_by is not None:
         openfisca_data_frame_by_entity_key[filter_entity_key] = (
@@ -1226,7 +1239,7 @@ def init_variable_in_entity(
                 f"We convert these NaN values of variable {variable_name} to "
                 f"{variable.default_value._name_} its default value"
             )
-            series.fillna(variable.default_value._name_, inplace=True)
+            series = series.fillna(variable.default_value._name_)
         possible_values = variable.possible_values
         if isinstance(series.dtype, pd.CategoricalDtype):
             series = series.cat.codes
