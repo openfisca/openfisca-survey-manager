@@ -7,6 +7,11 @@
   - **`load_table`** : déplacé de `utils` vers `openfisca_survey_manager.core.dataset` (et exporté depuis `core`).
   - Tous les imports internes ont été migrés vers `configuration.paths`, `configuration.models`, `core.dataset`, `core.survey`, `core.table`, `io.readers`, `processing.weights`, `common.misc`.
 
+* **Typing** (no breaking API changes)
+  - **policy**: Add `py.typed` marker; type hints on `legislation_asof`, `variables`, `coicop`, `matching`, `statshelpers`, `calmar`, `calibration`, `simulation_builder`, `aggregates`, `simulations`, and scenarios (`abstract_scenario`, `reform_scenario`).
+  - **configuration**: Type hints on `Config.__init__` and `save` in `configuration.models`.
+  - **processing**: Type return of `__getattr__` in `processing/__init__.py`.
+
 # 6.5.0
 
 * Typing (no breaking API changes)
