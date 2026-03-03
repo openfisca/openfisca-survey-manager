@@ -1,5 +1,12 @@
 # Changelog
 
+# 6.3.1
+
+* Technical changes
+  - **processing/cleaning**: Move `clean_data_frame` to `processing/cleaning.py`; `tables` imports from `processing.cleaning`
+  - **io/writers**: Add `write_table_to_hdf5`, `write_table_to_parquet` in `io/writers.py`; `Table.save_data_frame_to_hdf5` / `save_data_frame_to_parquet` delegate to these helpers
+  - **configuration**: Move `Config` to `configuration/models.py`, paths and resolution to `configuration/paths.py`; legacy `config.py` and `paths.py` re-export for compatibility
+
 # 6.3.0
 
 * New structure and cleanup (refactor, no breaking API changes)
