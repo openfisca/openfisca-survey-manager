@@ -306,6 +306,45 @@ def compute_quantiles(
     return values
 
 
+def _pivot_agg(df: pd.DataFrame, index: list, columns: list, value: str, aggfunc: str) -> pd.DataFrame:
+    """Compute grouped aggregation reshaped as a pivot table without pd.pivot_table().
+
+    Equivalent to df.pivot_table(index=index, columns=columns, values=value, aggfunc=aggfunc)
+    but avoids the pandas alignment bug https://github.com/pandas-dev/pandas/issues/17038.
+
+    Args:
+        df: Source DataFrame.
+        index: Row-grouping variables (may be empty).
+        columns: Column-grouping variables (may be empty).
+        value: Variable to aggregate.
+        aggfunc: Aggregation function name ('sum', 'min', 'max').
+
+    Returns:
+        DataFrame reshaped as a 2-D pivot table.
+    """
+    group_cols = index + columns
+    if not group_cols:
+        val = df[value].agg(aggfunc)
+        return pd.DataFrame({value: [val]}, index=pd.Index([value]))
+
+    grouped = df.groupby(group_cols, sort=True)[value].agg(aggfunc)
+
+    if index and columns:
+        result = grouped.unstack(level=list(range(len(index), len(group_cols))))
+        if len(columns) == 1:
+            result.columns.name = columns[0]
+        return result
+    elif columns:
+        # No row grouping: single row labelled with value name
+        result = grouped.to_frame().T
+        result.index = pd.Index([value])
+        result.index.name = None
+        return result
+    else:
+        # No column grouping: single-column DataFrame
+        return grouped.to_frame(value)
+
+
 def compute_pivot_table(
     simulation: Optional[Simulation] = None,
     baseline_simulation: Optional[Simulation] = None,
@@ -510,15 +549,14 @@ def compute_pivot_table(
                     else data_frame[value].abs() * data_frame[weight_variable]
                 )
                 data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
-                pivot_sum = data_frame.pivot_table(index=index, columns=columns, values=value, aggfunc="sum")
-                pivot_mass = data_frame.pivot_table(
-                    index=index, columns=columns, values=weight_variable, aggfunc="sum"
-                )
+                pivot_sum = _pivot_agg(data_frame, index, columns, value, "sum")
+                pivot_mass = _pivot_agg(data_frame, index, columns, weight_variable, "sum")
                 if aggfunc == "mean":
-                    try:  # Deal with a pivot_table pandas bug https://github.com/pandas-dev/pandas/issues/17038
-                        result = pivot_sum / pivot_mass.loc[weight_variable]
-                    except KeyError:
-                        result = pivot_sum / pivot_mass
+                    result = pd.DataFrame(
+                        pivot_sum.to_numpy() / pivot_mass.to_numpy(),
+                        index=pivot_sum.index,
+                        columns=pivot_sum.columns,
+                    )
                 elif aggfunc in ["sum", "sum_abs"]:
                     result = pivot_sum
                 elif aggfunc == "count":
@@ -526,7 +564,7 @@ def compute_pivot_table(
 
             elif aggfunc in ["min", "max"]:
                 data_frame[value] = data_frame[value].fillna(missing_variable_default_value)
-                result = data_frame.pivot_table(index=index, columns=columns, values=value, aggfunc=aggfunc)
+                result = _pivot_agg(data_frame, index, columns, value, aggfunc)
 
             data_frame_by_value[value] = result
 
@@ -541,7 +579,7 @@ def compute_pivot_table(
 
     else:
         assert aggfunc == "count", "Can only use count for aggfunc if no values"
-        return data_frame.pivot_table(index=index, columns=columns, values=weight_variable, aggfunc="sum")
+        return _pivot_agg(data_frame, index, columns, weight_variable, "sum")
 
 
 def create_data_frame_by_entity(
