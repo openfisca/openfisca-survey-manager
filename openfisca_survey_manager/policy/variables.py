@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional
 from numpy import arange
 from openfisca_core.model_api import ADD, YEAR, Variable, where
 
-from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles, weightedcalcs_quantiles
+from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles, weighted_quantiles
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def quantile(
             weight = filter_value * weight
 
         labels = arange(1, q + 1)
-        quantile, _ = weightedcalcs_quantiles(
+        quantile, _ = weighted_quantiles(
             value,
             labels,
             weight,
