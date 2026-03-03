@@ -34,7 +34,7 @@ Le retrait des ré-exports est une **breaking change** : tout code (interne ou e
 `config_ini`, `default_config_files_directory`, `is_in_ci`, `openfisca_survey_manager_location`, `private_run_with_data`, `test_config_files_directory`.
 
 **Symboles exportés par `utils`** :
-- Depuis `common.misc` : `asof`, `do_nothing`, `inflate_parameter_leaf`, `inflate_parameters`, `parameters_asof`, `stata_files_to_data_frames`, `variables_asof`.
+- Depuis `common.misc` : `asof`, `do_nothing`, `inflate_parameter_leaf`, `inflate_parameters`, `parameters_asof`, `variables_asof`.
 - Définis dans `utils.py` : `load_table` (à déplacer vers un module adapté, ex. `core` ou `io`, avant suppression de `utils.py`).
 
 ---
@@ -47,7 +47,7 @@ Avant (ou en même temps que) la suppression des fichiers listés en section 3, 
 
 | Fichier | Remplacer |
 |---------|-----------|
-| `input_dataframe_generator.py` | `paths` → `configuration.paths` |
+| `tests/input_dataframe_generator.py` | `paths` → `configuration.paths` (module déplacé dans `tests/`) |
 | `scripts/build_collection.py` | `paths` → `configuration.paths` |
 | `temporary.py` | `paths` → `configuration.paths` |
 | `google_colab.py` | `paths` → `configuration.paths` |
@@ -61,7 +61,7 @@ Avant (ou en même temps que) la suppression des fichiers listés en section 3, 
 
 | Fichier | Remplacer |
 |---------|-----------|
-| `input_dataframe_generator.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |
+| `tests/input_dataframe_generator.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |
 | `simulations.py` | `survey_collections`, `utils` → `core.dataset` ; utils → `common.misc` + module de `load_table` |
 | `utils.py` | `survey_collections` → `core.dataset` (pour `load_table`) |
 | `scripts/build_collection.py` | `survey_collections`, `surveys` → `core.dataset`, `core.survey` |

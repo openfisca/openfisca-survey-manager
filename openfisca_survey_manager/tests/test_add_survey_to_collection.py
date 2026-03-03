@@ -1,11 +1,11 @@
 import pandas as pd
 import pytest
 
-from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
+from openfisca_survey_manager.core.dataset import SurveyCollection
 from openfisca_survey_manager.scripts.build_collection import (
     add_survey_to_collection,
 )
-from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.tests.input_dataframe_generator import set_table_in_survey
 
 
 @pytest.mark.order(after="test_write_parquet.py::test_write_parquet_one_file_per_entity")

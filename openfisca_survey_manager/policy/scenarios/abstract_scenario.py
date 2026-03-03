@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -11,10 +11,10 @@ from openfisca_core.periods import MONTH, YEAR
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 
-from openfisca_survey_manager.calibration import Calibration
+from openfisca_survey_manager.core.survey import Survey
 from openfisca_survey_manager.exceptions import SurveyManagerError
-from openfisca_survey_manager.simulations import Simulation
-from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.policy import Simulation
+from openfisca_survey_manager.policy.calibration import Calibration
 
 log = logging.getLogger(__name__)
 
@@ -44,11 +44,16 @@ class AbstractSurveyScenario:
     varying_variable = None
     weight_variable_by_entity = None
 
-    def build_input_data(self, **kwargs):
+    def build_input_data(self, **kwargs: Any) -> None:
         """Build input data."""
         raise NotImplementedError
 
-    def calculate_series(self, variable, period=None, simulation=None):
+    def calculate_series(
+        self,
+        variable: str,
+        period: Optional[Union[int, str, Period]] = None,
+        simulation: Optional[str] = None,
+    ) -> pd.Series:
         """Compute variable values for period for a given simulation.
 
         Args:
@@ -65,7 +70,12 @@ class AbstractSurveyScenario:
             name=variable,
         )
 
-    def calculate_variable(self, variable, period=None, simulation=None):
+    def calculate_variable(
+        self,
+        variable: str,
+        period: Optional[Union[int, str, Period]] = None,
+        simulation: Optional[str] = None,
+    ) -> Array:
         """Compute variable values for period for a given simulation.
 
         Args:
@@ -303,7 +313,7 @@ class AbstractSurveyScenario:
         else:
             target_variable_entity_key = variables[target_variable].entity.key
 
-            def cast_to_target_entity(simulation: Simulation):
+            def cast_to_target_entity(simulation: Simulation) -> np.ndarray:
                 population = simulation.populations[target_variable_entity_key]
                 df = (
                     pd.DataFrame(
@@ -337,21 +347,21 @@ class AbstractSurveyScenario:
 
     def compute_pivot_table(
         self,
-        aggfunc="mean",
-        columns=None,
-        baseline_simulation=None,
-        filter_by=None,
-        index=None,
-        period=None,
-        simulation=None,
-        difference=False,
-        use_baseline_for_columns=None,
-        values=None,
-        missing_variable_default_value=np.nan,
-        concat_axis=None,
-        weighted=True,
-        alternative_weights=None,
-    ):
+        aggfunc: str = "mean",
+        columns: Optional[list[str]] = None,
+        baseline_simulation: Optional[str] = None,
+        filter_by: Optional[str] = None,
+        index: Optional[list[str]] = None,
+        period: Optional[Union[int, str, Period]] = None,
+        simulation: Optional[str] = None,
+        difference: bool = False,
+        use_baseline_for_columns: Optional[bool] = None,
+        values: Optional[list[str]] = None,
+        missing_variable_default_value: Any = np.nan,
+        concat_axis: Optional[int] = None,
+        weighted: bool = True,
+        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    ) -> pd.DataFrame:
         """Compute a pivot table of agregated values casted along specified index and columns.
 
         Args:
@@ -405,17 +415,17 @@ class AbstractSurveyScenario:
 
     def compute_winners_losers(
         self,
-        variable,
-        simulation,
-        baseline_simulation=None,
-        filter_by=None,
-        period=None,
-        absolute_minimal_detected_variation=0,
-        relative_minimal_detected_variation=0.01,
-        observations_threshold=None,
-        weighted=True,
-        alternative_weights=None,
-    ):
+        variable: str,
+        simulation: str,
+        baseline_simulation: Optional[str] = None,
+        filter_by: Optional[str] = None,
+        period: Optional[Union[int, str, Period]] = None,
+        absolute_minimal_detected_variation: float = 0,
+        relative_minimal_detected_variation: float = 0.01,
+        observations_threshold: Optional[int] = None,
+        weighted: bool = True,
+        alternative_weights: Optional[Union[str, int, float, Array]] = None,
+    ) -> dict[str, Union[int, float]]:
         simulation = self.simulations[simulation]
         if baseline_simulation:
             baseline_simulation = self.simulations[baseline_simulation]
@@ -434,8 +444,15 @@ class AbstractSurveyScenario:
         )
 
     def create_data_frame_by_entity(
-        self, variables=None, expressions=None, filter_by=None, index=False, period=None, simulation=None, merge=False
-    ):
+        self,
+        variables: Optional[list[str]] = None,
+        expressions: Optional[list[str]] = None,
+        filter_by: Optional[str] = None,
+        index: bool = False,
+        period: Optional[Union[int, str, Period]] = None,
+        simulation: Optional[str] = None,
+        merge: bool = False,
+    ) -> Union[pd.DataFrame, dict[str, pd.DataFrame]]:
         """Create dataframe(s) of computed variable for every entity (eventually merged in a unique dataframe).
 
         Args:
@@ -466,7 +483,11 @@ class AbstractSurveyScenario:
             merge=merge,
         )
 
-    def custom_input_data_frame(self, input_data_frame, **kwargs):
+    def custom_input_data_frame(
+        self,
+        input_data_frame: pd.DataFrame,
+        **kwargs: Any,
+    ) -> None:
         """Customize input data frame.
 
         Args:
@@ -475,7 +496,12 @@ class AbstractSurveyScenario:
         """
         pass
 
-    def dump_data_frame_by_entity(self, variables=None, survey_collection=None, survey_name=None):
+    def dump_data_frame_by_entity(
+        self,
+        variables: Optional[list[str]] = None,
+        survey_collection: Optional[Any] = None,
+        survey_name: Optional[str] = None,
+    ) -> None:
         assert survey_collection is not None
         assert survey_name is not None
         assert variables is not None
@@ -486,7 +512,7 @@ class AbstractSurveyScenario:
             survey_collection.surveys.append(survey)
             survey_collection.dump(collection="openfisca")
 
-    def dump_simulations(self, directory: str):
+    def dump_simulations(self, directory: str) -> None:
         """
         Dump simulations.
 
@@ -504,7 +530,7 @@ class AbstractSurveyScenario:
             simulation = next(iter(self.simulations.values()))
             dump_simulation(simulation, directory)
 
-    def generate_performance_data(self, output_dir: str):
+    def generate_performance_data(self, output_dir: str) -> None:
         if not self.trace:
             raise SurveyManagerError("Method generate_performance_data cannot be used if trace hasn't been activated.")
 
@@ -517,7 +543,12 @@ class AbstractSurveyScenario:
             simulation.tracer.generate_performance_graph(simulation_dir)
             simulation.tracer.generate_performance_tables(simulation_dir)
 
-    def inflate(self, inflator_by_variable=None, period=None, target_by_variable=None):
+    def inflate(
+        self,
+        inflator_by_variable: Optional[dict[str, float]] = None,
+        period: Optional[Union[int, str, Period]] = None,
+        target_by_variable: Optional[dict[str, float]] = None,
+    ) -> None:
         assert inflator_by_variable or target_by_variable
         assert period is not None
         inflator_by_variable = {} if inflator_by_variable is None else inflator_by_variable
@@ -530,14 +561,14 @@ class AbstractSurveyScenario:
 
     def init_from_data(
         self,
-        calibration_kwargs=None,
-        inflation_kwargs=None,
-        rebuild_input_data=False,
-        rebuild_kwargs=None,
-        data=None,
-        memory_config=None,
-        use_marginal_tax_rate=False,
-    ):
+        calibration_kwargs: Optional[dict[str, Any]] = None,
+        inflation_kwargs: Optional[dict[str, Any]] = None,
+        rebuild_input_data: bool = False,
+        rebuild_kwargs: Optional[dict[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
+        memory_config: Optional[Any] = None,
+        use_marginal_tax_rate: bool = False,
+    ) -> None:
         """Initialise a survey scenario from data.
 
         Args:
@@ -601,8 +632,14 @@ class AbstractSurveyScenario:
             self.inflate(**inflation_kwargs)
 
     def new_simulation(
-        self, simulation_name, debug=False, trace=False, data=None, memory_config=None, marginal_tax_rate_only=False
-    ):
+        self,
+        simulation_name: str,
+        debug: bool = False,
+        trace: bool = False,
+        data: Optional[dict[str, Any]] = None,
+        memory_config: Optional[Any] = None,
+        marginal_tax_rate_only: bool = False,
+    ) -> Simulation:
         tax_benefit_system = self.tax_benefit_systems[simulation_name]
         assert tax_benefit_system is not None
 
@@ -643,13 +680,13 @@ class AbstractSurveyScenario:
 
         return simulation
 
-    def memory_usage(self):
+    def memory_usage(self) -> None:
         """Log memory usage."""
         for simulation_name, simulation in self.simulations.items():
             log.info("simulation: %s", simulation_name)
             simulation.print_memory_usage()
 
-    def neutralize_variables(self, tax_benefit_system):
+    def neutralize_variables(self, tax_benefit_system: TaxBenefitSystem) -> None:
         """Neutralizes input variables not in input dataframe and keep some crucial variables.
 
         Args:
@@ -668,7 +705,7 @@ class AbstractSurveyScenario:
 
             tax_benefit_system.neutralize_variable(variable_name)
 
-    def restore_simulations(self, directory, **kwargs):
+    def restore_simulations(self, directory: Union[str, Path], **kwargs: Any) -> None:
         """Restores SurveyScenario's simulations.
 
         Args:
@@ -690,7 +727,7 @@ class AbstractSurveyScenario:
             simulation.id_variable_by_entity_key = self.id_variable_by_entity_key
             self.simulations["unique_simulation"] = simulation
 
-    def set_input_data_frame(self, input_data_frame):
+    def set_input_data_frame(self, input_data_frame: pd.DataFrame) -> None:
         """Set the input dataframe.
 
         Args:
@@ -713,7 +750,10 @@ class AbstractSurveyScenario:
         #
         self.tax_benefit_systems = tax_benefit_systems
 
-    def set_weight_variable_by_entity(self, weight_variable_by_entity=None):
+    def set_weight_variable_by_entity(
+        self,
+        weight_variable_by_entity: Optional[dict[str, str]] = None,
+    ) -> None:
         if weight_variable_by_entity is not None:
             self.weight_variable_by_entity = weight_variable_by_entity
 
@@ -721,7 +761,12 @@ class AbstractSurveyScenario:
             for simulation in self.simulations.values():
                 simulation.set_weight_variable_by_entity(self.weight_variable_by_entity)
 
-    def summarize_variable(self, variable=None, weighted=False, force_compute=False):
+    def summarize_variable(
+        self,
+        variable: Optional[str] = None,
+        weighted: bool = False,
+        force_compute: bool = False,
+    ) -> None:
         """Log a summary of a variable including its memory usage for all the simulations.
 
         Args:
@@ -740,12 +785,20 @@ class AbstractSurveyScenario:
         for _simulation_name, simulation in self.simulations.items():
             simulation.summarize_variable(variable, weighted, force_compute)
 
-    def _apply_modification(self, simulation, period):
+    def _apply_modification(
+        self,
+        simulation: Simulation,
+        period: Union[int, str, Period],
+    ) -> None:
         period = periods.period(period)
         varying_variable = self.varying_variable
         definition_period = simulation.tax_benefit_system.variables[varying_variable].definition_period
 
-        def set_variable(varying_variable, varying_variable_value, period_):
+        def set_variable(
+            varying_variable: str,
+            varying_variable_value: np.ndarray,
+            period_: Period,
+        ) -> None:
             delta = self.variation_factor * varying_variable_value
             new_variable_value = varying_variable_value + delta
             simulation.delete_arrays(varying_variable, period_)

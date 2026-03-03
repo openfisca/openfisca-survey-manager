@@ -1,8 +1,12 @@
 """CALMAR: Calibrates weights to satisfy margins constraints."""
 
+from __future__ import annotations
+
 import logging
 import operator
+from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 from numpy import array, dot, exp, float64, ones, sqrt, unique, zeros
 from numpy import log as ln
@@ -12,7 +16,7 @@ from openfisca_survey_manager.exceptions import SurveyManagerError
 log = logging.getLogger(__name__)
 
 
-def linear(u):
+def linear(u: np.ndarray) -> np.ndarray:
     """
 
     Args:
@@ -24,68 +28,27 @@ def linear(u):
     return 1 + u
 
 
-def linear_prime(u):
-    """
-
-    Args:
-      u:
-
-    Returns:
-
-    """
+def linear_prime(u: np.ndarray) -> np.ndarray:
+    """Derivative of linear (constant 1)."""
     return ones(u.shape, dtype=float)
 
 
-def raking_ratio(u):
-    """
-
-    Args:
-      u:
-
-    Returns:
-
-    """
+def raking_ratio(u: np.ndarray) -> np.ndarray:
+    """Raking ratio (exponential) calibration function."""
     return exp(u)
 
 
-def raking_ratio_prime(u):
-    """
-
-    Args:
-      u:
-
-    Returns:
-
-    """
+def raking_ratio_prime(u: np.ndarray) -> np.ndarray:
+    """Derivative of raking_ratio."""
     return exp(u)
 
 
-def logit(u, low, up):
-    """
-
-    Args:
-      u:
-      low:
-      up:
-
-    Returns:
-
-    """
+def logit(u: np.ndarray, low: float, up: float) -> np.ndarray:
     a = (up - low) / ((1 - low) * (up - 1))
     return (low * (up - 1) + up * (1 - low) * exp(a * u)) / (up - 1 + (1 - low) * exp(a * u))
 
 
-def logit_prime(u, low, up):
-    """
-
-    Args:
-      u:
-      low:
-      up:
-
-    Returns:
-
-    """
+def logit_prime(u: np.ndarray, low: float, up: float) -> np.ndarray:
     a = (up - low) / ((1 - low) * (up - 1))
     return (
         (a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u))
@@ -93,12 +56,12 @@ def logit_prime(u, low, up):
     ) / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
 
-def hyperbolic_sinus(u, alpha):
+def hyperbolic_sinus(u: np.ndarray, alpha: float) -> np.ndarray:
     logarithm = ln(2 * alpha * u + sqrt(4 * (alpha**2) * (u**2) + 1))
     return 0.5 * (logarithm / alpha + sqrt((logarithm / alpha) ** 2 + 4))
 
 
-def hyperbolic_sinus_prime(u, alpha):
+def hyperbolic_sinus_prime(u: np.ndarray, alpha: float) -> np.ndarray:
     square = sqrt(4 * (alpha**2) * (u**2) + 1)
     return 0.5 * (
         ((4 * (alpha**2) * u) / square + 2 * alpha) / (alpha * (square + 2 * alpha * u))
@@ -107,16 +70,8 @@ def hyperbolic_sinus_prime(u, alpha):
     )
 
 
-def build_dummies_dict(data):
-    """
-
-    Args:
-      data:
-
-    Returns:
-
-
-    """
+def build_dummies_dict(data: np.ndarray | pd.Series) -> dict[Any, np.ndarray | pd.Series]:
+    """Build a dict mapping each unique value to a boolean mask (data == value)."""
     unique_val_list = unique(data)
     output = {}
     for val in unique_val_list:
@@ -125,17 +80,17 @@ def build_dummies_dict(data):
 
 
 def calmar(
-    data_in,
-    margins: dict,
+    data_in: dict[str, Any],
+    margins: dict[str, Any],
     initial_weight: str,
-    method="linear",
-    lo=None,
-    up=None,
-    alpha=None,
+    method: str = "linear",
+    lo: Optional[float] = None,
+    up: Optional[float] = None,
+    alpha: Optional[float] = None,
     use_proportions: bool = False,
     xtol: float = 1.49012e-08,
     maxfev: int = 256,
-):
+) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     """Calibrates weights to satisfy margins constraints.
 
     Args:
@@ -235,20 +190,20 @@ def calmar(
         assert lo is not None, "When method == 'logit', a value < 1 for lo is mandatory"
         assert lo < 1, "lo should be < 1"
 
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return logit(x, lo, up)
 
-        def f_prime(x):
+        def f_prime(x: np.ndarray) -> np.ndarray:
             return logit_prime(x, lo, up)
 
     elif method == "hyperbolic sinus":
         assert alpha is not None, "When method == 'hyperbolic sinus', a value > 0 for alpha is mandatory"
         assert alpha > 0, "alpha should be > 0"
 
-        def f(x):
+        def f(x: np.ndarray) -> np.ndarray:
             return hyperbolic_sinus(x, alpha)
 
-        def f_prime(x):
+        def f_prime(x: np.ndarray) -> np.ndarray:
             return hyperbolic_sinus_prime(x, alpha)
 
     margins = margins.copy()
@@ -345,10 +300,10 @@ def calmar(
         margins_dict[var] = val
 
     # Résolution des équations du premier ordre
-    def constraint(lambda_):
+    def constraint(lambda_: np.ndarray) -> np.ndarray:
         return dot(d * f(dot(x, lambda_)), x) - xmargins
 
-    def constraint_prime(lambda_):
+    def constraint_prime(lambda_: np.ndarray) -> np.ndarray:
         return dot(d * (x.T * f_prime(dot(x, lambda_))), x)
         # le jacobien ci-dessus est constraintprime = @(lambda) x*(d.*Fprime(x'*lambda)*x');
 
@@ -388,16 +343,13 @@ def calmar(
     return pondfin_out, lambdasol, margins_new_dict
 
 
-def check_calmar(margins, margins_new_dict=None):
-    """
-
-    Args:
-      margins:
-      margins_new_dict:  (Default value = None)
-
-    Returns:
-
-    """
+def check_calmar(
+    margins: dict[str, Any],
+    margins_new_dict: Optional[dict[str, Any]] = None,
+) -> None:
+    """Log relative difference between initial margins and calibrated margins."""
+    if margins_new_dict is None:
+        return
     for variable, margin in margins.items():
         if variable != "total_population":
             rel_diff = abs(margin - margins_new_dict[variable]) / abs(margin)

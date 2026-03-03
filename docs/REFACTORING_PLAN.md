@@ -35,9 +35,10 @@ openfisca_survey_manager/
 │   └── misc.py            # helpers partagés (éviter imports circulaires)
 │
 ├── scenarios/             # inchangé pour l’instant
+├── policy/                # simulations, simulation_builder, aggregates (à terme autre paquet)
 ├── scripts/
 ├── tests/
-└── ... (simulations, aggregates, etc. à placer selon responsabilité)
+└── ...
 ```
 
 **État actuel** : les dossiers suivants existent avec des `__init__.py` de préparation (pas de code déplacé encore) :
@@ -49,10 +50,12 @@ Le déplacement effectif des modules se fera par étapes pour garder la compatib
 
 **Réalisé** :
 - `io/readers.py` : `read_sas`, `read_spss`, `read_dbf` (anciens modules en ré-export).
-- `common/misc.py` : helpers sans dépendance survey (`do_nothing`, `inflate_parameters`, `asof`, `parameters_asof`, `variables_asof`, `stata_files_to_data_frames`) ; `utils.py` importe depuis `common.misc` et garde `load_table`.
+- `common/misc.py` : helpers sans dépendance survey (`do_nothing`, `inflate_parameters`, `asof`, `parameters_asof`, `variables_asof`) ; `utils.py` importe depuis `common.misc` et garde `load_table`.
 - **Nettoyage** : `print()` remplacés par `logging` (matching, calmar, scenarios, scripts/build_collection, simulations). Exceptions génériques remplacées par `SurveyManagerError` / `SurveyConfigError` / `SurveyIOError` (survey_collections, tables, simulations, simulation_builder, surveys, scenarios, calmar).
 - **processing/weights** : `calmar` et `Calibration` déplacés dans `processing/weights/calmar.py` et `processing/weights/calibration.py` ; `calibration.py` et `calmar.py` à la racine sont des ré-exports pour compatibilité.
 - **processing/cleaning** : `clean_data_frame` déplacé dans `processing/cleaning.py` ; `tables.py` importe depuis `processing.cleaning` (compatibilité conservée).
+- **policy/** : répertoire créé pour `simulations`, `simulation_builder`, `aggregates` (à terme déplacés dans un paquet dédié). Les modules à la racine (`simulations.py`, `simulation_builder.py`, `aggregates.py`) sont des placeholders avec `DeprecationWarning` qui ré-exportent depuis `policy`.
+- **policy/tests/** : tests concernant le paquet policy (test_aggregates, test_compute_aggregate, test_compute_pivot_table, test_compute_winners_losers, test_create_data_frame_by_entity, test_marginal_tax_rate, test_summarize_variables). Ils importent depuis `openfisca_survey_manager.policy` et utilisent `create_randomly_initialized_survey_scenario` depuis `openfisca_survey_manager.tests.test_scenario`.
 
 ---
 
@@ -83,19 +86,21 @@ Aujourd’hui ces couches sont entremêlées (ex. lecture + nettoyage dans `tabl
 
 ### 3.1 Fonctions longues (> 100 lignes)
 
-- Découper les grosses fonctions en étapes nommées, par exemple :
-  - `load_survey()` → `_parse_config()`, `_load_raw_data()`, `_transform()`, `_store()`.
-- Cible : lisibilité et testabilité, sans changer le comportement.
+- **Entamé** : découpage en étapes nommées sans changer le comportement.
+  - `core.table.Table.read_source` → `_read_csv_with_inferred_encoding()`, `_apply_stata_categorical_strategy()` ; `read_source()` orchestre.
+  - `core.survey.Survey.get_values` → `_get_values_from_hdf5()`, `_get_values_from_parquet()` ; `get_values()` orchestre et applique l’harmonisation.
+- À poursuivre : autres modules (simulations, scenarios, scripts, processing/weights/calmar, etc.).
 
 ### 3.2 Dépendances circulaires
 
+- **Vérifié** (imports à froid) : aucune dépendance circulaire. Chaîne cohérente : `exceptions` → `configuration` → `io`/`processing` → `core.table` → `core.survey` → `core.dataset` ; `utils` → `common.misc`, `survey_collections` ; `core.table` n'importe `Survey` qu'en tardif dans `Table.__init__`. Si des cycles apparaissent : extraire la logique commune dans `common/` ou `configuration/`.
 - Si des modules s’importent mutuellement, extraire la logique commune dans `utils/` (ou `config/`) et faire dépendre les deux côtés de ce module commun.
 - Vérifier avec des imports à froid (démarrer l’app et importer les sous-modules).
 
 ### 3.3 Typage Python
 
-- Ajouter progressivement des type hints sur les signatures publiques (arguments et retours).
-- Priorité : `core/`, `io/`, puis `processing/`.
+- **Entamé** : type hints sur les signatures publiques de `core/`, `io/` et `processing/` (cleaning, harmonization, weights/calmar, weights/calibration).
+- À poursuivre : reste du package (scenarios, simulations, etc.).
 
 ### 3.4 Logging
 
