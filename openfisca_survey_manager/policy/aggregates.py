@@ -108,13 +108,13 @@ class AbstractAggregates:
                 data_frame_by_simulation_type["actual"] = self.totals_df.copy() if self.totals_df is not None else None
             else:
                 use_baseline = simulation_type != "reform"
-                data_frame = pd.DataFrame()
                 assert self.aggregate_variables is not None
+                variable_data_frames = []
                 for variable in self.aggregate_variables:
-                    variable_data_frame = self.compute_variable_aggregates(
-                        variable, use_baseline=use_baseline, filter_by=filter_by
+                    variable_data_frames.append(
+                        self.compute_variable_aggregates(variable, use_baseline=use_baseline, filter_by=filter_by)
                     )
-                    data_frame = pd.concat((data_frame, variable_data_frame))
+                data_frame = pd.concat(variable_data_frames)
 
                 data_frame.rename(
                     columns={
@@ -558,8 +558,7 @@ class AbstractAggregates:
         self,
         filter_by: Optional[str] = None,
     ) -> pd.DataFrame:
-        all_winners_losers = pd.DataFrame()
+        winners_losers_list = []
         for variable in self.aggregate_variables:
-            winners_losers = self.compute_winners_losers(variable, filter_by=filter_by)
-            all_winners_losers = pd.concat([all_winners_losers, winners_losers])
-        return all_winners_losers
+            winners_losers_list.append(self.compute_winners_losers(variable, filter_by=filter_by))
+        return pd.concat(winners_losers_list) if winners_losers_list else pd.DataFrame()

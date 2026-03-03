@@ -7,12 +7,34 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-import weightedcalcs as wc
-import wquantiles
 from numpy import argsort, asarray, cumsum, linspace, ones, repeat, zeros
 from numpy import logical_and as and_
 
 log = logging.getLogger(__name__)
+
+
+def _weighted_quantile(data: np.ndarray, weights: np.ndarray, q: float) -> float:
+    """Compute the q-th weighted quantile of 1D data.
+
+    Uses the midpoint formula (compatible with the former weightedcalcs/wquantiles behaviour).
+
+    Args:
+        data: 1D array of values.
+        weights: 1D array of non-negative weights (same length as data).
+        q: Quantile in [0, 1].
+
+    Returns:
+        float: Interpolated quantile value.
+    """
+    data = asarray(data, dtype=float)
+    weights = asarray(weights, dtype=float)
+    sort_idx = argsort(data)
+    sorted_data = data[sort_idx]
+    sorted_weights = weights[sort_idx]
+    cum_weights = cumsum(sorted_weights)
+    # Midpoint-based p_vals: each observation's "representative percentile"
+    p_vals = (cum_weights - 0.5 * sorted_weights) / cum_weights[-1]
+    return float(np.interp(q, p_vals, sorted_data))
 
 
 def gini(
@@ -38,18 +60,19 @@ def gini(
     Returns:
         float: Gini
     """
+    values = asarray(values, dtype=float)
     if weights is None:
         weights = ones(len(values))
+    weights = asarray(weights, dtype=float)
 
-    df = pd.DataFrame({"x": values, "w": weights})
-    df = df.sort_values(by="x")
-    x = df["x"]
-    w = df["w"]
+    sort_idx = argsort(values)
+    x = values[sort_idx]
+    w = weights[sort_idx]
     wx = w * x
 
     cdf = cumsum(wx) - 0.5 * wx
     numerator = (w * cdf).sum()
-    denominator = ((wx).sum()) * (w.sum())
+    denominator = wx.sum() * w.sum()
     gini = 1 - 2 * (numerator / denominator)
 
     return gini
@@ -96,15 +119,19 @@ def lorenz(
     Returns:
         (np.array, np.array): Lorenz curve coordinates
     """
+    values = asarray(values, dtype=float)
     if weights is None:
         weights = ones(len(values))
+    weights = asarray(weights, dtype=float)
 
-    df = pd.DataFrame({"v": values, "w": weights})
-    df = df.sort_values(by="v")
-    x = cumsum(df["w"])
-    x = x / float(x[-1:])
-    y = cumsum(df["v"] * df["w"])
-    y = y / float(y[-1:])
+    sort_idx = argsort(values)
+    v = values[sort_idx]
+    w = weights[sort_idx]
+
+    x = cumsum(w)
+    x = x / x[-1]
+    y = cumsum(v * w)
+    y = y / y[-1]
 
     return x, y
 
@@ -293,14 +320,20 @@ def pseudo_lorenz(
     Returns:
 
     """
+    values = asarray(values, dtype=float)
+    ineq_axis = asarray(ineq_axis, dtype=float)
     if weights is None:
         weights = ones(len(values))
-    df = pd.DataFrame({"v": values, "a": ineq_axis, "w": weights})
-    df = df.sort_values(by="a")
-    x = cumsum(df["w"])
-    x = x / float(x[-1:])
-    y = cumsum(df["v"] * df["w"])
-    y = y / float(y[-1:])
+    weights = asarray(weights, dtype=float)
+
+    sort_idx = argsort(ineq_axis)
+    v = values[sort_idx]
+    w = weights[sort_idx]
+
+    x = cumsum(w)
+    x = x / x[-1]
+    y = cumsum(v * w)
+    y = y / y[-1]
 
     return x, y
 
@@ -320,21 +353,14 @@ def bottom_share(
     Returns:
 
     """
+    values = asarray(values, dtype=float)
     if weights is None:
         weights = ones(len(values))
+    weights = asarray(weights, dtype=float)
 
-    calc = wc.Calculator("weights")
-    data_frame = pd.DataFrame(
-        {
-            "weights": weights,
-            "data": values,
-        }
-    )
-    quantile = calc.quantile(data_frame, "data", rank_from_bottom)
-
-    return ((data_frame["data"] < quantile) * data_frame["data"] * data_frame["weights"]).sum() / (
-        data_frame["data"] * data_frame["weights"]
-    ).sum()
+    quantile = _weighted_quantile(values, weights, rank_from_bottom)
+    total = (values * weights).sum()
+    return ((values < quantile) * values * weights).sum() / total
 
 
 def top_share(
@@ -352,20 +378,14 @@ def top_share(
     Returns:
 
     """
+    values = asarray(values, dtype=float)
     if weights is None:
         weights = ones(len(values))
+    weights = asarray(weights, dtype=float)
 
-    calc = wc.Calculator("weights")
-    data_frame = pd.DataFrame(
-        {
-            "weights": weights,
-            "data": values,
-        }
-    )
-    quantile = calc.quantile(data_frame, "data", 1 - rank_from_top)
-    return ((data_frame["data"] >= quantile) * data_frame["data"] * data_frame["weights"]).sum() / (
-        data_frame["data"] * data_frame["weights"]
-    ).sum()
+    quantile = _weighted_quantile(values, weights, 1 - rank_from_top)
+    total = (values * weights).sum()
+    return ((values >= quantile) * values * weights).sum() / total
 
 
 def weighted_quantiles(
@@ -376,35 +396,9 @@ def weighted_quantiles(
 ) -> np.ndarray | tuple[np.ndarray, list[float]]:
     num_categories = len(labels)
     breaks = linspace(0, 1, num_categories + 1)
-    quantiles = [wquantiles.quantile_1D(data, weights, mybreak) for mybreak in breaks[1:]]
-    ret = zeros(len(data))
-    for i in range(0, len(quantiles) - 1):
-        lower = quantiles[i]
-        upper = quantiles[i + 1]
-        ret[and_(data >= lower, data < upper)] = labels[i]
-
-    if return_quantiles:
-        return ret + 1, quantiles
-    else:
-        return ret + 1
-
-
-def weightedcalcs_quantiles(
-    data: np.ndarray | pd.Series,
-    labels: np.ndarray | list,
-    weights: np.ndarray | pd.Series,
-    return_quantiles: bool = False,
-) -> np.ndarray | tuple[np.ndarray, list[float]]:
-    calc = wc.Calculator("weights")
-    num_categories = len(labels)
-    breaks = linspace(0, 1, num_categories + 1)
-    data_frame = pd.DataFrame(
-        {
-            "weights": weights,
-            "data": data,
-        }
-    )
-    quantiles = [calc.quantile(data_frame, "data", mybreak) for mybreak in breaks[1:]]
+    data = asarray(data, dtype=float)
+    weights = asarray(weights, dtype=float)
+    quantiles = [_weighted_quantile(data, weights, mybreak) for mybreak in breaks[1:]]
 
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):
