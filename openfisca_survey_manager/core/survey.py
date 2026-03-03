@@ -15,6 +15,7 @@ import yaml
 
 from openfisca_survey_manager.core.table import Table
 from openfisca_survey_manager.exceptions import SurveyIOError, SurveyManagerError
+from openfisca_survey_manager.io.backends import get_backend
 from openfisca_survey_manager.io.hdf import hdf5_safe_key
 from openfisca_survey_manager.processing.harmonization import harmonize_data_frame_columns
 
@@ -46,6 +47,7 @@ class Survey:
 
     hdf5_file_path: Optional[str] = None
     parquet_file_path: Optional[str] = None
+    zarr_file_path: Optional[str] = None
     label: Optional[str] = None
     name: Optional[str] = None
     survey_collection: Optional[SurveyCollection] = None
@@ -89,12 +91,16 @@ Contains the following tables : \n"""
 
     @classmethod
     def create_from_json(cls, survey_json: dict) -> Survey:
+        # Top-level store paths; exclude from informations to avoid duplicate kwargs
+        store_path_keys = {"hdf5_file_path", "parquet_file_path", "zarr_file_path"}
+        infos = {k: v for k, v in survey_json.get("informations", {}).items() if k not in store_path_keys}
         self = cls(
             name=survey_json.get("name"),
             label=survey_json.get("label"),
             hdf5_file_path=survey_json.get("hdf5_file_path"),
             parquet_file_path=survey_json.get("parquet_file_path"),
-            **survey_json.get("informations", {}),
+            zarr_file_path=survey_json.get("zarr_file_path"),
+            **infos,
         )
         self.tables = survey_json.get("tables")
         return self
@@ -136,6 +142,9 @@ Contains the following tables : \n"""
 
         if store_format == "parquet" and survey.parquet_file_path is None:
             survey.parquet_file_path = str(Path(directory_path) / survey.name)
+
+        if store_format == "zarr" and survey.zarr_file_path is None:
+            survey.zarr_file_path = str(Path(directory_path) / (survey.name + ".zarr"))
 
         self.store_format = store_format
 
@@ -276,6 +285,23 @@ Contains the following tables : \n"""
             return pq.ParquetDataset(parquet_file).read(columns=variables).to_pandas()
         raise SurveyIOError(f"No table {table} found in {self.parquet_file_path}")
 
+    def _get_values_from_zarr(
+        self,
+        table: str,
+        variables: Optional[List[str]] = None,
+        **kwargs: Any,
+    ) -> pandas.DataFrame:
+        """Read table from zarr store."""
+        if self.zarr_file_path is None:
+            raise SurveyIOError("No zarr store path for survey")
+        backend = get_backend("zarr")
+        return backend.read_table(
+            self.zarr_file_path,
+            table,
+            variables=variables,
+            **kwargs,
+        )
+
     def get_values(
         self,
         variables: Optional[List[str]] = None,
@@ -287,9 +313,11 @@ Contains the following tables : \n"""
         batch_index: int = 0,
         filter_by: Optional[List[tuple]] = None,
     ) -> pandas.DataFrame:
-        if self.parquet_file_path is None and self.hdf5_file_path is None:
+        if self.parquet_file_path is None and self.hdf5_file_path is None and self.zarr_file_path is None:
             raise SurveyIOError(f"No data file found for survey {self.name}")
-        if self.hdf5_file_path is not None:
+        if self.store_format == "zarr" and self.zarr_file_path is not None:
+            df = self._get_values_from_zarr(table or "", variables=variables)
+        elif self.hdf5_file_path is not None:
             df, _ = self._get_values_from_hdf5(table or "", ignorecase=ignorecase)
         else:
             df = self._get_values_from_parquet(table, variables, filter_by, batch_size, batch_index)

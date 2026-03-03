@@ -120,6 +120,51 @@ def test_survey_collection_load_from_manifest(rfc002_config_dir):
     survey_a = col.get_survey("survey_a")
     assert survey_a.label == "Survey A"
     assert survey_a.informations.get("csv_files") == ["/data/survey_a"]
+    # Default store_format when missing in manifest is parquet
+    assert survey_a.store_format == "parquet"
+    assert survey_a.parquet_file_path is not None
+    assert "survey_a" in survey_a.parquet_file_path
+
+
+def test_survey_collection_load_from_manifest_store_format_zarr(tmp_path):
+    """When manifest has store_format: zarr, surveys get zarr_file_path set."""
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "config.yaml").write_text(
+        f"""
+collections_dir: {tmp_path / "collections"}
+default_output_dir: {tmp_path / "output"}
+tmp_dir: {tmp_path / "tmp"}
+"""
+    )
+    collections_dir = tmp_path / "collections"
+    collections_dir.mkdir()
+    dataset_dir = collections_dir / "zarr_dataset"
+    dataset_dir.mkdir()
+    (dataset_dir / "manifest.yaml").write_text(
+        """
+name: zarr_dataset
+label: "Zarr dataset"
+store_format: zarr
+surveys:
+  s1:
+    label: "Survey 1"
+    source:
+      format: csv
+      path: /data/s1
+"""
+    )
+    col = SurveyCollection.load(
+        collection="zarr_dataset",
+        config_files_directory=config_dir,
+    )
+    assert col.output_directory is not None
+    survey_s1 = col.get_survey("s1")
+    assert survey_s1.store_format == "zarr"
+    assert survey_s1.zarr_file_path is not None
+    assert survey_s1.zarr_file_path.endswith(".zarr")
+    assert survey_s1.hdf5_file_path is None
+    assert survey_s1.parquet_file_path is None
 
 
 def test_survey_collection_load_legacy_unchanged(tmp_path):
@@ -208,10 +253,41 @@ def test_migrate_produces_config_yaml_and_manifests(legacy_config_dir):
     manifest = load_manifest(cfg["collections_dir"], "my_collection")
     assert manifest is not None
     assert manifest["name"] == "my_collection"
+    assert manifest.get("store_format") == "parquet"
     assert manifest["surveys"]["survey_1"]["source"]["format"] == "csv"
     assert manifest["surveys"]["survey_1"]["source"]["path"] == "/data/s1/file1.csv"
     assert manifest["surveys"]["survey_2"]["source"]["format"] == "sas"
     assert manifest["surveys"]["survey_2"]["source"]["path"] == "/data/s2/file.sas7bdat"
+
+
+def test_migrate_infers_store_format_from_legacy(tmp_path):
+    """Migration infers store_format from legacy JSON (hdf5_file_path -> hdf5, etc.)."""
+    from openfisca_survey_manager.scripts.migrate_config_to_rfc002 import (
+        _infer_store_format_from_legacy,
+        build_manifest_from_json,
+    )
+
+    # Legacy with parquet_file_path
+    json_parquet = tmp_path / "p.json"
+    json_parquet.write_text(
+        '{"name":"p","label":"P","surveys":{"s1":{"label":"S1","parquet_file_path":"/out/s1"}}}',
+        encoding="utf-8",
+    )
+    manifest_parquet = build_manifest_from_json(json_parquet, None)
+    assert manifest_parquet["store_format"] == "parquet"
+
+    # Legacy with hdf5_file_path only
+    json_hdf5 = tmp_path / "h.json"
+    json_hdf5.write_text(
+        '{"name":"h","label":"H","surveys":{"s1":{"label":"S1","hdf5_file_path":"/out/s1.h5"}}}',
+        encoding="utf-8",
+    )
+    manifest_hdf5 = build_manifest_from_json(json_hdf5, None)
+    assert manifest_hdf5["store_format"] == "hdf5"
+
+    # Infer function directly
+    assert _infer_store_format_from_legacy({}) == "parquet"
+    assert _infer_store_format_from_legacy({"s": {"zarr_file_path": "/z"}}) == "zarr"
 
 
 def test_migrate_dry_run_does_not_write(legacy_config_dir):

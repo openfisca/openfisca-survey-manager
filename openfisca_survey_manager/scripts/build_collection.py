@@ -243,9 +243,14 @@ def main():
         "--parquet",
         action="store_true",
         default=False,
+        help="save data in parquet format (directory with one .parquet file per table)",
+    )
+    parser.add_argument(
+        "--zarr",
+        action="store_true",
+        default=False,
         help=(
-            "save data in parquet format instead of HDF5 "
-            "(HDF5 will no longer be the default format in a future version)"
+            "save data in zarr format (one zarr group per table); requires: pip install openfisca-survey-manager[zarr]"
         ),
     )
     parser.add_argument(
@@ -283,13 +288,16 @@ def main():
 
     start_time = datetime.datetime.now()
 
-    # Determine store format based on argument
-    store_format = "parquet" if args.parquet else "hdf5"
-
-    if not args.parquet:
+    # Determine store format based on argument (--zarr > --parquet > default hdf5)
+    if args.zarr:
+        store_format = "zarr"
+    elif args.parquet:
+        store_format = "parquet"
+    else:
+        store_format = "hdf5"
         log.warning(
             "HDF5 will no longer be the default format in a future version. "
-            "Please use --parquet option to save data in parquet format."
+            "Please use --parquet or --zarr to save data in parquet or zarr format."
         )
 
     try:

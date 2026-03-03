@@ -17,6 +17,7 @@ from chardet.universaldetector import UniversalDetector
 from pyarrow import parquet as pq
 
 from openfisca_survey_manager.exceptions import SurveyIOError
+from openfisca_survey_manager.io.backends import get_backend
 from openfisca_survey_manager.io.readers import read_sas
 from openfisca_survey_manager.io.writers import write_table_to_hdf5, write_table_to_parquet
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
@@ -91,18 +92,36 @@ class Table:
             f"at point {self.name}"
         )
 
-    def _is_stored(self) -> bool:
+    def _get_store_path_and_format(self) -> Optional[tuple[str, str]]:
+        """Return (store_path, store_format) for the survey's current backend, or None."""
+        fmt = getattr(self.survey, "store_format", None) or "hdf5"
+        if fmt == "hdf5" and self.survey.hdf5_file_path is not None:
+            return (self.survey.hdf5_file_path, "hdf5")
+        if fmt == "parquet" and self.survey.parquet_file_path is not None:
+            return (self.survey.parquet_file_path, "parquet")
+        if fmt == "zarr" and getattr(self.survey, "zarr_file_path", None) is not None:
+            return (self.survey.zarr_file_path, "zarr")
         if self.survey.hdf5_file_path is not None:
-            store = pandas.HDFStore(self.survey.hdf5_file_path)
-            if self.name in store:
-                log.info(f"Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}")
-                store.close()
-                return True
+            return (self.survey.hdf5_file_path, "hdf5")
+        if self.survey.parquet_file_path is not None:
+            return (self.survey.parquet_file_path, "parquet")
+        return None
 
-            store.close()
+    def _is_stored(self) -> bool:
+        path_fmt = self._get_store_path_and_format()
+        if path_fmt is None:
             return False
-        else:
-            return False
+        store_path, store_format = path_fmt
+        backend = get_backend(store_format)
+        if backend.table_exists(store_path, self.name):
+            log.info(
+                "Exiting without overwriting %s in %s (%s)",
+                self.name,
+                store_path,
+                store_format,
+            )
+            return True
+        return False
 
     def _save(
         self,
@@ -122,16 +141,28 @@ class Table:
                 )
             data_frame = data_frame[stored_variables].copy()
 
-        assert store_format in ["hdf5", "parquet"], f"invalid store_format: {store_format}"
+        path_fmt = self._get_store_path_and_format()
+        if path_fmt is None:
+            raise SurveyIOError(
+                f"No store path set for survey (store_format={store_format}). "
+                "Set hdf5_file_path, parquet_file_path, or zarr_file_path."
+            )
+        store_path, resolved_format = path_fmt
+        if store_format != resolved_format:
+            store_format = resolved_format
+        backend = get_backend(store_format)
         if store_format == "hdf5":
             log.warning(
-                "HDF5 will no longer be the default format in a future version. Please use parquet format instead."
+                "HDF5 will no longer be the default format in a future version. "
+                "Please use parquet or zarr format instead."
             )
-            self.save_data_frame_to_hdf5(data_frame)
-        else:
-            parquet_file_path = self.survey.parquet_file_path
-            log.info(f"Inserting table {self.name} in Parquet file {parquet_file_path}")
-            self.save_data_frame_to_parquet(data_frame)
+        log.info("Inserting table %s in %s store %s", self.name, store_format, store_path)
+        backend.write_table(store_path, self.name, data_frame)
+        self.variables = list(data_frame.columns)
+        self.survey.tables[self.name]["variables"] = self.variables
+        if store_format == "parquet":
+            self.parquet_file = str(Path(store_path) / f"{self.name}.parquet")
+            self.survey.tables[self.name]["parquet_file"] = self.parquet_file
         gc.collect()
 
     def fill_store(
@@ -142,7 +173,6 @@ class Table:
         **kwargs: Any,
     ) -> None:
         if not overwrite and self._is_stored():
-            log.info(f"Exiting without overwriting {self.name} in {self.survey.hdf5_file_path}")
             return
 
         start_table_time = datetime.datetime.now()
@@ -242,9 +272,8 @@ class Table:
 
     def read_source(self, data_file: str, **kwargs: Any) -> pandas.DataFrame:
         source_format = self.source_format
-        store_file_path = (
-            self.survey.hdf5_file_path if self.survey.store_format == "hdf5" else self.survey.parquet_file_path
-        )
+        path_fmt = self._get_store_path_and_format()
+        store_file_path = path_fmt[0] if path_fmt else None
         self._check_and_log(data_file, store_file_path=store_file_path)
         reader = reader_by_source_format[source_format]
         categorical_strategy = (
