@@ -79,8 +79,7 @@ def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
         person_dataframe[key + "_role"] = np.where(
             members_role_index == 0, entity.flattened_roles[0].key, entity.flattened_roles[-1].key
         )
-        input_dataframe_by_entity[key] = pd.DataFrame({key + "_id": range(nb_groups)})
-        input_dataframe_by_entity[key].set_index(key + "_id", inplace=True)
+        input_dataframe_by_entity[key] = pd.DataFrame({key + "_id": range(nb_groups)}).set_index(key + "_id")
 
     return input_dataframe_by_entity
 
