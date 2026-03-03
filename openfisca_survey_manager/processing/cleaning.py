@@ -25,7 +25,7 @@ def clean_data_frame(data_frame: pd.DataFrame) -> None:
             continue
         if data_frame[column_name].isnull().all():
             log.info("Drop empty column %s", column_name)
-            data_frame.drop(column_name, axis=1, inplace=True)
+            del data_frame[column_name]
             continue
 
         values = [str(value) for value in data_frame[column_name].value_counts()]
@@ -36,10 +36,7 @@ def clean_data_frame(data_frame: pd.DataFrame) -> None:
         no_zero = all(value != "0" for value in values)
         if all_digits and no_zero:
             log.info("Replacing empty string with zero for variable %s", column_name)
-            data_frame.replace(
-                to_replace={column_name: {"": 0}},
-                inplace=True,
-            )
+            data_frame[column_name] = data_frame[column_name].replace({"": 0})
             log.info("Converting string variable %s to integer", column_name)
             try:
                 data_frame[column_name] = data_frame[column_name].astype("int")

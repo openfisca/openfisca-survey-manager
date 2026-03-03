@@ -116,12 +116,11 @@ class AbstractAggregates:
                     )
                 data_frame = pd.concat(variable_data_frames)
 
-                data_frame.rename(
+                data_frame = data_frame.rename(
                     columns={
                         "amount": f"{simulation_type}_amount",
                         "beneficiaries": f"{simulation_type}_beneficiaries",
-                    },
-                    inplace=True,
+                    }
                 )
                 data_frame_by_simulation_type[simulation_type] = data_frame
 
