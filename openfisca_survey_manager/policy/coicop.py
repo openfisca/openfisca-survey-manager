@@ -47,8 +47,8 @@ def build_coicop_level_nomenclature(
         log.info(f"Error when reading nomenclature coicop source data for level {level}")
         raise e
 
-    data_frame.reset_index(inplace=True)
-    data_frame.rename(columns={0: "code_coicop", 1: f"label_{level[:-1]}"}, inplace=True)
+    data_frame = data_frame.reset_index()
+    data_frame = data_frame.rename(columns={0: "code_coicop", 1: f"label_{level[:-1]}"})
     data_frame = data_frame.iloc[2:].copy()
     if year == 2016:
         data_frame["code_coicop"] = data_frame["code_coicop"].apply(lambda x: x[1:])
@@ -72,7 +72,7 @@ def build_coicop_level_nomenclature(
     else:
         del data_frame["code_coicop"]
 
-    data_frame.reset_index(inplace=True, drop=True)
+    data_frame = data_frame.reset_index(drop=True)
     if to_csv:
         data_frame.to_csv(
             legislation_directory / f"nomenclature_coicop{year}_by_{level}.csv",
@@ -96,9 +96,10 @@ def build_raw_coicop_nomenclature(year: int = 2016) -> pd.DataFrame:
         df_right = build_coicop_level_nomenclature(next_level, year)
 
         # Drop any residual 'index' columns to avoid merge conflicts
-        for df in (df_left, df_right):
-            if "index" in df.columns:
-                df.drop(columns=["index"], inplace=True)
+        if "index" in df_left.columns:
+            df_left = df_left.drop(columns=["index"])
+        if "index" in df_right.columns:
+            df_right = df_right.drop(columns=["index"])
 
         coicop_nomenclature = pd.merge(
             df_left,

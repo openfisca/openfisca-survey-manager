@@ -164,12 +164,8 @@ def calmar(
 
     data = {}
     if smaller_entity:
-        data[smaller_entity] = pd.DataFrame()
-        for col in data_in[smaller_entity].columns:
-            data[smaller_entity][col] = data_in[smaller_entity][col].copy()
-    data[target_entity] = pd.DataFrame()
-    for col in data_in[target_entity].columns:
-        data[target_entity][col] = data_in[target_entity].loc[is_non_zero_weight, col].copy()
+        data[smaller_entity] = data_in[smaller_entity].copy()
+    data[target_entity] = data_in[target_entity].loc[is_non_zero_weight].copy()
 
     if not margins:
         raise SurveyManagerError("Calmar requires non empty dict of margins")
@@ -232,17 +228,15 @@ def calmar(
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
                     pop = 0
-                    list_col_to_add = [data[entity]]
                     for cat, nb in val.items():
                         cat_varname = var + "_" + str(cat)
-                        list_col_to_add.append(pd.Series(dummies_dict[cat], name=cat_varname))
+                        data[entity][cat_varname] = dummies_dict[cat]
                         margins_new[cat_varname] = nb
                         if var not in margins_new_dict:
                             margins_new_dict[var] = {}
                         margins_new_dict[var][cat] = nb
                         pop += nb
                         nj += 1
-                    data[entity] = pd.concat(list_col_to_add, axis=1)
                     # Check total popualtion
                     population = (entity == target_entity) * total_population + (
                         entity != target_entity
