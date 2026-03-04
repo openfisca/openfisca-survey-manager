@@ -6,7 +6,15 @@
   - **core**: Type hints on `core.table` (Table), `core.survey` (Survey, NoMoreDataError), `core.dataset` (SurveyCollection); `TYPE_CHECKING` for circular refs; class attributes with defaults where needed
   - **io**: Type hints on `io.readers` (read_sas, read_spss, read_dbf with `Optional[list[str]]` for cols); `io.writers` and `io.hdf` already typed
   - **processing**: Type hints on `processing.cleaning`, `processing.harmonization`, `processing.weights.calmar` (linear, logit, calmar, check_calmar, etc.), `processing.weights.calibration` (Calibration class and methods)
-  - **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
+  - **policy**: Add `policy` package; type hints on policy modules (coicop, matching, statshelpers, variables, calmar, calibration, scenarios, simulations, aggregates); `py.typed` marker
+
+* Refactor and deprecations
+  - **policy package**: Move `coicop`, `matching`, `statshelpers`, `variables` to `policy/`; move `calmar`, `calibration` to `policy/`; move `scenarios` to `policy/`; root placeholders re-export with `DeprecationWarning`
+  - **matching**: NND hot deck in pure Python (pandas + numpy), no R dependency for default path
+  - **Removal**: `stata_files_to_data_frames` removed
+  - **Tests**: `input_dataframe_generator` moved to `tests/`
+
+* **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
 
 # 6.4.0
 
