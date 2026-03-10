@@ -1,6 +1,6 @@
-# Changelog
+﻿# Changelog
 
-# 1.1.0
+# 8.0.0
 
 * **Store backends** (choix du format de stockage des tables)
   - **io/backends**: Backends HDF5, Parquet et Zarr (abstraction `StoreBackend`) ; `get_backend(name)`, `get_available_backend_names()`, `register_backend()` pour étendre.
@@ -16,9 +16,9 @@
   - **Script de migration** : infère `store_format` depuis le JSON legacy (`parquet_file_path` / `zarr_file_path` / `hdf5_file_path`) et l’écrit dans le manifest généré.
   - **RFC-002** : exemple de manifest avec `store_format` ; section 3.5 et 4.2 mises à jour.
 
-# 1.0.0
+# 7.0.0
 
-* **Breaking**: Version 1.0 — retrait des ré-exports et des DeprecationWarning
+* **Breaking**: Version 7.0 — retrait des ré-exports et des DeprecationWarning
   - **Suppression des modules de compatibilité** : `config`, `paths`, `tables`, `surveys`, `survey_collections`, `read_sas`, `read_spss`, `read_dbf`, `calibration`, `calmar`, `utils` sont supprimés. Utiliser les imports canoniques (voir `docs/MIGRATION_IMPORTS.md`).
   - **`load_table`** : déplacé de `utils` vers `openfisca_survey_manager.core.dataset` (et exporté depuis `core`).
   - Tous les imports internes ont été migrés vers `configuration.paths`, `configuration.models`, `core.dataset`, `core.survey`, `core.table`, `io.readers`, `processing.weights`, `common.misc`.

@@ -102,3 +102,4 @@ tags
 # Tests files
 *.parquet
 test_*.json
+.claude/settings.json
