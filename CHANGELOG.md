@@ -1,4 +1,49 @@
-# Changelog
+﻿# Changelog
+
+# 8.0.0
+
+* **Store backends** (choix du format de stockage des tables)
+  - **io/backends**: Backends HDF5, Parquet et Zarr (abstraction `StoreBackend`) ; `get_backend(name)`, `get_available_backend_names()`, `register_backend()` pour étendre.
+  - **Zarr** : backend optionnel (`pip install openfisca-survey-manager[zarr]`) ; une table = un groupe zarr dans un répertoire `.zarr` par survey.
+  - **Survey** : attribut `zarr_file_path` ; `fill_store(store_format="zarr")` et lecture via `get_values` pour zarr.
+  - **Table** : écriture/lecture et `_is_stored` délégués aux backends ; `_get_store_path_and_format()` unifie les chemins.
+  - **build-collection** : option `--zarr` en plus de `--parquet` ; défaut HDF5 avec avertissement.
+  - **Docs** : `docs/ZARR-BACKEND.md` (utilisation Zarr, compression, parallélisation).
+
+* **Manifest (RFC-002) : store_format**
+  - **manifest.yaml** : clé optionnelle `store_format` (hdf5, parquet, zarr) au niveau dataset ; par défaut `parquet` au chargement.
+  - **SurveyCollection.load** : depuis un manifest, applique `store_format` et déduit les chemins de store (`hdf5_file_path`, `parquet_file_path`, `zarr_file_path`) à partir de `default_output_dir`.
+  - **Script de migration** : infère `store_format` depuis le JSON legacy (`parquet_file_path` / `zarr_file_path` / `hdf5_file_path`) et l’écrit dans le manifest généré.
+  - **RFC-002** : exemple de manifest avec `store_format` ; section 3.5 et 4.2 mises à jour.
+
+# 7.0.0
+
+* **Breaking**: Version 7.0 — retrait des ré-exports et des DeprecationWarning
+  - **Suppression des modules de compatibilité** : `config`, `paths`, `tables`, `surveys`, `survey_collections`, `read_sas`, `read_spss`, `read_dbf`, `calibration`, `calmar`, `utils` sont supprimés. Utiliser les imports canoniques (voir `docs/MIGRATION_IMPORTS.md`).
+  - **`load_table`** : déplacé de `utils` vers `openfisca_survey_manager.core.dataset` (et exporté depuis `core`).
+  - Tous les imports internes ont été migrés vers `configuration.paths`, `configuration.models`, `core.dataset`, `core.survey`, `core.table`, `io.readers`, `processing.weights`, `common.misc`.
+
+* **Typing** (no breaking API changes)
+  - **policy**: Add `py.typed` marker; type hints on `legislation_asof`, `variables`, `coicop`, `matching`, `statshelpers`, `calmar`, `calibration`, `simulation_builder`, `aggregates`, `simulations`, and scenarios (`abstract_scenario`, `reform_scenario`).
+  - **configuration**: Type hints on `Config.__init__` and `save` in `configuration.models`.
+  - **processing**: Type return of `__getattr__` in `processing/__init__.py`.
+
+# 6.5.0
+
+* Typing (no breaking API changes)
+  - **core**: Type hints on `core.table` (Table), `core.survey` (Survey, NoMoreDataError), `core.dataset` (SurveyCollection); `TYPE_CHECKING` for circular refs; class attributes with defaults where needed
+  - **io**: Type hints on `io.readers` (read_sas, read_spss, read_dbf with `Optional[list[str]]` for cols); `io.writers` and `io.hdf` already typed
+  - **processing**: Type hints on `processing.cleaning`, `processing.harmonization`, `processing.weights.calmar` (linear, logit, calmar, check_calmar, etc.), `processing.weights.calibration` (Calibration class and methods)
+  - **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
+
+# 6.4.0
+
+* Refactor (no breaking API changes)
+  - **io/hdf**: Extract HDF5 write logic into `io.hdf` (`write_table_to_hdf5`); `io.writers` re-exports for compatibility
+  - **processing/harmonization**: Add `harmonize_data_frame_columns` (lowercase, rename ident); used in `Survey.get_values`; export from `processing`
+  - **core**: Add `core.table`, `core.survey`, `core.dataset` (Table, Survey, NoMoreDataError, SurveyCollection); root `tables.py`, `surveys.py`, `survey_collections.py` re-export for compatibility
+  - **Logging**: Extend to all modules — add logger to `configuration.models`, `google_colab`, `statshelpers`; fix typo "folloging" → "following" in `core.table`
+  - **Docs**: Add `docs/MIGRATION_IMPORTS.md` (import mapping and steps when re-exports will be removed, with breaking-change warning); update `REFACTORING_PLAN.md` (§3.4 Logging done)
 
 # 6.3.1
 

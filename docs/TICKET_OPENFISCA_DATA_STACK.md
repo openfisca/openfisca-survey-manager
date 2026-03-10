@@ -1,4 +1,6 @@
-# 🏗️ Vision : OpenFisca Data Stack officielle
+# 🏗️ Vision : OpenFisca Data Stack officielle ([issue #381](https://github.com/openfisca/openfisca-survey-manager/issues/381))
+
+> **Voir la version RFC** : [RFC-001 : OpenFisca Data Stack](RFC-001-OPENFISCA-DATA-STACK.md). Le présent document conserve la formulation initiale du ticket ; la RFC en fixe la forme normative.
 
 **Objectif** : Formaliser une stack data OpenFisca claire, avec rôles et frontières bien définis. Ce ticket sert de référence pour les PR de refactor (survey-manager → data-manager, découplage, etc.) et les évolutions à venir.
 

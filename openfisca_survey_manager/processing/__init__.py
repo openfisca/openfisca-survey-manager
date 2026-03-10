@@ -2,6 +2,23 @@
 # See docs/REFACTORING_PLAN.md for migration steps.
 
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
-from openfisca_survey_manager.processing.weights import Calibration, calmar, check_calmar
+from openfisca_survey_manager.processing.harmonization import harmonize_data_frame_columns
 
-__all__ = ["Calibration", "calmar", "check_calmar", "clean_data_frame"]
+
+# Lazy import to avoid circular dependency (processing -> policy -> survey_collections -> core)
+def __getattr__(name: str) -> object:
+    if name in ("Calibration", "calmar", "check_calmar"):
+        from openfisca_survey_manager.policy.calibration import Calibration
+        from openfisca_survey_manager.policy.calmar import calmar, check_calmar
+
+        return {"Calibration": Calibration, "calmar": calmar, "check_calmar": check_calmar}[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = [
+    "Calibration",
+    "calmar",
+    "check_calmar",
+    "clean_data_frame",
+    "harmonize_data_frame_columns",
+]

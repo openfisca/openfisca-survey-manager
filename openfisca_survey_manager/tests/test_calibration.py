@@ -1,8 +1,8 @@
 from openfisca_core import periods
 from openfisca_core.tools import assert_near
 
-from openfisca_survey_manager.calibration import Calibration
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario
+from openfisca_survey_manager.policy.calibration import Calibration
+from openfisca_survey_manager.policy.scenarios.abstract_scenario import AbstractSurveyScenario
 from openfisca_survey_manager.tests import tax_benefit_system
 from openfisca_survey_manager.tests.test_scenario import (
     create_randomly_initialized_survey_scenario,
@@ -164,4 +164,4 @@ def test_simulation_calibration_input_from_data(tmp_path):
             f"{simulation_name} weight_variable_by_entity does not match {weight_variable_by_entity}"
         )
         assert (survey_scenario.calculate_series("household_weight", period, simulation=simulation_name) != 0).all()
-    return survey_scenario
+    assert survey_scenario is not None

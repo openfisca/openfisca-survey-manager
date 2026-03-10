@@ -6,7 +6,7 @@ https://www.insee.fr/fr/statistiques/fichier/2021902/doccalmar.pdf
 import numpy as np
 import pandas as pd
 
-from openfisca_survey_manager.calmar import calmar
+from openfisca_survey_manager.policy.calmar import calmar
 
 
 def create_input_dataframe(entities=1):

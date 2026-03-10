@@ -1,0 +1,335 @@
+"""Helpers to build input dataframes and fill surveys for tests."""
+
+import configparser
+import logging
+import random
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from openfisca_core import periods
+
+from openfisca_survey_manager.configuration.paths import (
+    default_config_files_directory,
+    openfisca_survey_manager_location,
+)
+from openfisca_survey_manager.core.dataset import SurveyCollection
+from openfisca_survey_manager.core.survey import Survey
+
+log = logging.getLogger(__name__)
+
+
+def make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups):
+    """Generate a dictionnary of dataframes containing nb_persons persons spread in nb_groups groups.
+
+    Args:
+      tax_benefit_system(TaxBenefitSystem): the tax_benefit_system to use
+      nb_persons(int): the number of persons in the system
+      nb_groups(int): the number of collective entities in the system
+
+    Returns:
+      A dictionary whose keys are entities and values the corresponding data frames
+
+      Example:
+
+        >>> from openfisca_survey_manager.tests.input_dataframe_generator import make_input_dataframe_by_entity
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
+        >>> tbs = CountryTaxBenefitSystem()
+        >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
+        >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
+        ['household_id', 'household_role', 'household_role_index', 'person_id']
+        >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
+        []
+    """
+    input_dataframe_by_entity = {}
+    person_entity = next(entity for entity in tax_benefit_system.entities if entity.is_person)
+    person_id = np.arange(nb_persons)
+    input_dataframe_by_entity = {}
+    input_dataframe_by_entity[person_entity.key] = pd.DataFrame(
+        {
+            person_entity.key + "_id": person_id,
+        }
+    )
+    input_dataframe_by_entity[person_entity.key].set_index("person_id")
+    #
+    seed = 42
+    random.seed(seed)
+    adults = [0, *sorted(random.sample(range(1, nb_persons), nb_groups - 1))]
+    members_entity_id = np.empty(nb_persons, dtype=int)
+    # A role index is an index that every person within an entity has.
+    # For instance, the 'first_parent' has role index 0, the 'second_parent' 1, the first 'child' 2, the second 2, etc.
+    members_role_index = np.empty(nb_persons, dtype=int)
+    id_group = -1
+    for id_person in range(nb_persons):
+        if id_person in adults:
+            id_group += 1
+            role_index = 0
+        else:
+            role_index = 2
+        members_role_index[id_person] = role_index
+        members_entity_id[id_person] = id_group
+
+    for entity in tax_benefit_system.entities:
+        if entity.is_person:
+            continue
+        key = entity.key
+        person_dataframe = input_dataframe_by_entity[person_entity.key]
+        person_dataframe[key + "_id"] = members_entity_id
+        person_dataframe[key + "_role_index"] = members_role_index
+        person_dataframe[key + "_role"] = np.where(
+            members_role_index == 0, entity.flattened_roles[0].key, entity.flattened_roles[-1].key
+        )
+        input_dataframe_by_entity[key] = pd.DataFrame({key + "_id": range(nb_groups)})
+        input_dataframe_by_entity[key].set_index(key + "_id", inplace=True)
+
+    return input_dataframe_by_entity
+
+
+def random_data_generator(
+    tax_benefit_system,
+    nb_persons,
+    nb_groups,
+    variable_generators_by_period,
+    collection=None,
+    config_files_directory=None,
+):
+    """
+    Generate random values for some variables of a tax-benefit system and store them in a specified collection.
+
+    Args:
+        tax_benefit_system (TaxBenefitSystem): the tax-benefit system to use
+        nb_persons (int): the number of persons in the data
+        nb_groups (int): the number of collective entities in the data
+        variable_generators_by_period (dict): parameters of the variables for every period
+        collection (str, optional): collection where to store the input survey. Defaults to None.
+        config_files_directory (str or Path, optional): directory where configuration files are stored.
+
+    Returns:
+        dict: The entities tables by period
+    """
+    initial_input_dataframe_by_entity = make_input_dataframe_by_entity(tax_benefit_system, nb_persons, nb_groups)
+    table_by_entity_by_period = {}
+    for period, variable_generators in sorted(variable_generators_by_period.items()):
+        input_dataframe_by_entity = initial_input_dataframe_by_entity.copy()
+        table_by_entity_by_period[period] = table_by_entity = {}
+        for variable_generator in variable_generators:
+            variable = variable_generator["variable"]
+            max_value = variable_generator["max_value"]
+            condition = variable_generator.get("condition", None)
+            randomly_init_variable(
+                tax_benefit_system=tax_benefit_system,
+                input_dataframe_by_entity=input_dataframe_by_entity,
+                variable_name=variable,
+                max_value=max_value,
+                condition=condition,
+            )
+
+        for entity, input_dataframe in input_dataframe_by_entity.items():
+            if collection is not None:
+                set_table_in_survey(
+                    input_dataframe,
+                    entity,
+                    period,
+                    collection,
+                    survey_name="input",
+                    config_files_directory=config_files_directory or default_config_files_directory,
+                )
+
+            table_by_entity[entity] = f"{entity}_{period}"
+
+    return table_by_entity_by_period
+
+
+def randomly_init_variable(
+    tax_benefit_system, input_dataframe_by_entity, variable_name, max_value, condition=None, seed=None
+):
+    """Initialises a variable with random values (from 0 to max_value).
+        If a condition vector is provided, only set the value of persons or groups for which condition is True.
+
+    Args:
+      tax_benefit_system(TaxBenefitSystem): A tax benefit system
+      input_dataframe_by_entity(dict): A dictionnary of entity dataframes
+      variable_name: The name of the variable to initialize
+      max_value: Maximum value of the variable
+      condition: Boolean vector of obersvations to modify (Default value = None)
+      seed: Random seed used whe ndrawing the values (Default value = None)
+
+    Examples
+        >>> from openfisca_survey_manager.tests.input_dataframe_generator import make_input_dataframe_by_entity
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
+        >>> tbs = CountryTaxBenefitSystem()
+        >>> input_dataframe_by_entity = make_input_dataframe_by_entity(tbs, 400, 100)
+        >>> randomly_init_variable(
+        ...     tbs, input_dataframe_by_entity, 'salary', max_value = 50000,
+        ...     condition = "household_role == 'first_parent'"
+        ... )  # Randomly set a salaire_net for all persons between 0 and 50000?
+        >>> sorted(input_dataframe_by_entity['person'].columns.tolist())
+        ['household_id', 'household_role', 'household_role_index', 'person_id', 'salary']
+        >>> bool(input_dataframe_by_entity['person'].salary.max() <= 50000)
+        True
+        >>> len(input_dataframe_by_entity['person'].salary)
+        400
+        >>> randomly_init_variable(tbs, input_dataframe_by_entity, 'rent', max_value = 1000)
+        >>> sorted(input_dataframe_by_entity['household'].columns.tolist())
+        ['rent']
+        >>> bool(input_dataframe_by_entity['household'].rent.max() <= 1000)
+        True
+        >>> bool(input_dataframe_by_entity['household'].rent.max() >= 1)
+        True
+        >>> len(input_dataframe_by_entity['household'].rent)
+        100
+    """
+
+    variable = tax_benefit_system.variables[variable_name]
+    entity = variable.entity
+
+    condition = True if condition is None else input_dataframe_by_entity[entity.key].eval(condition).values
+
+    if seed is None:
+        seed = 42
+    np.random.seed(seed)
+    count = len(input_dataframe_by_entity[entity.key])
+    value = (np.random.rand(count) * max_value * condition).astype(variable.dtype)
+    input_dataframe_by_entity[entity.key][variable_name] = value
+
+
+def set_table_in_survey(
+    input_dataframe,
+    entity,
+    period,
+    collection,
+    survey_name,
+    survey_label=None,
+    table_label=None,
+    table_name=None,
+    config_files_directory=default_config_files_directory,
+    source_format=None,
+    parquet_file=None,
+):
+    period = periods.period(period)
+    if table_name is None:
+        table_name = entity + "_" + str(period)
+    if table_label is None:
+        table_label = f"Input data for entity {entity} at period {period}"
+
+    # Ensure config_files_directory is a Path
+    config_files_directory = Path(config_files_directory)
+
+    try:
+        survey_collection = SurveyCollection.load(collection=collection, config_files_directory=config_files_directory)
+    except (configparser.NoOptionError, configparser.NoSectionError, FileNotFoundError) as e:
+        log.warning(f"set_table_in_survey falling back for collection {collection}: {e}")
+        # Always use the provided config_files_directory if available, otherwise fallback to project-relative test data
+        fallback_dir = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "tests" / "data_files"
+        config_dir = config_files_directory if config_files_directory else fallback_dir
+        survey_collection = SurveyCollection(
+            name=collection,
+            config_files_directory=config_dir,
+        )
+
+    try:
+        survey = survey_collection.get_survey(survey_name)
+    except AssertionError:
+        log.info(f"Survey {survey_name} does not exist, it will be created.")
+        survey = Survey(
+            name=survey_name,
+            label=survey_label or None,
+            survey_collection=survey_collection,
+        )
+
+    if survey.hdf5_file_path is None and survey.parquet_file_path is None:
+        config = survey.survey_collection.config
+        directory_path = Path(config.get("data", "output_directory"))
+        if not directory_path.is_dir():
+            log.warning(f"{directory_path} who should be the data directory does not exist: we create the directory")
+            directory_path.mkdir(parents=True, exist_ok=True)
+        if source_format is None:
+            survey.hdf5_file_path = directory_path / (survey.name + ".h5")
+        elif source_format == "parquet":
+            survey.parquet_file_path = directory_path / survey.name
+            if not survey.parquet_file_path.is_dir():
+                log.warning(
+                    f"{survey.parquet_file_path} who should be the parquet data directory does not exist: "
+                    "we create the directory"
+                )
+                survey.parquet_file_path.mkdir(parents=True, exist_ok=True)
+
+    assert (survey.hdf5_file_path is not None) or (survey.parquet_file_path is not None)
+    if source_format == "parquet" and parquet_file is None:
+        parquet_file = Path(survey.parquet_file_path) / (table_name + ".parquet")
+    survey.insert_table(label=table_label, name=table_name, dataframe=input_dataframe, parquet_file=parquet_file)
+    # If a survey with save name exist it will be overwritten
+    survey_collection.surveys = [
+        kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != survey_name
+    ]
+    survey_collection.surveys.append(survey)
+    collections_directory = Path(survey_collection.config.get("collections", "collections_directory"))
+    assert (
+        collections_directory.is_dir()
+    ), f"""{collections_directory} who should be the collections' directory does not exist.
+Fix the option collections_directory in the collections section of your config file."""
+    collection_json_path = collections_directory / f"{collection}.json"
+    survey_collection.dump(json_file_path=collection_json_path)
+
+
+def build_input_dataframe_from_test_case(
+    survey_scenario, test_case_scenario_kwargs, period=None, computed_variables=None
+):
+    if computed_variables is None:
+        computed_variables = []
+    tax_benefit_system = survey_scenario.tax_benefit_system
+    simulation = tax_benefit_system.new_scenario().init_single_entity(**test_case_scenario_kwargs).new_simulation()
+    array_by_variable = {}
+    period = periods.period(period)
+
+    def compute_variable(variable):
+        if variable not in tax_benefit_system.variables:
+            return
+        if period.unit == periods.YEAR:
+            try:
+                array_by_variable[variable] = simulation.calculate(variable, period=period)
+            except Exception as e:
+                log.debug(e)
+                try:
+                    array_by_variable[variable] = simulation.calculate_add(variable, period=period)
+                except Exception as e:
+                    log.debug(e)
+                    array_by_variable[variable] = simulation.calculate(variable, period=period.first_month)
+        elif period.unit == periods.MONTH:
+            try:
+                array_by_variable[variable] = simulation.calculate(variable, period=period)
+            except ValueError as e:
+                log.debug(e)
+                array_by_variable[variable] = simulation.calculate(variable, period=period.this_year) / 12
+
+    for scenario_key, value_by_variable in test_case_scenario_kwargs.items():
+        if scenario_key == "axes":
+            variables = [test_case_scenario_kwargs["axes"][0][0]["name"]]
+
+        else:
+            if value_by_variable is None:  # empty parent2 for example
+                continue
+            if not isinstance(value_by_variable, dict):  # enfants
+                continue
+            variables = list(value_by_variable.keys())
+
+        for variable in variables:
+            compute_variable(variable)
+
+    for variable in computed_variables:
+        compute_variable(variable)
+
+    for entity in tax_benefit_system.entities:
+        if entity.is_person:
+            continue
+        array_by_variable[survey_scenario.id_variable_by_entity_key[entity.key]] = range(
+            test_case_scenario_kwargs["axes"][0][0]["count"]
+        )
+
+    input_data_frame = pd.DataFrame(array_by_variable)
+
+    for entity in tax_benefit_system.entities:
+        if entity.is_person:
+            continue
+        input_data_frame[survey_scenario.role_variable_by_entity_key[entity.key]] = 0
+    return input_data_frame
