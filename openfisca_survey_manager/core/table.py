@@ -13,8 +13,8 @@ import pandas
 from chardet.universaldetector import UniversalDetector
 from pyarrow import parquet as pq
 
-from openfisca_survey_manager import read_sas
 from openfisca_survey_manager.exceptions import SurveyIOError
+from openfisca_survey_manager.io.readers import read_sas
 from openfisca_survey_manager.io.writers import write_table_to_hdf5, write_table_to_parquet
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
 
@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 reader_by_source_format = {
     "csv": pandas.read_csv,
-    "sas": read_sas.read_sas,
+    "sas": read_sas,
     "spss": read_spss,
     "stata": pandas.read_stata,
     "parquet": pandas.read_parquet,

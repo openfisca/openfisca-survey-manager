@@ -43,3 +43,5 @@ def write_table_to_hdf5(
                 dtypes[converted_dtypes],
             )
             data_frame.to_hdf(hdf5_file_path, store_path, append=False, format="table", **kwargs)
+        else:
+            data_frame.to_hdf(hdf5_file_path, store_path, append=False, **kwargs)
