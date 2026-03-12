@@ -8,7 +8,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 # Column names matching this pattern (e.g. ident01, ident2019) are renamed to "ident"
-IDENT_COLUMN_PATTERN = re.compile(r"(?i)ident\d{2,4}$")
+IDENT_COLUMN_PATTERN = re.compile(r"ident\d{2,4}$", re.IGNORECASE)
 
 
 def harmonize_data_frame_columns(
