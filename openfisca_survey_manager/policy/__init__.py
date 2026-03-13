@@ -1,6 +1,5 @@
 # Policy-related modules (simulations, simulation_builder, aggregates).
 # À terme ces briques pourront être déplacées dans un paquet dédié.
-# Voir docs/REFACTORING_PLAN.md.
 
 from openfisca_survey_manager.policy.aggregates import AbstractAggregates
 from openfisca_survey_manager.policy.simulation_builder import (
