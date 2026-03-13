@@ -14,8 +14,6 @@
   - **Removal**: `stata_files_to_data_frames` removed
   - **Tests**: `input_dataframe_generator` moved to `tests/`
 
-* **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
-
 # 6.4.0
 
 * Refactor (no breaking API changes)
@@ -39,7 +37,6 @@
   - **processing/weights**: Move calibration and CALMAR into `processing.weights` (calmar, Calibration); root `calibration.py` and `calmar.py` re-export for compatibility
   - **Exceptions**: Add `SurveyManagerError`, `SurveyConfigError`, `SurveyIOError`; replace generic ValueError/Exception in survey_collections, tables, surveys, simulations, simulation_builder, scenarios, calmar
   - **Logging**: Replace `print()` with structured logging in matching, calmar, scenarios, scripts/build_collection, simulations
-  - **Docs**: Add the refactoring plan and the OpenFisca Data Stack vision note
   - **Tests**: Add `test_summarize_variable_log_output` to assert log content formerly checked by doctest; doctest example still runs (output now via logging)
 
 # 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)
