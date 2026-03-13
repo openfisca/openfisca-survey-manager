@@ -1,7 +1,7 @@
 from openfisca_core import periods
 from openfisca_country_template import CountryTaxBenefitSystem
 
-from openfisca_survey_manager.utils import inflate_parameters, parameters_asof
+from openfisca_survey_manager.policy.legislation_asof import inflate_parameters, parameters_asof
 
 
 def test_asof_simple_annual_parameter():

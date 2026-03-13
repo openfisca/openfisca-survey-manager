@@ -1,9 +1,14 @@
+"""COICOP nomenclature helpers."""
+
+from __future__ import annotations
+
 import logging
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 
-from openfisca_survey_manager.paths import openfisca_survey_manager_location
+from openfisca_survey_manager.configuration.paths import openfisca_survey_manager_location
 
 log = logging.getLogger(__name__)
 
@@ -11,11 +16,18 @@ log = logging.getLogger(__name__)
 legislation_directory = Path(openfisca_survey_manager_location) / "openfisca_survey_manager" / "assets"
 
 
-sub_levels = ["divisions", "groupes", "classes", "sous_classes", "postes"]
+sub_levels: tuple[str, ...] = ("divisions", "groupes", "classes", "sous_classes", "postes")
 divisions = [f"0{i}" for i in range(1, 10)] + ["11", "12"]
 
+CoicopLevel = Literal["divisions", "groupes", "classes", "sous_classes", "postes"]
 
-def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=False):
+
+def build_coicop_level_nomenclature(
+    level: CoicopLevel,
+    year: int = 2016,
+    keep_code: bool = False,
+    to_csv: bool = False,
+) -> pd.DataFrame:
     assert level in sub_levels
     log.debug(f"Reading nomenclature coicop {year} source data for level {level}")
     try:
@@ -69,7 +81,7 @@ def build_coicop_level_nomenclature(level, year=2016, keep_code=False, to_csv=Fa
     return data_frame
 
 
-def build_raw_coicop_nomenclature(year=2016):
+def build_raw_coicop_nomenclature(year: int = 2016) -> pd.DataFrame:
     """Builds raw COICOP nomenclature from ecoicop levels"""
     coicop_nomenclature = None
 

@@ -1,28 +1,29 @@
 """Shared helpers (no survey collection dependency) to avoid circular imports."""
 
-import logging
-from pathlib import Path
+from __future__ import annotations
 
-import pandas as pd
+import logging
+from typing import Any, Optional
+
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode, Scale
 
 log = logging.getLogger(__name__)
 
 
-def do_nothing(*args, **kwargs):
+def do_nothing(*args: Any, **kwargs: Any) -> None:
     return None
 
 
 def inflate_parameters(
-    parameters,
-    inflator,
-    base_year,
-    last_year=None,
-    ignore_missing_units=False,
-    start_instant=None,
-    round_ndigits=2,
-):
+    parameters: ParameterNode | Scale | Any,
+    inflator: float,
+    base_year: int,
+    last_year: Optional[int] = None,
+    ignore_missing_units: bool = False,
+    start_instant: Optional[str] = None,
+    round_ndigits: int = 2,
+) -> None:
     """
     Inflate a Parameter node or a Parameter leaf for the years between base_year and last_year.
 
@@ -96,7 +97,14 @@ def inflate_parameters(
                     )
 
 
-def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit", start_instant=None, round_ndigits=2):
+def inflate_parameter_leaf(
+    sub_parameter: Any,
+    base_year: int,
+    inflator: float,
+    unit_type: str = "unit",
+    start_instant: Optional[str] = None,
+    round_ndigits: int = 2,
+) -> None:
     """
     Inflate a Parameter leaf according to unit type for the year after base_year.
 
@@ -169,13 +177,13 @@ def inflate_parameter_leaf(sub_parameter, base_year, inflator, unit_type="unit",
                 )
 
 
-def asof(tax_benefit_system, instant):
+def asof(tax_benefit_system: Any, instant: str | periods.Instant) -> None:
     parameters = tax_benefit_system.parameters
     parameters_asof(parameters, instant)
     variables_asof(tax_benefit_system, instant)
 
 
-def leaf_asof(sub_parameter, instant):
+def leaf_asof(sub_parameter: Any, instant: periods.Instant) -> None:
     kept_instants_str = [
         parameter_at_instant.instant_str
         for parameter_at_instant in sub_parameter.values_list
@@ -189,7 +197,7 @@ def leaf_asof(sub_parameter, instant):
     sub_parameter.update(start=last_admissible_instant_str, value=sub_parameter(last_admissible_instant_str))
 
 
-def parameters_asof(parameters, instant):
+def parameters_asof(parameters: ParameterNode | Any, instant: str | periods.Instant) -> None:
     if isinstance(instant, str):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
@@ -212,7 +220,11 @@ def parameters_asof(parameters, instant):
                 leaf_asof(sub_parameter, instant)
 
 
-def variables_asof(tax_benefit_system, instant, variables_list=None):
+def variables_asof(
+    tax_benefit_system: Any,
+    instant: str | periods.Instant,
+    variables_list: Optional[list[str]] = None,
+) -> None:
     if isinstance(instant, str):
         instant = periods.instant(instant)
     assert isinstance(instant, periods.Instant)
@@ -229,23 +241,3 @@ def variables_asof(tax_benefit_system, instant, variables_list=None):
 
             if variable.end is not None and periods.instant(variable.end) >= instant:
                 variable.end = None
-
-
-def stata_files_to_data_frames(data, period=None):
-    assert period is not None
-    period = periods.period(period)
-
-    stata_file_by_entity = data.get("stata_file_by_entity")
-    if stata_file_by_entity is None:
-        return
-
-    variables_from_stata_files = []
-    input_data_frame_by_entity_by_period = {}
-    input_data_frame_by_entity_by_period[periods.period(period)] = input_data_frame_by_entity = {}
-    for entity, file_path in stata_file_by_entity.items():
-        assert Path(file_path).exists(), f"Invalid file path: {file_path}"
-        entity_data_frame = input_data_frame_by_entity[entity] = pd.read_stata(file_path)
-        variables_from_stata_files += list(entity_data_frame.columns)
-    data["input_data_frame_by_entity_by_period"] = input_data_frame_by_entity_by_period
-
-    return variables_from_stata_files

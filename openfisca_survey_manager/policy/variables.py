@@ -1,14 +1,24 @@
+"""Policy variables helpers (quantile formulas)."""
+
+from __future__ import annotations
+
 import logging
+from typing import Any, Callable, Optional
 
 from numpy import arange
 from openfisca_core.model_api import ADD, YEAR, Variable, where
 
-from openfisca_survey_manager.statshelpers import mark_weighted_percentiles, weightedcalcs_quantiles
+from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles, weightedcalcs_quantiles
 
 log = logging.getLogger(__name__)
 
 
-def create_quantile(x, nquantiles, weight_variable, entity_name):
+def create_quantile(
+    x: str,
+    nquantiles: int,
+    weight_variable: str,
+    entity_name: Any,
+) -> type[Variable]:
     class quantile(Variable):
         value_type = int
         entity = entity_name
@@ -35,7 +45,12 @@ def create_quantile(x, nquantiles, weight_variable, entity_name):
     return quantile
 
 
-def quantile(q, variable, weight_variable=None, filter_variable=None):
+def quantile(
+    q: int,
+    variable: str,
+    weight_variable: Optional[str] = None,
+    filter_variable: Optional[str] = None,
+) -> Callable[..., Any]:
     """
     Return quantile of a variable with weight provided by a specific wieght variable potentially filtered
     """
@@ -63,7 +78,12 @@ def quantile(q, variable, weight_variable=None, filter_variable=None):
     return formula
 
 
-def old_quantile(q, variable, weight_variable=None, filter_variable=None):
+def old_quantile(
+    q: int,
+    variable: str,
+    weight_variable: Optional[str] = None,
+    filter_variable: Optional[str] = None,
+) -> Callable[..., Any]:
     def formula(entity, period):
         value = entity(variable, period)
         if weight_variable is not None:

@@ -1,5 +1,7 @@
 """Readers for survey data (SAS, SPSS, DBF, etc.)."""
 
+from __future__ import annotations
+
 import logging
 from typing import Optional
 
@@ -45,7 +47,7 @@ def read_spss(spss_file_path: str) -> DataFrame:
 def read_dbf(
     dbf_path: str,
     index: Optional[str] = None,
-    cols: Optional[list] = None,
+    cols: Optional[list[str]] = None,
     incl_index: bool = False,
 ) -> DataFrame:
     """

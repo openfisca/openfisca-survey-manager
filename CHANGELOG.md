@@ -1,5 +1,19 @@
 # Changelog
 
+# 6.5.0
+
+* Typing (no breaking API changes)
+  - **core**: Type hints on `core.table` (Table), `core.survey` (Survey, NoMoreDataError), `core.dataset` (SurveyCollection); `TYPE_CHECKING` for circular refs; class attributes with defaults where needed
+  - **io**: Type hints on `io.readers` (read_sas, read_spss, read_dbf with `Optional[list[str]]` for cols); `io.writers` and `io.hdf` already typed
+  - **processing**: Type hints on `processing.cleaning`, `processing.harmonization`, `processing.weights.calmar` (linear, logit, calmar, check_calmar, etc.), `processing.weights.calibration` (Calibration class and methods)
+  - **policy**: Add `policy` package; type hints on policy modules (coicop, matching, statshelpers, variables, calmar, calibration, scenarios, simulations, aggregates); `py.typed` marker
+
+* Refactor and deprecations
+  - **policy package**: Move `coicop`, `matching`, `statshelpers`, `variables` to `policy/`; move `calmar`, `calibration` to `policy/`; move `scenarios` to `policy/`; root placeholders re-export with `DeprecationWarning`
+  - **matching**: NND hot deck in pure Python (pandas + numpy), no R dependency for default path
+  - **Removal**: `stata_files_to_data_frames` removed
+  - **Tests**: `input_dataframe_generator` moved to `tests/`
+
 # 6.4.0
 
 * Refactor (no breaking API changes)
@@ -23,7 +37,6 @@
   - **processing/weights**: Move calibration and CALMAR into `processing.weights` (calmar, Calibration); root `calibration.py` and `calmar.py` re-export for compatibility
   - **Exceptions**: Add `SurveyManagerError`, `SurveyConfigError`, `SurveyIOError`; replace generic ValueError/Exception in survey_collections, tables, surveys, simulations, simulation_builder, scenarios, calmar
   - **Logging**: Replace `print()` with structured logging in matching, calmar, scenarios, scripts/build_collection, simulations
-  - **Docs**: Add the refactoring plan and the OpenFisca Data Stack vision note
   - **Tests**: Add `test_summarize_variable_log_output` to assert log content formerly checked by doctest; doctest example still runs (output now via logging)
 
 # 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)

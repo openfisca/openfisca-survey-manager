@@ -3,6 +3,9 @@
 raw_data.ini
 config.ini
 
+# Claude AI configuration
+.claude
+
 # Collections
 .collections
 
@@ -93,14 +96,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-# Local documentation (kept out of git)
-docs/
-
 # ctags file
 .tags*
-/tags
-tags
-.venv
 
 # Tests files
 *.parquet
