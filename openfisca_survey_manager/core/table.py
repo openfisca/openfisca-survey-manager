@@ -19,7 +19,7 @@ from openfisca_survey_manager.io.writers import write_table_to_hdf5, write_table
 from openfisca_survey_manager.processing.cleaning import clean_data_frame
 
 try:
-    from openfisca_survey_manager.read_spss import read_spss
+    from openfisca_survey_manager.io.readers import read_spss
 except ImportError:
     read_spss = None
 
