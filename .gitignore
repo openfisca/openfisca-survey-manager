@@ -3,6 +3,9 @@
 raw_data.ini
 config.ini
 
+# Claude AI configuration
+.claude
+
 # Collections
 .collections
 
