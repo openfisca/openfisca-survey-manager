@@ -7,7 +7,6 @@
   - **processing/harmonization**: Add `harmonize_data_frame_columns` (lowercase, rename ident); used in `Survey.get_values`; export from `processing`
   - **core**: Add `core.table`, `core.survey`, `core.dataset` (Table, Survey, NoMoreDataError, SurveyCollection); root `tables.py`, `surveys.py`, `survey_collections.py` re-export for compatibility
   - **Logging**: Extend to all modules — add logger to `configuration.models`, `google_colab`, `statshelpers`; fix typo "folloging" → "following" in `core.table`
-  - **Docs**: Add `docs/MIGRATION_IMPORTS.md` (import mapping and steps when re-exports will be removed, with breaking-change warning); update `REFACTORING_PLAN.md` (§3.4 Logging done)
 
 # 6.3.1
 
@@ -24,7 +23,7 @@
   - **processing/weights**: Move calibration and CALMAR into `processing.weights` (calmar, Calibration); root `calibration.py` and `calmar.py` re-export for compatibility
   - **Exceptions**: Add `SurveyManagerError`, `SurveyConfigError`, `SurveyIOError`; replace generic ValueError/Exception in survey_collections, tables, surveys, simulations, simulation_builder, scenarios, calmar
   - **Logging**: Replace `print()` with structured logging in matching, calmar, scenarios, scripts/build_collection, simulations
-  - **Docs**: Add `docs/REFACTORING_PLAN.md`, `docs/TICKET_OPENFISCA_DATA_STACK.md` (vision OpenFisca Data Stack)
+  - **Docs**: Add the refactoring plan and the OpenFisca Data Stack vision note
   - **Tests**: Add `test_summarize_variable_log_output` to assert log content formerly checked by doctest; doctest example still runs (output now via logging)
 
 # 6.2.0 [#376](https://github.com/openfisca/openfisca-survey-manager/pull/376)
