@@ -11,6 +11,7 @@ import pdb
 import re
 import shutil
 import sys
+import warnings
 from pathlib import Path
 
 from openfisca_survey_manager.paths import default_config_files_directory, openfisca_survey_manager_location
@@ -284,6 +285,12 @@ def main():
     store_format = "parquet" if args.parquet else "hdf5"
 
     if not args.parquet:
+        warnings.warn(
+            "HDF5 will no longer be the default format in a future version. "
+            "Please use --parquet option to save data in parquet format.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         log.warning(
             "HDF5 will no longer be the default format in a future version. "
             "Please use --parquet option to save data in parquet format."

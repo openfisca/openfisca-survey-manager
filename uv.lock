@@ -1289,6 +1289,7 @@ dependencies = [
     { name = "tables", version = "3.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "tables", version = "3.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tabulate" },
+    { name = "weightedcalcs" },
 ]
 
 [package.optional-dependencies]
@@ -1360,6 +1361,7 @@ requires-dist = [
     { name = "scipy", marker = "extra == 'dev'", specifier = ">=1.10.1,<2.0" },
     { name = "tables", specifier = ">=3.8.0,<4.0" },
     { name = "tabulate", specifier = ">=0.9.0,<0.10.0" },
+    { name = "weightedcalcs", specifier = ">=0.1.2,<0.2.0" },
 ]
 provides-extras = ["matching", "dev", "casd", "sas"]
 
@@ -2387,6 +2389,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/24/30/6b0809f4510673dc723187aeaf24c7f5459922d01e2f794277a3dfb90345/wcwidth-0.2.14.tar.gz", hash = "sha256:4d478375d31bc5395a3c55c40ccdf3354688364cd61c4f6adacaa9215d0b3605", size = 102293 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/af/b5/123f13c975e9f27ab9c0770f514345bd406d0e8d3b7a0723af9d43f710af/wcwidth-0.2.14-py2.py3-none-any.whl", hash = "sha256:a7bb560c8aee30f9957e5f9895805edd20602f2d7f720186dfd906e82b4982e1", size = 37286 },
+]
+
+[[package]]
+name = "weightedcalcs"
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/71/09/1bef813e2cb52123cee058aa543918e82a78deb97eaed27eae0af2a24f03/weightedcalcs-0.1.3.tar.gz", hash = "sha256:78853f53409991671a34c2f06153d380083a4d1b242829897f15a9e5013036d5", size = 5264 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/24/ad3dcc7f6cf747e804d02a176697509a32b2eb82799377c943ae98ff3c39/weightedcalcs-0.1.3-py3-none-any.whl", hash = "sha256:afb18abaafd34cf6fa3550f8a851f5353c473d9bd80d9bd26acc860a23d6ddc6", size = 3715 },
 ]
 
 [[package]]

@@ -228,15 +228,18 @@ def calmar(
                 if isinstance(val, dict):
                     dummies_dict = build_dummies_dict(data[entity][var])
                     pop = 0
+                    new_columns = {}
                     for cat, nb in val.items():
                         cat_varname = var + "_" + str(cat)
-                        data[entity][cat_varname] = dummies_dict[cat]
+                        new_columns[cat_varname] = dummies_dict[cat]
                         margins_new[cat_varname] = nb
                         if var not in margins_new_dict:
                             margins_new_dict[var] = {}
                         margins_new_dict[var][cat] = nb
                         pop += nb
                         nj += 1
+                    if new_columns:
+                        data[entity] = data[entity].assign(**new_columns)
                     # Check total popualtion
                     population = (entity == target_entity) * total_population + (
                         entity != target_entity

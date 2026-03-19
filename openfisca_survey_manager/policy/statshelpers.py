@@ -7,10 +7,36 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+import weightedcalcs as wc
 from numpy import argsort, asarray, cumsum, linspace, ones, repeat, zeros
 from numpy import logical_and as and_
 
 log = logging.getLogger(__name__)
+
+
+def _coerce_weighted_inputs(
+    data: np.ndarray | pd.Series,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    data = asarray(data, dtype=float)
+    if data.ndim != 1:
+        raise ValueError("data must be one-dimensional")
+    if len(data) == 0:
+        raise ValueError("data must not be empty")
+
+    if weights is None:
+        weights = ones(len(data))
+    weights = asarray(weights, dtype=float)
+    if weights.ndim != 1:
+        raise ValueError("weights must be one-dimensional")
+    if len(data) != len(weights):
+        raise ValueError("data and weights must have the same length")
+    if np.any(weights < 0):
+        raise ValueError("weights must be non-negative")
+    if weights.sum() <= 0:
+        raise ValueError("weights must sum to a positive value")
+
+    return data, weights
 
 
 def _weighted_quantile(data: np.ndarray, weights: np.ndarray, q: float) -> float:
@@ -26,8 +52,10 @@ def _weighted_quantile(data: np.ndarray, weights: np.ndarray, q: float) -> float
     Returns:
         float: Interpolated quantile value.
     """
-    data = asarray(data, dtype=float)
-    weights = asarray(weights, dtype=float)
+    if not 0 <= q <= 1:
+        raise ValueError("q must be between 0 and 1")
+
+    data, weights = _coerce_weighted_inputs(data, weights)
     sort_idx = argsort(data)
     sorted_data = data[sort_idx]
     sorted_weights = weights[sort_idx]
@@ -35,6 +63,42 @@ def _weighted_quantile(data: np.ndarray, weights: np.ndarray, q: float) -> float
     # Midpoint-based p_vals: each observation's "representative percentile"
     p_vals = (cum_weights - 0.5 * sorted_weights) / cum_weights[-1]
     return float(np.interp(q, p_vals, sorted_data))
+
+
+def _weighted_bottom_share(
+    values: np.ndarray | pd.Series,
+    rank_from_bottom: float,
+    weights: Optional[np.ndarray | pd.Series] = None,
+) -> float:
+    if not 0 <= rank_from_bottom <= 1:
+        raise ValueError("rank_from_bottom must be between 0 and 1")
+
+    values, weights = _coerce_weighted_inputs(values, weights)
+    total = (values * weights).sum()
+    if total == 0:
+        raise ValueError("weighted sum of values must not be zero")
+    if rank_from_bottom == 0:
+        return 0.0
+    if rank_from_bottom == 1:
+        return 1.0
+
+    sort_idx = argsort(values)
+    sorted_values = values[sort_idx]
+    sorted_weights = weights[sort_idx]
+
+    group_values, group_starts = np.unique(sorted_values, return_index=True)
+    group_weights = np.add.reduceat(sorted_weights, group_starts)
+    group_weighted_values = group_values * group_weights
+    cumulative_group_weights = cumsum(group_weights)
+
+    target_weight = rank_from_bottom * cumulative_group_weights[-1]
+    boundary_group = int(np.searchsorted(cumulative_group_weights, target_weight, side="left"))
+
+    weight_below = cumulative_group_weights[boundary_group - 1] if boundary_group > 0 else 0.0
+    share_below = group_weighted_values[:boundary_group].sum() if boundary_group > 0 else 0.0
+    boundary_fraction = (target_weight - weight_below) / group_weights[boundary_group]
+
+    return float((share_below + boundary_fraction * group_weighted_values[boundary_group]) / total)
 
 
 def gini(
@@ -353,14 +417,7 @@ def bottom_share(
     Returns:
 
     """
-    values = asarray(values, dtype=float)
-    if weights is None:
-        weights = ones(len(values))
-    weights = asarray(weights, dtype=float)
-
-    quantile = _weighted_quantile(values, weights, rank_from_bottom)
-    total = (values * weights).sum()
-    return ((values < quantile) * values * weights).sum() / total
+    return _weighted_bottom_share(values, rank_from_bottom, weights)
 
 
 def top_share(
@@ -378,14 +435,9 @@ def top_share(
     Returns:
 
     """
-    values = asarray(values, dtype=float)
-    if weights is None:
-        weights = ones(len(values))
-    weights = asarray(weights, dtype=float)
-
-    quantile = _weighted_quantile(values, weights, 1 - rank_from_top)
-    total = (values * weights).sum()
-    return ((values >= quantile) * values * weights).sum() / total
+    if not 0 <= rank_from_top <= 1:
+        raise ValueError("rank_from_top must be between 0 and 1")
+    return 1 - _weighted_bottom_share(values, 1 - rank_from_top, weights)
 
 
 def weighted_quantiles(
@@ -399,6 +451,35 @@ def weighted_quantiles(
     data = asarray(data, dtype=float)
     weights = asarray(weights, dtype=float)
     quantiles = [_weighted_quantile(data, weights, mybreak) for mybreak in breaks[1:]]
+
+    ret = zeros(len(data))
+    for i in range(0, len(quantiles) - 1):
+        lower = quantiles[i]
+        upper = quantiles[i + 1]
+        ret[and_(data > lower, data <= upper)] = labels[i]
+
+    if return_quantiles:
+        return ret + 1, quantiles
+    else:
+        return ret + 1
+
+
+def weightedcalcs_quantiles(
+    data: np.ndarray | pd.Series,
+    labels: np.ndarray | list,
+    weights: np.ndarray | pd.Series,
+    return_quantiles: bool = False,
+) -> np.ndarray | tuple[np.ndarray, list[float]]:
+    calc = wc.Calculator("weights")
+    num_categories = len(labels)
+    breaks = linspace(0, 1, num_categories + 1)
+    data_frame = pd.DataFrame(
+        {
+            "weights": weights,
+            "data": data,
+        }
+    )
+    quantiles = [calc.quantile(data_frame, "data", mybreak) for mybreak in breaks[1:]]
 
     ret = zeros(len(data))
     for i in range(0, len(quantiles) - 1):

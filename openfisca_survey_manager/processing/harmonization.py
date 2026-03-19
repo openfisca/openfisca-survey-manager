@@ -25,11 +25,11 @@ def harmonize_data_frame_columns(
     - If rename_ident: rename the first column matching ident pattern (e.g. ident01, ident2019) to "ident".
     """
     if lowercase:
-        data_frame.columns = [col.lower() for col in data_frame.columns]
+        data_frame.rename(columns={col: col.lower() for col in data_frame.columns}, inplace=True)
 
     if rename_ident:
         for column_name in data_frame.columns:
             if IDENT_COLUMN_PATTERN.match(str(column_name)) is not None:
-                data_frame.columns = ["ident" if col == column_name else col for col in data_frame.columns]
+                data_frame.rename(columns={column_name: "ident"}, inplace=True)
                 log.info("%s column have been replaced by ident", column_name)
                 break
