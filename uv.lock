@@ -1229,7 +1229,7 @@ wheels = [
 
 [[package]]
 name = "openfisca-core"
-version = "44.5.0"
+version = "44.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dpath" },
@@ -1245,9 +1245,9 @@ dependencies = [
     { name = "strenum" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/5e/fc706b6ec4470b50bcbc3abbdd2239c8816dd1a213578194df381349b286/openfisca_core-44.5.0.tar.gz", hash = "sha256:5cbe2a21b860093ac6a577ab960143d1df5eed44431d3a1c2f96fd3ae7232a02", size = 229328 }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/0d/c32e850856bbda90c25815edb117b5660ec450ce29554759e1a8232b6ecb/openfisca_core-44.6.0.tar.gz", hash = "sha256:58d2eb555071d5ed117957eff2dba716170597bf614f335a4d29c8fdb0fdee41", size = 209323 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/ef/2042dea6a352e3ee0451234acedb4a4cfc99733b5b9453a30373f7865c10/openfisca_core-44.5.0-py3-none-any.whl", hash = "sha256:c3f8e2fb553b2d16f6686062f1abe5d3c21a247448513e75300efb4c3ff12c6f", size = 297714 },
+    { url = "https://files.pythonhosted.org/packages/f8/ac/1c39f8d515927ca96eca7c621b6f48c31c1cb3bc95e02f93c5e23bdc6f25/openfisca_core-44.6.0-py3-none-any.whl", hash = "sha256:0e69d0d87d76240efb36a84176f2afa6409190aad1c52fbb5a8967919a834a2c", size = 270261 },
 ]
 
 [package.optional-dependencies]
@@ -1338,7 +1338,7 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version < '3.11'", specifier = ">=1.24.2,<2.0" },
     { name = "numpy", marker = "python_full_version < '3.13'", specifier = ">=1.26.0,<=3.0" },
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0,<=3.0" },
-    { name = "openfisca-core", specifier = ">=44.0.0,<45.0.0" },
+    { name = "openfisca-core", specifier = ">=44.6.0,<45.0.0" },
     { name = "openfisca-country-template", marker = "extra == 'dev'", specifier = ">=7.1.5,<8.0.0" },
     { name = "pandas", specifier = ">=2.0.3,<3.0" },
     { name = "pdbpp", marker = "extra == 'dev'" },
