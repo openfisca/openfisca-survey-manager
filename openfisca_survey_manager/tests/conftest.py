@@ -1,33 +1,7 @@
-import json
 from pathlib import Path
 
 import pandas as pd
 import pytest
-
-# Répertoire des données de test (à côté de conftest.py)
-TESTS_DATA_FILES = Path(__file__).resolve().parent / "data_files"
-TEST_RANDOM_GENERATOR_JSON = TESTS_DATA_FILES / "test_random_generator.json"
-
-# Contenu minimal pour que SurveyCollection.load() réussisse
-TEST_RANDOM_GENERATOR_MINIMAL_JSON = {"name": "test_random_generator", "surveys": {}}
-
-
-@pytest.fixture(scope="session", autouse=True)
-def ensure_test_random_generator_json():
-    """Crée test_random_generator.json avec un contenu minimal s'il est absent ou vide."""
-    TESTS_DATA_FILES.mkdir(parents=True, exist_ok=True)
-    if not TEST_RANDOM_GENERATOR_JSON.exists():
-        TEST_RANDOM_GENERATOR_JSON.write_text(
-            json.dumps(TEST_RANDOM_GENERATOR_MINIMAL_JSON, indent=2),
-            encoding="utf-8",
-        )
-    else:
-        raw = TEST_RANDOM_GENERATOR_JSON.read_text(encoding="utf-8").strip()
-        if not raw:
-            TEST_RANDOM_GENERATOR_JSON.write_text(
-                json.dumps(TEST_RANDOM_GENERATOR_MINIMAL_JSON, indent=2),
-                encoding="utf-8",
-            )
 
 
 @pytest.fixture
