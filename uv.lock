@@ -1230,7 +1230,7 @@ wheels = [
 [[package]]
 name = "openfisca-core"
 version = "44.5.0"
-source = { git = "https://github.com/openfisca/openfisca-core.git?rev=fix%2Fentity-links-person-key#79fda1520a7a3ab52686a01e2e6a6c92da2b941d" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dpath" },
     { name = "numexpr", version = "2.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -1244,6 +1244,10 @@ dependencies = [
     { name = "sortedcontainers" },
     { name = "strenum" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4d/5e/fc706b6ec4470b50bcbc3abbdd2239c8816dd1a213578194df381349b286/openfisca_core-44.5.0.tar.gz", hash = "sha256:5cbe2a21b860093ac6a577ab960143d1df5eed44431d3a1c2f96fd3ae7232a02", size = 229328 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/ef/2042dea6a352e3ee0451234acedb4a4cfc99733b5b9453a30373f7865c10/openfisca_core-44.5.0-py3-none-any.whl", hash = "sha256:c3f8e2fb553b2d16f6686062f1abe5d3c21a247448513e75300efb4c3ff12c6f", size = 297714 },
 ]
 
 [package.optional-dependencies]
@@ -1334,7 +1338,7 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version < '3.11'", specifier = ">=1.24.2,<2.0" },
     { name = "numpy", marker = "python_full_version < '3.13'", specifier = ">=1.26.0,<=3.0" },
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0,<=3.0" },
-    { name = "openfisca-core", git = "https://github.com/openfisca/openfisca-core.git?rev=fix%2Fentity-links-person-key" },
+    { name = "openfisca-core", specifier = ">=44.0.0,<45.0.0" },
     { name = "openfisca-country-template", marker = "extra == 'dev'", specifier = ">=7.1.5,<8.0.0" },
     { name = "pandas", specifier = ">=2.0.3,<3.0" },
     { name = "pdbpp", marker = "extra == 'dev'" },
