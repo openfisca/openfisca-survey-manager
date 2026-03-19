@@ -62,6 +62,11 @@ def get_words(text: str) -> list[str]:
     return re.compile("[A-Za-z_]+[A-Za-z0-9_]*").findall(text)
 
 
+def _evaluate_expression(data_frame: pd.DataFrame, expression: str) -> pd.Series:
+    """Evaluate a pandas expression using DataFrame.eval sandboxing semantics."""
+    return data_frame.eval(expression)
+
+
 # Main functions
 
 
@@ -328,8 +333,7 @@ def _pivot_agg(df: pd.DataFrame, index: list, columns: list, value: str, aggfunc
 
     if index and columns:
         result = grouped.unstack(level=list(range(len(index), len(group_cols))))
-        if len(columns) == 1:
-            result.columns.name = columns[0]
+        result.columns.names = columns
         return result
     elif columns:
         # No row grouping: single row labelled with value name
@@ -515,12 +519,7 @@ def compute_pivot_table(
         )[entity_key]
 
     for expression in expressions:
-        expr_locals = {
-            col: baseline_vars_data_frame[col].values
-            for col in get_words(expression)
-            if col in baseline_vars_data_frame.columns
-        }
-        baseline_vars_data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
+        baseline_vars_data_frame[expression] = _evaluate_expression(baseline_vars_data_frame, expression)
     if filter_by is not None:
         filter_dummy = baseline_vars_data_frame[filter_by]
     if weight_variable is None:
@@ -549,6 +548,12 @@ def compute_pivot_table(
                 pivot_sum = _pivot_agg(data_frame, index, columns, value, "sum")
                 pivot_mass = _pivot_agg(data_frame, index, columns, weight_variable, "sum")
                 if aggfunc == "mean":
+                    assert pivot_sum.shape == pivot_mass.shape, "pivot_sum and pivot_mass shapes must align"
+                    assert pivot_sum.columns.equals(pivot_mass.columns), "pivot_sum and pivot_mass columns must align"
+                    if index:
+                        assert pivot_sum.index.equals(pivot_mass.index), (
+                            "pivot_sum and pivot_mass indexes must align when grouping on rows"
+                        )
                     result = pd.DataFrame(
                         pivot_sum.to_numpy() / pivot_mass.to_numpy(),
                         index=pivot_sum.index,
@@ -700,8 +705,7 @@ def create_data_frame_by_entity(
     for entity_key, expressions in expressions_by_entity_key.items():
         data_frame = openfisca_data_frame_by_entity_key[entity_key]
         for expression in expressions:
-            expr_locals = {col: data_frame[col].values for col in get_words(expression) if col in data_frame.columns}
-            data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
+            data_frame[expression] = _evaluate_expression(data_frame, expression)
 
     if filter_by is not None:
         openfisca_data_frame_by_entity_key[filter_entity_key] = (

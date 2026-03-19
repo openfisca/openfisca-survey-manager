@@ -13,7 +13,6 @@
   - **matching**: NND hot deck in pure Python (pandas + numpy), no R dependency for default path
   - **Removal**: `stata_files_to_data_frames` removed
   - **Tests**: `input_dataframe_generator` moved to `tests/`
-  - **Docs**: Update `REFACTORING_PLAN.md` §3.3 (typing core, io, processing done)
 
 
 # 6.4.0
