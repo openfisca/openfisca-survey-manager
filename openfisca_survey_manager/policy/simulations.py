@@ -222,12 +222,9 @@ def compute_aggregate(
             variables=get_words(filter_by), period=period, index=False
         )[entity_key]
         for expression in expressions:
-            expr_locals = {
-                col: expression_data_frame[col].values
-                for col in get_words(expression)
-                if col in expression_data_frame.columns
-            }
-            expression_data_frame[expression] = eval(expression, {}, expr_locals)  # noqa: S307
+            # Keep pandas expression semantics (including chained comparisons),
+            # while avoiding Python eval on numpy arrays.
+            expression_data_frame[expression] = expression_data_frame.eval(expression)
 
         filter_dummy = expression_data_frame[filter_by]
     else:
@@ -698,6 +695,7 @@ def create_data_frame_by_entity(
                 entity.key
             ].reset_index()
         person_data_frame = person_data_frame.reset_index()
+        openfisca_data_frame_by_entity_key[person_entity.key] = person_data_frame
 
     for entity_key, expressions in expressions_by_entity_key.items():
         data_frame = openfisca_data_frame_by_entity_key[entity_key]
