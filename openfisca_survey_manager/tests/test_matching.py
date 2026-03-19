@@ -1,8 +1,9 @@
 """Tests for the matching functionality in OpenFisca Survey Manager."""
 
 import pandas as pd
+import pytest
 
-from openfisca_survey_manager.policy.matching import nnd_hotdeck_using_rpy2
+from openfisca_survey_manager.policy.matching import nnd_hotdeck, nnd_hotdeck_using_rpy2
 
 try:
     import rpy2
@@ -138,3 +139,18 @@ def test_nnd_hotdeck_using_rpy2():
         z_variables="Petal.Width",
         matching_variables=["Sepal.Length", "Sepal.Width"],
     )
+
+
+def test_nnd_hotdeck_raises_when_receiver_class_has_no_donor():
+    receiver = pd.DataFrame({"x": [1.0, 2.0], "class_key": ["A", "B"]})
+    donor = pd.DataFrame({"x": [1.1], "class_key": ["A"], "z": [99]})
+
+    with pytest.raises(ValueError, match="No donors available for receiver donor_classes"):
+        nnd_hotdeck(
+            receiver=receiver,
+            donor=donor,
+            matching_variables=["x"],
+            z_variables=["z"],
+            donor_classes="class_key",
+            random_state=0,
+        )

@@ -110,13 +110,15 @@ def _nnd_hotdeck_python(
     # Within-class matching: for each group, match receiver rows to donors in same group
     rec_groups = receiver.groupby(don_class, sort=False)
     don_groups = donor.groupby(don_class, sort=False)
-    donor_iloc = np.zeros(n_rec, dtype=np.intp)
+    donor_iloc = np.full(n_rec, -1, dtype=np.intp)
+    missing_classes: list[object] = []
 
     for key, rec_grp in rec_groups:
         try:
             don_grp = don_groups.get_group(key)
         except KeyError:
-            log.warning("No donors for class %s; receiver rows get donor 0", key)
+            missing_classes.append(key)
+            log.warning("No donors for class %s", key)
             continue
         x_r = rec_grp[match_vars].astype(float).values
         x_d = don_grp[match_vars].astype(float).values
@@ -132,6 +134,17 @@ def _nnd_hotdeck_python(
             don_local = rng.choice(candidates)
             don_global_iloc = donor.index.get_loc(don_grp.index[don_local])
             donor_iloc[rec_global_ilocs[j]] = don_global_iloc
+
+    if missing_classes:
+        missing_classes_list = ", ".join(repr(class_value) for class_value in missing_classes)
+        raise ValueError(
+            f"No donors available for receiver donor_classes: {missing_classes_list}. "
+            "All receiver classes must be present in donor when donor_classes is provided."
+        )
+
+    if np.any(donor_iloc < 0):
+        raise RuntimeError("Internal error: unmatched receiver rows remain after within-class matching")
+
     mtc_ids = np.column_stack([np.arange(n_rec), donor_iloc])
     return mtc_ids
 
