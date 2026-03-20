@@ -1,5 +1,10 @@
 # Changelog
 
+# 6.6.0
+
+* Performance
+  - **policy.statshelpers**: Replace `weightedcalcs.wquantiles` with pure NumPy implementation for faster weighted quantiles and better dependency footprint.
+
 # 6.5.0
 
 * Typing (no breaking API changes)
