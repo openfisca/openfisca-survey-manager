@@ -1,11 +1,11 @@
 import importlib
 
 
-def test_legacy_policy_modules_are_importable():
-    matching = importlib.import_module("openfisca_survey_manager.matching")
-    coicop = importlib.import_module("openfisca_survey_manager.coicop")
-    variables = importlib.import_module("openfisca_survey_manager.variables")
-    statshelpers = importlib.import_module("openfisca_survey_manager.statshelpers")
+def test_policy_modules_are_importable():
+    matching = importlib.import_module("openfisca_survey_manager.policy.matching")
+    coicop = importlib.import_module("openfisca_survey_manager.policy.coicop")
+    variables = importlib.import_module("openfisca_survey_manager.policy.variables")
+    statshelpers = importlib.import_module("openfisca_survey_manager.policy.statshelpers")
 
     assert hasattr(matching, "nnd_hotdeck")
     assert hasattr(coicop, "build_coicop_level_nomenclature")
@@ -13,9 +13,9 @@ def test_legacy_policy_modules_are_importable():
     assert hasattr(statshelpers, "gini")
 
 
-def test_processing_weights_legacy_modules_are_importable():
-    calmar_module = importlib.import_module("openfisca_survey_manager.processing.weights.calmar")
-    calibration_module = importlib.import_module("openfisca_survey_manager.processing.weights.calibration")
+def test_policy_weight_modules_are_importable():
+    calmar_module = importlib.import_module("openfisca_survey_manager.policy.calmar")
+    calibration_module = importlib.import_module("openfisca_survey_manager.policy.calibration")
 
     assert hasattr(calmar_module, "calmar")
     assert hasattr(calmar_module, "check_calmar")
