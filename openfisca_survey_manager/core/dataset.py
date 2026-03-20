@@ -10,6 +10,8 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Union
 
+import pandas as pd
+
 from openfisca_survey_manager.configuration.models import Config
 from openfisca_survey_manager.configuration.paths import default_config_files_directory
 from openfisca_survey_manager.core.survey import Survey
@@ -172,3 +174,31 @@ Contains the following surveys :
         for survey in self.surveys:
             self_json["surveys"][survey.name] = survey.to_json()
         return self_json
+
+
+def load_table(
+    config_files_directory,
+    variables: Optional[list] = None,
+    collection: Optional[str] = None,
+    survey: Optional[str] = None,
+    input_data_survey_prefix: Optional[str] = None,
+    data_year=None,
+    table: Optional[str] = None,
+    batch_size=None,
+    batch_index=0,
+    filter_by=None,
+) -> pd.DataFrame:
+    """Load table from a survey in a collection."""
+    survey_collection = SurveyCollection.load(collection=collection, config_files_directory=config_files_directory)
+    survey_name = survey if survey is not None else f"{input_data_survey_prefix}_{data_year}"
+    survey_ = survey_collection.get_survey(survey_name)
+    log.debug("Loading table %s in survey %s from collection %s", table, survey_name, collection)
+    if batch_size:
+        return survey_.get_values(
+            table=table,
+            variables=variables,
+            batch_size=batch_size,
+            batch_index=batch_index,
+            filter_by=filter_by,
+        )
+    return survey_.get_values(table=table, variables=variables, filter_by=filter_by)

@@ -17,14 +17,14 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.types import Array, Period, TaxBenefitSystem
 from openfisca_core.types import CoreEntity as Entity
 
+from openfisca_survey_manager.core.dataset import SurveyCollection, load_table
 from openfisca_survey_manager.exceptions import SurveyManagerError
+from openfisca_survey_manager.policy.legislation_asof import do_nothing
 from openfisca_survey_manager.policy.simulation_builder import (
     SimulationBuilder,
     diagnose_variable_mismatch,
 )
 from openfisca_survey_manager.policy.statshelpers import mark_weighted_percentiles
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.utils import do_nothing, load_table
 
 log = logging.getLogger(__name__)
 
@@ -450,7 +450,7 @@ def compute_pivot_table(
                 variables.add(weight_variable)
 
             else:
-                log.warn(
+                log.warning(
                     f"There is no weight variable for entity {entity_key} nor alternative weights. "
                     "Switch to unweighted"
                 )
@@ -803,7 +803,7 @@ def compute_winners_losers(
             weight_variable = weight_variable_by_entity[entity_key]
             weight = baseline_simulation.calculate(weight_variable, period=period)
         else:
-            log.warn(
+            log.warning(
                 f"There is no weight variable for entity {entity_key} nor alternative weights. Switch to unweighted"
             )
 
@@ -1302,7 +1302,7 @@ def init_variable_in_entity(
     if variable.definition_period == YEAR and period.unit == MONTH:
         # Some variables defined for a year are present in month/quarter dataframes
         # Cleaning the dataframe would probably be better in the long run
-        log.warn(
+        log.warning(
             f"Trying to set a monthly value for variable {variable_name}, which is defined on a year. "
             "The  montly values you provided will be summed."
         )
@@ -1487,7 +1487,7 @@ def summarize_variable(
                     )
                     df = pd.DataFrame({variable: array}).replace(categories_by_index).astype(categories_type)
                     df["weights"] = weights if weighted else 1
-                    groupby = df.groupby(variable)["weights"].sum()
+                    groupby = df.groupby(variable, observed=False)["weights"].sum()
                     total = groupby.sum()
                     expr = [f" {index} = {row:.2e} ({row / total:.1%})" for index, row in groupby.items()]
                     log.info("%s: %s.", period, ",".join(expr))
