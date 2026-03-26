@@ -75,7 +75,7 @@ pyyaml==6.0.2
     # via
     #   openfisca-survey-manager (pyproject.toml)
     #   openfisca-core
-requests==2.32.4
+requests==2.33.0
     # via blosc2
 six==1.17.0
     # via python-dateutil
