@@ -59,7 +59,7 @@ py-cpuinfo==9.0.0
     #   tables
 pyarrow==18.1.0
     # via openfisca-survey-manager (pyproject.toml)
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
 pytest==8.4.1
     # via openfisca-core
