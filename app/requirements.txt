@@ -95,7 +95,7 @@ tzdata==2025.2
     # via
     #   pandas
     #   pendulum
-urllib3==2.6.3
+urllib3==2.7.0
     # via requests
 weightedcalcs==0.1.3
     # via openfisca-survey-manager (pyproject.toml)
