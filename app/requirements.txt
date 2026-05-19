@@ -14,7 +14,7 @@ dpath==2.2.0
     # via openfisca-core
 humanize==4.12.3
     # via openfisca-survey-manager (pyproject.toml)
-idna==3.10
+idna==3.15
     # via requests
 iniconfig==2.1.0
     # via pytest
