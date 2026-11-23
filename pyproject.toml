@@ -1,6 +1,6 @@
 [project]
 name = "OpenFisca-Survey-Manager"
-version = "6.6.0"
+version = "6.6.1"
 description = "A tool for managing survey/administrative data and import them in OpenFisca"
 readme = "README.md"
 keywords = ["microsimulation", "tax", "benefit", "rac", "rules-as-code", "survey", "data"]
@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-requires-python = ">= 3.9"
+requires-python = ">= 3.9, <3.14"
 dependencies = [
     'chardet >=5.1.0, < 6.0',
     'configparser >=5.3.0, < 8.0',
@@ -50,11 +50,7 @@ build-backend = "setuptools.build_meta"
 # Command-line scripts
 build-collection = "openfisca_survey_manager.scripts.build_collection:main"
 
-[project.optional-dependencies]
-matching = [
-    # 'feather',
-    'rpy2 >=3.5.10, < 4.0'
-    ]
+[dependency-groups]
 dev = [
     'coveralls >=3.3.1, < 5.0',
     'openfisca-country-template >=7.1.5, <8.0.0',
@@ -69,6 +65,12 @@ dev = [
     'ipdb',
     'pdbpp'
 ]
+
+[project.optional-dependencies]
+matching = [
+    # 'feather',
+    'rpy2 >=3.5.10, < 4.0'
+    ]
 casd = [
     'pytest',
     'scipy >=1.10.1, < 2.0',

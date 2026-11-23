@@ -1,5 +1,11 @@
 # Changelog
 
+
+### 6.6.1
+
+* Upgrade dependencies and move `dev` from [optional-dependencies](https://packaging.python.org/en/latest/specifications/pyproject-toml/#optional-dependencies) to [dependency-groups](https://packaging.python.org/en/latest/specifications/dependency-groups/) so that `uv` installs them locally [by default](https://docs.astral.sh/uv/concepts/projects/dependencies/#default-groups).
+
+
 # 6.6.0
 
 * Performance
