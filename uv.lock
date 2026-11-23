@@ -1251,7 +1251,7 @@ wheels = [
 
 [[package]]
 name = "openfisca-survey-manager"
-version = "6.6.0"
+version = "6.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "chardet" },
