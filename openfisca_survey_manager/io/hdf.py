@@ -23,7 +23,7 @@ def write_table_to_hdf5(
     May mutate `data_frame` (type conversions) to ensure it can be written.
     """
     try:
-        data_frame.to_hdf(hdf5_file_path, store_path, append=False, **kwargs)
+        data_frame.to_hdf(hdf5_file_path, key=store_path, append=False, **kwargs)
     except (TypeError, NotImplementedError):
         log.info("Type problem(s) when creating %s in %s", store_path, hdf5_file_path)
         dtypes = data_frame.dtypes
@@ -42,6 +42,6 @@ def write_table_to_hdf5(
                 "The following types are added as category using the table format %s",
                 dtypes[converted_dtypes],
             )
-            data_frame.to_hdf(hdf5_file_path, store_path, append=False, format="table", **kwargs)
+            data_frame.to_hdf(hdf5_file_path, key=store_path, append=False, format="table", **kwargs)
         else:
-            data_frame.to_hdf(hdf5_file_path, store_path, append=False, **kwargs)
+            data_frame.to_hdf(hdf5_file_path, key=store_path, append=False, **kwargs)
