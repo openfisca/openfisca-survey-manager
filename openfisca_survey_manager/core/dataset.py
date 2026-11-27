@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import codecs
 import collections
 import configparser
+import contextlib
 import json
 import logging
+import os
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -87,8 +89,27 @@ Contains the following surveys :
 
         config.set("collections", self.name, str(self.json_file_path))
         config.save()
-        with codecs.open(str(self.json_file_path), "w", encoding="utf-8") as _file:
-            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
+        # Serialize BEFORE opening the target file, with a tolerant default
+        # (pathlib.Path values sometimes end up in table metadata, e.g.
+        # ``parquet_file`` set by ``set_table_in_survey``), then write
+        # ATOMICALLY (same-directory temp file + ``os.replace``). The previous
+        # implementation opened the file first and serialized into it: any
+        # ``TypeError`` raised mid-``json.dump`` (such as an unserializable
+        # ``PosixPath``) left a TRUNCATED collection file on disk, breaking
+        # every subsequent load of the collection.
+        payload = json.dumps(self.to_json(), ensure_ascii=False, indent=2, default=str)
+        target = Path(str(self.json_file_path))
+        directory = target.parent if str(target.parent) else Path()
+        fd, tmp_name = tempfile.mkstemp(dir=directory, suffix=".tmp")
+        tmp_path = Path(tmp_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as _file:
+                _file.write(payload)
+            tmp_path.replace(target)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                tmp_path.unlink()
+            raise
 
     def fill_store(
         self,
