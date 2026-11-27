@@ -1,5 +1,10 @@
 # Changelog
 
+# 6.6.2
+
+* Bug fix (no API change)
+  - **core.input_data**: new public home for `set_table_in_survey`, moved from `tests.input_dataframe_generator`. The root-level `input_dataframe_generator` module was removed in 6.3 and the function only survived under `tests/`, whose `__init__` requires `openfisca_country_template` — making it unusable by downstream data pipelines that register their produced tables in a collection. Re-exported from `tests.input_dataframe_generator` for backward compatibility.
+
 # 6.6.1
 
 * Bug fix (no API change)
