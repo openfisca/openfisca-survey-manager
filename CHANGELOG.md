@@ -1,5 +1,10 @@
 # Changelog
 
+# 6.6.2
+
+* Technical change (no API change)
+  - **io.hdf**: `write_table_to_hdf5` now passes `key` to `DataFrame.to_hdf` as a keyword argument, fixing the pandas `FutureWarning` ("Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only").
+
 # 6.6.1
 
 * Bug fix (no API change)
