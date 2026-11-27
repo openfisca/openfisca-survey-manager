@@ -1,5 +1,10 @@
 # Changelog
 
+# 6.6.1
+
+* Bug fix (no API change)
+  - **core.dataset**: `SurveyCollection.dump` now serializes with `default=str` (so `pathlib.Path` values in table metadata — e.g. `parquet_file` set by `set_table_in_survey` — become strings instead of raising) and writes the collection JSON **atomically** (same-directory temp file + `os.replace`). Previously, a `TypeError` raised mid-`json.dump` left a **truncated** collection file on disk, and every subsequent load of the collection failed with `JSONDecodeError`. Regression tests added.
+
 # 6.6.0
 
 * Performance
